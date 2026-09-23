@@ -1,0 +1,12 @@
+{
+  "id": 79990,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79990",
+  "source": {
+    "title": "Stranglethorn Lumber",
+    "description": "We are in desperate need of additional resources and reinforcements to support our objectives in Arathi Basin. Appropriate lumber has been particularly difficult to obtain and we've been forced to look as far as Stranglethorn Vale to source what we need. Bring me a Shipment of Stranglethorn Lumber and your support will not be overlooked.",
+    "objective": "Bring Sergeant Maclear a Shipment of Stranglethorn Lumber.",
+    "progress": "Have you brought us fresh supplies?",
+    "completion": "Thank you <class>. This will help us turn the tide in Arathi Basin."
+  }
+}

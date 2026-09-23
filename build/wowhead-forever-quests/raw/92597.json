@@ -1,0 +1,12 @@
+{
+  "id": 92597,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=92597",
+  "source": {
+    "title": "Reading the Ley Lines",
+    "description": "Here in the elemental plane, we derive much of our arcane strength from ley lines that still run through the ground under our feet. Of late, these ley lines have begun to pierce the surface, giving us more direct and powerful access to these latent arcane energies.\n\nGo to the standing stones to the northeast. There is a ley line there. Tap into your birthright and draw in its energy.",
+    "objective": "Use your Read Ley Line racial ability at the ley line in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

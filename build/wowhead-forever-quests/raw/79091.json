@@ -1,0 +1,12 @@
+{
+  "id": 79091,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79091",
+  "source": {
+    "title": "Archmage Antonidas: The Unabridged Autobiography",
+    "description": null,
+    "objective": "ProgressHave you brought something to add to our collection?",
+    "progress": null,
+    "completion": "Thank you, <name>. You say this is from the Ironforge library? ...I'm sure they won't miss it.\n\nIf you discover more magical works that might benefit the library, please bring them to me."
+  }
+}

@@ -1,0 +1,19 @@
+<Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+    <Script file="init.lua"/>
+    <Script file="assets.lua"/>
+    <Script file="options.lua"/>
+    <Script file="fonts.lua"/>
+    <Script file="dev_log.lua"/>
+    <Script file="utils.lua"/>
+    <Script file="entries.lua"/>
+    <Script file="strings.lua"/>
+    <Script file="settings.lua"/>
+    <Script file="menus.lua"/>
+    <Script file="translation.lua"/>
+    <Script file="quest_switcher.lua"/>
+    <Script file="tooltips.lua"/>
+    <Script file="chats.lua"/>
+    <Script file="scanner.lua"/>
+    <Script file="skills.lua"/>
+    <Script file="main.lua"/>
+</Ui>

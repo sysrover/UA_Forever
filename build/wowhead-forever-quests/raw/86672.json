@@ -1,0 +1,12 @@
+{
+  "id": 86672,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86672",
+  "source": {
+    "title": "Imperial Qiraji Armaments",
+    "description": "We have not sat idly by for a millennium, <name>.\n\nWe have watched these beasts feast on their own when they have exhausted their utility. We have listened as they have plotted and schemed to destroy our world. And we have learned of their own internal treachery.\n\nWeaknesses exist and we know how to use those weaknesses to our advantage.\n\nFind and bring me their ceremonial armaments: Combined with the element created from the volatility of their own God, they will become a force of reckoning.",
+    "objective": "Arygos in the Temple of Ahn'Qiraj will create Elementium Infused Armaments for you should you bring him Imperial Qiraji Armaments and 3 Elementium Ore.",
+    "progress": "Seek out what I requested. You will become greater than the sum of your parts, champion.",
+    "completion": "Infused with Elementium, these weapons will cut through the Qiraji and their God with incredible ease."
+  }
+}

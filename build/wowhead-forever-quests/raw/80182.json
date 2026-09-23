@@ -1,0 +1,12 @@
+{
+  "id": 80182,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80182",
+  "source": {
+    "title": "The Only Cure is More Green Glow",
+    "description": "Not only was your sample insufficient in quantity, it was also impure.\n\nWhat we require is more green glow. The troggs are obviously not irradiated sufficiently to fulfill our needs. You will have to go into Gnomeregan and bring back some radioactive fallout, straight from the tap. I am speaking of the irradiated slimes, lurkers and horrors. Be warned, the containment of this type of fallout is difficult. You may need to make several attempts with the phial until a suitable sampling is recovered.",
+    "objective": "Travel to Gnomeregan and bring back High Potency Radioactive Fallout. Be warned, the fallout is unstable and will collapse rather quickly.\n\nOzzie will also require your Heavy Leaden Collection Phial when the task is complete.",
+    "progress": "Hrm, you're not glowing. That's a good sign.",
+    "completion": "<Ozzie examines you.> Impressive, you still have all of your limbs. Now it's time to see what this stuff can do!"
+  }
+}

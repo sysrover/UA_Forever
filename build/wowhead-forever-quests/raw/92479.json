@@ -1,0 +1,12 @@
+{
+  "id": 92479,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=92479",
+  "source": {
+    "title": "A Scribbled Letter",
+    "description": "I was asked to bring this to your attention as soon as you returned from the kobold camps, <name>. It appears to be a letter sealed with the mark of Tordrin Stemblade, our local hunter trainer. Take a moment to read it before you go about any other business here in the Abbey.",
+    "objective": "Read the Scribbled Letter and speak to Tordrin Stemblade in Northshire Abbey.",
+    "progress": null,
+    "completion": null
+  }
+}

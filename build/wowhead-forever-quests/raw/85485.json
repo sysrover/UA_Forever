@@ -1,0 +1,12 @@
+{
+  "id": 85485,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85485",
+  "source": {
+    "title": "Soul of the Void",
+    "description": "The scythe is progressing nicely. The next soul you should try adding is that of a Voidwalker. I know of a particularly powerful one that is lingering despite its master dying nearby. It should make for a good addition.",
+    "objective": "Find the Voidwalker near Corin's Crossing in Eastern Plaguelands and add its soul to the scythe.",
+    "progress": "Is everything going well?",
+    "completion": "Excellent, <name>. Are you ready for the next stage of restoration of this scythe?"
+  }
+}

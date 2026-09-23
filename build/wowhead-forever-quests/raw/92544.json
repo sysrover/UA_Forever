@@ -1,0 +1,12 @@
+{
+  "id": 92544,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92544",
+  "source": {
+    "title": "Al'Aketh Thugs",
+    "description": "A band of Al'Aketh cult ruffians have taken up residence near the temple ruins just southwest of here, led by a real monster called Malduko Cloudcrush. This rabble has no doubt been dispatched here by High Priestess Lorthuna at the Shrine of Akir to attack travelers and coerce our people into joining the cult.\n\nI need to stay here at my post to alert travelers leaving the grove of the danger, but I would be grateful if you could do something about those cultists and their leader for me.",
+    "objective": "Slay 6 Al'Aketh Brutes, 4 Al'Aketh Neophytes, and Malduko Cloudcrush in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

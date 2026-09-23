@@ -1,0 +1,12 @@
+{
+  "id": 79098,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=79098",
+  "source": {
+    "title": "Clear the Forest!",
+    "description": "This one is slain, but these infuriating alliance continue to fight... what is this charm?",
+    "objective": "Bring the Silverwing Sentinel Charm to Kazragore, Far Seer, at the Bonfire base in Ashenvale.",
+    "progress": "<name>, what news do you have from the front?",
+    "completion": "These Alliance dogs still prevent us from harvesting the resources needed for Orgrimmar. Continue to drive them out!\n\nThis Warsong battle drum will inspire you to fight them with greater determination. Lok'tar Ogar, <name>!"
+  }
+}

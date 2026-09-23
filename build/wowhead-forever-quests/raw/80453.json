@@ -1,0 +1,12 @@
+{
+  "id": 80453,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80453",
+  "source": {
+    "title": "Best Laid Plans",
+    "description": "Take the talisman down to Zan Shivsprocket, in the basement. I've asked him to rig the artifact with a mechanism that will detect any attempt to channel magic energy into, or out of, it.\n\nThe mechanism is all but invisible to the naked eye, and will detonate when triggered. With any luck, Caius will be killed in the blast. At the very least, his plans for the talisman will be foiled.",
+    "objective": "Bring the Talisman of Kazdor to Zan Shivsprocket in the basement of Ravenholdt Manor.",
+    "progress": "Yes, <class>? Do you need something from me?",
+    "completion": "So you're on Fahrad's job, hm?  Very well. Give me the talisman and I'll get to work."
+  }
+}

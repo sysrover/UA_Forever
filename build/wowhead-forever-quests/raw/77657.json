@@ -1,0 +1,12 @@
+{
+  "id": 77657,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77657",
+  "source": {
+    "title": "Relics of the Light",
+    "description": "Relics of the Light can be found across Azeroth. These relics - in particular, the Librams that have guided our order since its founding - can help you strengthen your connection to the Light.\n\nWe held one such libram in our archives, but it was stolen by the Frostmane trolls. The thief is likely still carrying it on them. Recover the libram, and follow its guidance to learn a new combat technique. Return to me when you have done this.",
+    "objective": "Recover the stolen libram carried by a Frostmane troll in Coldridge Valley. Follow its guidance to learn a new ability, then return to Bromos Grummner in Anvilmar.",
+    "progress": "What has the libram revealed to you, <name>?",
+    "completion": "Well done, <name>. Applying the rune you have learned to your equipment will grant you powerful new abilities.\n\nSeek out more of these relics along your travels."
+  }
+}

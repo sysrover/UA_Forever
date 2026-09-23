@@ -1,0 +1,12 @@
+{
+  "id": 81871,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81871",
+  "source": {
+    "title": "Feralas Mission XV: Defeat Slirena",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough, and journey to the Nightmare Incursion at the Ruins of Ravenwind. Defeat the harpy \"queen\" Slirena there and return to me.",
+    "objective": "Defeat Slirena in the Feralas Nightmare Incursion near the ziggurat in the Ruins of Ravenwind and return to Field Captain Arunnel.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

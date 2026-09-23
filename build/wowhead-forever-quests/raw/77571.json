@@ -1,0 +1,12 @@
+{
+  "id": 77571,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77571",
+  "source": {
+    "title": "Relics of the Kaldorei",
+    "description": "The kaldorei are an ancient people, and our lost relics can be found across Azeroth. Through these relics, the spirits can teach you ways to strengthen your connection to the Dream.\n\nThe grellkin have stolen one such relic. Slay them and retrieve the relic, then follow its guidance to learn a new combat technique. Return to me when you have done this.",
+    "objective": "Recover the relic from the grellkin in Shadowglen. Follow the relic's guidance to learn a new ability, then report back to Mardant Strongoak.",
+    "progress": "What has the relic taught you?",
+    "completion": "Well done, <name>. Applying the rune you have learned to your equipment will grant you powerful new abilities.\n\nSeek out more of our lost relics along your travels."
+  }
+}

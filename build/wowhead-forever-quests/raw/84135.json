@@ -1,0 +1,12 @@
+{
+  "id": 84135,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84135",
+  "source": {
+    "title": "Beach Bot",
+    "description": "Lying on the shore, half-lost in the afternoon spray, is a strange metal contraption. It looks like some kind of mech, but you have never seen anything like it before. You notice a label on its side that reads \"Property of D.E.L.T.A.: Deepsea Exploration and Liquefaction Technologies Alliance\". You also spot a small compartment that you might be able to open.",
+    "objective": "Use a rock or something to dislodge parts of the mech.",
+    "progress": null,
+    "completion": "Using your weapon and field skills you pry the compartment free, revealing a vial of glowing liquid within."
+  }
+}

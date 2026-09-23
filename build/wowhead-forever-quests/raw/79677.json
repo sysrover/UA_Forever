@@ -1,0 +1,12 @@
+{
+  "id": 79677,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79677",
+  "source": {
+    "title": "A Quick Grocery Run",
+    "description": "Other ogres laugh at Skonk because Skonk smaller than them. They say small ogre weak, so Skonk learn to cook instead of fight. This only cause more teasing, so Skonk run away to follow dream.\n\nSkonk can make dish, but need ingredients. Not sure where to find them. Skonk more focused on craft; not really logistics guy.",
+    "objective": "Gather the ingredients for Skonk's dish, then bring them to him in Arathi Highlands",
+    "progress": "You find ingredients yet? Almost dinner time.",
+    "completion": "Good work, <race> buddy. We really cooking now!"
+  }
+}

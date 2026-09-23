@@ -1,0 +1,12 @@
+{
+  "id": 94007,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=94007",
+  "source": {
+    "title": "Taming the Beast",
+    "description": "Now that you've gained a level of comfort in the wilds of the highlands, I believe it is time for you to seek your very own animal companion.\n\nGo to the port of Valanaar to the southeast, and speak with Quel'ana Quickgale there. He will instruct you in the art of beast taming.",
+    "objective": "Report to Quel'ana Quickgale in Valanaar.",
+    "progress": null,
+    "completion": null
+  }
+}

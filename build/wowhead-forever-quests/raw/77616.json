@@ -1,0 +1,12 @@
+{
+  "id": 77616,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77616",
+  "source": {
+    "title": "The Lost Rune",
+    "description": "The warriors of the Alliance have much to teach you, but you must also seek out new techniques on your own.\n\nAnother young warrior recently ventured into the Echo Ridge Mine. She was experimenting with engraving mystical runes onto her equipment to improve her combat prowess.\n\nI suspect she was overwhelmed when the kobolds captured the mine. Find the rune among the kobolds and learn this technique yourself.",
+    "objective": "Find the lost rune within Echo Ridge Mine and use it to learn a new ability, then report back to Llane Beshere in Northshire.",
+    "progress": "Did you find the rune?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

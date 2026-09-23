@@ -1,0 +1,12 @@
+{
+  "id": 79985,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79985",
+  "source": {
+    "title": "A Fine Mess",
+    "description": "<Kernobee groans.> Wha.. What happened?\n\nThe last thing I remember is being captured by a group of dark iron dwarves, beaten to within an inch of my life and then thrown in here with these filthy troggs.\n\nGet me out of here, <name>!\n\nHere's the plan: Lead me to the exit; if we make it out alive, you go to Booty Bay and let Scooty know that I went to Ratchet to warn Tinkerwiz of the dark iron's involvement in the making of that super rig.\n\nLet's get going!",
+    "objective": "Escort Kernobee to the Clockwerk Run exit and then report to Scooty in Booty Bay.",
+    "progress": null,
+    "completion": "I suppose you should be rewarded for bringing Kernobee back to us in one piece, <name>. If you go back to Gnomeregan, these might give you the edge you'll need in defeating that good-for-nothing backstabber, Mekgineer Thermaplugg."
+  }
+}

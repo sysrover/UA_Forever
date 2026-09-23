@@ -1,0 +1,12 @@
+{
+  "id": 82098,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=82098",
+  "source": {
+    "title": "Into The Temple of Atal'Hakkar",
+    "description": "According to legend, The Temple of Atal'Hakkar is a holy shrine dedicated to the ancient god, Hakkar the Soulflayer. Maintained by a vicious tribe of trolls named the Atal'ai, the temple is rumored to be impenetrable.\n\nNow sunk beneath the Pool of Tears, retrieving artifacts from the temple is even more difficult. But that's what I need you to do, <name>.\n\nAid me by gathering the intact Atal'ai Tablets. Bring them to me and I will return to the Explorers' Guild a hero. Together we will share the glory.",
+    "objective": "Gather 10 Atal'ai Tablets for Brohann Caskbelly in Stormwind.",
+    "progress": "As dusk slowly descends upon my career I turn to you, <name>, to help me in my final quest for the Explorers' League. If my old bones could muster the strength to brave the Swamp of Sorrows and the sunken temple I would be fighting right alongside you.\n\nPride makes it hard for me to ask for your help in collecting the Atal'ai Tablets. But old age forces the necessity.\n\nPlease help me, <name>. I want to retire from the Explorers' League having completed their final bidding.",
+    "completion": "The Atal'ai Tablets! Thank you, <name>!\n\nOnce I deliver these to the Explorers' League our names shall go down in history together. You have helped an old dwarf fulfill his final obligation in life. For that I am eternally grateful."
+  }
+}

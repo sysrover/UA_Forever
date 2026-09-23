@@ -1,0 +1,12 @@
+{
+  "id": 82113,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=82113",
+  "source": {
+    "title": "Da Voodoo",
+    "description": "The spirit totem just isn't enough.  We be needin' some voodoo magic to make it work jus' right.\n\nThe trolls in the sunken temple have feathers strong with voodoo magics.  Go there and kill Gasher, Mijan, Zolo, Hukku, Zul'lor, and Loro.  Then we have magic enough for a real spirit totem.",
+    "objective": "Bring the voodoo feathers to Bath'rah the Windwatcher.",
+    "progress": "Where's the feathers, mon?",
+    "completion": "It's about time this troll got a full night's rest!  The spirit totem will watch over me.\n\nI been a long time collectin' things, maybe you want somethin' for all your trouble?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 91743,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91743",
+  "source": {
+    "title": "Rascally Rodents",
+    "description": "Those awful kobolds are eating my books! You have to get them back before they devour my whole library.",
+    "objective": "Retrieve 8 Stolen Books from kobolds in Northshire Valley and return them to Brother Paxton.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 87760,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=87760",
+  "source": {
+    "title": "Holy Diver",
+    "description": "I have received word back from Darnassus, <name>!\n\nFrom the animal samples, we learned that the naga dominated these sea creatures to use as unwilling mounts and beasts of burden. The ones that were too obstinate, or too old or badly injured, they drove out for sport. Monstrous!\n\nIt is our sacred duty to put a stop to this!\n\nThe naga have forces in the Ruins of Mathystra, and they must be seizing threshers from off the shore. Find their beastmistress, slay her, and bring back her tools of domination!",
+    "objective": "Find a Stormscale Beastmistress, slay her, and bring back her Rod of Deep Dominion.",
+    "progress": null,
+    "completion": null
+  }
+}

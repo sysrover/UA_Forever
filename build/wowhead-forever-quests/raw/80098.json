@@ -1,0 +1,12 @@
+{
+  "id": 80098,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80098",
+  "source": {
+    "title": "Curious Dalaran Relic",
+    "description": null,
+    "objective": "ProgressHave you recovered one of the stolen relics?",
+    "progress": null,
+    "completion": "Thank you, <name>. I will make sure this is safely returned to the city."
+  }
+}

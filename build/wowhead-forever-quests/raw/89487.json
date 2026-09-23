@@ -1,0 +1,12 @@
+{
+  "id": 89487,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89487",
+  "source": {
+    "title": "Much Ado About Magnets",
+    "description": "Even with the supplies you gathered, I can only do so much without my workshop. I did come up with a plan, a genius one at that, to finally figure out how these strange magnetic fields work. I suspect with enough precision goblin engineering that I can create a way to keep the distance between two people at a perpetual minimum! Nobody will get away from me without a purchase ever again.\n\nTo test my theory, take this prototype and wave it around in New Avalon. With any luck, you might find something!",
+    "objective": null,
+    "progress": "You know, it's refreshing working on something that doesn't have a significant chance of turning me into a pile of ash. Maybe the gnomes are onto something after all.",
+    "completion": "It worked!? I mean, it worked! Of course it worked... ugh, I should learn to always trust my gut.\n\nI started to suspect my theory was a dud. Instead of configuring the device to use opposite polarities, it is built to release a burst of energy with the same polarity. The result, I am guessing, is that it will repel things instead of attract them.\n\nOh well, back to the drawing board. Here's the schematic anyway, in case pushing people away aligns with your business strategy."
+  }
+}

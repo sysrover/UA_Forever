@@ -1,0 +1,12 @@
+{
+  "id": 81747,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81747",
+  "source": {
+    "title": "Duskwood Mission XVIII: Rescue Elenora Marshwalker",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Vul'gol Ogre Mound. Find the sleeping Druid of the Claw Elenora Marshwalker there and escort her to safety. Then return to me.",
+    "objective": "Rescue Elenora Marshwalker in the Duskwood Nightmare Incursion in the ruins of a farmhouse near the Vul'gol Ogre Mound and return to Field Captain Palandar.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

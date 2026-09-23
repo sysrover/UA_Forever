@@ -1,0 +1,12 @@
+{
+  "id": 82112,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82112",
+  "source": {
+    "title": "A Better Ingredient",
+    "description": "It is as I feared -- the toxin is simply too weak for such a powerful creature.\n\nIf we are to create a toxin of high enough potency, you must venture to the bottom of the Temple of Atal'Hakkar, unlock the secrets of the altar and recover a putrid vine from the guardian there.  The temple is dangerous, and it would behoove you to bring friends.\n\nReturn to me when this is done.",
+    "objective": "Retrieve a Putrid Vine from the guardian at the bottom of the Sunken Temple and return to Torwa Pathfinder.",
+    "progress": "Have you recovered the vine?",
+    "completion": "At last, the toxin can be created in full.  I dare not require you to inflict it upon the creature again, as I have asked too much already.\n\nYou have my thanks and respect.  May you be well in your travels, <name>."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85628,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85628",
+  "source": {
+    "title": "Paragons of Power: The Demoniac's Robes",
+    "description": "The ultimate symbol of power amongst the tribe is the garb we wear in battle.  A demoniac's robes have fused fine runecloth and devastatingly powerful mojo into a single fabric.  The visage of the robe is said to instill fear into the minds of all who see it... especially the demons that the demoniac will eventually dominate.\n\nFrom Zul'Gurub, you must bring me a very specific set of the Paragons of Power.  It will be difficult... but your success will assure you of acquiring a robe for yourself.",
+    "objective": "Bring Al'tabim the All-Seeing a Primal Hakkari Kossack.  You must also have a reputation equal to or greater than Revered with the Zandalar Tribe.\n\nAl'tabim the All-Seeing is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "The Paragons of Power... you have returned with them?  Only once we have them will we share the ultimate symbol of demoniac power with you, <name>.",
+    "completion": "Impressive - your victory in Zul'Gurub has assured us - nay, the world - that Hakkar will not prevail.  The time may come when you face the Blood God directly... and should this come to pass know that your reverence is assured amongst the Zandalar tribe.\n\nOh, and this simple robe should help out too I think.\n\n<Al'tabim winks knowingly at you.>"
+  }
+}

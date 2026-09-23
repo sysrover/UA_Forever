@@ -1,0 +1,12 @@
+{
+  "id": 84545,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84545",
+  "source": {
+    "title": "A Hero's Reward",
+    "description": "<name>, your services to the Warlords surpassed all we could expect from the denizens of this world.\n\nWe do not understand your people's notions of gratitude, or rewarding good works, but in this case... perhaps a reward is warranted.\n\nUnder the surf at the southern base of this island, you will find a coffer.  In it you will find your... reward.\n\nGo, <name>.  Claim your reward.",
+    "objective": "Claim your reward from Hydraxis' Coffer.",
+    "progress": null,
+    "completion": "Hydraxis' voice descends from the waters' surface...\n\n\"Choose that which best suits you, <name>.  May it protect you against the foes of the Waterlords.\""
+  }
+}

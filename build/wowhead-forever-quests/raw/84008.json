@@ -1,0 +1,12 @@
+{
+  "id": 84008,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84008",
+  "source": {
+    "title": "A Lesson in Grace",
+    "description": "Your technique is very interesting,<name>. A bit rougher around the edges than Sir Dalton, but it has a more \"worldly\" quality to it that I feel suits me well. Thank you so much, I've already learned so much from you!",
+    "objective": null,
+    "progress": "Through your teachings I feel more connected to the light than ever. I am starting to understand that the role of a <class> is to embrace mercy as much as it is to hone their martial prowess. I will consider this lesson well, and apply what I've learn to bolster our allies!",
+    "completion": "Your squire has grown in skill adventuring alongside you!"
+  }
+}

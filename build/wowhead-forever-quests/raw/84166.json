@@ -1,0 +1,12 @@
+{
+  "id": 84166,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84166",
+  "source": {
+    "title": "Just Compensation",
+    "description": "You kept your word and brought the device built by Mux.  I believe a reward is in order if I'm to keep you interested in saving my skin.  Bring me the belt and set of gauntlets that you wish to upgrade.  I promise the ones I give you in return will be far superior.",
+    "objective": "Bring a Lightforge Belt and a set of Lightforge Gauntlets to Deliana in Ironforge.",
+    "progress": "You're ready to perform the trade?",
+    "completion": "You've kept your end of the bargain, I shall keep mine.\n\nJust remember that I'm holding on to the best pieces until your work is finished."
+  }
+}

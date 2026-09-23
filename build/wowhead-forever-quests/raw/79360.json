@@ -1,0 +1,12 @@
+{
+  "id": 79360,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=79360",
+  "source": {
+    "title": "Elemental Aid",
+    "description": "I've heard of Hirzek, and the barbaric lengths they have gone to manipulate the elements.\n\n<Rau's eyes wander as he ponders the note, speaking to himself aloud.>\n\nThe storm will rage, the ground will rumble, and the tide will rise...\n\n<Rau's eyes focus you and widen as he comes to the realization.>\n\nThey must be using some cruel sorcery they learned from Hirzek. They plan to flood the canyon and raise us all into undeath.\n\nTo achieve their goal, I fear they require devastating elemental powers.",
+    "objective": "While many inhabitants of Thousand Needles are our enemies, we can't stand by and watch them get washed away. The note was clear, they plan to raise an undead army in the aftermath, which potentially threatens us all.\n\nWe are ill equipped to deal with this, but I've heard of a shaman on the Eastern Kingdoms who's proficient in the elemental imbuement of weapons, they might be capable of helping.\n\nFind this shaman and plead for their aid.",
+    "progress": null,
+    "completion": "<You hand the note to Bath'rah who reads it over and gives a half hearted chuckle.>\n\nAh so it be true mon... I too have sensed much unrest in the elemental plane and dis must be one of the causes.\n\nTo flood all da Thousand Needles would take a great storm and many lives be lost.\n\nI t'ink I got just da t'ing for ya, but it won't come easy."
+  }
+}

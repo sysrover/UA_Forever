@@ -1,0 +1,12 @@
+{
+  "id": 79588,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79588",
+  "source": {
+    "title": "Small Furry Paws",
+    "description": null,
+    "objective": "ProgressThe first lesson in drawing a crowd is: lure them with gadgets and trinkets!  Can you help me?\n\nI need small furry paws to use for prizes.  You can find those on the cats of the Barrens or Darkshore....\n\nBring me some paws and I'll trade you a Darkmoon Faire ticket for them.",
+    "progress": null,
+    "completion": "Great, you got them!  We can use these to make toys and baubles, and those will attract more people to the Faire!\n\nHere's your ticket, <name>.  You earned it!"
+  }
+}

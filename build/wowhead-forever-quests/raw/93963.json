@@ -1,0 +1,12 @@
+{
+  "id": 93963,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=93963",
+  "source": {
+    "title": "Exploring the Alliance",
+    "description": "Stormwind, Ironforge, and Darnassus all have unique peoples and cultures. As a guest of the Alliance here on Azeroth, you should take some time to visit each of our capital cities in turn.\n\nSpeak with Randal Emerson in the southern antechamber for directions to get you started.",
+    "objective": "Speak with Randal Emerson in Stormwind Keep to receive further instructions. Use the instructions received to locate and speak with King Magni Bronzebeard, High Tinker Mekkatorque, and Tyrande Whisperwind.",
+    "progress": null,
+    "completion": null
+  }
+}

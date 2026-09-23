@@ -1,0 +1,12 @@
+{
+  "id": 85630,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85630",
+  "source": {
+    "title": "Paragons of Power: The Illusionist's Wraps",
+    "description": "Mages in our tribe are known as illusionists.  They employ powerful mojo in their incantations, often befuddling and confusing the tribe's enemies!\n\n<Al'tabim laughs wickedly.>\n\nIt is quite the sight to see a powerful illusionist at work, bringing our enemies to their knees from their own madness!\n\nFor you to know the way of our illusionists, go to Zul'Gurub and bring back to me selected Paragons of Power.  For this, I will give you arm wraps our illusionists use to weave their spells.",
+    "objective": "Bring Al'tabim the All-Seeing Primal Hakkari Bindings.  You must also have a reputation equal to or greater than Friendly with the Zandalar Tribe.\n\nAl'tabim the All-Seeing is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "<name> - you've returned already?  Were you able to get the Paragons of Power I need?",
+    "completion": "Impressive... could you feel the mojo flowing through them?  The Paragons of Power were used as currency of sorts back when the Gurubashi Empire ruled these lands.  Now we Zandalar will use the latent mojo inside of them to fight the second rise of the Blood God Hakkar!\n\nYou've done well today - consider yourself to have a friend in the Zandalar.  For that, here are the illusionist's wraps I promised!"
+  }
+}

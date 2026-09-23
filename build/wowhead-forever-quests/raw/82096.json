@@ -1,0 +1,12 @@
+{
+  "id": 82096,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82096",
+  "source": {
+    "title": "Into the Depths",
+    "description": "Inside the temple, I found a circular room with six balconies, each one with a serpent statue on the edge. Curious, I pushed one of them to see what would happen, and it was a trap! I nearly fell to my death from the explosion. Laying there on the ledge, I looked down and noticed that there was another statue at the base of the room; an altar of sorts... Hakkar, I think it was called.\n\nI think that this altar is the secret -- you must bring this token to the altar in the Sunken Temple.",
+    "objective": "Find the Altar of Hakkar in the Sunken Temple in Swamp of Sorrows.",
+    "progress": "Upon examining the statue, you notice a depression in its side, just the size of the token that Marvon gave you...",
+    "completion": "You push the stone circle into the opening, and you hear it lock into place.\n\nNow that the stone is in place, you may continue... but what should you do next?\n\nPerhaps you should examine this altar further..."
+  }
+}

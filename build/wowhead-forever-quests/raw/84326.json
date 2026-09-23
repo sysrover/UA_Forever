@@ -1,0 +1,12 @@
+{
+  "id": 84326,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84326",
+  "source": {
+    "title": "Diplomat Ring",
+    "description": "The diplomatic gift you assembled has reached the Forsaken priest Dietrich Praice, and I have made discreet contact with them. We both agree this search should be kept among the faithful. If the shards can be used as a weapon, it is best that they not fall into the hands of either faction's leaders.\n\nWe have devised a secret means of identification for those seeking the shards. Bring me materials to forge a ring that will contain a sliver of one of the shards.",
+    "objective": "Bring the requested materials to High Priestess Laurena in Stormwind Cathedral.",
+    "progress": "The cutting from the shard is ready, <name>. Do you have the other materials?",
+    "completion": "<With a conveniently quick spell, Laurena transmutes the materials and the gem cutting into a ring>\n\nUnfortunately, this was the easy part."
+  }
+}

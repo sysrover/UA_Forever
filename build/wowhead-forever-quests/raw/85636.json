@@ -1,0 +1,12 @@
+{
+  "id": 85636,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85636",
+  "source": {
+    "title": "Paragons of Power: The Madcap's Tunic",
+    "description": "My eyes failed me long ago, but I do not miss them.  Even in a tribe such as ours - where one's vestments convey station and purpose - the most potent of garb exudes power that simple eyes cannot see.  The prized tunic of the Zandalar madcap is no exception, exuding the raw power of chaos and madness that they are able to channel.\n\nThe Paragons of Power I need lie in Zul'Gurub; bring me what I seek, and I will reward you with your own legendary tunic... one befitting a weaver of madness.",
+    "objective": "Bring Falthir the Sightless a Primal Hakkari Aegis.  You must also have a reputation equal to or greater than Revered with the Zandalar Tribe.\n\nFalthir the Sightless is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Welcome back to the Isle, <name>... have you returned triumphantly with the Paragons of Power in tow?",
+    "completion": "Impressive... you have accomplished today what few thought was possible.  Your reverence in the tribe is assured for a lifetime, <name>.  You have earned the right to don the madcap's tunic - do so with our blessing."
+  }
+}

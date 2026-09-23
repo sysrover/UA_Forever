@@ -1,0 +1,12 @@
+{
+  "id": 87506,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87506",
+  "source": {
+    "title": "Weakening The Defenses",
+    "description": "While you were away we finalized our attack plans on Tyr's Hand. We will execute a frontal assault as well as a flanking strike, which I myself will lead. Before we fully commit we'll need to weaken the forward defenses. I'm sending you back in to Tyr's Hand to take out as many of the enemy Siege Commanders as possible, as they are the key organizers of the enclave's defenses.\n\nI'm leaving to join my forces at our position now. You'll report to Commander Beatrix when you return.\n\nDon't fail.",
+    "objective": "Enter Tyr's Hand in Eastern Plaguelands, slay three Scarlet Siege Commanders.",
+    "progress": "Were you successful in your mission?",
+    "completion": "Caldoran and his guard have sent the signal that they are in position and ready to support a direct attack.\n\nWhile you were away an Argent Dawn messenger arrived to deliver a message, then hurried away quickly. It seems that there is some trouble at Light's Hope Chapel, and you are needed back there urgently. I can't ask you for anything more as you've already been invaluable in this effort.  Thank you for your aid, <name>. We are as ready as we'll ever be now."
+  }
+}

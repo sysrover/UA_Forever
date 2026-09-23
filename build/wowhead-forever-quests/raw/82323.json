@@ -1,0 +1,12 @@
+{
+  "id": 82323,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82323",
+  "source": {
+    "title": "Vibrant Plumes",
+    "description": null,
+    "objective": "ProgressA person's imagination is an incredible thing.  It can make the smallest hill seem like the largest mountain.  It can make the most innocuous shadow appear cast by a horrible nightmare!\n\nWe at the Darkmoon Faire let our visitor's imaginations blossom!  But to help stretch their imaginations... sometimes we have to get tricky.\n\nI need vibrant plumes for one of my attractions.  You can get them from the birds of the more dangerous areas of Azeroth.  Bring me the plumes and many tickets will be yours!",
+    "progress": null,
+    "completion": "Ah, the plumes!  They are amazing, don't you think!  It would be easy to spark one's imaginations with such beauties!\n\nYou do such charitable work, <name>.  The smiles on our visitors' faces when they see the show is a grand payment indeed, but please take these tickets as well."
+  }
+}

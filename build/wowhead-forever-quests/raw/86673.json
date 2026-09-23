@@ -1,0 +1,12 @@
+{
+  "id": 86673,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86673",
+  "source": {
+    "title": "The Fall of Ossirian",
+    "description": "A terrible menace has been laid to rest. The cruel Ossirian has been vanquished.\n\nThe denizens of Kalimdor would be relieved to know of this victory. Take Ossirian's head and present it to Commander Mar'alith of Cenarion Hold.",
+    "objective": "Deliver the Head of Ossirian the Unscarred to Commander Mar'alith at Cenarion Hold in Silithus.",
+    "progress": "Ah, <name>, you have returned! And in one piece, I might add. What news do you bring from Ahn'Qiraj?",
+    "completion": "I offer you my highest commendation and your choice of an item of power, <name>. You have done the people of Kalimdor a great service."
+  }
+}

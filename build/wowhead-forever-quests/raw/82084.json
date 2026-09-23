@@ -1,0 +1,12 @@
+{
+  "id": 82084,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82084",
+  "source": {
+    "title": "A Lesson in Literacy",
+    "description": null,
+    "objective": "ProgressYour progress in the arcane arts has been exemplary, <name>. I think you are ready to author a spellbook of your own.\n\nLet's see... a quill from the Owlbeasts of the Hinterlands, and ink derived from silithid resin... yes, that will do. And for the pages, the finest Farraki Papyrus!",
+    "progress": null,
+    "completion": "Your spellbook is ready, <name>. May you fill its pages with arcane secrets to rival the ancient libraries of Elun'dris and Zuldazar."
+  }
+}

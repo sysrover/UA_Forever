@@ -1,0 +1,12 @@
+{
+  "id": 85638,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85638",
+  "source": {
+    "title": "Paragons of Power: The Predator's Bracers",
+    "description": "In the dark times after the fall of the Gurubashi Empire, Zandalar predators used their prowess to provide sustenance for the tribe.  Hunters claim to be much like our tribe's predators - to seek the hunt is to embody the essence of the predator, yes.  Your hunt in Zul'Gurub, however, will show us how you truly rate amongst our finest predators.\n\nBring to me a sampling of the Paragons of Power from within Zul'Gurub.  Do so, and you'll take first steps in becoming the penultimate predator.",
+    "objective": "Bring the following Paragons of Power from Zul'Gurub to Falthir the Sightless: A Primal Hakkari Bindings.  You must also have a reputation equal to or greater than Friendly with the Zandalar Tribe.\n\nFalthir the Sightless is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Hunt those in Zul'Gurub that would possess the Paragons of Power, <name>.  They are your prey; they possess that which we both must have.",
+    "completion": "Yes... I need no vision to sense the presence of the Paragons of Power.  Your success in Zul'Gurub has impressed many among the tribe.  We not only consider you to be a friend of the Zandalar, but also consider you worthy enough to possess the predator's bracers - powerful items, and a symbol of what it means to be a predator.  Well done, <name>."
+  }
+}

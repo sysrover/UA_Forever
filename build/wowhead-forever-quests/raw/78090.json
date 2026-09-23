@@ -1,0 +1,12 @@
+{
+  "id": 78090,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78090",
+  "source": {
+    "title": "A Second Opinion",
+    "description": "I'm not sure what to make of this orb, <name>. I think we will need the help of... a specialist.\n\nWe are aware of a warlock sect operating out of Stormwind. Officially we reject the presence of warlocks in the city. Unofficially, their knowledge can be of use when dealing with demonic forces.\n\nFind a representative of these warlocks, and seek their opinion on the orb.",
+    "objective": "Find the warlock sanctum within Stormwind and seek advice on the orb.",
+    "progress": "You're a long way from the cathedral, <class>. I hope you realize you have no authority here.",
+    "completion": "So the Silver Hand requires my aid? It will not come cheaply."
+  }
+}

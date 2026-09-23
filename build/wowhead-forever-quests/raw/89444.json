@@ -1,0 +1,12 @@
+{
+  "id": 89444,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89444",
+  "source": {
+    "title": "The Corrupted Emblem",
+    "description": "<Sifting through the ruins of the battle with Baelin Caldoran, you find the emblem from the shattered blade of the Ashbringer. As you hold the skull-shaped icon in your hand, you can swear you hear a slight,  murmuring whisper. You look around, searching for a source for the voice, but you see no obvious source of the sound. You shake your head and stow the emblem in your pack.>\n\nSeek out Lord Maxwell Tyrosus once you make your return to Light's Hope Chapel. He will be interested in this artifact.",
+    "objective": "Take the Corrupted Emblem to Lord Maxwell Tyrosus in Light's Hope Chapel in the Eastern Plaguelands.",
+    "progress": "Lord Maxwell Tyrosus tenses up as you show him the emblem you recovered.",
+    "completion": "When Alexandros set out to forge the Ashbringer, he did so with his heart filled with hope and the will to protect his homeland.\n\nIn the end, the blade was consumed by darkness, just as the wielder was. While Caldoran sought to cleanse it through domination and an abhorrent abuse of the light, he failed utterly to understand the nature of redemption itself. Redemption is of the heart and must be earned, not forced.\n\nI will keep this safe for now. Thank you, <class>. Now, we celebrate our victory."
+  }
+}

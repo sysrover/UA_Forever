@@ -1,0 +1,12 @@
+{
+  "id": 89475,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89475",
+  "source": {
+    "title": "The Lonely Path of the Damned",
+    "description": "<The spirit standing before you shows no awareness of your presence. After a moment, you realize that Lord Maxwell Tyrosus will want to know what occurred here. You should return to Light's Hope chapel and speak with him.>\n\n<You suspect that the Argent Crusaders may not be too excited to see you carrying the Ashbringer in its current, twisted form. You may want to keep the blade out of sight when you approach.>",
+    "objective": "Speak with Lord Maxwell Tyrosus at Light's Hope Chapel.\n\nYou should stow the Corrupted Ashbringer in your bags, or else the members of the Argent Dawn may react with hostility upon seeing the tainted weapon.",
+    "progress": null,
+    "completion": "<Maxwell Tyrosus sighs heavily as you finish your accounting of events at the monastery.>\n\nIt seems that Alexandros was not yet ready to find peace, and so the blade remains tainted.\n\nThe thing that truly breaks my heart is that just as you approached, I had a... feeling. It was like my old friend was here with me once again just as I remembered him. It's foolish, I know, to hope such a thing after all that's happened.\n\nGo. Take the blade from here. I will not suffer its presence."
+  }
+}

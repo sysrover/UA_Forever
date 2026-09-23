@@ -1,0 +1,12 @@
+{
+  "id": 82089,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82089",
+  "source": {
+    "title": "Master of Transmutation",
+    "description": "Transmutation is a unique skill that all talented alchemists have access to, but only those most devoted to the art may learn to truly become masters at the art. You may have what it takes, but you'll need to prove to me your sincerity to pursue this path to greater knowledge and understanding.\n\nBring me three Arcanite Bars as a token of your devotion to this art.",
+    "objective": "Bring Crimeon Lablade three Arcanite Bars",
+    "progress": "Surely three paltry bars of arcanite are nothing in exchange for this knowledge?",
+    "completion": "Very well, I can see your devotion.\n\n<Crimeon stuffs the bars into his pack hastily>\n\nYes? Oh, transmutation. Of course. Hold very still, I need all of my concentration for this.\n\n<Crimeon waves his hands dramatically and a tiny spark shoots from his right index finger>\n\nWell, uh, yep. That should do it. Probably."
+  }
+}

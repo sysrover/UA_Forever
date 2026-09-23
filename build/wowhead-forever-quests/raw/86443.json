@@ -1,0 +1,12 @@
+{
+  "id": 86443,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86443",
+  "source": {
+    "title": "The Nightmare Manifests",
+    "description": "We must use restraint against Eranikus. We are to redeem him not destroy him.\n\nTyrande is already en route to assist us in this task. We must weather the dragon's blows and save Nighthaven from certain destruction.\n\nBe on guard! You and your allies are our only hope.",
+    "objective": "Defend Nighthaven from Eranikus. Do not let Keeper Remulos perish. Do not slay Eranikus. Defend yourself. Await Tyrande.",
+    "progress": null,
+    "completion": "He is redeemed, <name>. He now returns to the Dream to right what he alone has done wrong. Eranikus will be a powerful ally to Malfurion and my father.\n\nThese armaments are for you, <name>; given to me by Ysera herself. You would do well to make use of them in your battles against the Qiraji."
+  }
+}

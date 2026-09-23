@@ -1,0 +1,12 @@
+{
+  "id": 80165,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80165",
+  "source": {
+    "title": "Cluster Rockets",
+    "description": null,
+    "objective": "ProgressCluster rockets are a collection of individual rockets, and their beauty is awesome!  Bring me coins of ancestry and I will share the knowledge of their creation to you...",
+    "progress": null,
+    "completion": "Here you are, <name>.  Take these recipes and learn their secrets.  I bid you fortune, and I look forward to seeing your magnificent creations."
+  }
+}

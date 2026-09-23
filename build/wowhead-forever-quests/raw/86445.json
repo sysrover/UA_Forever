@@ -1,0 +1,12 @@
+{
+  "id": 86445,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=86445",
+  "source": {
+    "title": "The Wrath of Neptulon",
+    "description": "Did I mention the bad news yet? Its name is Maws: 100 feet of death and destruction. I guess I may have forgotten that little tidbit.\n\nAccording to my superior psycho-psionic clairvoyance, you'll find that the best spot to cast this buoy is off the coast of Azshara, in the Bay of Storms.\n\nLook for a swirling maelstrom, most likely cluttered with wreckage.\n\nBy the by, I hope you have friends.\n\nNow if you somehow miraculously succeed, take the scepter shard to Anachronos.",
+    "objective": "Use the Arcanite Buoy at the Swirling Maelstrom at the Bay of Storms in Azshara.\n\nProvided item:",
+    "progress": "Time is running out, champion.",
+    "completion": "Well done, <name>. I will be able to reform the Scepter of the Shifting Sands soon."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 82008,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82008",
+  "source": {
+    "title": "Gnomish Solutions",
+    "description": "Greetings my esteemed colleague! I can tell you are an intellectual of the highest caliber! I have need of someone of your skill set. First things first! Explosions seem to be happening all along the race track! A tad suspect wouldn't you say? Our drivers safety is our top priority. Bring me a couple of Gnomish Harm Prevention Belts! Hopefully this will solve our short term problem.",
+    "objective": "Bring Fizzbizz Coppercoil 2 Gnomish Harm Prevention Belts",
+    "progress": "Do you got the Belts? A race is about to happen and we need it STAT!",
+    "completion": "Very good! Hopefully our racer will get across the finish line in one piece. Now to move onto bigger problems."
+  }
+}

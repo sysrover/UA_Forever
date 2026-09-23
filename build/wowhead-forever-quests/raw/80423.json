@@ -1,0 +1,12 @@
+{
+  "id": 80423,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80423",
+  "source": {
+    "title": "The World's Largest Gnome!",
+    "description": null,
+    "objective": "ProgressYebb Nebblegear is looking to add more talent to his show, and he's searching far and wide for the world's largest gnome.  Do you know any gnomes of considerable size?\n\nWell before he finds the gnome, he wants to have its costume ready.  I think a barbaric harness would be a good foundation for the costume; can you make some harnesses and bring them to me?  Do that, and I'll have a stack of Darkmoon Faire tickets for you...",
+    "progress": null,
+    "completion": "Oh dear, these are quite large!!  I can't imagine finding a gnome that would fit snuggly into them, but not to worry - if the gnome we find is not big enough, I can make adjustments to his costume.\n\nMany thanks, <name>.  Here are the tickets I promised you."
+  }
+}

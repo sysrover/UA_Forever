@@ -1,0 +1,12 @@
+{
+  "id": 85468,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85468",
+  "source": {
+    "title": "Soul of Mischief",
+    "description": "Looking at the curious scythe you've brought in, I believe we need to provide it souls in order to restore it. Let's start with imps. I have an associate in the Eastern Plaguelands near Northdale that may be able to help you. Mention my name and he should be more amenable. I'll meet you in Light's Hope Chapel after you are done.",
+    "objective": "Convince Xirath near Northdale in Eastern Plaguelands to help you gain a Soul of Mischief and use it on the Depleted Scythe of Chaos.",
+    "progress": "Is everything going well?",
+    "completion": "Great work, <name>, the scythe appears to be regaining power. Oh, Xirath? Pity he double-crossed us in the end. I'll have to find a new associate. Let's try increasing the potency of the soul next time."
+  }
+}

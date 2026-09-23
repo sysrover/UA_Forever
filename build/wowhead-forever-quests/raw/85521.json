@@ -1,0 +1,12 @@
+{
+  "id": 85521,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85521",
+  "source": {
+    "title": "Tracking the Trapper",
+    "description": "The note that you've found appears to be a receipt for the suppression traps surrounding the lair of Broodlord Lashlayer. The note states that if the Broodlord needs more Suppression Traps, he can purchase them from the camp of the seller, near the west side of the Burning Steppes, just south of the road to the Altar of Storms. The note also says that the seller may be moving on soon, so the Broodlord should hurry if he wants more traps.",
+    "objective": "Find the abandoned camp on the west side of the Burning Steppes, south of the road to the Altar of Storms, and investigate the area.",
+    "progress": "The abandoned camp should offer some clues.",
+    "completion": "Perhaps we can work together. I am still following other leads, but we can share clues to track down this offender against the natural world and stop him from causing more harm."
+  }
+}

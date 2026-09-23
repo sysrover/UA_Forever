@@ -1,0 +1,12 @@
+{
+  "id": 82104,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82104",
+  "source": {
+    "title": "Jammal'an the Prophet",
+    "description": "My Witherbark companions don't take kindly to strangers around their home.\n\nMe? I don't have a home anymore. I was exiled from my people, the great Atal'ai tribe of the Swamp of Sorrows.\n\nOur spiritual leader, Jammal'an, had what he called a prophecy. He believes the summoning of the god, Hakkar will bring the Atal'ai immortality.\n\nBut I urged caution. What if the prophecy was nothing more than manipulation?\n\nI want revenge for my exile. Bring me Jammal'an's head. Maybe then my people will be free.",
+    "objective": "The Atal'ai Exile in The Hinterlands wants the Head of Jammal'an.",
+    "progress": "Once Jammal'an has been removed, I stand a chance of returning to my people.\n\nWith Jammal'an as their spiritual leader, the Atal'ai face certain destruction.",
+    "completion": "Jammal'an's reckless trust of false visions led my people to their eternal doom.\n\nI thank you, <class>, for avenging my exile. I mourn for my people. I have no home to return to."
+  }
+}

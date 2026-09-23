@@ -1,0 +1,12 @@
+{
+  "id": 82282,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82282",
+  "source": {
+    "title": "Armor Kits",
+    "description": null,
+    "objective": "ProgressYou might not realize this, but running a traveling carnival is costly!  Everything wears down so fast it's a wonder we can turn a profit.\n\nBecause of all those hidden costs, we're always looking for ways to maintain our equipment as cheaply as possible.  Our tents, for instance, tear regularly but I've found that leather armor kits make great patches.  Can you find and bring me some armor kits? That'll save us a bundle!  Do that, and I have a fistful of Darkmoon Faire tickets for you...",
+    "progress": null,
+    "completion": "Great!  This will work great!  I just noticed a rip in a tent over yonder, and one of these armor kits is just what I need to patch it up!\n\nThank you very much, <name>.  These armor kits will save us a ton in repair costs.  Here are your tickets - you deserve them!"
+  }
+}

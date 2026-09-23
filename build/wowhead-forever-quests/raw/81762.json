@@ -1,0 +1,12 @@
+{
+  "id": 81762,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=81762",
+  "source": {
+    "title": "Some Good News",
+    "description": "Greetings, <name>. I have good news. I've made contact with my friend, and I am leaving soon to meet with him. What's more, another orb has surfaced in Kalimdor.  I cannot be in two places at once so if you are willing, I'd like for you to go in my stead to follow up on this new orb. Speak with Katherine for further instructions.",
+    "objective": "Speak with Katherine the Pure at the Cathedral of Light in Stormwind.",
+    "progress": null,
+    "completion": "Good to see you again, <name>. Let's get you caught up."
+  }
+}

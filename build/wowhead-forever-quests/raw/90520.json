@@ -1,0 +1,12 @@
+{
+  "id": 90520,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=90520",
+  "source": {
+    "title": "Food Safety",
+    "description": "I seem to recall one of the ingredients that I sent you to collect when we first met was the meat. I also seem to recall a lot of complaints that night about their meals making them sick? It was the strangest thing.\n\nAnyway, the larder is running low on meats again and it would be nice to know that I have someone trustworthy to help replenish it. The last thing I need is to be expecting a delivery only to find out a week after the fact that the courier died!",
+    "objective": "Acquire meat that is safe for human consumption. If you struggle to locate some in New Avalon, you may (eventually) gather enough from slaying beasts in the Eastern Plaguelands.",
+    "progress": "Dinner is going to be running a little late at this rate.",
+    "completion": "Your commitment to consistency is incredible, my friend. These portions are expertly cut, and possess the same color and texture as your previous batch. If I ever find myself in a situation where I need to hunt for my own food, I hope to have you by my side.\n\nAnd Markus, of course.\n\nI will take these off your hands and get started. New Avalon will be eating good tonight!"
+  }
+}

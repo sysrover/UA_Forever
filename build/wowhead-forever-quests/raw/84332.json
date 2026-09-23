@@ -1,0 +1,12 @@
+{
+  "id": 84332,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84332",
+  "source": {
+    "title": "A Thane's Gratitude",
+    "description": "<You hear a disembodied voice in your head as you touch the small chest>\n\nCan't be thankin' ye enough, <name>. Not how ye'd be expecting it to turn out, no doubt! Just so you aren't too sour about it, I've got something fer ye that I've no more use for that I think ye might find useful.\n\nGood luck to ye, <name>. Ah, one last thing... if ye happen to see a giant floating necropolis in the distance someday soon, I'd be turnin' tail and runnin' if I were ye. Hah!",
+    "objective": "CompletionYou find a small runestone at the bottom of the chest...",
+    "progress": null,
+    "completion": null
+  }
+}

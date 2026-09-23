@@ -1,0 +1,12 @@
+{
+  "id": 85446,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85446",
+  "source": {
+    "title": "Scale of the Dragon Lord",
+    "description": "<Riosus listens as you recount your tale>\n\nYes, Garek had the right of it, this is not the true Dragon Soul... and thank the titans for that. I'd feel no more comfortable with a dimwitted mortal like yourself wielding an artifact that powerful than I would the Lord of Blackrock himself. Regardless, this is still dangerous and we should see to its disposal. The original Dragon Soul was not easy to destroy. Come, let us speak of options for the disposal of this lesser simulacrum.",
+    "objective": "Speak with Riosus and form a plan for how to dispose of the Simulacrum of the Dragon Soul.",
+    "progress": "...",
+    "completion": "Good work, <class>. Well, for a mortal in any case. Now, give me the dragon scale. With this we have the tools we need to unlock the simulacrum's secrets and, should it be again turned against us, destroy it.\n\nOh, you look surprised. Did you think that we'd rush to destroy this gift without fully understanding what its capable of, or how it could be used against our enemies? Fool."
+  }
+}

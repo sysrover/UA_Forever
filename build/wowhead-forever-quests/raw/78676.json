@@ -1,0 +1,12 @@
+{
+  "id": 78676,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78676",
+  "source": {
+    "title": "The Eye of Bhossca",
+    "description": "<A note sits in the chest>\n\nGlad to have you back, <name>.\n\nThe latest object of my desire is an artifact known as the Eye of Bhossca. My sources tell me the eye is somewhere within the Scarlet Monastery. As with Shadowfang Keep, you must infiltrate the monastery alone.\n\nIt may behoove you to find a disguise before going in. It will make getting around a touch easier. I'm sure you could find something on the monastery's grounds.\n\nReturn the eye here, and payment will be delivered as before.\n\n- C",
+    "objective": "Find The Eye of Bhossca inside of the Scarlet Monastery. Then, return it to C's dead drop near Pyrewood Village. You must complete the job alone.",
+    "progress": "<The chest sits, empty.>",
+    "completion": "<You place The Eye of Bhossca into the chest>"
+  }
+}

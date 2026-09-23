@@ -1,0 +1,12 @@
+{
+  "id": 85623,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85623",
+  "source": {
+    "title": "Paragons of Power: The Confessor's Bindings",
+    "description": "Shortly after the fall of the Gurubashi, we Zandalar almost succumbed to a final defeat from evil within our own tribe.  It was then that the confessors amongst us arose, preserving the tribe by banishing out those who would destroy their own kind.  They not only keep us in tune with the spirits, but they also preserve the flesh.\n\nGo forth into Zul'Gurub and witness first hand the depravity of Hakkar and the Gurubashi.  Wrest the Paragons of Power that we seek from them; success will be rewarded!",
+    "objective": "Bring Al'tabim the All-Seeing a Primal Hakkari Sash.  You must also have a reputation equal to or greater than Honored with the Zandalar Tribe.\n\nAl'tabim the All-Seeing is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "The Paragons of Power... do you have them?  Only when we have them will we be able to make use of the latent power stored inside them.  It will be good to turn the tables on the minions of the Blood God...",
+    "completion": "Success!  These will go a long way to building up our power against the rise of Hakkar.  With your help, we've taken a significant step in ensuring that the Blood God will not destroy us all.\n\nYou've earned honor with the tribe today, <name>.  Take this - the confessor's bindings - as a symbol of our thanks."
+  }
+}

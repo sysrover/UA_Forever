@@ -1,0 +1,12 @@
+{
+  "id": 82017,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82017",
+  "source": {
+    "title": "An Amalagamation of Nightmares",
+    "description": "The dread aura you experienced emanates not from a place, but from a creature. A particularly deadly creature of darkness, a twisted shadow reflection of the worst aspects of our world, coalesced into an amalgamation of pure nightmare. I can't explain how I know this but I... dreamt of it. Or rather, it was shown to me. It's difficult to explain.  Please, go to Moonglade and speak with the druid Loganaar. There may still be time to stop it before it gets even more powerful.",
+    "objective": "Seek out Loganaar in Moonglade",
+    "progress": "Yes, <class>?",
+    "completion": "This is most dire news. If it is as Hannalah said, the current crisis in the dream is about to get much worse."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85507,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85507",
+  "source": {
+    "title": "Our Wayward Friend",
+    "description": "I'm glad you are here, <name>. We've got word that a traveler matching the description of our friend Aeonas has been seen near Chillwind Camp, heading in the direction of Sorrow Hill.\n\nAfter what happened in felwood I wanted to give him space  but there are those in the order who still distrust him, and at some point he's going to need to come in from the cold to explain why he withheld his prolonged involvement with a known agent of the Lich King. Go and find him, see if you can convince him to come in.",
+    "objective": "Find Aeonas near Sorrow Hill in the Western Plaguelands.",
+    "progress": "You should hurry and bring Aeonas back to us. The longer he waits to come in to explain himself, the worse this all looks.",
+    "completion": "I had a feeling you'd turn up sooner or later. Sorry to disappoint you, but its not quite time for me to come back yet. That's the best part about being a \"former\" member of the Silver hand; I don't answer to anyone in the order anymore.\n\nAt some point I'll come back but for now please tell Katherine that I've acknowledged her request but I am not ready just yet."
+  }
+}

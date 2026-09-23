@@ -1,0 +1,12 @@
+{
+  "id": 78132,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78132",
+  "source": {
+    "title": "Dragonslayer's Helm",
+    "description": null,
+    "objective": "ProgressThe helm of the Dragonslayer once belonged to a great commander who fell in battle. It is said his tormented soul still haunts the site of his passing.",
+    "progress": null,
+    "completion": "Splendid job, <name>! With this, I am one step further on my path to glory."
+  }
+}

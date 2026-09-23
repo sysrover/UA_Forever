@@ -1,0 +1,12 @@
+{
+  "id": 81872,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81872",
+  "source": {
+    "title": "Feralas Mission XVI: Rescue Mellias Earthtender",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough, and journey to the Nightmare Incursion at Oneiros. Find the sleeping Druid of the Claw Mellias Earthtender there and escort him to safety. Then return to me.",
+    "objective": "Rescue Mellias Earthtender from the Feralas Nightmare Incursion at the stairs by Jademir Lake in Oneiros and return to Field Captain Arunnel.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

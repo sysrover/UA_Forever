@@ -1,0 +1,12 @@
+{
+  "id": 84322,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84322",
+  "source": {
+    "title": "Scarlet Research",
+    "description": "A page of the ledger catches your eye:\n\n\"Artifact - recovered near Sorrow Hill Crypt. Strong attunement to Light. Poor candidate for LW project due to warding properties and resistance to amplification enchantments. Delivered to Tyr's Hand for further study.\"",
+    "objective": "Search for the artifact within the Scarlet Crusade stronghold at Tyr's Hand in Eastern Plaguelands.",
+    "progress": null,
+    "completion": "Opening the locker, you find a small box. Is this what you were looking for?"
+  }
+}

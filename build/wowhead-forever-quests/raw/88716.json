@@ -1,0 +1,12 @@
+{
+  "id": 88716,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=88716",
+  "source": {
+    "title": "Never at Rest",
+    "description": "Bring me any doomed souls that cross your path, <name>.\n\nLet me rephrase that - you MUST bring them to me.\nMY duty is to stay and guide the souls of the lost. YOUR duty is to bring them to me.\n\nA word of advice, never handle more than one soul at a time. Trust me, your soul can only handle so much, and your mind... well... it can handle even less.\n\nThis burden is now yours. Because you can, you must.\n\nConsider this a moral obligation.",
+    "objective": "Bring another Heart of Doom to Brother Luctus at Light's Hope Chapel in Eastern Plaguelands.",
+    "progress": "The scourge never rests, so we must never rest, <name>.",
+    "completion": "<name>, with every heart returned, I stand humbled. Some of the souls have been from powerful warriors. Some seemed as though they were indomitable... and yet... they fell.\n\nScourge overrunning them, corruption seeping into their minds, or in some cases - they willingly submitted.\n\nSuch great strength - snuffed out.\n\nAnd now, thanks to you, they preserve their final shred of valor.\n\nWithout you, the horrors of their deaths would outweigh the heroics of their lives."
+  }
+}

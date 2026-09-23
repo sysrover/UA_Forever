@@ -1,0 +1,12 @@
+{
+  "id": 89234,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89234",
+  "source": {
+    "title": "A Personal Matter",
+    "description": "What we spoke about at Light's Hope and my history with Caldoran... It all started right here at Stratholme. You are familiar with the \"culling\" of Stratholme that occurred early on in the Third War, yes?\n\nWell, I was here, and so was Caldoran. This is where our history begins. If you would be willing, meet me just outside of Stratholme's service entrance to the east.",
+    "objective": "Meet Leonid Barthalomew the Revered just outside the service entrance gate to the east of the front gates of Stratholme.",
+    "progress": null,
+    "completion": "I'm glad you came. I don't know if I'd be able to do what comes next alone."
+  }
+}

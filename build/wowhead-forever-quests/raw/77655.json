@@ -1,0 +1,12 @@
+{
+  "id": 77655,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77655",
+  "source": {
+    "title": "The Lost Rune",
+    "description": "The warriors of the Alliance have much to teach you, <name>, but you must also seek out new techniques on your own.\n\nThere is a cave full of Frostmane trolls south of here. Another fledgling warrior ventured inside some time ago, but never returned. He was experimenting with engraving mystical runes onto his equipment to improve his combat prowess.\n\nFind the rune among the trolls, one of them is likely carrying it, and learn this technique yourself. Return to me when you have done so.",
+    "objective": "Find the lost rune carried by a  Frostmane troll in Coldridge Valley. Use it to learn a new ability, then report back to Thran Khorman in Anvilmar.",
+    "progress": null,
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85445,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85445",
+  "source": {
+    "title": "The Golden Disk",
+    "description": "You have no idea what this item could be, but it's clearly an artifact of substantial power. You should find someone who can tell you more about this artifact and its true purpose.",
+    "objective": "Find someone who can tell you more about the Shimmering Golden Disk.",
+    "progress": "Please make haste, <name>.",
+    "completion": "Wait, what is that you have? That looks just like... no, it couldn't possibly be. I've only seen it in books but... it was destroyed. Surely this is not...\n\n<Garek's fixation with the object on your belt is momentarily broken and his eyes snap up to meet yours.>\n\nWhere did you get this object, <class>? Please, you must give me all of the details!"
+  }
+}

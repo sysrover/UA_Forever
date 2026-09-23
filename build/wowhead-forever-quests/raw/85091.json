@@ -1,0 +1,12 @@
+{
+  "id": 85091,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85091",
+  "source": {
+    "title": "The Cost of Victory",
+    "description": "Thank you... for bringing me this. The blade is consecrated and will cause me considerable pain to wield, but that seems a small sacrifice to make for my... my friend.\n\nGrief comes later. For now, it's time to end this. Gather your most trusted allies and go to Demon Fall Canyon. Azgaloth may not reveal himself to you immediately, but if you issue a suitable challenge, he will answer.\n\nTake the blood and use it to consecrate your weapon and destroy him. For Aeonas, and for Ada, it's time to end this.",
+    "objective": "Consecrate your weapon with the Blood of the Lightbringer and defeat Azgaloth in Demon Fall Canyon.",
+    "progress": "...",
+    "completion": "My mission is complete at long last.\n\nThis has consumed me for so long now that I haven't really considered what that victory really means.  I suppose this means our alliance is at an end and I should be on my way back to Northrend...\n\n<An uneasy silence hangs between you>"
+  }
+}

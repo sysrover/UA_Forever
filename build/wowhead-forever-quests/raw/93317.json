@@ -1,0 +1,12 @@
+{
+  "id": 93317,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93317",
+  "source": {
+    "title": "Crab Season",
+    "description": "Are you familiar with Windsong Crawlers? You see, these crabs are native only to Windsong Lake here on Zephras, and they are only able to be harvested a few weeks of the year.\n\nWith all of the cult activity of late, I've not been able to get out to the lake to harvest them, and our window is rapidly closing. I'd be appreciative if you could go and gather some for me. They can generally be found along the shorelines around the lake and in rivers.\n\nDo be careful though, they are meaner than they look!",
+    "objective": "Collect 6 pieces of Windsong Crawler Meat.",
+    "progress": null,
+    "completion": null
+  }
+}

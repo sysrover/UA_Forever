@@ -1,0 +1,12 @@
+{
+  "id": 81745,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81745",
+  "source": {
+    "title": "Duskwood Mission XVI: Rescue Kroll Mountainshade",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Rotting Orchard. Find the sleeping Druid of the Claw Kroll Mountainshade there and escort him to safety. Then return to me.",
+    "objective": "Rescue Kroll Mountainshade from the Duskwood Nightmare Incursion in the guest house at the Rotting Orchard and return to Field Captain Palandar.",
+    "progress": "You rescued Kroll?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

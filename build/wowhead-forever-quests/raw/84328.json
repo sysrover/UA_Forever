@@ -1,0 +1,12 @@
+{
+  "id": 84328,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84328",
+  "source": {
+    "title": "Repairing the Shard",
+    "description": "I am willing to believe you are here in good faith, <class>.\n\nWe are receptive to a meeting between our people. But the shard of light we possess is in poor condition. We must replenish it before any attempt at joining with the others.\n\nThe ancient Highborne of what is now Dire Maul were skilled in manipulating arcane and holy energies. Go there and find any information you can on artifacts of light, then return to me.",
+    "objective": "Retrieve the book \"Applied Divinity\" from Dire Maul, then return to Dietrich Praice in Orgrimmar.\n\nTo enter Orgrimmar, you will need the assistance of a Horde Priest with a Diplomat Ring to gain Diplomatic Immunity. You will lose Diplomatic Immunity if you stray too far from your escorting Priest or engage in combat.",
+    "progress": "You have returned, <class>?",
+    "completion": "This should help to repair the shard. The time has come to bring an end to this."
+  }
+}

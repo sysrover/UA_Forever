@@ -1,0 +1,12 @@
+{
+  "id": 92595,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=92595",
+  "source": {
+    "title": "The Windshapers",
+    "description": "<Illaya smiles warmly at you.>\n\nI am glad you returned to speak with me, child of the winds. I knew it the first moment you walked into my presence, that you were strong in the skysight. Do you find this surprising? Even those who have not trained as a Shaman may possess the gift.\n\nCome, let us speak about the mandate of the Windshapers, the nature of our struggles on Zephras, and the plight of our people.",
+    "objective": "Listen to what Illaya Amberwind has to say.",
+    "progress": null,
+    "completion": null
+  }
+}

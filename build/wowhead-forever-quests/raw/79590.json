@@ -1,0 +1,12 @@
+{
+  "id": 79590,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79590",
+  "source": {
+    "title": "Heavy Grinding Stone",
+    "description": null,
+    "objective": "ProgressTo help with my workout, I like to fit a staff between heavy grinding stones, then lift the staff over my head.  It isn't easy, but being the strongest woman in the world, like I am, can't be earned sitting down!\n\nCan you help me?  I need more grinding stones - bring me some and I'll trade Darkmoon Faire tickets for them.",
+    "progress": null,
+    "completion": "You brought the stones!  And they're heavy!  I can already feel my muscles getting bigger.  Thanks <name>!\n\nHere, take these tickets, and be sure not to eat too many sweets while you're at the faire.  A big strong <class> like you needs to keep himself in fighting shape!"
+  }
+}

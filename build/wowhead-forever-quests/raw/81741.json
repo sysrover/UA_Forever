@@ -1,0 +1,12 @@
+{
+  "id": 81741,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81741",
+  "source": {
+    "title": "Duskwood Mission XII: Dream-Touched Dragonscale",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove and collect Dream-Touched Dragonscales from dragonkin within the Nightmare Incursions. We can harness its magic to reverse the damage. You will need the assistance of a skinner.",
+    "objective": "Gather 10 Dream-Touched Dragonscales in the Duskwood Nightmare Incursions and return to Field Captain Palandar.",
+    "progress": "You have the Dragonscales?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

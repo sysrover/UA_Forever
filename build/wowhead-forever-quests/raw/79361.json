@@ -1,0 +1,12 @@
+{
+  "id": 79361,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=79361",
+  "source": {
+    "title": "Power of da Wind",
+    "description": "A violent storm of this size will require the power of da wind to spread across the land. Whatever this ritual be, we must protect you against dis element.\n\nDe whirlwind elementals have ravaged Desolace and are one of the only remaining elements capable of inhabiting the land. Bring me their essence.",
+    "objective": "Collect 5 Whirling Essence from the whirlwind elementals in Desolace and bring them to Bath'rah the Windwatcher in Alterac Mountains.",
+    "progress": "Ah, you be gettin' a bit dusty out der?",
+    "completion": "Oh yes, yes. We be cookin' now."
+  }
+}

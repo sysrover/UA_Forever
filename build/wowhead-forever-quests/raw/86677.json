@@ -1,0 +1,12 @@
+{
+  "id": 86677,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86677",
+  "source": {
+    "title": "Stalwart's Battlegear",
+    "description": "The badges you collect from performing combat, logistics and tactical assignments for Windcaller Proudhorn are more than just for show, <name>.\n\nYou'd be wise to hold on to them.  As you prove your loyalty to our organization I can offer you some of the gear we reserve for our closest allies in exchange for those badges.",
+    "objective": "Bring 15 Cenarion Combat Badges, 20 Cenarion Logistics Badges, 17 Cenarion Tactical Badges and 1 Mark of Remulos to Vargus at Cenarion Hold in Silithus.  You must also attain Revered reputation with Cenarion Circle to be able to complete this quest.",
+    "progress": "It's in our best interest to keep our most loyal allies well geared, <name>.",
+    "completion": "Great work, <name>.  Please accept this on behalf of the Cenarion Circle.  You've certainly earned it, friend!"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 89310,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89310",
+  "source": {
+    "title": "Terrordale",
+    "description": "It took me many years to recover from my guilt once my mind was set free from the Lich King. Once liberated by Sylvanas, I rejected the Dark Lady's offer and walked into the plaguelands alone. I wandered for months aimlessly. I'm not sure why I did it but eventually I found my way back to my family's home and what I found there was... unexpected.\n\nTravel to the haunted village now known as Terrordale, find the northernmost house and meet me there. You'll learn the rest.",
+    "objective": "Travel to Terrordale and find Leonid Barthalomew the Revered at one of the houses there.",
+    "progress": null,
+    "completion": "It sickens me to see what has become of my home."
+  }
+}

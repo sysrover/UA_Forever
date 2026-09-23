@@ -1,0 +1,12 @@
+{
+  "id": 79484,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79484",
+  "source": {
+    "title": "You're a Mean One...",
+    "description": "A c-c-creature called \"The Abominable Greench\" is the one w-w-who stole our shipment of t-t-treats, <name>.  Be c-c-careful though!  He is t-t-the one who turned me into this s-s-snowy mess!\n\nYou're g-g-gonna need some help in f-f-facing him.  I've seen him w-w-wander all around where the y-y-yeti are; he's s-s-surely here s-s-somewhere!  F-f-find the treats <name>, take them b-b-back to Smokywood Pastures in Ironforge, and t-t-tell them I n-n-need to be unfrozen!",
+    "objective": "Locate and return the Stolen Treats to Wulmort Jinglepocket in Ironforge.  It was last thought to be in the possession of the Abominable Greench, found somewhere in the snowy regions of the Alterac Mountains.",
+    "progress": "<name> - our Feast of Winter Veil will be ruined without those treats to restock!  Graccu himself will miss out on sharing his delicious meat pies with all the good boys and girls this season...",
+    "completion": "You found it!  You've saved Smokywood Pasture's Feast of Winter Veil!\n\nPoor Sacks... we'll be sure to send a team out there and figure out a way to unfreeze him.  Hopefully, he'll be back in time for the day of the Feast; he'll need to make up missed time working though.  Still, this wouldn't even be possible if it weren't for you!"
+  }
+}

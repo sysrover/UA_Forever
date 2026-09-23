@@ -1,0 +1,12 @@
+{
+  "id": 81955,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81955",
+  "source": {
+    "title": "A Mind of Metal",
+    "description": null,
+    "objective": "ProgressHave you brought something to add to our collection?",
+    "progress": null,
+    "completion": "Thank you, <name>. Our knowledge expands through your efforts.\n\nIf you discover more magical works that might benefit the library, please bring them to me."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85447,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85447",
+  "source": {
+    "title": "Grim Batol",
+    "description": "Nefarian has long been engaged in experimentation involving the five dragonflights, and it seems this \"simulacrum\" of the Dragon Soul was one such experiment. I shudder to think of what could come of him successfully emulating even a fraction of the power of the true Dragon Soul. Please, seek out agents of the red dragons near the ruins of Grim Batol.\n\nI will enchant the simulacrum you carry to mark you as a friend of the red flight.",
+    "objective": "Bring the Simulacrum of the Dragon Soul to the leader of the dragon host near the entrance to the fortress of Grim Batol.",
+    "progress": "Who are you and why do you dare come before me, mortal?",
+    "completion": "You bear the mark of an agent of Korialstrasz but as a stranger I still have no choice but to mistrust you, mortal. Mark or no, I advise that you tread carefully, lest I allow my dragonkin to incinerate and devour you."
+  }
+}

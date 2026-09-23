@@ -1,0 +1,12 @@
+{
+  "id": 92473,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92473",
+  "source": {
+    "title": "Aggressive Encroachment",
+    "description": "The ursera den to the southwest is rapidly becoming a problem. Just last week the rangers had to kill an adolescent ursera who wandered too close to the village and attempted to attack a boy playing near the base of the elder tree in the center of the village.\n\nWe were fortunate that the boy escaped with his life. Hunger and desperation makes these beasts too dangerous to be left unchecked. Go south and put the scrawniest among the ursera down. Bring me their claws as proof when it is done.",
+    "objective": "Collect 6 Scrawny Ursera Claws from Scrawny Ursera in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85112,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85112",
+  "source": {
+    "title": "The Depleted Scythe",
+    "description": "The scythe is twisted and emanates a strange demonic aura. Despite this, it is brittle to the touch, and you worry it would break on use. It pulls at your energy, as if testing you. A ravenous hunger lurks at the back of your mind just thinking about the scythe. Perhaps someone knowledgeable on demonic artifacts might know more.",
+    "objective": "Bring the staff to Doan Karhan in The Barrens.",
+    "progress": null,
+    "completion": "This is certainly a curious artifact you've found, <name>. I believe that this staff might be saved...though it will require some effort.\n\nHmm, it might even be an excellent candidate for wrapping up some unfinished business we have."
+  }
+}

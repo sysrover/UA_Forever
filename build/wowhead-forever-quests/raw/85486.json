@@ -1,0 +1,12 @@
+{
+  "id": 85486,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85486",
+  "source": {
+    "title": "Soul of Enthralling",
+    "description": "Your next task is a much trickier one that involves those Fel portals that have been appearing around. I've heard that when mages use special scrolls, they summon powerful Fel Interlopers. The scourge in Plaguewood seem to be up to a similar trick. Use the demon they are attempting to summon in the same way for the next soul shard.",
+    "objective": "Use a Glowing Scroll of Spatial Mending on a Large Fel Rift to summon a Fel Interloper and obtain its soul.",
+    "progress": "Is everything going well?",
+    "completion": "You have truly gone above and beyond, <name>. Just one more soul and the scythe will be ready for its final test."
+  }
+}

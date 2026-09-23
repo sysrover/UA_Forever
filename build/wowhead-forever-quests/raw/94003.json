@@ -1,0 +1,12 @@
+{
+  "id": 94003,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=94003",
+  "source": {
+    "title": "The Skybreaker Bulwark",
+    "description": "I am all that remains of the line of Skybreakers here on Zephras Isle. The rest were murdered by the Al'Aketh.\n\nThe only thing that outweighs my sorrow is my shame. My family's ancestral shield--the Skybreaker Bulwark--is now in the hands of a cultist named Zaal Stormshield. Family lore holds no harm may befall a worthy wielder of this shield.\n\nZaal is not worthy, of that I am sure. Find this man at the Shrine of Akir and reclaim my shield from him. Do this and I will teach you the Skybreaker Defense.",
+    "objective": "Reclaim the Skybreaker Bulwark from Zaal Stormshield at the Shrine of Akir.",
+    "progress": null,
+    "completion": null
+  }
+}

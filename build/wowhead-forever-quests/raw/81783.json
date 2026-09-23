@@ -1,0 +1,12 @@
+{
+  "id": 81783,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81783",
+  "source": {
+    "title": "Ashenvale Mission XVI: Rescue Alyssian Windcaller",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion at the Warsong Lumber Camp. Find the sleeping Druid of the Claw Alyssian Windcaller there and escort her to safety. Then return to me.",
+    "objective": "Rescue Alyssian Windcaller from the Ashenvale Nightmare Incursion at the base of the watch tower in the Warsong Lumber Camp and return to Field Captain Hannalah.",
+    "progress": "You rescued Alyssian?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

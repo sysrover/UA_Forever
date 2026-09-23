@@ -1,0 +1,12 @@
+{
+  "id": 85702,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85702",
+  "source": {
+    "title": "Dragonscale Leatherworking",
+    "description": "Dragonscale leatherworking isn't easy, but it's extremely rewarding.  I'll teach you how to make this fine mail armor, but only if you agree to certain conditions.\n\nBy choosing this path, you agree never to learn elemental or tribal leatherworking; there is only room for one of the three at the apex of the craft.  Furthermore, I'll need some samples of your best work involving scorpid armor.  Finally, I'll need proof of your ability to acquire the staple of the trade: scales of the dragonkin.",
+    "objective": "Bring 2 Tough Scorpid Breastplates, 2 Tough Scorpid Gloves, and 10 Worn Dragonscales to Thorkaf Dragoneye in the Badlands.\n\nCompleting this quest will give you access to the Dragonscale Leatherworking arts.\n\nThe completion of this quest will prevent you from learning Elemental Leatherworking and Tribal Leatherworking; be sure this is the path you wish to follow before doing so.",
+    "progress": "If you're ready to commit to a permanent decision by becoming a dragonscale leatherworker, then I'm ready to take you on as a student.  Just bring to me the things I asked for, and we'll begin your education.",
+    "completion": "I'll hand it to you - it takes a strong will to make a permanent decision like you've just done.  I assure you, dragonscale leatherworking will prove to be a profitable and rewarding path for you to follow.\n\nTo train in the art for the future, simply speak to me and I will make available any knowledge that you have yet to commit as yours."
+  }
+}

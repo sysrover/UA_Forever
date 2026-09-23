@@ -1,0 +1,12 @@
+{
+  "id": 82073,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=82073",
+  "source": {
+    "title": "Cleansing Water",
+    "description": "Faded and soggy notes are wrapped around a murky bottle. Sapta. You can't recall it ever looking like this, but it seems similar enough. It smells odd, as if tainted somehow. A Spirit Rock must be nearby, though it would be long-abandoned. Finding it might be the missing piece to this strange puzzle.",
+    "objective": "Find the tainted Spirit Rock and drink the Murky Water Sapta.\n\nProvided item:",
+    "progress": null,
+    "completion": "You cleansed. You restored. Strong spirit. You help.\n\nCorruption still lives. Stop it."
+  }
+}

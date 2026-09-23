@@ -1,0 +1,12 @@
+{
+  "id": 85611,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85611",
+  "source": {
+    "title": "Paragons of Power: The Haruspex's Tunic",
+    "description": "The ultimate symbol of a haruspex's power is what they wear, <name>.  Of these, the tunic symbolizes the connection between themselves and the divine wisdom they seek.  It often weaves parts of the beasties they sacrifice into the tunic; this reminds them of the connection they have to their gifts.\n\nBring me an offerin' of the Paragons of Power from inside Zul'Gurub and prove your worth to us.  Do this, and a tunic seeping with the true power of a haruspex is yours.",
+    "objective": "Bring Maywiki of Zuldazar a Primal Hakkari Tabard.  Maywiki of Zuldazar is located on Yojamba Isle, Stranglethorn Vale. You must also be Revered with Zandalar.",
+    "progress": "Got the necessary Paragons of Power from Zul'Gurub?  The haruspex's tunic is well worth any effort ya be needin' to make.",
+    "completion": "Impressive... you've successfully collected the required Paragons of Power, <name>.  Your accomplishments in Zul'Gurub for the Zandalar are legendary; hence forth, you'll be revered amongst the tribe.  Here is your tunic, mighty <class>!"
+  }
+}

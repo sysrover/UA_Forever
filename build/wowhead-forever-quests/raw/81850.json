@@ -1,0 +1,12 @@
+{
+  "id": 81850,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81850",
+  "source": {
+    "title": "Hinterlands Mission XVI: Rescue Elianar Shadowdrinker",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Seradane, and journey to the Nightmare Incursion at Agol'watha. Find the sleeping Druid of the Claw Elianar Shadowdrinker there and escort him to safety. Then return to me.",
+    "objective": "Rescue Elianar Shadowdrinker from the Hinterlands Nightmare Incursion at the troll fortification near Agol'watha and return to Field Captain Korlian.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85626,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85626",
+  "source": {
+    "title": "Paragons of Power: The Demoniac's Wraps",
+    "description": "Warlocks tread dangerous ground in dealing with demons, but our demoniacs take this one step further.  Through an ancient and arcane ritual, they allow a demon to enter their being.  Rather than let it possess them though, they enslave the demon from the inside, absorbing the power of the beast for their own command.  It is a feat few are ever able to master.\n\nFor you to learn of the power of the demoniac, I must have Paragons of Power from Zul'Gurub.  Go there and retrieve that which we seek.",
+    "objective": "Bring Al'tabim the All-Seeing a Primal Hakkari Stanchion.  You must also have a reputation equal to or greater than Friendly with the Zandalar Tribe.\n\nAl'tabim the All-Seeing is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Have you returned with the Paragons of Power?  By defeating the diabolic minions of the Hakkar, you will not only prove yourself to us, but also your willingness to learn the ways of the demoniac.",
+    "completion": "Well done... no doubt they were made to pay in excruciating ways before they gave up the Paragons of Power.  Take this - the demoniac's wraps.  Made from powerful mojo used in summoning the demoniac's prey, it is a powerful tool in your acquisition of power."
+  }
+}

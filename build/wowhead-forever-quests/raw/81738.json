@@ -1,0 +1,12 @@
+{
+  "id": 81738,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81738",
+  "source": {
+    "title": "Duskwood Mission IX: Recover Dragon Egg",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Yorgen Farmstead. Retrieve an Unhatched Green Dragon Egg and deliver it to me.",
+    "objective": "Recover an Unhatched Green Dragon Egg in the Duskwood Nightmare Incursion from the Yorgen Farmstead near the large stump in the fields and return to Field Captain Palandar.",
+    "progress": "You have the egg?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 490,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=490",
+  "source": {
+    "title": "<UNUSED>",
+    "description": "By strict orders from the Council of Darnassus, I am commissioning a bounty on the Gnarlpine Tribe. They are no longer friends of the forest. Their corruption has left them mindless threats to our people and the creatures of the glade.\n\nAs decreed by the Council, you shall be rewarded for removing the furbolg menaces from Kalidar. Bring to me their fangs as proof of your deeds.",
+    "objective": "Shayla Nightbreeze outside of Darnassus wants you to bring her 20 Gnarlpine Fangs.",
+    "progress": null,
+    "completion": null
+  }
+}

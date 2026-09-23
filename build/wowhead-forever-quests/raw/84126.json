@@ -1,0 +1,12 @@
+{
+  "id": 84126,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84126",
+  "source": {
+    "title": "Finish the Fight",
+    "description": "This might just be it, <name>. Dalton long studied the Cult of the Damned, and taught me of a number of blessings to use to thwart their magics. Thanks to your diligence in finishing my training, I believe I am now strong enough to impart such a benediction upon this device to purify its magic and use it to disrupt the barrier surrounding Akronos.\n\nCome, let us burn down that coward's shield and end him once and for all!",
+    "objective": "Kill Arkonos the Cursed",
+    "progress": "At last, vengeance.",
+    "completion": "I can scarcely believe we did it. I cannot thank you enough for the aid you've provided in this quest, <name>.\n\nNow that it's done.... I'm not sure what to do with myself. I've been so preoccupied with our mission of late I've not stopped to think of what comes after. I think, for now, that I'd like some time to think. For now, I'm content to continue our adventures together, if you'll  have me. I've learned much, but I still think I have more to learn from you."
+  }
+}

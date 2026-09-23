@@ -1,0 +1,12 @@
+{
+  "id": 84212,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84212",
+  "source": {
+    "title": "Bookin' it Back",
+    "description": "Numi hands over Jurgens' book. With it safely stowed, you begin the long journey back to the other side of the world.",
+    "objective": "Return to the D.E.L.T.A lab with the book Jurgens was looking for.",
+    "progress": "Did she keep the book?!",
+    "completion": "I see you have brought me the book I requested. Excellent! Your service is of profound scientific importance! We're nearly ready to harness geomantic energy and create a stable gateway to another dimension."
+  }
+}

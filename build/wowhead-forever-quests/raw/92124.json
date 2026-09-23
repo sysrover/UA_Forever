@@ -1,0 +1,12 @@
+{
+  "id": 92124,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92124",
+  "source": {
+    "title": "Book Inventory",
+    "description": "We need to take stock of how many books are missing!\n\nGo talk to my useless assistant, Daniel. He can do a quick inventory and let us know how serious the problem is.\n\nHe's obsessed with the various trade professions in Elwynn Forest. The boy keeps focusing on those instead of his important work helping me.\n\nDon't let him prattle on about tradeskills, and find out what's happened to my books!",
+    "objective": "Speak to Daniel, Brother Paxton's assistant in the library.",
+    "progress": null,
+    "completion": null
+  }
+}

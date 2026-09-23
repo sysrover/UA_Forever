@@ -1,0 +1,12 @@
+{
+  "id": 89447,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89447",
+  "source": {
+    "title": "Extravagant Tastes",
+    "description": "So you've got a very fancy chunk of metal there. Who cares?\n\nOh, you want me to tell you more about it? Well, it's a sword, and it's broken. Are we done now?\n\n<Omarion glares at you and then sighs heavily when it becomes evident you aren't going to walk away.>\n\nFine. Leave the blade with me and I'll take a look at it. While I'm at it, I could use a bite to eat. I used to know this goblin, Dirge Quickcleave. He makes the best chimaerok chops. Bring me some.",
+    "objective": "Bring ten servings of Dirge's Kickin' Chimaerok Chops to Master Craftsman Omarion in Naxxramas.",
+    "progress": "Turns out, when your captors are undead, feeding you isn't their highest priority. Not that I care; I was content to starve to death here. Since you won't stop pestering me, though, I suppose you could at least bring me a good final meal.",
+    "completion": "That hit the spot, <class>.\n\nSo about this blade. It is... actually quite remarkable. It radiates heat; and the blade holds an edge almost supernaturally well, It also seems to repel the undead, as evidenced by the fact that I've not had one single zombie wander by and try to eat me since you left it here.\n\nA pity, really. Zombies aren't great conversation, but you take what you can get in a place like this."
+  }
+}

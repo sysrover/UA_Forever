@@ -1,0 +1,12 @@
+{
+  "id": 85604,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85604",
+  "source": {
+    "title": "The Unmarred Vision of Voodress",
+    "description": null,
+    "objective": "Progress<Maywiki points to your talisman.>\n\nLook at it, <name>! It's come alive. The spirits dance around the orb.\n\nGive it to Maywiki so she can make one last adjustment.",
+    "progress": null,
+    "completion": "One day, <name>, you will be able to use this orb to communicate directly with me. Whenever this battle with Hakkar be over and Maywiki go home. Let us call to the spirits and ask them for that day to come soon."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 80325,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=80325",
+  "source": {
+    "title": "The Mad King",
+    "description": "You find a dirty, tattered notebook full of scribbled schematics and notes. It's quite clear even after just a cursory glance that any of these creations could be used to wreak terrible havoc should anyone ever be foolish enough to build them.",
+    "objective": "Bring Thermaplugg's Engineering Notes to Nogg at the Valley of Honor in Orgrimmar.",
+    "progress": "Whatcha got for me?",
+    "completion": "<Nogg's eyes light up as he reads through the collection of notes and schematics>\n\nI am going to blow so many things up with this stuff.\n\nGood job, <name>. I think this calls for a celebration!"
+  }
+}

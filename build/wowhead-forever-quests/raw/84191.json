@@ -1,0 +1,12 @@
+{
+  "id": 84191,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=84191",
+  "source": {
+    "title": "Anthion's Parting Words",
+    "description": "Valthalak's soul was stored in this amulet.  In our greed we foolishly split it into three parts, not knowing the curse that would await us.\n\nThe only way to stop Valthalak's spell is to put the amulet back together.  Return to Mokvar and tell him that Bodley is his only hope for finding the remaining pieces.  Speak to him about any rewards you've arranged for.\n\nI, for once, shall rest in peace.  I wish you the best of luck; you shall need every bit of it!",
+    "objective": "Return to Mokvar in Orgimmar with a set of  Shadowcraft Boots, Shadowcraft Pants and Shadowcraft Spaulders.\n\nProvided item:",
+    "progress": "You've returned and I see in your eyes that you've much to tell me, <name>.  Let us take care of your reward first.",
+    "completion": "This curse was bestowed upon us but for a mere medallion.  Lord Valthalak certainly knows how to hold a grudge.\n\nWe'll endeavor to find the remaining pieces - hopefully before I meet an untimely demise.  But before that, let us see about your reward."
+  }
+}

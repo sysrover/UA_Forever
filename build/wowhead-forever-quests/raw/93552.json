@@ -1,0 +1,12 @@
+{
+  "id": 93552,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93552",
+  "source": {
+    "title": "Harvesting Windstones",
+    "description": "Windstones are a critical resource on Zephras Isle as they contain the raw, concentrated energy of the winds themselves. The wind elementals who used to live here on zephras with us vanished several centuries ago, and since then, the magic that sustains this island is slowly fading. Not without limitations, the Windstones are still a reliable energy source, and are incredibly valuable to us.\n\nYou'll find raw Windstones scattered around the grove, think you can help me harvest them?",
+    "objective": "Collect 15 Windstone Clusters from Raw Windstones in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

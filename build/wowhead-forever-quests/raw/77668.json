@@ -1,0 +1,12 @@
+{
+  "id": 77668,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77668",
+  "source": {
+    "title": "The Lost Rune",
+    "description": "The Dark Lady's warriors have much to teach you, but you must also seek out new techniques on your own.\n\nAnother warrior recently ventured north into Night Web's Hollow. He was experimenting with engraving mystical runes onto his equipment to improve his combat prowess.\n\nI suspect he was overwhelmed by the spiders infesting the mine. Find the rune among their webs and learn this technique yourself.",
+    "objective": "Find the rune hidden in Night Web's Hollow and use it to learn a new technique, then report back to Dannal Stern in Deathknell.",
+    "progress": "What have you found?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

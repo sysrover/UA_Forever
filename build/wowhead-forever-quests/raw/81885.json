@@ -1,0 +1,12 @@
+{
+  "id": 81885,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=81885",
+  "source": {
+    "title": "The Ritual",
+    "description": "I wanted to thank you for your efforts, <name>. Without you, I'd likely be dead and the servants of the legion would still have possession of this dangerous artifact. I know its difficult to trust an agent of the Lich King, but it is my hope that after this is over we can sway my friend back to the light. It's clear that the man I cared for is still in there. He may only need a nudge.\n\nCome now, we are needed by Gregory to help him complete the ritual. Let us speak again when it's done.",
+    "objective": "Speak with Gregory to begin the ritual.",
+    "progress": "<Aeonas stares blankly off the cliff edge in obvious shock at what just transpired>",
+    "completion": "I have no words, <name>.  Seeing Gregory again filled me with a dangerous kind of hope. His nature was laid bare from the moment we reconnected and there were plenty of signs pointing towards this end. I was blind to them.\n\nPlease, take this accursed orb and leave me. I have much to contemplate."
+  }
+}

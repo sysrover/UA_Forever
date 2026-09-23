@@ -1,0 +1,12 @@
+{
+  "id": 80139,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80139",
+  "source": {
+    "title": "Gnogaine",
+    "description": "Since the accident, all Gnoarn thinks about or talks about is cleansing Gnomeregan of the trogg infestation and finding a cure for the sickness that plagues it, <name>.\n\nLuckily, Razzle and I are close to some kind of cure - either that or the recipe for a really powerful rum. We won't know until we test! Naturally, in order to test our theory, we're going to need a few things; namely, fallout from the irradiated troggs in Gnomeregan. Fill up this phial with the green glow and bring it back!",
+    "objective": "Use the Empty Leaden Collection Phial on Irradiated Invaders or Irradiated Pillagers to collect radioactive fallout. Once it is full, take it back to Ozzie Togglevolt in Kharanos.\n\nProvided item:",
+    "progress": "Can't you see we're trying to cure an entire species of gnomes here??! We need more of the green glow!",
+    "completion": "Excellent work! The time has come to test the new formula. If this works, not only should that captured leper gnome be cured, but I should have a full head of hair! Stand back!"
+  }
+}

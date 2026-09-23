@@ -1,0 +1,12 @@
+{
+  "id": 259,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=259",
+  "source": {
+    "title": "<UNUSED>",
+    "description": "Hello there, <name>. I've heard much about your exploits, and must say I'm honored to meet you. I don't suppose you've heard the story of Ol' Kelt? Ah, well, Ol' Kelt--Kelt Thomasin, that is--was once considered one of the finest hunters in all the realm. There wasn't much he hadn't done, but then, one day, he became obsessed with an ancient story... a myth, really. Well, as the stories go, a huge threshadon lives in the waters of the lake. Hogwash, if you ask me. If you're interested, you might talk to Kelt.\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(259))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

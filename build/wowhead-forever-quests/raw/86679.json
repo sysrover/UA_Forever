@@ -1,0 +1,12 @@
+{
+  "id": 86679,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86679",
+  "source": {
+    "title": "Shrouded in Nightmare",
+    "description": "Corruption seeps from this object.\n\nThere may be a link between this object and the dragons coming forth from the Dream. You must find someone that can decipher the meaning of this item. Perhaps the druids of the Moonglade or Cenarion Hold could assist you further.",
+    "objective": "Find someone capable of deciphering the meaning behind the Nightmare Engulfed Object.\n\nPerhaps a druid of great power could assist you.",
+    "progress": "Yes, <race>?",
+    "completion": "I must remove the taint from this object. This may shed some light on my recent failures to delve into the Dream. Give it to me."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 84125,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84125",
+  "source": {
+    "title": "Close Enough To Touch",
+    "description": "These vile necromancers and their tricks, it's disgusting. We must find a way to break through the barrier protecting Arkonos to end him!\n\nMany Cult of the Damned and Scourge spellcasters are known to carry a variety of fell implements and foci of dark magic. Perhaps some of the nearby Shadowmages or Dread Weavers may have something we could use to penetrate the shield?",
+    "objective": null,
+    "progress": "What did you find, <name>?",
+    "completion": "Yes! This might just do it. Let us make haste back to the slaughterhouse and put this device to the test!"
+  }
+}

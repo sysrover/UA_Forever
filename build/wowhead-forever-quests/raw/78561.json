@@ -1,0 +1,12 @@
+{
+  "id": 78561,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=78561",
+  "source": {
+    "title": "Elixir of Insight",
+    "description": "The elixir is ready, <name>. Go down to the bonfire, on the beach, and drink it. Heed the vision given to you by the spirits, and return to me with your findings.",
+    "objective": "Drink the Elixir of Insight near the bonfire at Zoram'gar Outpost, and witness the vision it grants you.\n\nProvided item:",
+    "progress": "What did the spirits reveal to you, <name>?",
+    "completion": "A quilboar <class> ... enslaving elementals? This is certainly troubling."
+  }
+}

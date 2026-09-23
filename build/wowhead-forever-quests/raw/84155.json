@@ -1,0 +1,12 @@
+{
+  "id": 84155,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=84155",
+  "source": {
+    "title": "An Earnest Proposition",
+    "description": "Hail, <class>!  I can tell by your demeanor that you've seen and done much in this world.  Yet I'm willing to wager you haven't seen a piece of armor like this.\n\nPerform a small favor for me and I'll be willing to trade it to you for an ordinary set of bracers.\n\nI'm in need of a sizeable sample of venom drawn from the spiders and scorpions that inhabit Silithus.  Bring this to me along with a few gold coins and I'll perform the exchange.",
+    "objective": "Acquire 15 Silithus Venom Samples and 20 gold and bring them along with a set of Wildheart Bracers to Mokvar in Orgrimmar.",
+    "progress": "Have you obtained the items I require, <name>?",
+    "completion": "Ah, yes.  Mux will be quite happy with this.\n\nThose bracers were part of a larger armor set.  If you're interested in providing me with further assistance,  I'd be willing to consider parting with the rest of it."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85457,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85457",
+  "source": {
+    "title": "Just What Was Needed",
+    "description": "I can already tell that you intend to bring the blood to Gregory. Good. My judgement has been questionable at best, and this was always a younger paladin's game that I've just been playing at.\n\nI'm still not sure of how to feel, but I'm certainly happy to see that you've grown into the paladin you were always meant to be.",
+    "objective": "Take the Blood of the Lightbringer to Gregory in Caer Darrow in Western Plaguelands.",
+    "progress": "Yes, <name>?",
+    "completion": "I wasn't expecting to see you back here again, at least not this soon. What is it?"
+  }
+}

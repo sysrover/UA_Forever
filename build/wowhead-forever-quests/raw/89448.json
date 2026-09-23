@@ -1,0 +1,12 @@
+{
+  "id": 89448,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89448",
+  "source": {
+    "title": "Gathering Light",
+    "description": "<Omarion seems significantly more animated than when you first encountered him.>\n\nOkay <class>, you've got my attention. This metal is extremely unique, and I'd like to experiment with it some more. However, I'll need additional samples of the raw material. Bring me a dozen or so more ingots of this \"lightforged\" iron. Also, try to learn more about where these weapons are being created. A smith is only as good as his tools and his crafting space, after all.",
+    "objective": "Bring 12 ingots of Lightforged Iron to Master Craftsman Omarion in Naxxramas and discover where the Scarlet Crusade is forging these new weapons.",
+    "progress": "I really wish that I had some Kaja'Cola to go with these chops. Oh, you've never heard of Kaja'Cola? Well, if you ever get a chance to try some, it'll change your life.",
+    "completion": "These should do nicely. What else did you learn from your trip?\n\n<You tell Omarion about the Radiant Forge that you found within the Scarlet Enclave.>\n\nVery interesting. So there's a light-fueled anvil inside the Scarlet Enclave, and that's where they craft these weapons?\n\nWell, there's nothing for it. I'll need to see it for myself. I guess I'll take a rain check on dying alone in this awful place."
+  }
+}

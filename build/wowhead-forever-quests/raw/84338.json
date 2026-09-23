@@ -1,0 +1,12 @@
+{
+  "id": 84338,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84338",
+  "source": {
+    "title": "A Binding Contract",
+    "description": "The undersigned hereby declares that the Sulfuron ingot they are delivering to the Thorium Brotherhood (TB Ltd.) is genuine and not a facsimile thereof. The undersigned also acknowledges that any harm that should come to <him/her> as a result of attempting to build, forge, find, create, sell, or eat Sulfuras, is not the responsibility or fault of TB Ltd.\n\nBy signing this contract, you are agreeing to all terms listed herein.\n\n_________________\n\nSignature",
+    "objective": "Turn the Thorium Brotherhood Contract in to Lokhtos Darkbargainer if you would like to receive the plans for Sulfuron.",
+    "progress": "Do we have a deal?",
+    "completion": "It has been a pleasure doing business with you, <name>!\n\nOn behalf of TB Ltd., I wish you luck in your search for Sulfuras!"
+  }
+}

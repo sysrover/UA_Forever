@@ -1,0 +1,12 @@
+{
+  "id": 78144,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78144",
+  "source": {
+    "title": "Alonso the Dragonslayer",
+    "description": "The time is upon us, <name>. I am adorned with armor befitting a true Dragonslayer! You have been of great assistance.\n\nI should ask that you accompany me now, as my honorary squire, and watch me best the great dragon once and for all!",
+    "objective": "Accompany Alonso to slay the dragon.",
+    "progress": null,
+    "completion": "I've done it <name>! At last my foe is defeated!\n\nOh the clash of fang and metal; of scale and blade. What peril, what thrill! And through it all, I arise a champion.\n\nLet us not forget your humble contribution as well! Without the armor you retrieved, I surely would not have bested the fiend.\n\nYou have been an excellent squire, <name>. Perhaps, one day, you too shall walk the glorious path of a knight."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 84138,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84138",
+  "source": {
+    "title": "Frosty Favors",
+    "description": "I'm the chief engineer, founder and head technician of the Deepsea Exploration and Liquefaction Technologies Alliance. I've nearly finished my latest experiment, and I need your help! I am working on a special device to geolocate resource-rich dimensions. To complete my construction, I need something back: a book of arcane formulas that I lent to an old colleague of mine, Numi, who continues her work in Winterspring. Retrieve the book for me and I'll reward you handsomely!",
+    "objective": "Explain the book situation to Doctor Jurgens' colleague, Numi, in Winterspring.",
+    "progress": null,
+    "completion": "Sebastian needs it? He's a real piece of work. You're wasting your time asking for the book. I'm not giving it up or telling you where it is quite yet. But maybe we can make a deal."
+  }
+}

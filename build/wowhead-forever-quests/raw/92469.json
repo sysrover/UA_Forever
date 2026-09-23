@@ -1,0 +1,12 @@
+{
+  "id": 92469,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92469",
+  "source": {
+    "title": "Return to Rorian",
+    "description": "You've done enough here, <class>. I'll stay and clean up any stragglers down there.\n\nHead back to the Village and tell Rorian about the cult's presence. He will not be pleased.",
+    "objective": "Bring word of the Al'Aketh to Rorian the Dayseeker in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

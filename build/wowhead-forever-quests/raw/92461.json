@@ -1,0 +1,12 @@
+{
+  "id": 92461,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92461",
+  "source": {
+    "title": "Harmony in Balance",
+    "description": "We live in times of great uncertainty for our people. We face unprecedented challenges that may require bold solutions, but we also must contend with the ordinary and mundane here in Thendal Grove. Take, for example, the recent unsustainable rise in the vuldren population.\n\nThe vuldren are a vital part of our ecosystem. However, imbalances must be corrected to maintain the delicate harmony that all creatures in Thendal Grove share.\n\nHead east and cull some of the vuldren there.",
+    "objective": "Slay 8 Vuldren Juveniles in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

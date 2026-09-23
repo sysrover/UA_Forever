@@ -1,0 +1,12 @@
+{
+  "id": 78196,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=78196",
+  "source": {
+    "title": "Secrets of Undeath",
+    "description": "If you seek to find 'belief' or 'worship' among the Forsaken priests, you will be disappointed. We have seen beyond death and we know nothing awaits us there. Our faith derives from cold experience, not naive hope.\n\nExperience... that may be what you need. Collect shadeleaf from the swamp creatures of Ashenvale, then return to me. I have an idea that may answer your questions.",
+    "objective": "Collect 12 Shadeleaf from Shadethicket elementals in Ashenvale.",
+    "progress": "Have you collected the shadeleaf?",
+    "completion": "Wait a moment, and I will prepare something for you..."
+  }
+}

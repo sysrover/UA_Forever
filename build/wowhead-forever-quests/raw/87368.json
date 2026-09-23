@@ -1,0 +1,12 @@
+{
+  "id": 87368,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87368",
+  "source": {
+    "title": "A Product of Faith",
+    "description": null,
+    "objective": "Receive the Seal of the Dawn.",
+    "progress": "I shudder to think of the horrors you've faced to come this far. You're an inspiration to the Argent Dawn, and I can only pray that you continue to aid us in this manner.\n\nBring me more Remnants of Valor, and I'll empower your seal. I believe there's a way to go before you realize your potential.",
+    "completion": "Well done, <name>. To purify the fallen would be a worthy endeavor in and of itself, even if no reward were promised.\n\nOf course, that's not the case for you! Take your newly-empowered seal."
+  }
+}

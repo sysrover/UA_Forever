@@ -1,0 +1,12 @@
+{
+  "id": 77618,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77618",
+  "source": {
+    "title": "Thrice Stolen",
+    "description": "I'm ashamed to admit it, <name>, but those Defias jerks got the drop on me. They stole a magical rune I... uh, 'borrowed' from the Abbey's archives. I figured it would give me some kinda advantage in a fix, but I couldn't crack how to make it work.\n\nMake your way east and see if you can snatch it back from their stash, would ya? And try to use the rune yourself, when you find it. You seem like a bookish sort. No offense.",
+    "objective": "Recover the lost rune from the Defias camps and use it to learn a new ability, then return to Jorik Kerridan in Northshire.",
+    "progress": "Any luck, <name>?",
+    "completion": "A fine bit of larceny there, <name>. Consider that rune a present from yours truly.\n\nIf Brother Paxton asks, we never had this conversation, yeah?"
+  }
+}

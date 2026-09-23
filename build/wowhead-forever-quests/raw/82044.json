@@ -1,0 +1,12 @@
+{
+  "id": 82044,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82044",
+  "source": {
+    "title": "The Wild Gods",
+    "description": "A darkness has taken root in the Emerald Dream, and it has shadowed the ancient spirits of Hyjal with confusion and fear.\n\nSeek out these delirious spirits, mortal, and use my roar to draw them into combat.\n\nWhen you slay their corrupted forms, their spirits will be cleansed and they will be reborn anew.",
+    "objective": "Deliver Wild Offerings to the Shadowtooth Emissary in Felwood. Use Agamaggan's Roar on a Delirious Ancient and defeat it to earn Wild Offerings.",
+    "progress": "I sense a change on de mountain, <name>. What you bringin' me?",
+    "completion": "You be doin' de loa a great service, <name>. I'll be usin' de offerings to guide dem back to Hyjal.\n\nBring me more offerings, and I may part wit' some of my clan's treasures."
+  }
+}

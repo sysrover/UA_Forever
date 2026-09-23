@@ -1,0 +1,12 @@
+{
+  "id": 84556,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84556",
+  "source": {
+    "title": "The Forging of Quel'Serrar",
+    "description": "If you wish to take on this task, present Lydros with the dull blade.",
+    "objective": "Give the Dull and Flat Elven Blade to Lorekeeper Lydros.",
+    "progress": "Excellent, let us begin...",
+    "completion": "If you manage to enter the lair of the dragon, heat the blade under her fiery breath, and ultimately temper it in her blood, I shall bind the blade for your use."
+  }
+}

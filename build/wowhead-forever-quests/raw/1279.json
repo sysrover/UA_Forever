@@ -1,0 +1,12 @@
+{
+  "id": 1279,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=1279",
+  "source": {
+    "title": "<nyi> <TXT>The Centaur Hoofprints",
+    "description": "Finish one of the three.\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(1279))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

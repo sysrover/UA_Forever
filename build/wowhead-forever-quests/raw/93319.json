@@ -1,0 +1,12 @@
+{
+  "id": 93319,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93319",
+  "source": {
+    "title": "Pilfered Windstones",
+    "description": "We are relying on windstones more and more for day to day living here on Zephras so we try and maintain a cache of them in reserve for emergencies. Lately I've noticed some go missing from our stores.\n\nWe've found windstones on bandits we've captured recently, and I suspect they are behind our shortages.\n\nIf you find yourself near the bandit cave to the north, mind knocking a few heads together and reclaiming some of our pilfered windstones for me?",
+    "objective": "Collect 10 Pilfered Windstones from the Highlands Bandits in the Shen'dar Highlands.",
+    "progress": null,
+    "completion": null
+  }
+}

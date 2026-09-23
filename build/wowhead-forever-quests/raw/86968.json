@@ -1,0 +1,12 @@
+{
+  "id": 86968,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86968",
+  "source": {
+    "title": "Are You Afraid of the Dark?",
+    "description": "Really can't thank you enough for the help back there. You really saved my bacon.\n\nI've been chatting with this nice young woman while waiting for you and I think she might have some ideas to help you get into that forsaken crypt, if you really do insist on pushing your luck.\n\nI'm getting ahead of myself. though. I believe I owe you some information.",
+    "objective": "Listen to Harrison Jones while he tells you what happened in Karazhan Crypts.",
+    "progress": null,
+    "completion": "So it appears that Jones' group successfully entered the crypt and happened upon a substantial cache of riches. The darkness both you and he described certainly seems magical in nature. Clearly their clumsy looting seemed to have triggered a reaction from something malign.\n\nI've consulted my spell tomes and I think I might have a potential solution to get you through that darkness, should you still feel brave enough to proceed. Come, let's speak further on the matter."
+  }
+}

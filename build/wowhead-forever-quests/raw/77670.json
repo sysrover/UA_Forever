@@ -1,0 +1,12 @@
+{
+  "id": 77670,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77670",
+  "source": {
+    "title": "Meditation on Undeath",
+    "description": "I will summon to your mind a memory of the living - it may even be your own memory. Go to the graveyard beside this chapel and find where the chill of death is strongest, then kneel and focus your thoughts. Through focus on the mysteries of undeath you will find clarity in this memory and learn a new technique. Return to me when you have done this.",
+    "objective": "Kneel in the graveyard to meditate on undeath, then use the rune to learn a new ability. Afterwards, return to Dark Cleric Duesten in the Deathknell chapel.\n\nProvided item:",
+    "progress": "If you have difficulty focusing on death, you could try dying again. It's unlikely to be permanent the second time either.",
+    "completion": "The living cling to the Light for one reason - they fear the oblivion of death. As Forsaken, that fear has no further hold over you. Though the Light now rejects even those among us who were once its most fervent devotees, we command dark powers that lie beyond death's shadow.\n\nAs you grow stronger I recommend spending some time with the trolls of the Horde. Though their culture is primitive, the 'loa' they revere have some connection to undeath. They may provide insight into our nature."
+  }
+}

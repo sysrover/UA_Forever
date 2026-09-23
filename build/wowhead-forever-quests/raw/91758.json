@@ -1,0 +1,12 @@
+{
+  "id": 91758,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91758",
+  "source": {
+    "title": "Follow That Kobold!",
+    "description": "You're not done with those kobolds yet. We just got word from Kelsey that a kobold left the mine carrying a large sack of books. I need you to track down this kobold so we can retrieve the books for Brother Paxton.\n\nGo talk to Tordrin Sternblade. He's the new Hunter trainer that just arrived from Ironforge. You can find him behind the abbey, near the stable. He can help you track this kobold thief.",
+    "objective": "Speak to Tordrin Sternblade near the stable behind Northshire's Abbey.",
+    "progress": null,
+    "completion": null
+  }
+}

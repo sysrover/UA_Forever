@@ -1,0 +1,12 @@
+{
+  "id": 89449,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89449",
+  "source": {
+    "title": "The Radiant Forge",
+    "description": "So, it seems like it's a bit of a mess over at Tyr's Hand. That's unfortunate, but the bottom line is that I need to get a good look at the workshop where they've been crafting these armaments. Otherwise I won't have any hope of unlocking this metal's secrets.\n\nJust mark the location of this workshop on my map and I'll make my way there after the coast is clear.",
+    "objective": "Enter the Scarlet Enclave and meet Master Craftsman Omarion at the Radiant Forge there.",
+    "progress": null,
+    "completion": "I've been studying this workspace and I think I have a solid understanding of what the Crusade has been doing here. We should be able to use this material to make a blade of unparalleled quality.\n\nHowever, this lightforged iron on its own has a fatal flaw that significantly reduces its durability. It'd be perfect if we could use it as part of an alloy, though.\n\nJust to prepare you though, this could get expensive."
+  }
+}

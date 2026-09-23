@@ -1,0 +1,12 @@
+{
+  "id": 82110,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82110",
+  "source": {
+    "title": "The Azure Key",
+    "description": "It will take some time to decipher the fragments and remove the enchantment.  When I am complete, I'll deliver the bag to Lord Ravenholdt personally.\n\nThere is still the matter of the key, said to be held by a green drake known as Morphaz.  The drake has made its home deep in the Temple of Atal'Hakkar, the entrance to which lies in the Swamp of Sorrows.\n\nGather your friends and venture to his lair.  Lord Ravenholdt will await your return with the key.",
+    "objective": "Return the Azure Key to Lord Jorach Ravenholdt.",
+    "progress": "The bag has already arrived from Archmage Xylem, have you found the key?",
+    "completion": "The key!  I thought it lost forever.  Please, take an enchanted garment from my stores -- they are reserved for rogues of exceptional skill and loyalty.  It should be known that <name> is not to be trifled with!"
+  }
+}

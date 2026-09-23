@@ -1,0 +1,12 @@
+{
+  "id": 85248,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85248",
+  "source": {
+    "title": "Everyone Knows That Bugs Can't Fly",
+    "description": "From your reports it sounds like the darters are definitely faster, but we need to know more about them. If we can study one, perhaps we can figure out how to neutralize them more effectively.\n\nWith your hunting skills, it should be possible to incapacitate one of the darters and bring it back here so that we can learn more about it. Track one down, wound it, rope it, and bring it back here to the cage we've set up for study.",
+    "objective": "Fight a silithid darter until you weaken it, then use your Concussive Shot skill to slow it. When it frenzies, use a Tranquilizing Shot to knock it unconscious. Tie it up, drag it back to Cenarion Hold, and secure it to the  hitching post across from Commander Mar'alith's war room for further study.\n\nReturn to Commander Mar'alith in Cenarion Hold when finished.\n\nYou can learn Tranquilizing Shot from the raid on Molten Core.",
+    "progress": "Remember, weaken the darter first, then try to knock it out with concussions and tranquilizers.",
+    "completion": "Sterling work. Your skills have already showed us one way to neutralize them, and we should be able to figure out more about the darters by observing this captive."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85401,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85401",
+  "source": {
+    "title": "The Frigid Barrow",
+    "description": "Just as life springs forth from decay, so too may the unnatural come to serve the natural.\n\nThe heart can be made into a stave of shifting form, but I will need a vessel strong enough to contain its power.\n\nThere is a barrow den near Starfall Village, in Winterspring. The true entrance will only reveal itself if you are alone.\n\nWithin is a keeper who lost his way long ago; Nandieb. His stave shall be the heart's vessel. It pains me to suggest, but he is no longer the great keeper I once knew.",
+    "objective": "Find Nandieb in the barrow den near Starfall Village in Winterspring, and recover his stave. This must be done alone.",
+    "progress": "Have you recovered the stave?",
+    "completion": "The chromatic heart, and Nandieb's stave: Together, they will form the shifting staves Gla'sir and Rae'lar. Two objects of malice and destruction, transformed in service of creation and life.\n\nI bestow this power unto you, <name>, in the hope that you will continue to prove a noble steward of all life across Azeroth."
+  }
+}

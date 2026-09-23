@@ -1,0 +1,12 @@
+{
+  "id": 83934,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=83934",
+  "source": {
+    "title": "Show Me The Money!",
+    "description": "Heya! You look like the \"resourceful adventurer\" type so maybe you can help me out. See, my brothers and I came from the Lost Isles looking to start up a new business venture but we ran afoul of some pirates who stole our startup money. The people who are funding our operation back home aren't exactly what I'd call understanding, so we'd make it worth your while if are able to find any of the coin and return it. It's no ordinary gold but you should know it when you see it.",
+    "objective": "Bring a Tarnished Undermine Real to Pix Xizzix in Booty Bay.",
+    "progress": "Whatcha got for me, <race>?",
+    "completion": "Hey! That's great!\n\nIf you find anymore of our coin, come see me. We've got a great selection of goods and we'd be happy to barter!"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 81960,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=81960",
+  "source": {
+    "title": "Clarifying Air",
+    "description": "The illegible notes are wrapped around some sapta. It's murkier than you remember, but appears to be fused with the same magic. You feel uneasy looking at it, as if it has been tainted by some ill-gotten influence. There must be a Spirit Rock nearby, though you don't know of any holy place near here. Perhaps you can get to the bottom of this strangeness by finding it.",
+    "objective": "Find the tainted Spirit Rock and drink the Murky Air Sapta.\n\nProvided item:",
+    "progress": null,
+    "completion": "You give life back. You strong enough. Understand... yes... you stop corruption.\n\nSeek and stop corruption."
+  }
+}

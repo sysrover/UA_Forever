@@ -1,0 +1,12 @@
+{
+  "id": 80164,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80164",
+  "source": {
+    "title": "Large Cluster Rockets",
+    "description": null,
+    "objective": "ProgressLarge cluster rockets require vast resources and skill to create, but their brilliance and beauty is worth that effort!  Bring me coins of ancestry and I will grant you the knowledge of their crafting.",
+    "progress": null,
+    "completion": "Thank you, <name>.  Here is the recipe for large cluster rockets.  May your products bring joy and luck to all those who gaze up them."
+  }
+}

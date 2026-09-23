@@ -1,0 +1,12 @@
+{
+  "id": 89442,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89442",
+  "source": {
+    "title": "Emblem of Darkness",
+    "description": "There is one final piece; the Emblem of the Ashbringer. In a way, the emblem is the heart of the blade. Highlord Alexandros himself used all his will and determination to transfigure an orb of pure void into a vessel of the Light itself.\n\nThe emblem endured when Caldoran fell and the blade shattered. Adventurers recovered it and passed it into Lord Maxwell Tyrosus's care.\n\nRetrieve the emblem and we'll have everything we need for the next step.",
+    "objective": "Speak with Lord Maxwell Tyrosus at Light's Hope Chapel about the Emblem of the Ashbringer.\n\nProvided item:",
+    "progress": null,
+    "completion": "<Lord Maxwell Tyrosus' eyes widen as you tell him of the Will of the Ashbringer.>\n\nThat is an incredible tale, <name>. Part of me rejoices at the prospect of restoring the blade and seeing my old friend finally find the peace that was stolen from him. However, there is a feeling that I just can't shake. I fear that this path won't lead you to the ending we'd hope for.\n\nRegardless, if you are sure that this is the way, then I will entrust the emblem to your care and pray for a hopeful outcome."
+  }
+}

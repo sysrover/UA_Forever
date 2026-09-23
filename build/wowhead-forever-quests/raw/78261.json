@@ -1,0 +1,12 @@
+{
+  "id": 78261,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78261",
+  "source": {
+    "title": "The Horn of Xelthos",
+    "description": "<A note sits in the chest>\n\nHello, <name>.\n\nI desire a treasure known as The Horn of Xelthos, which is somewhere within Shadowfang Keep.\n\nVenturing inside the keep usually calls for backup. However, for this job, a low profile is of utmost importance.\n\nYou must go alone.\n\nI have a contact, by the name of Veenix, in the Stonetalon Mountains. He should be able to help you get past the courtyard gate. The rest is up to you.\n\nReturn the horn here, and your payment will be sent soon after.\n\n- C",
+    "objective": "Find The Horn of Xelthos inside of Shadowfang Keep. Then, return it to C's dead drop near Pyrewood Village. You must complete the job alone.",
+    "progress": "<The chest sits, empty.>",
+    "completion": "<You place The Horn of Xelthos into the chest>"
+  }
+}

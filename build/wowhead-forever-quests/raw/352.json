@@ -1,0 +1,12 @@
+{
+  "id": 352,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=352",
+  "source": {
+    "title": "<UNUSED>",
+    "description": "Great Mammoda. Enormous, she was, with claws and teeth like swords. Now, I was caught off my guard, but I don't think being ready would have helped my cause much. One swipe and poof! Darkness. They say I'm lucky to walk now...\n\nWell, not much enjoyment to be had in hearing that old story now, is there? Anyways, <name>, if you'd like to try yourself against her, the Lady of the Loch,\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(352))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

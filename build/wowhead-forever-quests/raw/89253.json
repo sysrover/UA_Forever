@@ -1,0 +1,12 @@
+{
+  "id": 89253,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89253",
+  "source": {
+    "title": "Main Course",
+    "description": "No meal is truly complete without the star of the dish - the meat! As you can probably imagine, hunting for meat that is safe to consume in the Plaguelands is a challenge unlike no other.\n\nTo make matters worse, our hounds eat nothing but meat! I am sure you can see where this is going, and I am sure by now you understand why I am perpetually behind.\n\nWell? What are you waiting for?",
+    "objective": "Acquire meat that is safe for human consumption. If you struggle to locate some in New Avalon, you may (eventually) gather enough from slaying beasts in the Eastern Plaguelands.",
+    "progress": "Back already? That can't be good.",
+    "completion": "Your expedience is appreciated and suspicious; almost as suspicious as the coloration of these hunks of meat. Fortunately we have all built up strong stomachs during our time out here.\n\nA few cuts here, a dash of spices there, and no one will be the wiser.\n\nThese will suffice, hopefully. Thank you."
+  }
+}

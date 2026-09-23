@@ -1,0 +1,12 @@
+{
+  "id": 82656,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=82656",
+  "source": {
+    "title": "Wild Leather Vest",
+    "description": "Wild Leather vests are the staple of any Wild Leather armor set.  The frame of the vest and the wildvine weave within it produces a product that offers maximum protection of the torso while allowing for potent magic to work its way through the garment.\n\nFor this pattern, I will require two Turtle Scale breastplates, two sets of Turtle Scale gloves, and a wildvine.  This is not an easy lesson, but it is one you certainly have the skill to complete.",
+    "objective": "Bring 2 Turtle Scale Breastplates, 2 Turtle Scale Gloves, and a Wildvine to Jangdor Swiftstrider in Camp Mojache.",
+    "progress": "Do you have the two Turtle Scale breastplates and gloves?  Also, don't forget the wildvine!\n\nEven with the earliest patterns, we learn that the fundamentals of shape translate well into more difficult garments.  Though different items, the shape of the Turtle Scale breastplates prepares you for the detailing needed to make a Wild Leather vest.\n\nAs you progress through your lessons, the skills I teach will become as art.",
+    "completion": "These are some very nice pieces here, <name>.  The craftsmanship and care put in to making these show you have chosen to dedicate yourself fully to these tasks.\n\nYou've met my requests, and with that comes your reward.  The knowledge of making Wild Leather vests is now yours!"
+  }
+}

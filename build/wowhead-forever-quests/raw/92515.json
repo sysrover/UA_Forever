@@ -1,0 +1,12 @@
+{
+  "id": 92515,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92515",
+  "source": {
+    "title": "The Problem With Prideclaws",
+    "description": "As if bandits and mad cultists weren't enough, the hills are thick with prideclaws as well right now. They are starting to encroach on the village borders and growing bolder by the day. It's only a matter of time before someone's pet or child is taken. It would be a mercy for us to cull their numbers now rather than after some tragedy occurs.\n\nBring me a dozen or so of their pelts. I can turn them into all sorts of goods that will be of aid to the village.",
+    "objective": "Collect 10 Prideclaw Pelts from the Prideclaws in Shen'dar Highlands.",
+    "progress": null,
+    "completion": null
+  }
+}

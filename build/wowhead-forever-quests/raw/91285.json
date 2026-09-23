@@ -1,0 +1,12 @@
+{
+  "id": 91285,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=91285",
+  "source": {
+    "title": "Murlocs at the Gates",
+    "description": "Normally we'd show our newcomers a bit more hospitality, but we've got a bit of a murloc problem at the moment.\n\nA tribe of murlocs used to use the keep as their spawning grounds. They've been a problem since we moved in and kicked them out, but now it's starting to get out of hand. You look like you've seen some action. Do you think you could help us drive back some of these pests? You'll find them lurking in the bluffs along the road to the east, and in the camps around the lake to the west.",
+    "objective": "Slay 8 Vile Fin Attackers and 8 Vile Fin Seers and report back to Breton Samuels when it is done.",
+    "progress": null,
+    "completion": null
+  }
+}

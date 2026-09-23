@@ -1,0 +1,12 @@
+{
+  "id": 91725,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91725",
+  "source": {
+    "title": "Stolen Enchanting Supplies",
+    "description": "I was sent by Master Theocritus to pick up some enchanting supplies from the trading post, but on the way back I was ambushed by a pack of gnolls!\n\nI dropped the package and escaped, but if I return without it, I'll be cleaning up after the polymorph experiments for weeks as punishment! Do you think you could find the supplies for me?",
+    "objective": "Collect 5 Stolen Enchanting Supplies from gnoll camps around Stone Cairn Lake, then return to Blixie Fitzwink near the Tower of Azora.",
+    "progress": null,
+    "completion": null
+  }
+}

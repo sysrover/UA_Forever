@@ -1,0 +1,12 @@
+{
+  "id": 89445,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89445",
+  "source": {
+    "title": "Blades of Light",
+    "description": "Even ruined and broken, the properties of the blade you hold before you are impressive. If you could better understand the material that this blade was crafted from, it might be possible to create a truly exceptional weapon from it. First, you'll need to find a blacksmith skilled enough to ascertain its properties, and find a way to work the material.",
+    "objective": "Find a Blacksmith that can tell you more about the Ruined Lightforged Blade.",
+    "progress": "Eh? Canna spare a moment to flap jaws with ye! These breastplate's ain't gonna hammer themselves!",
+    "completion": "Oooh! If that isn't an impressive blade ye got there!\n\nYe say yer lookin fer someone to try and work the material? Hmm, well, I regret to tell ye that unlockin' the secrets of this metal is likely out of my depth. If only Omarion were here. He was the resident master craftsman here, and he were a right fine expert on exotic materials and alloys. He'd be perfect for summat like this. Only problem is, he up and vanished!\n\nIf he's alive somewhere, he'd be yer best bet!"
+  }
+}

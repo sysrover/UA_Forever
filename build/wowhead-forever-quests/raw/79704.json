@@ -1,0 +1,12 @@
+{
+  "id": 79704,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79704",
+  "source": {
+    "title": "The Salvagematic 9000!",
+    "description": "Insert your salvage into the machine, get fabulous prizes! Probably. Maybe.",
+    "objective": "Insert a Grime-Encrusted Salvage into the Salvagematic 9000, and be sure to have three silver coins to start the machine.",
+    "progress": "The machine shudders and shakes before belching out a pile of salvaged parts.",
+    "completion": null
+  }
+}

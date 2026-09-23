@@ -1,0 +1,12 @@
+{
+  "id": 79939,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79939",
+  "source": {
+    "title": "The Broken Hammer",
+    "description": "An ornate broken warhammer lies surrounded by dead Burning Blade Cultists and Scarlet Crusade warriors. A fight clearly happened here, and fairly recently. You also recognize this as the weapon of a paladin of the Order of the Silver Hand. While you've seen many hammers like this one, the quality and worksmanship of this weapon is fairly unique. You should search the area for clues, and find someone who may know more about this weapon.",
+    "objective": "Search for clues about what happened at the Mannoroc Coven in Desolace, and find someone who may know more about the broken hammer.",
+    "progress": "What is it you have there, my friend?",
+    "completion": "<Katherine sighs heavily> Yes <name>, I do know of this weapon. I'd assumed its owner had died long ago."
+  }
+}

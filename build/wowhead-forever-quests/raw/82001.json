@@ -1,0 +1,12 @@
+{
+  "id": 82001,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82001",
+  "source": {
+    "title": "Require Gnomish Problems",
+    "description": "Ok bad news. This Gnomish consultant they got is one step ahead of me. Turns out their racer isn't even going to be on the ground!\n\nThey are lining the racetrack with this thing called \"magnets,\" and they are going to glide just above the ground, which means no explosion! If they won't step on the mine, then we just go to bring the mine to them!\n\nI think if we have an electrical charge big enough, it should fix our issue. Go to Southwest Un'goro and bring me a Thunderstomp Stegodon horn!",
+    "objective": "Bring the Horn of a Thunderstomp Stegodon to Maximillian \"The Greaser\".",
+    "progress": "I wont go into details on how magnets work, because frankly, I don't think anybody knows.",
+    "completion": "Yeah this should do it! The perfect natural conduit we need! Shavings from this will act as a perfect trigger for the mines to go off."
+  }
+}

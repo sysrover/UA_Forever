@@ -1,0 +1,12 @@
+{
+  "id": 92517,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92517",
+  "source": {
+    "title": "The Criminal Element",
+    "description": "There's a cave not far to the north, hidden behind a waterfall. It's well known to me that there's a group of bandits that are operating out of that cave. They were a problem for us before the cult arrived, but now they are a real terror. I can't spare the people to go and clear them out, unfortunately.\n\nI need you to go there and take care of them for me. Kill as many as you can, and if possible, take out their leader, the one they call \"Badwind\" Bennic. That cave is dangerous, so be careful.",
+    "objective": "Kill 10 Highlands Bandits and their leader, \"Badwind\" Bennic in the Shen'dar Highlands.",
+    "progress": null,
+    "completion": null
+  }
+}

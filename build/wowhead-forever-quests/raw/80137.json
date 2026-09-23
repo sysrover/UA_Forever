@@ -1,0 +1,12 @@
+{
+  "id": 80137,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80137",
+  "source": {
+    "title": "Save Techbot's Brain!",
+    "description": "When our beloved city Gnomeregan fell, a rogue spark must have jolted my poor creation, Techbot.  It once aided me and my associates with its countless gizmos and limitless store of information, but its positronic brain has polarized.  Now it's negatronic... and Techbot's behaviors are reversed.  It roams Gnomeregan in a frenzy!\n\nBut perhaps it can be salvaged.  Perhaps, if you can retrieve Techbot's memory core and bring it to me, I can discover the cause of the polarization and fix my poor Techbot.",
+    "objective": "Bring Techbot's Memory Core to Tinkmaster Overspark in Ironforge.",
+    "progress": "Did you find Techbot?  Did you retrieve its memory core??",
+    "completion": "Oh, this is wonderful!  Thank you, <name>!  I'll get to work immediately!!\n\nPoor, poor Techbot... Don't feel bad.  We'll get you fixed.\n\nNow, where did I put that plug for my hydro-jack swivel spanner..."
+  }
+}

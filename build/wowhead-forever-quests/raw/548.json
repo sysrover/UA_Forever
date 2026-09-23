@@ -1,0 +1,12 @@
+{
+  "id": 548,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=548",
+  "source": {
+    "title": "<NYI> <TXT> Bloodstone Pendant",
+    "description": "This will start the Bloodstone Pendant quest line...<NYI>\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(548))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

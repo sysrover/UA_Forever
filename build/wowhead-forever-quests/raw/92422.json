@@ -1,0 +1,12 @@
+{
+  "id": 92422,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92422",
+  "source": {
+    "title": "The Wrath of Rath'mael",
+    "description": "Reports have come in from the Lordamere Overlook deep within the Ruins of Lordaeron. An unholy fog has taken over the streets and graveyard, affording the scourge up there some measure of stealth.\n\nOur scouts indicate they're being conjured by a new power within their ranks, a necromancer known as Rath'mael. We do not have the luxury of waiting this one out, <name>.\n\nIf you have allies, summon them and their aid to the Forsaken. Drive this creature out of our lands.",
+    "objective": "Kill Rath'mael in the Ruins of Lordaeron for Deathguard Kristof in Brill.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 88749,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=88749",
+  "source": {
+    "title": "Faint Necrotic Crystal",
+    "description": "On the corpse of the fallen wight, you find a crystal that is faintly radiating necrotic energy.",
+    "objective": "Bring the Faint Necrotic Crystal to Lieutenant Rukag in the courtyard of the Undercity.",
+    "progress": "Can I help you with something?",
+    "completion": "You say this was taken from a wight attacking the city?\n\nWe have received word about the necropolis base camps that are being summoned by the Scourge. I suspect they were trying to create one in the Undercity. We will have to be vigilant in the future."
+  }
+}

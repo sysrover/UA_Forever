@@ -1,0 +1,12 @@
+{
+  "id": 92462,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92462",
+  "source": {
+    "title": "Infestation Investigation",
+    "description": "One of our rangers recently reported an infestation of cirrusflies here in Thendal Grove.\n\nCirrusflies can be dangerous if the swarm is allowed to grow too large, so please head to the eastern end of the Grove and exterminate as many as you can.",
+    "objective": "Slay 8 Pesky Cirrusflies in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 84200,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84200",
+  "source": {
+    "title": "Saving the Best for Last",
+    "description": "That's an amazing story, <name>! You have my thanks, and the heartfelt gratitude of all who were involved. Now maybe I'll be able to sleep at night with both eyes shut.\n\nAs to your reward, I believe I have a few things that you'll really enjoy.",
+    "objective": "Give Deliana your Shadowcraft Cap and Shadowcraft Tunic.",
+    "progress": "As per our deal, are you ready to hand over your Shadowcraft pieces in exchange for your new Darkmantle Cap and Tunic?",
+    "completion": "I'm going to miss you, <name>. I owe you such a debt of gratitude; I think I'll never be able to repay it.\n\nI hope that you enjoy your new head and chest armor, and that it protects you for a long time to come."
+  }
+}

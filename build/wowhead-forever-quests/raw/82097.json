@@ -1,0 +1,12 @@
+{
+  "id": 82097,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82097",
+  "source": {
+    "title": "Secret of the Circle",
+    "description": "My memories are cloudy, but I will tell you what I can. The circle of statues in the Sunken Temple, while dangerous, I believe that they hold the secret to unlock an even greater treasure.\n\nFrom the main altar, I was able to activate a series of lights. I think that if you can uncover what these lights mean, you might be able to unlock whatever secrets are hiding in this room.\n\nI warn you though, <name>. Great evil lies in the temple. It's likely that anything valuable will be fervently guarded...",
+    "objective": "Travel into the Sunken Temple and discover the secret hidden in the circle of statues.",
+    "progress": null,
+    "completion": "The eye of the idol glitters brightly atop the ruined pile. Its transparency reveals something shiny behind it. You shift a few large chunks of rubble and manage to pull loose what lies beneath.\n\nThe Atal'ai treasure is now yours."
+  }
+}

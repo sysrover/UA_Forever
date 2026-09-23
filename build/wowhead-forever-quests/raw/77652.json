@@ -1,0 +1,12 @@
+{
+  "id": 77652,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77652",
+  "source": {
+    "title": "Icons of Power",
+    "description": "Shamanism is an ancient practice, <name>. Many artifacts, full of spiritual energy, can be found across Azeroth. I had recently discovered an icon of notable power myself, but it was stolen by the quilboar.\n\nGo to their territory, to the east, and find the stolen icon. It is likely being carried by one of their own shamans attempting to understand its secrets.\n\nOnce you find the icon, learn its power and return to me.",
+    "objective": "Recover the lost icon from the Bristleback Shamans in Brambleblade Ravine. Learn its power, then report back to Harutt Thunderhorn in Camp Narache.",
+    "progress": "Have you found the icon, <name>?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

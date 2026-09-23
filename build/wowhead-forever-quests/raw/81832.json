@@ -1,0 +1,12 @@
+{
+  "id": 81832,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81832",
+  "source": {
+    "title": "Hinterlands Mission IX: Recover Dreampearl",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Seradane, and journey to the Nightmare Incursion at Shaol'watha. Retrieve a Dreampearl the turtles have hidden there and deliver it to me.",
+    "objective": "Recover a Dreampearl in the Hinterlands Nightmare Incursion from a snake fountain at Shaol'watha and return to Field Captain Korlian.",
+    "progress": "You have the pearl?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

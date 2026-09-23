@@ -1,0 +1,12 @@
+{
+  "id": 92699,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=92699",
+  "source": {
+    "title": "The Supreme Magister",
+    "description": "Now that you've arrived in Valanaar, you'll likely want to check in with the other members of the High Order here. The current Supreme Magister, Elaadrin Evengale and his people operate out of the lodge on the far southeastern part of Valanaar.\n\nYou should also take care, the High Order and Windshapers don't get along very well here. Be careful and give the Windshapers a good, wide berth. We've got enough to worry about with the cult, I won't tolerate faction violence in the streets of Valanaar.",
+    "objective": "Find Elaadrin Evengale in Valanaar.",
+    "progress": null,
+    "completion": null
+  }
+}

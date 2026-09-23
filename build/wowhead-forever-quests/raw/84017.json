@@ -1,0 +1,12 @@
+{
+  "id": 84017,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84017",
+  "source": {
+    "title": "A Time to Kill",
+    "description": "I feel that I've learned so much in so short a time. I don't think anyone could ever truly be ready to face what I intend to face, but I feel as ready as I'll ever be. What say you, <name>? Shall we go and end this fight?\n\nI'm not sure where to begin, but I suspect we'll find clues somewhere in the Eastern Plaguelands. We should probably start in areas where the Cult of the Damned congregates.",
+    "objective": null,
+    "progress": "Vengeance is near, I can feel it!",
+    "completion": "It seems that we've found our quarry, but he seems to be out of our reach. We must discover a way to reach him so that we may strike."
+  }
+}

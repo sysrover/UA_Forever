@@ -1,0 +1,12 @@
+{
+  "id": 84349,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84349",
+  "source": {
+    "title": "Priority Target: Duke Searbrand",
+    "description": "Our lookouts report that a firelord calling itself Duke Searbrand has been seen in the depths of the cauldron working hard to summon more fire elementals from the Firelands! We need you to get in there and put a stop to this before it gets out of hand.",
+    "objective": "Lookout Captain Lolo Longstrike wants you to destroy Duke Searbrand. You'll find Duke Searbrand in lowest depths of the Slag Pit caves, directly south of Thorium Point.",
+    "progress": null,
+    "completion": "Well done <name>! After all that exertion, I think I need a drink! Hah!"
+  }
+}

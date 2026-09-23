@@ -1,0 +1,12 @@
+{
+  "id": 86675,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86675",
+  "source": {
+    "title": "Volunteer's Battlegear",
+    "description": "The badges you collect from performing combat, logistics and tactical assignments for Cenarion Hold are more than just for show, <name>.\n\nYou'd be wise to hold on to them.  As you prove your loyalty to our organization I can offer you some of the gear we reserve for our closest allies in exchange for those badges.",
+    "objective": "Bring 5 Cenarion Combat Badges, 3 Cenarion Logistics Badges and 7 Cenarion Tactical Badges to Vargus at Cenarion Hold in Silithus.  You must also attain Friendly reputation with Cenarion Circle to be able to complete this quest.",
+    "progress": "It's in our best interest to keep our most loyal allies well geared, <name>.",
+    "completion": "Great work, <name>.  Please accept this on behalf of the Cenarion Circle.  You've certainly earned it, friend!"
+  }
+}

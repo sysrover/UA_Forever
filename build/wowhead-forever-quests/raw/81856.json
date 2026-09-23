@@ -1,0 +1,12 @@
+{
+  "id": 81856,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81856",
+  "source": {
+    "title": "Feralas Mission II: Defeat Harpies",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough, and journey to the Nightmare Incursion at the Ruins of Ravenwind. Defeat harpies there and return to me.",
+    "objective": "Defeat 10 Dreamspring Roguefeathers and 10 Dreamspring Stormcallers in the Feralas Nightmare Incursion at the Ruins of Ravenwind and return to Field Captain Arunnel.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 91317,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=91317",
+  "source": {
+    "title": "The Tarnished",
+    "description": "Not all risen paladins have acclimated well to our new existence, as you may have seen yourself already. Some have carried forward their prejudices from life, and continue to visit violence upon their fellow Forsaken.\n\nAs it stands we are mistrusted by our people who remember well the persecution inflicted by the living in the name of the light, and these attacks do not help. A number of these tarnished have taken up residence at Shadowvale to the southwest. End them and bring me their leader's head.",
+    "objective": "Slay 8 Tarnished Drudges, 6 Tarnished Zealots, and collect the head of Commander Rudolph Gelhardt in Tirisfal Glades.",
+    "progress": null,
+    "completion": null
+  }
+}

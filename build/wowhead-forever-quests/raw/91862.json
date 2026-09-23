@@ -1,0 +1,12 @@
+{
+  "id": 91862,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=91862",
+  "source": {
+    "title": "Lumina Windsinger",
+    "description": "Quel'dorei? No, I am no \"quel'dorei\". I am Lumina Windsinger and I am shen'dorei. One of the Windshaper Skyborne.\n\nI came to these lands as a guest of the Earthen Ring. My companion Banon and I were passing through Silverpine to reach the Arathi Highlands so that we could study the elemental convergences there. Clearly, we didn't make it.\n\nWe have no time for this now though. Kill the gnolls nearby. Retrieve the key to this cage and free me. I will tell you the rest once we are safely away.",
+    "objective": "Retrieve the Fenris Isle Key from the Rot Hide Gnolls and use it to free Lumina Windsinger.",
+    "progress": null,
+    "completion": null
+  }
+}

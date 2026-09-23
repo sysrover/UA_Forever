@@ -1,0 +1,12 @@
+{
+  "id": 90518,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=90518",
+  "source": {
+    "title": "An Apple a Day Keeps the Undead at Bay",
+    "description": "It is good to see you again. I have had no troubles keeping the kitchen stocked since you have been away, but I did notice this morning that I am just shy enough apples to make a pie. I thought it was time to give myself a little treat.\n\nIf you can spare a few minutes, could you stop by the orchard and grab a few? Unfortunately I still haven't made Johnny's pie yet either, but I can't make a pie without apples and I won't waste apples on Johnny's pie!\n\nI will, of course, share a slice with you.",
+    "objective": "Locate the apple orchard in the southern section of New Avalon to fetch some apples. Return to Carrie Hearthfire in the New Avalon inn once you have succeeded. If you find the apples to be too expensive, consider looking around for an alternative means to acquire them.",
+    "progress": "Remember that Johnny might want to charge extra for his best apples, but I'm sure you can find a creative solution if you don't want to line his pockets.",
+    "completion": "Delightful, I will get started immediately! These apples look even better than the last batch you delivered, it's almost as though you're trying to get on my good side...\n\n<As Carrie begins to set up her space to prepare the pie, she makes an exaggerated gesture that plainly displays her wedding ring.>\n\nThanks for stopping by and improving our evening's meal. Markus and I hope to see you again soon!"
+  }
+}

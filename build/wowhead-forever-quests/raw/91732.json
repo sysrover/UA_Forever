@@ -1,0 +1,12 @@
+{
+  "id": 91732,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91732",
+  "source": {
+    "title": "Good Steel",
+    "description": "Good steel is in short supply after the war, and our tools have suffered for it. The Jasperlode miners used finely-crafted picks, and I imagine some of them are still there in the depths of the mine. Could you retrieve some for me, and I'll see if I can repurpose the steel?",
+    "objective": "Collect 4 Mining Tools from Jasperlode Mine, then return to Hagar Lowe in Eastvale Logging Camp.",
+    "progress": null,
+    "completion": null
+  }
+}

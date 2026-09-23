@@ -1,0 +1,12 @@
+{
+  "id": 85974,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85974",
+  "source": {
+    "title": "Ten Commendation Signets",
+    "description": null,
+    "objective": "ProgressI accept commendation signets from adventurers who have received them in the line of duty.  For each set of ten that you hand to me, you will receive significant recognition from my forces, the Hydraxian Waterlords.  I also accept single tokens, but at a much reduced rate of recognition.  I am much more interested in greater feats of duty, though no feat will be ignored.\n\nWith that said, I will accept your signets if you are ready to hand in a set.",
+    "progress": null,
+    "completion": "Excellent!  It is no small sacrifice that you have made to earn these signets, and you will be acknowledged for your service appropriately.  It is adventurers like you, <name>, that truly make a difference.\n\nLet me know if you have additional signets to hand in; I will gladly accept them."
+  }
+}

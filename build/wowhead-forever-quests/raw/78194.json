@@ -1,0 +1,12 @@
+{
+  "id": 78194,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78194",
+  "source": {
+    "title": "Secrets of Elune",
+    "description": "It is refreshing to see a <race> take interest in Elune. Though the kaldorei are her favored children, she cares for all the people of Azeroth. In return for her blessings, we care for the land in her name.\n\nI have recently been made aware of a disruption in nature's balance - rabid dire wolves, spotted within Duskwood. Show your respect for Elune's balance by culling their numbers, then return to me with proof of your deeds.",
+    "objective": "Collect 10 Dire Wolf Paws from wolves in Duskwood.",
+    "progress": "What news do you bring?",
+    "completion": "I thank you, <name>. The balance is stronger for your efforts."
+  }
+}

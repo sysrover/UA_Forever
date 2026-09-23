@@ -1,0 +1,12 @@
+{
+  "id": 79348,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79348",
+  "source": {
+    "title": "The Lost Ancient",
+    "description": "A putrid seed is all that remains of the wandering ancient. Its outer coat is brittle, and the insides emit a foul odor.\n\nGiven its size, the ancient this seed came from must have been fairly young; at least by ancient standards. One has to wonder why such a creature would be found trudging through The Quagmire.\n\nTo find your answers, you should take this seed to someone with knowledge in the lore of ancients.",
+    "objective": "Find someone who can tell you more about the rotten ancient seed.",
+    "progress": null,
+    "completion": "Ah, another lost youngling..."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 78909,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78909",
+  "source": {
+    "title": "Shifting Scale Talisman",
+    "description": "I'll need a... nominal amount of materials for the talisman.\n\n<N'ora smiles sheepishly at you>",
+    "objective": "Bring N'ora Anyheart the following materials alongside the Handful of Shifting Scales to complete the talisman: A satchel of Strange Dust, five Greater Magic Essence, 2 Small Glimmering Shards and five gold pieces.",
+    "progress": "I'll concede that I'm not much of an enchanter, but I think I have a fairly solid grasp on the process. In principle, anyway.",
+    "completion": "I wish you the best on your adventures and hope you find your way back to me should you encounter any other wonderous discoveries such as this!"
+  }
+}

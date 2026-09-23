@@ -1,0 +1,12 @@
+{
+  "id": 77574,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77574",
+  "source": {
+    "title": "Meditation on Elune",
+    "description": "Joining the Alliance has strengthened our people, but we must not forget that we are Kaldorei. Our connection to Elune is at the core of our being.\n\nClear your mind, <name>, and focus on my voice. I will share with you an ancient memory of our kind. Go to the moonwell to the north and kneel in the sacred waters to meditate on Elune's mysteries. Once you have focused your thoughts, you will be able to make sense of this memory and learn a new technique. Return to me when you have done this.",
+    "objective": "Kneel at the moonwell to meditate on Elune, then use the memory to learn a new ability. Afterwards, return to Shanda in Shadowglen.\n\nProvided item:",
+    "progress": null,
+    "completion": "Elune will likely grant you more memories along your travels. You can meditate at the moonwells across Azeroth to clear your thoughts and interpret these memories.\n\nUnderstanding more complex visions may require the help of our fellow priests from the Alliance. Do not be afraid to learn from their faith, <name>. Tyrande teaches that the Holy Light worshipped by the humans and the Light of Elune are closely related."
+  }
+}

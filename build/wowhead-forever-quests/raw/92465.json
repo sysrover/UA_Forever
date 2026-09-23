@@ -1,0 +1,12 @@
+{
+  "id": 92465,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92465",
+  "source": {
+    "title": "Agitators",
+    "description": "The Al'Aketh cult is a blight upon this island. These cultists are surely the ones responsible for agitating the simple wind sprites that reside here and turning them violent.\n\nRegrettably, we'll need to disperse these roiling winds here before they harm someone. We also need to send a clear message to the cult that they are not welcome in the grove.\n\nWill you lend me your aid, <class>?",
+    "objective": "Slay 6 Roiling Winds and 7 Al'Aketh Converts in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

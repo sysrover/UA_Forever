@@ -1,0 +1,12 @@
+{
+  "id": 84360,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84360",
+  "source": {
+    "title": "Firefighting",
+    "description": "You there, you've just been conscripted! The fire elementals just won't stop pouring out of the Cauldron. I need you to get in there and cauterize the wound, if you take my meaning. Snap to it, soldier!",
+    "objective": "Overseer Oilfist wants you to slay 15 Firelands Invaders in The Cauldron, south of Thorium Point.",
+    "progress": "Well?",
+    "completion": "Well done, <name>. You got some grit, I'll give you that."
+  }
+}

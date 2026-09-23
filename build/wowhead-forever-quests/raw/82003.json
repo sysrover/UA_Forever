@@ -1,0 +1,12 @@
+{
+  "id": 82003,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82003",
+  "source": {
+    "title": "Victory Lap For the Goblins!",
+    "description": "Ha! I did it! uh, I mean...we did it!\n\nThat amateur Gnome consultant over there is throwing in the towel! He's paying us off to skip town! Why don't you do the honors eh? You earned it kid.",
+    "objective": "Talk to Fizzbizz Coppercoil about getting a pay out.",
+    "progress": null,
+    "completion": "I have a proposal that I believe will be in both of our interests."
+  }
+}

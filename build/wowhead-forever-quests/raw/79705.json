@@ -1,0 +1,12 @@
+{
+  "id": 79705,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79705",
+  "source": {
+    "title": "Salvaging the Salvagematic",
+    "description": "I think that thing is on it's last legs, pal. I might be able to fix it, but it won't be easy... or cheap. Tell you what, bring me 10 mithril bars, 5 greater mystic essence, 3 GG12-082 cartridge fuses, and a Pristine G-7 C.O.R.E. processor, and I can probably fix it up for you. The cartridge fuses should be plentiful here in Gnomeregan, but the processor core is a pretty rare item and won't be too easy to find. You look pretty resourceful though, so I'm sure you'll figure it out! Good luck!",
+    "objective": "Bring Ziri \"The Wrench\" 10 Mithril Bars, 5 Greater Mystic Essence, 3 GG12-082 Cartridge Fuses, and a Pristine G-7 C.O.R.E. Processor and she can get the Salvagematic 9000! working for you. Probably. Maybe.",
+    "progress": "Wow you actually hauled all that junk back here? I was mostly just messing with you, but hey, I'm a gnome of my word and I'm not one to waste good materials. Give me a bit and I'll get this baby back up and running!",
+    "completion": "One Salvagematic 9000 ready to rock, as promised. If you happen to get anything good out of there, come see me. I might be able to teach you a thing or two, for a price of course!\n\n<Ziri grins widely and shoves something into her back pocket>"
+  }
+}

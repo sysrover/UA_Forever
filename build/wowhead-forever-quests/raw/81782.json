@@ -1,0 +1,12 @@
+{
+  "id": 81782,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81782",
+  "source": {
+    "title": "Ashenvale Mission XV: Defeat Shredder 9000",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion at the Warsong Lumber Camp. Defeat Shredder 9000 there and return to me.",
+    "objective": "Defeat Shredder 9000 in the Ashenvale Nightmare Incursion near the lumber cranes in Warsong Lumber Camp and return to Field Captain Hannalah.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

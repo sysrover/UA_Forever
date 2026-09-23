@@ -1,0 +1,12 @@
+{
+  "id": 84146,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84146",
+  "source": {
+    "title": "Red Bag Blues",
+    "description": "What you want is safely hidden, and I can only hope the same can be said for what I'm looking for. I had a red bag containing some valuable exotics that I use for electro-optics. But, I lost it in a zeppelin accident over Burning Steppes! The bag could still be there, but with orcs, ogres, and poachers, I've had to put my work on hold. If you can locate it and bring it back to me, I'll let you have Jurgens' old book.",
+    "objective": "Locate the Red Bag that Numi in Everlook lost in a zeppelin mishap over Burning Steppes",
+    "progress": null,
+    "completion": "You find the Red Bag laying on the table in a simple, carefree way."
+  }
+}

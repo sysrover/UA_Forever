@@ -1,0 +1,12 @@
+{
+  "id": 84014,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84014",
+  "source": {
+    "title": "More Moonroot",
+    "description": "We still need more Moonroot to reverse the Nightmare Incursions. Travel through the Emerald Portal in Dream Bough and bring me back some.",
+    "objective": "Gather 10 Moonroot in the Feralas Nightmare Incursions and return to Field Captain Arunnel.",
+    "progress": "You have the Moonroot?",
+    "completion": "Well done! Thank you. Your services will be remembered."
+  }
+}

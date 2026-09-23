@@ -1,0 +1,12 @@
+{
+  "id": 78229,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78229",
+  "source": {
+    "title": "Trial of The Owls",
+    "description": "Let me see that symbol you carry, <name>.\n\nIt seems you have begun the trial of the owls. This marks a pivotal moment in your journey as a druid.\n\nThere are more symbols like this one; spread across Azeroth. To earn them, you must perform great feats of mind and body alike.\n\nOne owl sits beneath a great tree in the Eastern Kingdoms. Another is near a great tree here in Kalimdor. Yet another is at sea; off the coast of Hillsbrad.\n\nSeek out these owls, <name>, and bring their symbols to me.",
+    "objective": "Bring symbols of the three owls to Loganaar in Moonglade.",
+    "progress": "How goes your trial, <name>?",
+    "completion": "I would like to congratulate you, <name>. What you've accomplished is no small feat.\n\nTo pass the trial of the owls is to demonstrate an attunement with all aspects of your druidic calling.\n\nTake this rune as a mark of your achievement. I hope it will serve you well as a warden of the Emerald Dream."
+  }
+}

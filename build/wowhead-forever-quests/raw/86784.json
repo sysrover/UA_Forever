@@ -1,0 +1,12 @@
+{
+  "id": 86784,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=86784",
+  "source": {
+    "title": "Sticks and Bones",
+    "description": "My associate Eleanor Shackleton prides herself on traveling the wilds, surviving against weather and monsters. She is currently camped not far from here, in the hills to the west, and I remember a piece of advice that she once gave me: \"When you think you have enough firewood, gather five times more.\"\n\nIf you have some spare time, you could collect some wood in this basket and take it to her camp. I'm sure she could give you a few tips about the existence of a traveling adventurer.",
+    "objective": "Collect 6 Dry Branches and bring them to Eleanor Shackleton.\n\nProvided item:",
+    "progress": null,
+    "completion": null
+  }
+}

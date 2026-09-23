@@ -1,0 +1,12 @@
+{
+  "id": 6842,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=6842",
+  "source": {
+    "title": "<UNUSED>",
+    "description": "x\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(6842))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

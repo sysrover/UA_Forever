@@ -1,0 +1,12 @@
+{
+  "id": 92742,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=92742",
+  "source": {
+    "title": "Testing the Wells",
+    "description": "We must determine the source and nature of the poison corrupting this land. Let us begin with the groundwater under the farms in the area.\nGo to the Jansen Stead and the Molsen Farm, and collect samples from the wells there.",
+    "objective": "Use the Well Water Sample Kit to collect samples from the wells at the Jansen Stead and the Molsen Farm.",
+    "progress": null,
+    "completion": null
+  }
+}

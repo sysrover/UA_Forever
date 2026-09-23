@@ -1,0 +1,12 @@
+{
+  "id": 85061,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85061",
+  "source": {
+    "title": "Bug Hunt",
+    "description": "I followed your tracks and I'm glad to see you're alive! It seems that your survival skills are as good as I suspected. I apologize for keeping you waiting.\n\nI found more signs of our quarry. Van Amburgh is somewhere in the southwest of Kalimdor. I'm going to head that way and keep looking for tracks. In the meantime, you may want to brush up on your shooting.\n\nHead to Silithus. You can aid the druids at the Cenarion Hold while brushing up on your trick shots.",
+    "objective": "Travel to the Cenarion Hold in Silithus, on Kalimdor, and speak to the druids there about the evolving silithids. Aid them as requested while practicing your marksmanship skills.",
+    "progress": null,
+    "completion": "Welcome to Cenarion Hold. You look like a capable <class>, and honestly, we can always use some extra help."
+  }
+}

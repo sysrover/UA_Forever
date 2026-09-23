@@ -1,0 +1,12 @@
+{
+  "id": 89462,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89462",
+  "source": {
+    "title": "The Druid of the Talon",
+    "description": "I have a passing acquaintance with a Druid of the Talon that might be willing to help you. The shrine of Aviana is on the slopes of Mount Hyjal and is sacred to her order, so they still have limited access to the mountain.\n\nHer name is Thisalee Crow. I believe that she regularly visits Everlook in Winterspring to trade for supplies. She's headstrong and very impulsive, which might just be exactly what you need for your quest.\n\nGood luck, <class>.",
+    "objective": "Speak with Thisalee Crow near Everlook in Winterspring.",
+    "progress": null,
+    "completion": "<Thisalee listens intently as you tell her your story.>\n\nSo, let me get this straight; you want to go to the very top of Hyjal and harness the powers of the Well of Eternity to temper a broken, cursed, legendary sword? You want to do this so that you can remove said curse, and free its former owner from undeath? That... sounds kind of awesome actually.\n\nI think I can help, but I've also got a few problems of my own that need resolving--if you don't mind."
+  }
+}

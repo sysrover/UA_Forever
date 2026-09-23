@@ -1,0 +1,12 @@
+{
+  "id": 81768,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81768",
+  "source": {
+    "title": "Ashenvale Mission I: Defeat Satyrs",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion in Satyrnaar. Defeat satyrs there and return to me.",
+    "objective": "Defeat 10 Dreamfire Betrayers and 10 Dreamfire Hellcallers in the Ashenvale Nightmare Incursion in Satyrnaar and return to Field Captain Hannalah.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

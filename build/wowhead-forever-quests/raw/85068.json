@@ -1,0 +1,12 @@
+{
+  "id": 85068,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85068",
+  "source": {
+    "title": "Who Says You Can Never Go Back?",
+    "description": "The portal is ready.\n\nOnce you enter, you'll be transported to Andorhal, just after it fell.  In order to help you blend in a bit better, I've prepared some magical disguises for you. These will do for most of the denizens of the past but you'll still want to be careful to not get noticed. When you have what you need just make your way back to this place in the past. The portal should be waiting for you.",
+    "objective": "Take the portal to the Burning of Andorhal.",
+    "progress": null,
+    "completion": "We made it. Steel yourself, <name>."
+  }
+}

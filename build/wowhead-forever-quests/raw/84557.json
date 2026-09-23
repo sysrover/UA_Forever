@@ -1,0 +1,12 @@
+{
+  "id": 84557,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84557",
+  "source": {
+    "title": "The Forging of Quel'Serrar",
+    "description": "Take the unfired ancient blade to the lair of Onyxia and engage her in battle.\n\nSome trickery must be utilized for the heating of the blade. While in combat, she will surely try to incinerate you with her fiery breath. You must plant the unfired ancient blade nearby and hope that the fiery breath heats the blade. If you live beyond this, pick up the now heated ancient blade and finish off the dragon.\n\nPlunge the heated ancient blade into her smoldering corpse to fashion the treated ancient blade.",
+    "objective": "You must get Onyxia to breathe fire on the Unfired Ancient Blade. Once this is done, pick up the now Heated Ancient Blade. Be warned, a Heated Ancient Blade will not remain heated forever - time is of the essence.\n\nThe last step before returning to me is to slay the beast and drive the Heated Ancient Blade into her corpse.\n\nDo this and Quel'Serrar will be yours.\n\nProvided item:",
+    "progress": "Perhaps one day, another will wield the prismatic blade.",
+    "completion": "<Lydros murmurs something unintelligible.>\n\nAs promised, <class>, the blade of Quel'Serrar."
+  }
+}

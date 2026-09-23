@@ -1,0 +1,12 @@
+{
+  "id": 92468,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=92468",
+  "source": {
+    "title": "Call of Earth",
+    "description": "Take this Rough Quartz from me and bring it to the one you call Windshaper Boro as proof of our meeting. He will craft a totem for you, and this shard will be the heart of it. As small as it may seem, you will come to find that size does not matter, and that even the smallest of things can outlast many others.\n\nBe patient, <name>. Remain strong. And seek wisdom. This is what the elements ask of you. In the end, you shall become one with the earth--respect it as it shall respect you.",
+    "objective": "Bring the Rough Quartz to Windshaper Boros in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

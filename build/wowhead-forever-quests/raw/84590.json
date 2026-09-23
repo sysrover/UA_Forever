@@ -1,0 +1,12 @@
+{
+  "id": 84590,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84590",
+  "source": {
+    "title": "The Balance of Light and Shadow",
+    "description": "You must do what I could not: Save the peasants that were cut down while fleeing from Stratholme.\n\nThey will walk towards the light, you must ensure their survival. Should too many fall, our cursed existence shall continue - you will have failed.\n\nEvery ability, prayer, and spell that you have learned will be tested. May the Light protect you, <name>.",
+    "objective": "Save 50 Peasants before 15 are slain. Speak with Eris Havenfire should you accomplish this task.\n\nYou may view the Death Post to view how many Peasants have been slain.",
+    "progress": null,
+    "completion": "Your tenacity and courage are astounding, <class>. You have earned the right to hold the Splinter of Nordrassil. Only one task remains: The Eye of Shadow must be recovered. Scour the world."
+  }
+}

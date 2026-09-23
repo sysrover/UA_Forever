@@ -1,0 +1,12 @@
+{
+  "id": 7961,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=7961",
+  "source": {
+    "title": "Waskily Wabbits!",
+    "description": "These rabbits are breeding uncontrollably.  Something must be done!\n\nHelp us <name>, you're our only hope.",
+    "objective": "Kill 5 rabbits and return to Jon LeCraft by the forge on Designer Island.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 81732,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81732",
+  "source": {
+    "title": "Duskwood Mission III: Defeat Dragonkin",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Yorgen Farmstead. Defeat dragonkin there and return to me.",
+    "objective": "Defeat 3 Wyrmkin Terrorwalkers and 10 Nightterror Whelps in the Duskwood Nightmare Incursion at the Yorgen Farmstead and return to Field Captain Palandar.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

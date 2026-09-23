@@ -1,0 +1,12 @@
+{
+  "id": 82106,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=82106",
+  "source": {
+    "title": "Forging the Mightstone",
+    "description": "Now we must combine the inert scourgestones and create a weapon to shatter the ranks of undead.  This is no trivial task, <name>.  Only the trolls of the sunken temple carry the kind of rare magic able to turn the evil of something against itself.\n\nIn the temple, the trolls are known as Gasher, Mijan, Zolo, Hukku, Zul'lor, and Loro.  Do not feel remorse for their corrupt souls... they are not without evil.",
+    "objective": "Bring the voodoo feathers to Ashlam Valorfist.",
+    "progress": "Have you slain the wretched trolls?",
+    "completion": "This is excellent, <name>.  I would say I am surprised, but I knew without question that you wouldn't let us down.\n\nIt is my honor to bestow one of the Holy Mightstones to you.  Use it well."
+  }
+}

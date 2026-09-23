@@ -1,0 +1,12 @@
+{
+  "id": 82081,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=82081",
+  "source": {
+    "title": "A Broken Ritual",
+    "description": "This prestine scapula is all too recognizable -- Hakkar was summoned into the physical world and defeated. The trolls on Yojamba Island will want to hear more about what happened inside of Sunken Temple.",
+    "objective": "Bring the Scapula of the Fallen Avatar to Molthor in Yojamba Isle.",
+    "progress": "<name>, what news do you have from the Temple of Atal'Hakkar?",
+    "completion": "It can't be... the rumors of the Temple of the Atal'Hakkar are true?\n\nYour victory inside of da Sunken Temple will be remembered by da Zandalari for a long time, mon. This bone.. it be an odd choice to deliver us.. but no doubt was one used to summon Hakkar into da physical world -- it will be in good hands now, <name>. We no longer have to worry about Hakkar coming back thanks to your efforts, mon... right?"
+  }
+}

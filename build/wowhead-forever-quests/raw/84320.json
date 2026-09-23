@@ -1,0 +1,12 @@
+{
+  "id": 84320,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84320",
+  "source": {
+    "title": "Lost Heirloom",
+    "description": "I came to Stormwind as a refugee, fleeing the devastation brought to Lordaeron by the Scourge. I thank the Light that my family and I escaped, but some of our treasured heirlooms still remain in the Plaguelands.\n\nIf you are able to retrieve these heirlooms from their resting place in Sorrow Hill Crypt so I may safely inter them in the Cathedral's catacombs, I would be in your debt.",
+    "objective": "Retrieve the heirlooms from Sorrow Hill Crypt in Western Plaguelands, then return to High Priestess Laurena in Stormwind Cathedral.",
+    "progress": "Have you returned from the Plaguelands?",
+    "completion": "Thank you, <name>. You say you found a journal?"
+  }
+}

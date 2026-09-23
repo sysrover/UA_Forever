@@ -1,0 +1,12 @@
+{
+  "id": 85712,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85712",
+  "source": {
+    "title": "The Art of the Armorsmith",
+    "description": "Satisfaction. It is what I draw from the hammer and the anvil. To see a proud Horde warrior protected under my steel reminds me of what it is to be alive. It is an addiction that I dare never give up, <name>.\n\nI can not grant you this satisfaction, merely set you upon the path. As with all of life's endeavors, the path of the armorsmith is a journey.\n\nIf you wish to be one of the select few, you need only to ask and I shall train, but, a task you must first complete.",
+    "objective": "To become an armorsmith, you must make the following items and return them to Okothos: 4 Ornate Mithril Helms, 2 Ornate Mithril Boots, 1 Ornate Mithril Breastplate.",
+    "progress": "I will pound the steel until the breath itself has been taken from me.",
+    "completion": "This is the final step before you begin your new career as an armorsmith, <name>. Should you choose to back out, now would be your last chance. Otherwise, prepare yourself for a lifetime of glory."
+  }
+}

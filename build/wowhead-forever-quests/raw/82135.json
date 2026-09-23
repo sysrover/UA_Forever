@@ -1,0 +1,12 @@
+{
+  "id": 82135,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=82135",
+  "source": {
+    "title": "The Price of Hope",
+    "description": "<Aeonas says nothing, he merely hands you the orb and turns away>",
+    "objective": "Bring the Mannoroc Echoing Orb to Katherine the Pure in Stormwind.",
+    "progress": "Welcome back, <name>. What is that you have there...\n\nOh my.",
+    "completion": "That is quite the troubling tale. The part of me that is a <class> finds it impossible to reconcile that he willingly consorted with a member of the scourge... but the <race> part of me understands how strong the bonds of friendship can be.\n\nI thank you for bringing the orb here. I will see that it is stored in the deepest vault we have for now.\n\nOh, One last thing, I had this repaired and had hoped to present it to Aeonas on his return. I think he would want you to wield it in his stead."
+  }
+}

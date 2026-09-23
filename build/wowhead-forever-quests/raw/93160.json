@@ -1,0 +1,12 @@
+{
+  "id": 93160,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93160",
+  "source": {
+    "title": "The Forest's Bounty",
+    "description": "I do appreciate you stopping by to talk with me! I-If you do want to help out, I could use a bit of help gathering up acorns from the forest floor. I've gathered most of the ones close by but there sure are a lot of raptor-bird things in the forest. It's dangerous out there and I'd rather not become a giant bird's lunch!\n\nSo if you want, you could maybe gather them for me? I'll make us something tasty if you do!",
+    "objective": "Gather 8 Shadowgale Acorns in Shadowgale Forest.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 82019,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82019",
+  "source": {
+    "title": "Going Under",
+    "description": "In its day the so-called Sunken Temple was home to a sect of trolls dedicated to the resurrection of their ancient blood deity, Hakkar the Soul-Flayer. Before the Atal'ai could realize their grim ambitions, Ysera's wrath smote the temple into the mire and she left the dragon Eranikus and his host as its guardians. Of late I have heard many whispers of trolls once again active there, and I fear what may have become of the dragons there.\n\nPlease, venture inside the temple and see what you can learn.",
+    "objective": "Find out more about what is happening in the Temple of Atal'Hakkar.",
+    "progress": "What news do you bring of Eranikus?",
+    "completion": "The scene you described is most harrowing. This is far worse than I feared. I can only hope that some of the dragons there yet live and can be rallied."
+  }
+}

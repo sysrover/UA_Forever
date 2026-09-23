@@ -1,0 +1,12 @@
+{
+  "id": 77648,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77648",
+  "source": {
+    "title": "Relics of the Tauren",
+    "description": "The Tauren are an ancient people, <name>, and our lost relics can be found across Azeroth. Through them, the spirits can teach you ways to strengthen your connection to the Dream.\n\nThe bristleback quilboar have stolen one such relic from us. They have likely stashed it away within Brambleblade Ravine.  Recover the relic, and follow its guidance to learn a new combat technique. Return to me when you have done this.",
+    "objective": "Recover the stolen relic from Brambleblade Ravine. Follow the relic's guidance to learn a new ability, then report back to Gart Mistrunner in Camp Narache.",
+    "progress": "What has the relic taught you. <name>?",
+    "completion": "Well done, <name>. Applying the rune you have learned to your equipment will grant you powerful new abilities.\n\nSeek out more of our lost relics along your travels."
+  }
+}

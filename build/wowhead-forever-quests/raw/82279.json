@@ -1,0 +1,12 @@
+{
+  "id": 82279,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82279",
+  "source": {
+    "title": "Thorium Widget",
+    "description": null,
+    "objective": "ProgressYebb Nebblegear, like me, is working on a future attraction.  So amazing is this attraction, says Nebb, that it will draw folks from across the world... and it will make us all very, very rich!\n\nHe says he needs thorium widgets for its construction, and wants me to collect them for him.  So what do you say, <name>?  Do you know where to get thorium widgets?  If you're an engineer, can you make them?  Do you want to trade them for Darkmoon Faire tickets?",
+    "progress": null,
+    "completion": "Ah, thank you, <name>!  Yebb will enjoy these widgets.  I don't know what he has planned for them, but Yebb's a clever little gnome.  He's clever, and maybe a little devious....\n\nIf only he liked the taste of humanoid flesh... he'd make a great troll!\n\nHere, <name>.  A deal's a deal, and these tickets are yours."
+  }
+}

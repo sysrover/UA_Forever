@@ -1,0 +1,12 @@
+{
+  "id": 92551,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92551",
+  "source": {
+    "title": "Stolen Supplies",
+    "description": "I overheard you might be going to Falaath Village? While you are there, please keep an eye out for our stolen supply caches.\n\nThe Al'Aketh have been raiding our supply caravans carrying various goods such as food and windstones to and from the lowlands for months. They've been blaming the bandits, of course, but we all know that it all ends up in the same place. If there's any of that stuff left in Falaath, it would be a huge help if you could recover it.",
+    "objective": "Collect 10 packs of Stolen Shen'dar Supplies from Falaath Village in the Shen'dar Highlands.",
+    "progress": null,
+    "completion": null
+  }
+}

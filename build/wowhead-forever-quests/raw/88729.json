@@ -1,0 +1,12 @@
+{
+  "id": 88729,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=88729",
+  "source": {
+    "title": "Ramaladni's Icy Grasp",
+    "description": "Fixing this band may prove to be quite challenging, <name>. You see, it was made from the very runes that form inside Scourge structures - like Naxxramas. Additional materials are also required but your main concern should be getting those frozen runes. Bring me what I need and I will restore the ring to its former glory.",
+    "objective": "Korfax at Light's Hope Chapel in the Eastern Plaguelands wants you to bring him 1 Frozen Rune, 1 Blue Sapphire and 1 Arcanite Bar.",
+    "progress": "Frozen runes could probably be found inside Naxxramas.",
+    "completion": "Ramaladni himself couldn't have done better! Here is the ring, as promised."
+  }
+}

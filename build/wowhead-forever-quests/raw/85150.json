@@ -1,0 +1,12 @@
+{
+  "id": 85150,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85150",
+  "source": {
+    "title": "The Only Good Bug is a Dead Bug",
+    "description": "The silithids are constantly changing, and successive generations take on new traits to improve their survival fitness. We've spotted a new kind of silithid flyer north of here, near Hive'Ashi. They're flyers, like some of the other silithid wasps, but smaller, faster, and have a blue exoskeleton.\n\nI want to know what to expect from these darters. Take out a few and report back on how tough they are.",
+    "objective": "Find and defeat four silithid darters. These are fast-moving, small silithid wasps with a blue exoskeleton.",
+    "progress": null,
+    "completion": "Now we know that they can be killed. Not as tough as the other silithids, you say? Perhaps some kind of new scout form. Useful information, thank you."
+  }
+}

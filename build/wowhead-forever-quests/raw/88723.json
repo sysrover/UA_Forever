@@ -1,0 +1,12 @@
+{
+  "id": 88723,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=88723",
+  "source": {
+    "title": "Superior Armaments of Battle - Revered Amongst the Dawn",
+    "description": "Greetings, friend. Have you insignias of the Dawn or the Crusade that you would like to redeem for items of power?\n\nItems offered to those revered amongst the Dawn are priced quite reasonably. I encourage you to make a purchase!",
+    "objective": "For 7 Insignias of the Dawn and 7 Insignias of the Crusade you may choose an item from the Argent Dawn's treasure cache.",
+    "progress": "Choose carefully. There are no refunds.",
+    "completion": "Good day, <name>. It was a pleasure doing business with you."
+  }
+}

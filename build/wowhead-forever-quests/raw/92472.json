@@ -1,0 +1,12 @@
+{
+  "id": 92472,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92472",
+  "source": {
+    "title": "The Next Step",
+    "description": "One of the most pervasive threats on Zephras Isle is the Al'Aketh Cult. They are religious zealots devoted to the worship of the supposed elemental ruler of Skywall, Al'Akir the Windlord. They are brutal, single minded, and their power and ambitions are growing more deadly by the day.\n\nYour path will soon take you to Shen'dar Village to the south. Present yourself to Constable Aonda when you arrive. The cult threatens Shen'dar and they are in need of aid. Tell Aonda that I sent you.",
+    "objective": "Report to Constable Aonda in Shen'dar Village.",
+    "progress": null,
+    "completion": null
+  }
+}

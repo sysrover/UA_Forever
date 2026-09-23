@@ -1,0 +1,12 @@
+{
+  "id": 86724,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=86724",
+  "source": {
+    "title": "Dust to Dust",
+    "description": "<name>, lend me your ear. The Captain's wounds grow ever more grievous. The camp celebrates each victory with their usual jubilance, but I cannot join in their cheers. Not when I've seen the wounds he hides beneath his armor.\n\nAn Infection? No no, I would say it's much closer to... an infestation. I'm preparing a concoction, but there's one key ingredient I still need--Silithyst.\n\nI need it, and quickly. Based on my inspection of the Captain's condition, I fear he won't last much longer without it.",
+    "objective": "Find and deliver 5 Silithyst to the Silithyst Extractor then speak with Apothecary Quinard at the Horde encampment near Hive'Regal.",
+    "progress": "Careful <name>. From what I've gleaned in our scouting reports, the Alliance are beginning to understand the value of the sand.\n\nWith this, I advise you to steel yourself. There are now two types of worms out there roaming the desert.",
+    "completion": "Excellent. You've gathered it all, and not a moment too soon. I will prepare the concoction for Captain Krug immediately.\n\nI can't reward your bravery with coin, but I can bestow you with some of my knowledge. I would part with the notes I've used to treat the soldiers and fill their bellies, for a price of course."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 78994,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78994",
+  "source": {
+    "title": "A Solid Foundation",
+    "description": "Reforming the weapon has proven challenging, and it's still unclear how the ritual failed, but I believe we have devised an alternative solution.\n\nTo start we need a sturdy base; a Bough of Shadows.\n\nThese trees are malignant growths of the Emerald Nightmare seeping into our world. It's said they weaken the wills of those around them. This magical property will be the foundation we use to build this weapon.\n\nTo aid your search, take this potion. It will hide you from the Emerald Dragons' minions.",
+    "objective": "The Emerald Dragons protect several portals to the Emerald Dream throughout Azeroth. One of these locations surely has what we need.\n\nOnce you've found a Bough of Shadows return with haste.",
+    "progress": "Nobody said this was going to be an easy endeavor, but then again most things worth doing aren't.",
+    "completion": "Ah yes, you've found it! Your sanity still seems intact as well, so far so good."
+  }
+}

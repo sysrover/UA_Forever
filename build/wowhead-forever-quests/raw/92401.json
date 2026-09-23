@@ -1,0 +1,12 @@
+{
+  "id": 92401,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=92401",
+  "source": {
+    "title": "A Frightened Request",
+    "description": "It's my husband Edward...\n\nHe has not returned from his weekly journey to the graveyard in the Lordaeron ruins. Our son was lost when Arthas razed the city, and my dear Edward is still filled with guilt and sorrow that we never found his body. I've tried to warn him against searching those overrun ruins, but he refuses to give up. I try not worry, but it's been days.\n\nThere are things there I cannot contend with but if you are willing, I need to know the fate of my husband.",
+    "objective": "Investigate the disappearance of Edward Heartweaver in the Ruins of Lordaeron.",
+    "progress": null,
+    "completion": null
+  }
+}

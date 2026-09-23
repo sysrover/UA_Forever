@@ -1,0 +1,12 @@
+{
+  "id": 81986,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81986",
+  "source": {
+    "title": "Waking the Nightmare",
+    "description": "Now that you have Ziri's gadget, you should have everything you need to take on the Nightmare Amalgamation. Gather as many allies as you can and head back into the Nightmare by way of the portal Bough Shadow in Ashenvale. Find and destroy the Nightmare Amalgamation within its lair.\n\nOh, and one more thing... the beast is in possession of a specific item that is of great interest to me. Bring me whatever you find on its corpse and you'll be well rewarded.",
+    "objective": "Destroy the Nightmare Amalgamation and bring the Shadowy Figure any loot you find.",
+    "progress": "How goes the hunt?",
+    "completion": "Fantastic work, <name>. Now for your reward!\n\nYou see, all I wanted is a little teeny fragment of a dream hiding within this mantle, but the husk is a treasure all on its own, and that part is yours. I think you'll find that it has certain unique properties, and if you have the proper skills for it, speak with me again and I'm sure I can help you figure out just the right way to use it."
+  }
+}

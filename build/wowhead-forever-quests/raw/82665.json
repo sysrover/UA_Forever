@@ -1,0 +1,12 @@
+{
+  "id": 82665,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=82665",
+  "source": {
+    "title": "The Way of the Weaponsmith",
+    "description": "One day, I will create a legendary hammer. A hammer fit for a Warchief!\n\nIt is my life's work, <name>. My passion. I recognize that you have the potential to be among us, one of us - a weaponsmith. I am the one that can help you harness that potential.\n\nA simple task is all that you must complete. Simple for one of your exceptional skill.",
+    "objective": "To become a Weaponsmith, you must make the following items and return them to Borgosh: 4 Moonsteel Broadswords, 4 Massive Iron Axes, 2 Heavy Mithril Axes, and 2 Big Black Maces.",
+    "progress": "For the glory of the Horde!",
+    "completion": "This is the final step before you begin your new career as a weaponsmith, <name>. Should you choose to back out, now would be your last chance. Otherwise, prepare to be consumed by knowledge!"
+  }
+}

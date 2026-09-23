@@ -1,0 +1,12 @@
+{
+  "id": 76160,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=76160",
+  "source": {
+    "title": "Stalk With The Earthmother",
+    "description": "I speak to you from your future, when the Horde faces threats you cannot imagine.  Since the others cannot see me, I rely on you to learn my skills and pass them to the tribe.\n\nMaybe your skills lie with poisons, not disguises.  The Harpies to the north nest in a tree which produces a resin of potent toxicity.  Gather the fallen cones around the nests, then crush them into a salve.  When applied to a blade this salve will sear your opponent's wounds into their flesh and turn their blood to salt.",
+    "objective": "Gather 8 Windfury Cones north of Thunder Bluff, use them with the Mortar and Pestle, then return to Boarton Shadetotem in Thunder Bluff with the result.\n\nProvided item:",
+    "progress": "Be careful with the salve once you are finished, <class>.  Even skin contact could be quite painful.",
+    "completion": "<class>, this is not the venomous salve I asked for.  What you have brought me is pine nut butter.  Are you sure you followed my instructions?\n\nThis will be of far more use spread on some spice bread than on a dagger.  Although you would be quite formidable against a foe with a nut allergy."
+  }
+}

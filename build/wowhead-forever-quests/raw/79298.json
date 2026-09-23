@@ -1,0 +1,12 @@
+{
+  "id": 79298,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79298",
+  "source": {
+    "title": "Tempting Fate",
+    "description": "You can see foul magic is poisoning the water, giving it a purple hue. The Burning Blade have overwhelmed this area with dark energy.\n\nWe shall use this Sacrificial Alter that they use during summoning rituals. We can harness the latent dark energy in the area to amplify our ritual.",
+    "objective": "Assist Raszel Ander and Doan Karhan with the summoning ritual and trap Des'Altek inside the staff.",
+    "progress": null,
+    "completion": "For all things Raszel Ander was, commanding was not one of the traits I knew. For a <class>, he was always on the meek side. I had a feeling something wasn't right when that imposter returned during your summoning ritual, which was why I sent for more acolytes to assist, but it wasn't enough... Once again we have failed to ensnare our prey.\n\nUnfortunately, the staff shattered during your fight, and all I could do was stand by helpless and watch... but I found this in the destruction."
+  }
+}

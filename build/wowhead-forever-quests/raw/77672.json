@@ -1,0 +1,12 @@
+{
+  "id": 77672,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77672",
+  "source": {
+    "title": "The Lost Rune",
+    "description": "I've been experimenting with a new type of magic - a rune which can channel fel energies to fuel powerful spells. I sent an apprentice to test the rune against the spiders in the mine to the north, but he has not returned. I suspect we will not see him again.\n\nPerhaps you will prove more resilient. Go to the mine and recover the rune from the spiders' webs. Learn its magic, and report back to me.",
+    "objective": "Recover the rune from Night Web's Hollow and use it to learn a new ability, then return to Maximillion in Deathknell.",
+    "progress": "What have you found, <name>?",
+    "completion": "You seem to have taken well to this new magic, <name>. Find more runes like this and engrave them to your equipment to wield new abilities against those who would oppose you.\n\nSomeday, perhaps your power will even eclipse my own."
+  }
+}

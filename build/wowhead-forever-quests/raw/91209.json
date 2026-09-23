@@ -1,0 +1,12 @@
+{
+  "id": 91209,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=91209",
+  "source": {
+    "title": "Continue Your Training",
+    "description": "Lordaeron may not be what it used to be, but our home still needs protection from all manner of threats and it's time for you to go out and face the world. Your next stop should be the town of Brill in central Tirisfal Glades. Go and meet with Shari Stilwell there. She can see to your continued training.\n\nOne last bit of advice before you go--take extra care as a paladin traveling through Forsaken lands. There are many in the Dark Lady's service who distrust us and our proximity to the light.",
+    "objective": "Follow the road east out of Deathknell to find the town of Brill. Report to Shari Stilwell to continue your training.",
+    "progress": null,
+    "completion": null
+  }
+}

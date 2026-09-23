@@ -1,0 +1,12 @@
+{
+  "id": 93165,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93165",
+  "source": {
+    "title": "Mercy Falls on Deaf Ears",
+    "description": "The Al'Aketh have visited great tragedy upon our enclave, and blood must be repaid with blood.\n\nI have an offer for you, stranger. Should you find conflict with these accursed cultists, bring me the ears of those you kill. I will reward you for each that you return with in both coin and, in time, access to the Nightclaw's secrets should you prove yourself to be a true friend.",
+    "objective": "Collect 10 Al'Aketh Cultist's Ears from the Al'Aketh cultists in Shadowgale Forest, the Shine of Akir, or Gustberry Lowlands.",
+    "progress": null,
+    "completion": null
+  }
+}

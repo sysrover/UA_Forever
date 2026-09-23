@@ -1,0 +1,12 @@
+{
+  "id": 79592,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79592",
+  "source": {
+    "title": "Carnival Jerkins",
+    "description": null,
+    "objective": "ProgressOur Faire workers do more than sweep trash and hammer spikes!  They also help guard the carnival as it travels, and to that end they are always needing good sturdy armor jerkins.\n\nIf you make some tough leather armor and bring it to me, then I'll make sure it gets to the right people.  I'll also get you some Darkmoon Faire tickets as trade.",
+    "progress": null,
+    "completion": "Ah, you brought the jerkins.  Splendid.  What animal's skin did you use to make these, may I ask?  The stitch-work is very well done, and the texture of the leather has a rugged style to it.  I can tell you are a craftsman of skill!\n\nThank you, <name>, and here are your tickets."
+  }
+}

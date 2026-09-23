@@ -1,0 +1,12 @@
+{
+  "id": 89262,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89262",
+  "source": {
+    "title": "Prove Your Worth: Boots",
+    "description": "Staying on top of your trade is crucial for maintaining a high standard of quality. Our soldiers entrust their lives to unnamed craftsmen, and to me for ensuring the quality of every piece of armor.\n\nMy task for you is simple. If you are well practiced in Tailoring, Leatherworking, or Blacksmithing, then craft a pair of footwear, purely for your own benefit. You are free to keep the result.\n\nIf you lack the skill, commission and donate any piece of the crusade's uniform instead.",
+    "objective": "Craft a pair of Scarlet Boots from any armor crafting profession or donate any piece of crafted Scarlet Uniform equipment.\n\nIf you choose to donate, you can find a crate near the quartermaster inside of the barracks. Deliver the crated item back to Bryon Steelblade to receive credit.\n\nProvided item:",
+    "progress": "Craft or contribute; the choice is yours. Our armory is well equipped for whatever comes our way, but the important thing is ensuring our craftsmen have ample opportunities to practice and refine their technique.",
+    "completion": "Excellently done.\n\nWe have started stashing confiscated junk in these old trunks and I am running out of space to store them now, but you seem the sort to take value in the little things. I believe this is an appropriate reward for a single contribution.\n\nOh, and I added a valuable surprise into a few of these. Maybe you'll be one of the lucky ones?"
+  }
+}

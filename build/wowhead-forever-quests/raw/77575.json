@@ -1,0 +1,12 @@
+{
+  "id": 77575,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77575",
+  "source": {
+    "title": "Amidst the Shadowed Webs",
+    "description": "The warriors of the Alliance have much to teach you, but you must also seek out new techniques on your own.\n\nThere is a cave to the north infested by webwood spiders. Another fledgling warrior ventured into the cave some time ago, and never returned. He was experimenting with engraving mystical runes onto his equipment to improve his combat prowess.\n\nFind the rune among the spiders and learn this technique yourself.",
+    "objective": "Slay webwood spiders in Shadowthread Cave and recover the lost rune. Learn the rune, then report back to Alyissia in Shadowglen.",
+    "progress": null,
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

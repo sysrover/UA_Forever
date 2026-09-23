@@ -1,0 +1,12 @@
+{
+  "id": 79078,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79078",
+  "source": {
+    "title": "Sharing the Faith",
+    "description": "This human grasps for Elune's light, but his sight is clouded. Would you assist him?",
+    "objective": "Meditate on Elune, then pray with the kneeling human to share your meditations.",
+    "progress": null,
+    "completion": "The Light works its blessings through you, <name>. Honor it by continuing to share your wisdom with supplicants you meet in your travels."
+  }
+}

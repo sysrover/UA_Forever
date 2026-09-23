@@ -1,0 +1,12 @@
+{
+  "id": 87366,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87366",
+  "source": {
+    "title": "Knight Time",
+    "description": null,
+    "objective": "Collect Remnants of Valor within Naxxramas.",
+    "progress": "Each slain minion of the Scourge is a soul freed, <name>. Never forget the good you do, even - no, especially when the battle feels hopeless. As long as we stand against him, the Lich King's armies cannot stop us.\n\nI suspect you know the drill by now. Provide me with more remnants, and I will continue to empower your seal.",
+    "completion": "Justice seeks no reward, <name>.\n\nI know you do, though. Take this."
+  }
+}

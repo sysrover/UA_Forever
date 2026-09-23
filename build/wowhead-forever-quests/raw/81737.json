@@ -1,0 +1,12 @@
+{
+  "id": 81737,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81737",
+  "source": {
+    "title": "Duskwood Mission VIII: Recover Ogre Magi text",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Vul'gol Ogre Mound. Retrieve an Ogre Magi Text and deliver it to me.",
+    "objective": "Recover an Ogre Magi Text in the Duskwood Nightmare Incursion within the Vul'gol Ogre Mound and return to Field Captain Palandar.",
+    "progress": "You have the text?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 83808,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=83808",
+  "source": {
+    "title": "In a Bind",
+    "description": "You nearly scared me to death! I heard you coming and was convinced the dead had finally sniffed me out! All the same, you are a sight for sore eyes.  Please, I need to escape this place and find my master, Sir Dalton. May you retrieve my weapon for me? It was torn from my grip in the field outside and I was forced to flee into this barn.",
+    "objective": "Retrieve Squire Cuthbert's sword in the field to the south and return it to him.",
+    "progress": "Have you retrieved the blade?",
+    "completion": "Thank you, <class>.  I can't express my gratitude for your aid.\n\nI need but a moment to gather my wits about me. I took a terrible blow to the head out there and I'm not sure how well I can fight just yet. Oh light help me, I hope Sir Dalton is safe."
+  }
+}

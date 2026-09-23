@@ -1,0 +1,12 @@
+{
+  "id": 78297,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78297",
+  "source": {
+    "title": "You've Got Yourself A Deal",
+    "description": "I've signed in the appropriate places, <name>. Take this back to Ratchet and inform your supplier that the Alliance is happy to do business.",
+    "objective": "Return the Signed Procurement Contract to Grizzby in Ratchet.",
+    "progress": "Did ya close the deal?",
+    "completion": "They signed without even negotiating? Ha! Everything's turning around for ol' Grizzby!\n\nAnd you, <name>, you've been a real pal. Here ya go, a little token of my thanks.\n\nAnd now that we're officially in business, feel free to look through my stock of gear and see if anything catches your eye. I'll even give you the employee discount!"
+  }
+}

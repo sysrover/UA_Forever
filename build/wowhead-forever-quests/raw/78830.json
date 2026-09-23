@@ -1,0 +1,12 @@
+{
+  "id": 78830,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78830",
+  "source": {
+    "title": "Terror of the Desert Skies",
+    "description": "This drawing reminds me of a story I'd heard on another expedition, not long ago. I was told of a great bird, Gharrik, who reigns over the Badlands as an apex predator.\n\nShe was last spotted northeast of Camp Cagg. Perhaps her nest is somewhere nearby?\n\nYou'll need live bait to draw her out. I'll lend you a cage to catch some. Small wildlife is scarce in the Badlands, so you'll need to find your bait elsewhere.\n\nA quill from Gharrik would make a fine prize. You'd certainly be the talk of the camp.",
+    "objective": "Get a Crimson Trophy Quill from Gharrik in the Badlands. Then, return to Hemet Nesingwary in Stranglethorn Vale.\n\nProvided item:",
+    "progress": "How goes the hunt? Surely the bird hasn't got you beat!",
+    "completion": "Now there's a feather for your cap! Nicely done, <name>.\n\nYou can rest here for a while, if you like. I'm sure your trek through the desert was arduous."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 77568,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77568",
+  "source": {
+    "title": "A Hunter's Strength",
+    "description": "A hunter draws strength from their connection and respect for all creatures, not just their pets. You will hunt and slay many beasts in service to the Alliance, but even in battle you must respect your foe.\n\nMy previous apprentice used a mystical rune to augment her skills, but foolishly attempted to practice on the largest of the spiders in the cave to the north, a creature we have named Githyiss the Vile. Her disrespect led to her demise.\n\nSlay Githyiss - but do not underestimate its strength.",
+    "objective": "Defeat Githyiss the Vile in Shadowthread Cave and recover the lost rune. Learn the rune, then report back to Ayanna Everstride in Shadowglen.",
+    "progress": "When you have slain Githyiss, recover the rune and learn its magic.",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

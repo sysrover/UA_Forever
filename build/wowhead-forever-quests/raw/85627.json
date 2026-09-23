@@ -1,0 +1,12 @@
+{
+  "id": 85627,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85627",
+  "source": {
+    "title": "Paragons of Power: The Demoniac's Mantle",
+    "description": "The demoniac seeks to embody power outright, not just possess it.  More than one of our demoniacs has lost a fight with a demon; with our enemies threatening us - especially in Zul'Gurub - the power that a demoniac is able to unleash on our foes is worth the sacrifice.  Our survival depends on crushing those who would destroy us; the fall of the Gurubashi Empire taught us this.\n\nTravel to Zul'Gurub and gain the Paragons of Power we need.  Do this, and a valuable demoniac item shall be yours.",
+    "objective": "Bring Al'tabim the All-Seeing a Primal Hakkari Sash.  You must also have a reputation equal to or greater than Honored with the Zandalar Tribe.\n\nAl'tabim the All-Seeing is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Retrieved the Paragons of Power from Zul'Gurub?  While we will take the latent power from these items and make them our own, we will give you your own reward of power should you be successful...",
+    "completion": "Well done, <name>.  The Paragons of Power from Zul'Gurub should act as a reminder of wasted power.  The Gurubashi were strong at their height, but they allowed themselves to be consumed by it.  A demoniac knows that the game they play is much similar, but the power unleashed is often the very thing needed for survival.\n\nUse this mantle as an honored ally of the Zandalar... it will serve you well."
+  }
+}

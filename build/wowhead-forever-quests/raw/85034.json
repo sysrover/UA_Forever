@@ -1,0 +1,12 @@
+{
+  "id": 85034,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85034",
+  "source": {
+    "title": "The Ruins of Andorhal",
+    "description": "Remains such as the one you carry tend to have mysterious properties. Some particularly powerful relics may even seem sentient or have a personality at times, particularly in proximity to individuals and places closely tied to their living selves.\n\nIf this truly is Uther's blood, there is a chance it may react when near to the place Uther died. Explore the town and see what happens.",
+    "objective": "Take the Blood of the Lightbringer and explore Andorhal.",
+    "progress": "Have you explored Andorhal yet? Did the blood react in any way?",
+    "completion": "So there is no doubt then, the blood is authentic. What you have there is a treasure, <class>. Take care and protect it with your life."
+  }
+}

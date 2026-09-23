@@ -1,0 +1,12 @@
+{
+  "id": 91723,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91723",
+  "source": {
+    "title": "Delicate Instruments",
+    "description": "Blast it! Every time I try to calibrate these sensitive arcane instruments, they get thrown off again by a surge of energy.\nThe surges seem to be coming from the north, where those primitive Kobolds have been practicing their crude magic. Could you clear some of them out, so I can continue my work?",
+    "objective": "Kill 8 Kobold Geomancers in Jasperlode Mine, then return to Hamish Bergwort in the Tower of Azora.",
+    "progress": null,
+    "completion": null
+  }
+}

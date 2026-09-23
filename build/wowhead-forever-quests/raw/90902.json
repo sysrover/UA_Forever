@@ -1,0 +1,12 @@
+{
+  "id": 90902,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=90902",
+  "source": {
+    "title": "Rediscovering the Light",
+    "description": "I am proud to welcome another newly risen paladin to our ranks. As you begin to reconnect with the light you may notice that certain abilities that were once second nature to you may cause you considerable pain to use now, particularly those involving channeling the light to heal yourself or others.\n\nThe only way around this problem is--unfortunately--to go through it. Like any other muscle that has atrophied, you must push through the pain and exercise the flesh for it to return to full function.",
+    "objective": "Heal 5 Injured Deathguard with your Holy Light ability.",
+    "progress": null,
+    "completion": null
+  }
+}

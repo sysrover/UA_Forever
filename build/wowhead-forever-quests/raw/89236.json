@@ -1,0 +1,12 @@
+{
+  "id": 89236,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89236",
+  "source": {
+    "title": "Wrangling Apples",
+    "description": "If you ask me, fresh fruit is the highlight of any meal. Apples are my favorite, and conveniently we have a thriving orchard south of here.\n\nAssuming it hasn't caught fire yet - which is a distinct possibility - I'll bet it's about time for a harvest!\n\nNormally the farmhands are willing to cut me a discount, but I still owe them a pie. Getting them for cheap is out of the question, but you look like you can afford them.",
+    "objective": "Locate the apple orchard in the southern section of New Avalon to fetch some apples. Return to Carrie Hearthfire in the New Avalon inn once you have succeeded. If you find the apples to be too expensive, consider looking around for an alternative means to acquire them.",
+    "progress": "Despite living a stone's throw away from an orchard, it is surprisingly difficult to get a hold of apples sometimes.",
+    "completion": "<Carrie carefully inspects each apple for imperfections. The silence, meanwhile, is long and awkward.>\n\nYou have an eye for quality when you aren't digging through the trash. These are the freshest apples I have seen since my younger days at the monastery!\n\nI must confess, I was ready to revoke your membership after your first delivery. Keep this up and I might have to offer you a full-time position instead."
+  }
+}

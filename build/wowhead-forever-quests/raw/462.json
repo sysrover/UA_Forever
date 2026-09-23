@@ -1,0 +1,12 @@
+{
+  "id": 462,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=462",
+  "source": {
+    "title": "<UNUSED>",
+    "description": "Other than you, we sent two scouts through Algaz.  Only one returned.  Here's what he discovered:\n\nThe Dragonmaws sent one of their Lieutenants, Maruk Wyrmscale, to organize a crew of orcs in Algaz and cut off the land route to Menethil Harbor!\n\nWe have to stop this, now.  Take out Maruk, and then report to Valstag Ironjaw in Menethil Harbor.\n\nMaruk is headquartered in a small cave, across a pond between the second and third tunnels of Algaz.  Menethil is through Algaz, then west along the road.\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(462))",
+    "objective": "Kill Maruk Wyrmscale\n\nReport to Valstag Ironjaw in Menethil Harbor.",
+    "progress": null,
+    "completion": null
+  }
+}

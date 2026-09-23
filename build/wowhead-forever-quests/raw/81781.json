@@ -1,0 +1,12 @@
+{
+  "id": 81781,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81781",
+  "source": {
+    "title": "Ashenvale Mission XIV: Defeat Zalius",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion in Forest Song. Defeat the satyr Zalius there and return to me.",
+    "objective": "Defeat Zalius in the Ashenvale Nightmare Incursion at the base of the ziggurat in Satyrnaar and return to Field Captain Hannalah.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

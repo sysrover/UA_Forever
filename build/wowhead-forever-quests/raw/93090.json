@@ -1,0 +1,12 @@
+{
+  "id": 93090,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=93090",
+  "source": {
+    "title": "What Comes Next",
+    "description": "Please extend my thanks to Ayessa for all that the Windshapers and your new friends from this \"Earthen Ring\" have done for Zephras Isle. I'm aware of the plan to take the Windshapers shamans and leave the island, and your order has my blessing and well-wishes in this expedition.\n\nI can only hope that whatever solution the Windshapers find can truly provide us with the stability we've lacked these past years.\n\nWinds be with you, <name>.",
+    "objective": "Speak with Ayessa Dawnsinger when you are prepared to leave Zephras Isle.",
+    "progress": null,
+    "completion": null
+  }
+}

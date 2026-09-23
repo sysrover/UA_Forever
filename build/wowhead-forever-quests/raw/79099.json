@@ -1,0 +1,12 @@
+{
+  "id": 79099,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=79099",
+  "source": {
+    "title": "Baron Aquanis",
+    "description": "Greetings <class>. I've heard the most curious stories from the locals of a great corrupted water elemental named Baron Aquanis that stands vigil near the entrance to the Night Elf ruins known as Blackfathom Deeps. I'm here looking to hire adventurers brave enough to retrieve the core of Baron Aquanis, a globe of corrupted water. In exchange, I'd be willing to give you access to a portal directly to the Zoram Strand that I've been using to study the environs around the ruins... from a safe distance, of course.",
+    "objective": "Bring the Strange Water Globe to Davidus Voidstar in Auberdine, Darkshore.",
+    "progress": "Ah, hello again <name>. Have you retrieved the globe?",
+    "completion": "Hmm, most curious. This... isn't what I expected. Very well, thank you for this. As promised, you may now utilize my portal to the Zoram Strand."
+  }
+}

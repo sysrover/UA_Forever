@@ -1,0 +1,12 @@
+{
+  "id": 91777,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91777",
+  "source": {
+    "title": "Rare Books",
+    "description": "There's just two books left missing on Brother Paxton's list: \"Geomancy for Curious Young Wizards\" and \"Arcane Explainer: Magical Stuff in Simple Words\".\n\nThe kobolds must have taken them to the Jasperlode Mine. Please track down those two books and bring them back to Brother Paxton.\n\nBut I'm afraid it will be quite dangerous. If the \"apprentice\" kobold was summoning an elemental, who knows what the master can do. I'd bring some friends if I were you.",
+    "objective": "Recover \"Geomancy for Curious Young Wizards\" and \"Arcane Explainer: Magical Stuff in Simple Words\" and return them to Brother Paxton inside Northshire's Abbey.",
+    "progress": null,
+    "completion": null
+  }
+}

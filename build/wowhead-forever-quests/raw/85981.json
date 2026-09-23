@@ -1,0 +1,12 @@
+{
+  "id": 85981,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85981",
+  "source": {
+    "title": "Ten Commendation Signets",
+    "description": null,
+    "objective": "ProgressI accept commendation signets from adventurers who have received them in the line of duty.  For each set of ten that you hand to me, I'll make sure that you receive a significant acknowledgement of your deeds with the Steamweedle Cartel.  I also accept single tokens, but at a steep discount in recognition.  We are much more interested in greater feats of duty, though no feat will be ignored.\n\nWith that said, I'll gladly exchange your signets if you are ready to hand in a set.",
+    "progress": null,
+    "completion": "Excellent!  It is no small sacrifice that you've made to earn these signets, and you will be acknowledged for your service appropriately.  It's adventurers like you, <name>, that truly make a difference.\n\nLet me know if you have additional signets to hand in; I'll happily cash them in for you."
+  }
+}

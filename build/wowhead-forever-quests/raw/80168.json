@@ -1,0 +1,12 @@
+{
+  "id": 80168,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80168",
+  "source": {
+    "title": "Firework Launcher",
+    "description": null,
+    "objective": "ProgressAlthough rockets are a wonderful way to celebrate, in order to see their glory... they must be fired from a launcher.\n\nBring me coins of ancestry and I can offer you the knowledge to create rocket launchers like the ones you see in Moonglade.",
+    "progress": null,
+    "completion": "Here you are, <name>.  Here is the schematic to create a firework launcher.  Place launchers where you wish to celebrate, and then welcome your friends to join you!"
+  }
+}

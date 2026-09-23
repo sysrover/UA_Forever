@@ -1,0 +1,12 @@
+{
+  "id": 82021,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82021",
+  "source": {
+    "title": "A Fortuitous Turn of Events",
+    "description": "Well hello <name>! I was just standing here taking in the scenery and I just couldn't help but overhear your predicament. Fortuitously, I think I can provide just what you need to help you with your little \"evil devouring nightmare monster\" problem.",
+    "objective": "Listen to what the Shadowy Figure has to say.",
+    "progress": "I must say, this couldn't have worked out better if I had planned it. It seems that fate smiles upon you, friend.\n\n<You get the distinct impression that the shadowy figure before you is smirking>",
+    "completion": "Isn't it encouraging to have someone like me around that tends to have just what you need, just when you need it?"
+  }
+}

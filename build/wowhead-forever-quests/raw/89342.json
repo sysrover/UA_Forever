@@ -1,0 +1,12 @@
+{
+  "id": 89342,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89342",
+  "source": {
+    "title": "VIP Haute Club Membership",
+    "description": "Hey, you!\n\nYou look like the person Carrie had been speaking of recently. She said many good things about you. Well, not at first, but she quickly changed her tone.\n\nAnyway, friends of the chef are friends of mine. I'd like to grant you a permanent membership, and you won't need to carry that card around all the time.\n\nAll I ask in return is a Sunrise Omelette and a Prowler Steak. Both cooked by your hand, of course.",
+    "objective": "Personally cook and deliver a Sunrise Omelette and Prowler Steak to Devon Woods  in front of the New Avalon inn.",
+    "progress": "Back with my meal?",
+    "completion": "<Without skipping a beat, he takes a bite out of both dishes.>\n\nOh wow, Carrie's got competition. She must have trained you up on all of her techniques. I'm surprised, I have never been able to convince her to teach me anything.\n\nThanks. I've already marked your name down as a permanent VIP member of our establishment. You can come and go freely and without that membership card in hand, as long as you don't do anything to scare off our guests."
+  }
+}

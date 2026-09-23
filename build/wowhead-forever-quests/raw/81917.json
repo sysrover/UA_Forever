@@ -1,0 +1,12 @@
+{
+  "id": 81917,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81917",
+  "source": {
+    "title": "Chains That Bind",
+    "description": "I have seen this creature you call \"Calefactus\" many times in my field studies. By all accounts, it appears to be an nigh-invulnerable core hound made from Fel energies.\n\nHowever, if what you say is true, and the Twilight's Hammer were planning to enslave it, then there may be a way to subdue the beast.\n\nThe Shadowsworn, to the south-east, are known to perform dark rituals, including the enslavement of fel creatures. Perhaps members of their order carry a clue to weakening Calefactus?",
+    "objective": "Bring 5 infernal chain links to Bloodmage Lynnore in the Blasted Lands",
+    "progress": "Have you found a tool to weaken Calefactus, <race>?",
+    "completion": "Interesting... yes, I can work with this."
+  }
+}

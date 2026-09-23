@@ -1,0 +1,12 @@
+{
+  "id": 92598,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=92598",
+  "source": {
+    "title": "The Gift of Skysight",
+    "description": "As a Windshaper, you have the ability to use the sacred skysight gifted to us by the elemental spirits. Travel to the standing stones to the northeast of the village. Find the elemental convergence there and use your gift.\n\nYou'll find that you may draw upon the skysight anywhere, but its boon is much more powerful if you do so in the presence of an elemental convergence. You may at times receive other bits of wisdom from the spirits that are drawn to such places of power, as well.",
+    "objective": "Use your Skysight racial ability at the Elemental Convergence in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

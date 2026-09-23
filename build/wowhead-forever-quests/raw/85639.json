@@ -1,0 +1,12 @@
+{
+  "id": 85639,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85639",
+  "source": {
+    "title": "Paragons of Power: The Predator's Belt",
+    "description": "A predator knows how to stalk their prey, but a successful one knows how to strike at it once they have closed ranks.  You must master both to have any chance of success in Zul'Gurub... and any chance of being like the Zandalar predators.\n\nBring me choice parts of the Paragons of Power from within Zul'Gurub.  My reward will be the power that the trinkets yield, while yours will be the Zandalar predator's belt - equipment well worth the trade.",
+    "objective": "Bring the following Paragons of Power from Zul'Gurub to Falthir the Sightless: A Primal Hakkari Shawl.  You must also have a reputation equal to or greater than Honored with the Zandalar Tribe.\n\nFalthir the Sightless is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Strike at the insane minions of Hakkar in Zul'Gurub - they are the ones that hold the Paragons of Power, <name>.  Prove your success to them - and to the tribe - as an aspirant to the predator.",
+    "completion": "I sensed your arrival moments before, <name>, but none too easily.  What revealed yourself to me were the Paragons of Power you brought.  I can feel the power without needing to see the trinkets; their latent mojo - raw magic, if you will - will continue to fuel our efforts of vanquishing the diabolic schemes of the Blood God Hakkar.\n\nYou are to be commended - and rewarded - for your success.  You are honored amongst the tribe, and you are worthy to wear the predator's belt."
+  }
+}

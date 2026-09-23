@@ -1,0 +1,12 @@
+{
+  "id": 87435,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=87435",
+  "source": {
+    "title": "Argent Dawn Mail Gloves",
+    "description": null,
+    "objective": "ProgressIf you bring me thirty necrotic runes, I will give you your choice of hand protection in return. These should prove valuable in our fight against the undead Scourge.",
+    "progress": null,
+    "completion": "You've done well, <name>. Take your pick of hand protection in thanks for your efforts."
+  }
+}

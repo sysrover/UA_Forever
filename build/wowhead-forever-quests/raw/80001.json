@@ -1,0 +1,12 @@
+{
+  "id": 80001,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80001",
+  "source": {
+    "title": "Rekindle",
+    "description": null,
+    "objective": "ProgressAn extinguished fire pit. The wood is even dry enough to catch a flame.",
+    "progress": null,
+    "completion": "You put your scout skills to work."
+  }
+}

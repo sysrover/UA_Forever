@@ -1,0 +1,12 @@
+{
+  "id": 79235,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79235",
+  "source": {
+    "title": "On the Lam",
+    "description": "I've found a couple of scenes like you describe, <name>. Always camps of humans and dwarves. Rumor among the caravans is a group of Horde marauders did it. Seems likely given the victims, and how brutal the attacks were.\n\nApparently the bandits fled Desolace once an Alliance marshal got hot on their trail.\n\nIf you're looking to track one of 'em down, I'd check in a port town. Those always have shady characters coming and going. Might catch one trying to get a boat to somewhere.",
+    "objective": "Find one of the Desolace marauders.",
+    "progress": null,
+    "completion": "You need something? Make it quick."
+  }
+}

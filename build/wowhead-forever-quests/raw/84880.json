@@ -1,0 +1,12 @@
+{
+  "id": 84880,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84880",
+  "source": {
+    "title": "The Enemy of my Enemy",
+    "description": "I was sent here, along with a mage, to steal the Blade of Devouring for the Syndicate. As soon as I picked the locks, however, he attacked me. He took the blade for himself, and left me for dead.\n\nThe mage's name was Caius. He joined us not long ago; promising to share his knowledge of a powerful ritual in exchange for help with stealing its final reagent.\n\nThat traitorous snake, and his ritual, must be stopped. He can't get away with this!",
+    "objective": "A terrible threat is brewing within the Syndicate. Someone at Ravenholdt might know what to do.",
+    "progress": null,
+    "completion": "I see why you've brought this to me, <class>. Troubling news indeed. We must consider our next move carefully. Leave me for a moment, so that I can think."
+  }
+}

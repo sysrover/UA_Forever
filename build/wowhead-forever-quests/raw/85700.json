@@ -1,0 +1,12 @@
+{
+  "id": 85700,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85700",
+  "source": {
+    "title": "Corruption",
+    "description": "If I am short with you, it is for a reason. The plans for the creation of the great blade, Corruption, have been stolen by the Black Guard: Elite skeletal units of Baron Rivendare.\n\nYes, Baron Rivendare of Stratholme.\n\nThe Black Guard swordsmith now guards those plans with his... undeath.\n\nSlay him and return proof of this deed and I shall train you in the ways of the swordsmith.",
+    "objective": "Find the Black Guard Swordsmith in Stratholme and destroy him. Recover the Insignia of the Black Guard and return to Seril Scourgebane.",
+    "progress": "Have you forgotten what it is that you were tasked with, <name>?",
+    "completion": "So you are certain that this is what you want? To become a swordsmith? Remember, the doors to becoming a hammersmith and axesmith will close forever."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 89473,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89473",
+  "source": {
+    "title": "The Well of Eternity",
+    "description": "We are close now. The cataclysmic destruction that the ancient Kaldorei spirits wrought upon the demon lord Archimonde took a terrible toll on the tree. The explosion scattered a myriad of debris in the area.\n\nGather fragments of Nordrassil from beneath the tree's boughs.  We will use that to create a special fire in which to heat the blade, before quenching it in the waters of the well itself. The magic will harden and bind the blade, restoring the magic that left it when it was shattered.",
+    "objective": null,
+    "progress": "The bonfire before you looks like a perfect place to heat the blade.",
+    "completion": "The Nordrassil branches you've gathered are now neatly arranged on the remnants of the bonfire. All that remains is to set it alight."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 84546,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84546",
+  "source": {
+    "title": "Stave of the Ancients",
+    "description": "Agents of the Burning Legion are still active in our world, <class>. These agents corrupt all that they touch. Nature wilts and weeps in their presence.\n\nYou must track down these demonic corrupters and destroy them, <name>. Be warned, you must engage them by yourself or they will flee. As long as you are alone, they will try and destroy you. You must strike at them, turning their arrogance into misery.\n\nI grant you a piece of my bark, the inscriptions shall lead you to your targets. Retrieve their heads.",
+    "objective": "You must find and destroy these four demonic corrupters:\n\nSimone the Seductress.\n\nKlinfran the Crazed.\n\nSolenor the Slayer.\n\nArtorius the Doombringer.\n\nDestroy these creatures and return to Vartrus the Ancient in Felwood with their heads.\n\nRefer to the Petrified Bark in your inventory for clues as to their whereabouts.\n\nYou MUST complete this task by yourself.\n\nProvided item:",
+    "progress": "Do not be fooled by their disguises!",
+    "completion": "You have served us well, <name>! Take this stave and combine it with the bow string that Stoma is able to create. Together, they form a most formidable weapon."
+  }
+}

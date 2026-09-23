@@ -1,0 +1,12 @@
+{
+  "id": 85386,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85386",
+  "source": {
+    "title": "Essence of Frost",
+    "description": "Back a while ago, I heard of some strange goings on down in Frostwhisper Gorge. It seems like those ice giants might've found some old power. I'd go investigate myself, but I'm too busy here. Bring me back anything interesting, okay? If you live, that is.",
+    "objective": "Investigate Frostwhisper Gorge for a mysterious frost power.",
+    "progress": "You're not dead yet? Interesting.",
+    "completion": "What's this? There was actually something down there?! I'm surprised those ice giants didn't turn you into an icicle, <name>. Good job."
+  }
+}

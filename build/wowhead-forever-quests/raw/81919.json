@@ -1,0 +1,12 @@
+{
+  "id": 81919,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81919",
+  "source": {
+    "title": "Brought to Heel",
+    "description": "I have fashioned a tool from the chain links you found. Those of your vocation might call it a \"lasso\" of sorts.\n\nThe energy within this chain is best suited for binding demons, but seeing as Calefactus may be from beyond the dark portal, I suspect it will work on him as well.\n\nIf you take him down bring me a sample of his fel lifeblood. Such an anomalous being warrants further study.\n\nCalefactus' current location among these wastes is unknown, but I trust you'll track him down, <class>.",
+    "objective": "Bring the fel lifeblood of Calefactus the Unleashed to Bloodmage Lynnore in the Blasted Lands",
+    "progress": "Find that core hound quickly, <name>. Before the Twilight's Hammer finds him first.",
+    "completion": "Such an exquisite sample! Who knows what mysteries lie in the essence of a beast from beyond the portal?\n\nAs thanks, you may keep the lasso. I doubt I'll ever have use for such a thing, anyway."
+  }
+}

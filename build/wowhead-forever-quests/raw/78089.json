@@ -1,0 +1,12 @@
+{
+  "id": 78089,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78089",
+  "source": {
+    "title": "Advice From Stormwind",
+    "description": "I sense a dark power within this orb, but its source eludes me. We need advice from the paladins of Stormwind. Bring the orb to them.",
+    "objective": "Consult the paladins of Stormwind for advice on the orb.",
+    "progress": "You bring news from Kalimdor?",
+    "completion": "<Examines the orb with a worried expression>"
+  }
+}

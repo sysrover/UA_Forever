@@ -1,0 +1,12 @@
+{
+  "id": 81839,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81839",
+  "source": {
+    "title": "Hinterlands Mission XV: Defeat Ghamoo-Raja",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Seradane, and journey to the Nightmare Incursion at Shaol'watha. Defeat the turtle \"king\" known as Ghamoo-Raja there and return to me.",
+    "objective": "Defeat Ghamoo-Raja in the Hinterlands Nightmare Incursion in the courtyard at Shaol'watha and return to Field Captain Korlian.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

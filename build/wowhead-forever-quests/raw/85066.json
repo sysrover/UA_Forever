@@ -1,0 +1,12 @@
+{
+  "id": 85066,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85066",
+  "source": {
+    "title": "Making Ready",
+    "description": "Demons invading and death rituals! That all sounds very scary. Luckily this handy little time bubble we are standing in makes connecting ourselves to a specific point in time at this location easy.\n\nThis will be dangerous, though. When you and your friend are ready, say the word.",
+    "objective": "Talk to Gregory in Andorhal and ask him to accompany you to the Burning of Andorhal.",
+    "progress": null,
+    "completion": "It's really happening then...\n\nAs much as I hate to admit it, I don't think that I'm the best person to go back with you. My body has suffered too much damage between Aeonas' holy fire and the demon attack. In my current state I'm more likely to slow you down than to help. With Ada dead I think we might need outside aid."
+  }
+}

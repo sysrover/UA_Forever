@@ -1,0 +1,12 @@
+{
+  "id": 82011,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82011",
+  "source": {
+    "title": "Victory Lap for the Gnomes!",
+    "description": "We did it friend! The Goblins are throwing in the towel. In fact, the consultant the Goblins hired wants to talk to you personally! Try not to flaunt too hard now, wouldn't want them to pop a sapper!",
+    "objective": "Talk to Maximillian \"The Greaser\"",
+    "progress": null,
+    "completion": "I'm a big enough to know when I'm beat. Or at least when its not worth fighting no more."
+  }
+}

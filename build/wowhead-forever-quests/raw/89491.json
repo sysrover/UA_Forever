@@ -1,0 +1,12 @@
+{
+  "id": 89491,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89491",
+  "source": {
+    "title": "A Complicated Escape Plan",
+    "description": "Well, it's been fun, but I think we have overstayed our welcome. I thought about using my new gadgets to get out in a pinch, but I can't carry all my new stuff in one trip!\n\nWhen I arrived here, I managed to get a transporter pad setup as you have seen. All it needs is some calibration.\n\nTake this device and use it near the gates, archery yard, and inside the tavern. Then and only then, stand on top of my teleporter and use your Gadgetzan or Everlook teleporter to kick it into gear.",
+    "objective": null,
+    "progress": "Already got most of my things packed up. Once you've completed the calibration, I am out of here!",
+    "completion": "You're back in one piece and the teleporter is purring like an orc! Goblin ingenuity at its finest.\n\nHey so, uh, I was so excited to get this going that I forgot to hand over the schematic for an easy return trip on your way out. No hard feelings, right?\n\nAnyway, it's all set for return trips once you get your own module assembled. As for me, I'm going to finish packing up and head back. Feel free to hit me up for parts in the meantime.\n\nThanks for all the help!"
+  }
+}

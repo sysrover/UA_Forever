@@ -1,0 +1,12 @@
+{
+  "id": 80170,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80170",
+  "source": {
+    "title": "Festive Recipes",
+    "description": null,
+    "objective": "ProgressThe dresses and pant suits you see are traditional clothes from many years past.  They are worn in honor of old ways and loved ones gone.\n\nIf you bring me coins of ancestry, <name>, then I will give you the pattern to create traditional red dresses or suits.",
+    "progress": null,
+    "completion": "Here are the patterns, <name>.  I am sure you will find the product of this knowledge quite beautiful."
+  }
+}

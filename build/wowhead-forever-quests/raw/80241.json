@@ -1,0 +1,12 @@
+{
+  "id": 80241,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80241",
+  "source": {
+    "title": "The Origins of Smithing",
+    "description": "When I was about your age, a dwarf by the name of Galvan took me under his wing and trained me in the ways of the armorsmith. Before he left for Booty Bay, he made me promise to train all those with the desire and determination to advance in the craft of blacksmithing -- so here I am -- all these years later.\n\nSo, now it's time for you to learn a little something. Make me six golden scale bracers and you will learn where smithing comes from, <name>.",
+    "objective": "Bring six Golden Scale Bracers to Hank the Hammer in Stormwind.",
+    "progress": "Could you be the next Galvan protege?",
+    "completion": "Very good, <name>! Listen and learn.\n\nBlacksmithing never comes from here!\n\nBlacksmithing never comes from here!\n\nBlacksmithing only comes from here!\n\nAnd now you know the origin of blacksmithing."
+  }
+}

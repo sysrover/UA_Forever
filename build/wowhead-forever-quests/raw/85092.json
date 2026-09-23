@@ -1,0 +1,12 @@
+{
+  "id": 85092,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85092",
+  "source": {
+    "title": "Truthbearer",
+    "description": "Aeonas managed to see it far before I did. He saw how I've changed while on this mission. I actually feel... sadness, regret, love once again. Sadness for Ada, regret for my betrayal, and love for my friend.  I don't know exactly what this means, but I do know that I can't go back to Northrend.\n\nLordaeron, perhaps? Perhaps there are others like me there. Those that fell from the light... and are slowly finding their way back to it.  Maybe I can help them like my friend helped me.",
+    "objective": null,
+    "progress": null,
+    "completion": "The fact that holding Truthbearer no longer causes me pain tells me all I need to know about the path I must walk now.\n\nHowever,  I think the blade should stay with you. Aeonas would understand and I'm quite sure he would approve. The lion's share of my fighting days are likely behind me and a weapon like this deserves to be used in service of the light.\n\nGoodbye, <name>. Light be with you."
+  }
+}

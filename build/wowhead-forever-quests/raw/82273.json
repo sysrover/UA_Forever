@@ -1,0 +1,12 @@
+{
+  "id": 82273,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82273",
+  "source": {
+    "title": "More Bat Eyes",
+    "description": null,
+    "objective": "Progress<name>, the attraction I'm designing will be the scariest event since Gnomeregan was overrun!  And it's largely thanks to you and all the baubles you've brought me.  Many, many thanks!\n\nI don't need much else, but... if you bring me more evil bat eyes from the bats of the Eastern Plaguelands... I might have more Darkmoon Faire tickets for you.",
+    "progress": null,
+    "completion": "Thanks again, <name>.  Here are your tickets!"
+  }
+}

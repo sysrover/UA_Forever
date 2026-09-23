@@ -1,0 +1,12 @@
+{
+  "id": 85968,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=85968",
+  "source": {
+    "title": "One Commendation Signet",
+    "description": null,
+    "objective": "ProgressFor those adventurers who have but a single commendation signet, I'll exchange it for a small amount of recognition with the Cenarion Circle.\n\nPlease bear in mind that it is better to hand over a stack of ten signets at once; your efforts will receive greater recognition in doing so.  We offer a single signet exchange as a service for those who don't have enough for a full stack of ten.\n\nWith that being said, I stand ready to assist you if you still wish to hand in a single signet.",
+    "progress": null,
+    "completion": "Very well - your deeds have been entered into the records, and you are duly recognized for your efforts.  Keep up the good work, <class>.\n\nIf you have any more signets to hand in, then I am able to assist you further in that regard."
+  }
+}

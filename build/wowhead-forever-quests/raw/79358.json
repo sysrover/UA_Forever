@@ -1,0 +1,12 @@
+{
+  "id": 79358,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=79358",
+  "source": {
+    "title": "Tattered Note",
+    "description": "<You unfold a torn piece of parchment that reads:>\n\nThe tunnels have reached the bluffs above Thousand Needles and our preparations have gone unseen, but we must act swiftly. Send your shaman; with all that Hirzek has accomplished we are ready to begin.\n\nThe storm will rage, the ground will rumble and the tide shall rise, leaving only carcasses to animate in our wake. Their bones will blaze a trail into...\n\n<The note ends abruptly at the bottom of the torn page.>",
+    "objective": "Warn the denizens of Thousand Needles of what you have discovered.",
+    "progress": null,
+    "completion": "<Hmmph... the large tauren snorts as he reads the parchment.>\n\nOne things certain... whoever this note is from is right about their preparations going unseen. We've been too busy dealing with the centaur and harpies to send out wind riders to patrol the canyon and bluffs.\n\nYou have our gratitude for alerting us to this threat, but we might still need further assistance."
+  }
+}

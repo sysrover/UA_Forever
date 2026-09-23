@@ -1,0 +1,12 @@
+{
+  "id": 78684,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78684",
+  "source": {
+    "title": "Mysterious Traveler",
+    "description": "What? Where am I? How... how did I get here?\n\n<The man before you stumbles around as if sea sick. His eyes widen and his hands tremble and you stare at each other in a moment of shared confusion.>\n\nAh... A fellow warlock I see. Perhaps we discuss what led to this series of events and maybe we can find out what went wrong?\n\n<Unsure of what to do next, you suggest they return to speak with Doan Karhan.>",
+    "objective": "Meet with Doan Karhan and the Mysterious Traveler in the Barrens.",
+    "progress": null,
+    "completion": "Interesting indeed... I set you out to slay a demon; never in my wildest imagination would I have thought you'd return with a friend."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 82071,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=82071",
+  "source": {
+    "title": "Purifying Fire",
+    "description": "There is something the charred notes are wrapped around. Some sort of sapta. You don't remember it looking or smelling quite like this, but it otherwise appears the same. Something about it feels off, as if it's been tainted by some other magic. There must be a Spirit Rock nearby, though you don't remember there being any. Finding it might allow you to get to the bottom of this strangeness.",
+    "objective": "Find the tainted Spirit Rock and drink the Murky Fire Sapta.\n\nProvided item:",
+    "progress": null,
+    "completion": "You strong. You cleanse fire. You stop corruption.\n\nYou find and stop corruption."
+  }
+}

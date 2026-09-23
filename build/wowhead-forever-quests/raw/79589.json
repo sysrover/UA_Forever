@@ -1,0 +1,12 @@
+{
+  "id": 79589,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79589",
+  "source": {
+    "title": "Torn Bear Pelts",
+    "description": null,
+    "objective": "ProgressChildren love toys!  And no matter what race, I've found that all children love furry, plushy toys made from torn bear pelts!\n\nYou can get those pelts from the bears of Ashenvale or Hillsbrad.  Bring me a heap of them and earn yourself a heap of Darkmoon Faire tickets!",
+    "progress": null,
+    "completion": "Nice pelts, <name>!  I'll get someone to sew these into a bunch of plush toys.  With a little stuffing and some paint, I think they'll be the envy of children across Azeroth!\n\nTickets?  Ah yes, your payment!  Here they are!"
+  }
+}

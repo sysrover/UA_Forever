@@ -1,0 +1,12 @@
+{
+  "id": 83823,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=83823",
+  "source": {
+    "title": "A Lesson in Violence",
+    "description": "Your technique is very interesting,<name>. A bit rougher around the edges than Sir Dalton, but it has a more \"worldly\" quality to it that I feel suits me well. Thank you so much, I've already learned so much from you!",
+    "objective": null,
+    "progress": "Your technique is most impressive! A bit rougher around the edges than Sir Dalton, but it has a more \"worldly\" quality to it that I feel suits you well. Thank you so much, I've already learned so much from you and cant wait to apply it against our foe!",
+    "completion": "Your squire has grown in skill adventuring alongside you!"
+  }
+}

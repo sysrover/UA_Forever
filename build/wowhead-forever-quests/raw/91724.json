@@ -1,0 +1,12 @@
+{
+  "id": 91724,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91724",
+  "source": {
+    "title": "Delicate Instruments",
+    "description": "Almost there, and... By the Nether! Something is still disrupting my instruments.\nThis is most frustrating, <name>. I have heard rumors that the local bandits have been practicing spells near Stone Cairn Lake. Maybe if you stop them, these disruptions will finally cease and I can get some work done?",
+    "objective": "Kill 6 Defias Rogue Wizards at Stone Cairn Lake, then return to Hamish Bergwort in the Tower of Azora.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 93740,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=93740",
+  "source": {
+    "title": "Blood for Blood",
+    "description": "A number of our Windshaper novices were found dead in the Highlands this morning. We can't be certain but there is a strong chance that the Al'Aketh are responsible. Windshapers trade blood for blood, every time.\n\nHead north and kill any Al'Aketh you encounter. Bring me their windstone prayer charms as proof of the deed. We do not forgive and we do not forget.",
+    "objective": "Collect 10 Al'Aketh Windstone Charms from the corpses of Al'Aketh cultists in the Gustberry Lowlands.",
+    "progress": null,
+    "completion": null
+  }
+}

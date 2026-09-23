@@ -1,0 +1,12 @@
+{
+  "id": 77584,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77584",
+  "source": {
+    "title": "Hunt for the Rune",
+    "description": "A hunter draws strength from their connection to the natural world. On your journey, you will track quarry through all manner of harsh terrain, surviving only by your wits.\n\nNot long ago, another fledgling hunter sadly failed in this. He went out to hunt scorpids, and never returned. He was experimenting with engraving mystical runes onto his equipment to improve his combat prowess.\n\nFind his rune among the scorpids nearby, and return when you have learned its secrets.",
+    "objective": "Find the lost rune by slaying scorpids in the Valley of Trials. Learn the rune's power, then report back to Jen'sahn.",
+    "progress": "Have you found the rune, <name>?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

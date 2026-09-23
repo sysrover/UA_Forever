@@ -1,0 +1,12 @@
+{
+  "id": 89446,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89446",
+  "source": {
+    "title": "The Lost Craftsman",
+    "description": "<Crafter Wilhem seems unable to assist you but he suggested that his former master, a man called Omarion, could. Should you find him, he might know more about this material.>",
+    "objective": "Find Master Craftsman Omarion.",
+    "progress": "<Omarion stares past you blankly.>",
+    "completion": "I see how it is. No one comes looking for me unless they need something. It's fine, it's fine. I don't need rescuing anyway. I'm content to just die here in this light-forsaken place. Please, just leave me to it."
+  }
+}

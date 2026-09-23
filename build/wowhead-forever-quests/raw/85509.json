@@ -1,0 +1,12 @@
+{
+  "id": 85509,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85509",
+  "source": {
+    "title": "Grand Theft Echoing Orb",
+    "description": "Please make your way over to the southeastern area of the canals and speak with the Vaultkeeper there, Julien Faranister. He can tell you what he knows. Learn what you can about the crime. There were a lot of people who would have wanted to steal that orb, so gathering as much information as we can now while the crime scene is fresh is vital.",
+    "objective": "Speak with Vault Keeper Faranister in the Canal District of Stormwind and return to Katherine when you've learned what you can.",
+    "progress": null,
+    "completion": "That isn't much to go on, but its better than nothing I suppose.\n\nI'm interested to hear what you learned in your meeting with Aeonas, but I am afraid this matter takes priority at the moment. Let's talk about our current lead."
+  }
+}

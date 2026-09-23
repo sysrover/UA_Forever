@@ -1,0 +1,12 @@
+{
+  "id": 84408,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=84408",
+  "source": {
+    "title": "Diplomatic Overtures",
+    "description": "<name>, as I have studied the shard of light you brought, it has granted me visions. I see a priest of the Alliance finding a similar shard, and I see the Alliance and Horde coming together in a surge of light.\n\nUnfortunately, the Alliance continues to treat us as little more than vermin.\n\nI suggest putting together a diplomatic gift as a gesture of cross-faith goodwill. Bring these supplies to me, and we will see if we can open a dialogue between our people.",
+    "objective": "Gather the supplies and deliver them to Dietrich Praice in Orgrimmar.",
+    "progress": "Do you have the supplies?",
+    "completion": "I will try and find a way to deliver this to Stormwind.\n\nI have something for you as well - this totem will provide healing to nearby members of the Alliance. Acts of service may bridge the gap where words fail us."
+  }
+}

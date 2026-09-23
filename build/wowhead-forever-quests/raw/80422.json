@@ -1,0 +1,12 @@
+{
+  "id": 80422,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80422",
+  "source": {
+    "title": "Green Fireworks",
+    "description": null,
+    "objective": "ProgressWhen I finally get this booth up and running, I'll want to advertise!  And what better way is there to advertise then with fireworks?\n\nWell, some might think that the smell of a cauldron, churning with the boiling heads of your foes is better for drawing crowds, but... we're in mixed company.  So fireworks it will have to be!\n\nBring me green fireworks, <name>, and I have a big fistful of Darkmoon Faire tickets for you.",
+    "progress": null,
+    "completion": "You brought the fireworks.  Wonderful work, <name>!  I can't wait to light these and tell the world that my booth is ready to go!  I must still wait, quite a long time I'm afraid, but... I'll be ready when I'm ready, yes?\n\nHere are the tickets, <name>.  Enjoy yourself!"
+  }
+}

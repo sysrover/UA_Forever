@@ -1,0 +1,12 @@
+{
+  "id": 78506,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=78506",
+  "source": {
+    "title": "Elemental Distress",
+    "description": "Listen, <name>. The corruption I spoke of before goes beyond Baron Aquanis. I've been sensing a certain unease within the elemental world for some time. I fear something is gravely wrong, and the corruption of Baron Aquanis only furthers my suspicions.\n\nFind more of those elementals who are suffering: here in Ashenvale, and in the nearby Stonetalon Mountains. Bring me motes of their essence. Perhaps I can analyze them, and begin to understand the nature of their rage.",
+    "objective": "Collect motes of elemental rage, and bring them to Je'neu Sancrea at Zoram'gar Outpost, Ashenvale.",
+    "progress": "The elementals suffer greatly, <name>. I must know why.",
+    "completion": "Thank you, <name>. Hopefully these will provide some answers."
+  }
+}

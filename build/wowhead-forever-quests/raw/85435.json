@@ -1,0 +1,12 @@
+{
+  "id": 85435,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=85435",
+  "source": {
+    "title": "A Foul Interference",
+    "description": "While you were gone, I heard there's something real nasty going on over in Mazthoril. It seems like your kind of thing, so go see what you can do to solve it. Those blue dragons know a lot about the arcane, maybe they'll give you something in return for it.\n\nI heard you've been really diligent with collecting esoteric knowledge. I found these scrolls, they might come in handy.",
+    "objective": "Stop the corruption of Mazthoril.",
+    "progress": null,
+    "completion": null
+  }
+}

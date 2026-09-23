@@ -1,0 +1,12 @@
+{
+  "id": 77667,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=77667",
+  "source": {
+    "title": "Spell Research",
+    "description": "As a mage, researching the arcane will lead you to astonishing power. Studying notes left by Azeroth's greatest mages is an excellent place to start. I had recently discovered some myself, but they were stolen by those pesky troggs to the southwest.\n\nRecover the spell notes from the troggs' camp and use this primer to make sense of them. Return when your research is successful.",
+    "objective": "Find the stolen spell notes at the trogg camp to the southwest of Anvilmar, then use them to learn a new ability. Afterwards, return to Marryk Nurribit in Anvilmar.",
+    "progress": "How is your research progressing, <name>?",
+    "completion": "Well done, <name>. Take these Comprehension Charms. They will help you decipher any more arcane writings you find.\n\nContinue to seek out spell notes across Azeroth and use them to further your research. If you need more charms, pay a visit to a reagent vendor."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 87502,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87502",
+  "source": {
+    "title": "Gathering Intelligence",
+    "description": "I am not pleased to engage you for aid. You consort with the heretic and the unclean and it is beneath me and our sacred order to entertain your presence here. However... you seem adequately capable and will prove to be a useful instrument here for our needs.\n\nGo to Tyr's Hand and scout the cathedral there before moving deeper into New Avalon to scout the rear keep and mage tower. Return here without delay and report what you find. We need to know what we are up against.",
+    "objective": "Enter Tyr's Hand in Eastern Plaguelands and scout out the central cathedral, as well as the mage tower and keep inside of New Avalon before returning to Caldoran at the Scarlet Base Camp.\n\nA direct incursion is possible but may be dangerous. Speak with Inquisitor Jociphine at the Scarlet Base Camp if you'd prefer a more subtle approach.",
+    "progress": "Have you completed your mission? If not, why are you standing here idly speaking with me?",
+    "completion": "<Caldoran grunts at you curtly when you finish delivering your report.>\n\nThe buildup of forces in New Avalon is concerning, but their numbers are not insurmountable.\n\nIt also seems that Dathrohan--or should I say, Balnazzar--is consolidating his power at the central Cathedral, and his usage of foul magics to seal the entrance confirms that he is up to something in there. That monster desecrates our holy ground and  I will see him dead by my hand. I swear it upon my life."
+  }
+}

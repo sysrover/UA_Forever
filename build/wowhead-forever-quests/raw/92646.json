@@ -1,0 +1,12 @@
+{
+  "id": 92646,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=92646",
+  "source": {
+    "title": "Confront Lorthuna",
+    "description": "Lorthuna fled up to the spires above using some sort of portal. Ayessa and Elaadrin went in after her. That was just a few moments ago.\n\nI'm afraid I took one too many hits and this is where I stay. Go through the portal, find Ayessa and help them stop Lorthuna.\n\nUnless that help that Elaadrin and Ayessa said they sent for arrives soon, you are on your own from here. Good luck, <class>.",
+    "objective": "Take the portal to the Rohashi Spires overhead and join Elaadrin Evengale and Ayessa Dawnsinger in their confrontation with the High Priestess Lorthuna.",
+    "progress": null,
+    "completion": null
+  }
+}

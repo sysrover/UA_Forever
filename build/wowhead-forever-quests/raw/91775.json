@@ -1,0 +1,12 @@
+{
+  "id": 91775,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=91775",
+  "source": {
+    "title": "Book Return",
+    "description": "While you're investigating the Fargodeep Mine, see if you can find any of Brother Paxton's books to return. In particular, Paxton is very concerned about a book titled, \"Fun with Elementals\". He thinks even a kobold could use it to summon an elemental servant. Be warned, the depths of the mine are fairly dangerous. You should bring friends.\n\nTake this book bag to protect the books when you find them!",
+    "objective": "Find 6 Lost Books and \"Fun with Elementals\" and return them to Marshal Dughan.\n\nProvided item:",
+    "progress": null,
+    "completion": null
+  }
+}

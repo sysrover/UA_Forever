@@ -1,0 +1,12 @@
+{
+  "id": 85643,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85643",
+  "source": {
+    "title": "The Lord of Blackrock",
+    "description": "Go to the Valley of Heroes and speak with Field Marshal Stonebridge.",
+    "objective": "Venture to the Valley of Heroes in Stormwind City and speak with Field Marshal Stonebridge.",
+    "progress": null,
+    "completion": "<Field Marshal Stonebridge bows.>\n\nChoose your reward, let the celebration begin!"
+  }
+}

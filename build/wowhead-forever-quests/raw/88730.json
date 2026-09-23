@@ -1,0 +1,12 @@
+{
+  "id": 88730,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=88730",
+  "source": {
+    "title": "The Only Song I Know...",
+    "description": "You fancy yourself a hero of the Dawn, eh? I've seen our greatest soldiers get rolled over by Kel'Thuzad's plebes! How well could someone so clueless possibly fare in Naxxramas?\n\n<Wilhelm sighs.>\n\nBah, what choice do I got? You're the best I can do; I may as well help you.\n\nOmarion left me with one recipe. It's the only song I know... I can make a few variations of these pants; you just gotta supply the materials.",
+    "objective": "Craftsman Wilhelm at Light's Hope Chapel in the Eastern Plaguelands wants you to bring him 2 Frozen Runes, 2 Essence of Water, 2 Blue Sapphires and 30 gold pieces.",
+    "progress": "You haven't run into Omarion, have you?",
+    "completion": "<Wilhelm wipes the sweat from his brow.>\n\nThat's some hard work! Enjoy the pants, <class>. At least you'll die in a clean pair now."
+  }
+}

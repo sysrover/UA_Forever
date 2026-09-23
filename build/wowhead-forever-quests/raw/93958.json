@@ -1,0 +1,12 @@
+{
+  "id": 93958,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93958",
+  "source": {
+    "title": "The Inner Sanctum",
+    "description": "Valennia's forces just breached the inner sanctum. The fighting was thick in there at first, but it's grown... unsettlingly quiet. Go in there and do your best to link up with Valennia and her forces... if any of them are left.\n\nI'll stay here and watch your back.",
+    "objective": "Speak with Valennia Stormfist inside the inner sanctum at the Shrine of Akir.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85304,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85304",
+  "source": {
+    "title": "Essence of Fire",
+    "description": "The scroll emanates a fiery energy unlike other scrolls you've found. There is a Magical Stone near Draco'dar in the Burning Steppes that may help uncover its purpose. Translate the scroll and learn its purpose before bringing your findings back to the librarians of Stormwind or Undercity.",
+    "objective": "Figure out what the unusual scroll is for and report your findings to a librarian in Stormwind or Undercity.",
+    "progress": "Have you found anything interesting?",
+    "completion": "You've found something truly interesting, <name>."
+  }
+}

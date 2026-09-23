@@ -1,0 +1,12 @@
+{
+  "id": 85385,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85385",
+  "source": {
+    "title": "The Librarian's Apprentice",
+    "description": "Your discovery of the Essence of Fire has greatly expanded our knowledge of the arcane. I have heard rumors of a similar power in Winterspring, though it is of a Frost nature. My associate in Everlook will have more information regarding the specifics.",
+    "objective": "Speak with Valxx Cracklequil in Everlook to learn about the rumors.",
+    "progress": null,
+    "completion": "So you've been sent by those old bats at the library, huh? They don't like me a whole lot, saying that 'gunpowder and magic don't mix.' Pah.\n\nYeah, I know a thing or two about what you're asking about. Lucky for you I'm too busy to look into it myself."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 89563,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89563",
+  "source": {
+    "title": "Leonid's Burden",
+    "description": "I could not help but overhear your conversation with Leonid about Inquisitor Caldoran. The scant details Leonid provided to you are the barest sliver of the history they share and the suffering Caldoran has inflicted on him. I was there when Leonid was at his lowest point and I helped him find the strength to pick himself back up.\n\nI fear what our continued cooperation with the Scarlet Crusade will do to Leonid, particularly if it brings him closer to that man.",
+    "objective": "Receive instructions from Lord Maxwell Tyrosus.",
+    "progress": null,
+    "completion": "I'll keep my good eye on things here, and you keep an eye firmly fixed on Caldoran while you are working with the reclamation forces. I do not trust any of our \"allies\" and I trust him least of all.\n\nSpeak with Leonid again. I have a mission that I've asked him to undertake and I'd like for you to accompany him. I think it would do him some good to have a distraction away from here."
+  }
+}

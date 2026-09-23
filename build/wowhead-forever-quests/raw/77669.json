@@ -1,0 +1,12 @@
+{
+  "id": 77669,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77669",
+  "source": {
+    "title": "The Scarlet Rune",
+    "description": "Who were you in life, <name>? A spy? A thief? A cook who was especially handy with a knife? Whatever your past, it's time to embrace new tactics. The rogues of the Forsaken seize every advantage offered to them.\n\nThe Scarlet Converts to the east fight like they've never seen combat, but the Crusade has issued them mystical runes to enhance their abilities. Steal one of these runes and learn its magic, then return to me.",
+    "objective": "Pickpocket or kill Scarlet Converts to find a rune, then use it to learn a new ability. Afterwards, return to David Trias in Deathknell.",
+    "progress": "Have you found the rune, <name>?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

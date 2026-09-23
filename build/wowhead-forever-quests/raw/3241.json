@@ -1,0 +1,12 @@
+{
+  "id": 3241,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=3241",
+  "source": {
+    "title": "<NYI> <TXT><redux> Dreadmist Peak",
+    "description": "Collect the totems from Dreadmist Peak, because it's icky there now and no place for shiny clean totems.\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(3241))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

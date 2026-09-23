@@ -1,0 +1,12 @@
+{
+  "id": 87367,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87367",
+  "source": {
+    "title": "A New Light",
+    "description": null,
+    "objective": "Receive the Seal of the Dawn.",
+    "progress": "Each time we empower your seal, we take a step towards ending Kel'Thuzad's incursion.\n\nStay strong, and we'll have freed Azeroth from the Lich King and his lieutenants in no time.",
+    "completion": "You're a true hero, <name>. The Ashbringer himself would have been impressed."
+  }
+}

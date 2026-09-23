@@ -1,0 +1,12 @@
+{
+  "id": 85618,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85618",
+  "source": {
+    "title": "Paragons of Power: The Freethinker's Armguards",
+    "description": "You are a heathen.  Heathens have a place in the tribe.  Heathens are freethinkers of Zandalar.  Freethinkers do not fear oppression.  Freethinkers die for what they believe in.  We know you would die for what you believe in.  This earns our acknowledgement.  This earns you a chance to prove yourself further.\n\nWe must have the Paragons of Power.  Go to Zul'Gurub.  Kill the minions of Hakkar.  Return when you have what I seek.  Claim the first battle gear of a Zandalar freethinker.\n\nGo.",
+    "objective": "Bring Jin'rokh the Breaker Primal Hakkari Bindings.  You must also have a reputation equal to or greater than Friendly with the Zandalar Tribe.\n\nJin'rokh the Breaker is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "You have returned?  Do you have the Paragons of Power?  Are you wasting my time?\n\nI hope not, heathen.",
+    "completion": "You do much to honor us.  Your hands drip with the blood of Hakkar's minions.  You are a friend to the tribe.\n\nWear these bracers.  They are the freethinker's armguards.  This is what I mean about real power."
+  }
+}

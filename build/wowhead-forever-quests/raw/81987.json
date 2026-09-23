@@ -1,0 +1,12 @@
+{
+  "id": 81987,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81987",
+  "source": {
+    "title": "Goblin Solutions",
+    "description": "Hey you, come here, let me take a look at you. Yeah I thought so, I can recognize a follower of the Goblin arts from a mile away. Soot stains on the knuckles, we all got it. Listen, I need some help.\n\nI've been tasked with consulting for my fellow Goblins to give them an edge out here. But these Gnomes also brought in an expert and are slowly starting to pull ahead. I got some ideas, but in the meantime lets say you bring me some Goblin Land Mines! You can make those yeah?",
+    "objective": "Bring 5 Goblin Land Mines to Maximillian \"The Greaser\" in the Shimmering Flat",
+    "progress": "Like mamma always said, \"If you can't win a fair fight, don't fight a fair fight.\" So we are going to solve this problem like my ancestors did. Covering the place with highly sensitive explosive devices!",
+    "completion": "To think these were used in the defense of Mount Hyjal against the Burning Legion. This feels like an equally good use case."
+  }
+}

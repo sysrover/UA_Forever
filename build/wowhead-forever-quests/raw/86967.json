@@ -1,0 +1,12 @@
+{
+  "id": 86967,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86967",
+  "source": {
+    "title": "To the Rescue",
+    "description": "<The man's one open eye locks with yours.>\n\nPsst, hey you. Yes, you! Think you can get me out of here? I've been lying here playing dead for hours but its only a matter of time before these damned ogres remember I'm here and come to eat me, or worse!\n\nThis cage is locked up pretty tight but one of these brutes should have the key. See if you can find one and let me out. I'd certainly be in your debt.\n\nI'm going to keep playing dead while you get to work. Now go... quietly!",
+    "objective": "Find the key to the cage in the Deadwind ogre cave and free the injured adventurer inside.",
+    "progress": null,
+    "completion": "How on Azeroth did I beat you back here bloody and concussed?\n\n<Harrison Jones shakes his head.>\n\nYou sure you are up for this, kid?"
+  }
+}

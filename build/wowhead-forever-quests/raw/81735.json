@@ -1,0 +1,12 @@
+{
+  "id": 81735,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81735",
+  "source": {
+    "title": "Duskwood Mission VI: Dragon Intelligence",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in the Twilight Grove, and journey to the Nightmare Incursion at the Yorgen Farmstead . Retrieve an intelligence report from Dreamwarden Amalia there and return to me.",
+    "objective": "Gather intelligence from Dreamwarden Amalia in the Duskwood Nightmare Incursion in the farmhouse at the Yorgen Farmstead and return to Field Captain Palandar.",
+    "progress": "You have the report?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

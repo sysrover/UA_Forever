@@ -1,0 +1,12 @@
+{
+  "id": 78193,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78193",
+  "source": {
+    "title": "Secrets of the Light",
+    "description": "All right, <name>, let's get serious. The Light isn't some goddess you need to impress or a spirit you need to befriend. It's in all of us! All you gotta learn is how to feel it.\n\nTreat yourself to a little trip to Stormwind and visit the Cathedral of Light. It's a great place to take some time to pray and get to know the Light. And that architecture's a sight to see!",
+    "objective": "Travel to Stormwind City and speak to High Priestess Laurena in the Cathedral of Light.",
+    "progress": null,
+    "completion": "There is no need to prove yourself, <name>. The Light welcomes all petitioners to its warmth.\n\nFeel free to stay within this sanctuary as long as you like and meditate on the Light's mysteries."
+  }
+}

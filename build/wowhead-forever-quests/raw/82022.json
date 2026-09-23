@@ -1,0 +1,12 @@
+{
+  "id": 82022,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82022",
+  "source": {
+    "title": "The Bad News...",
+    "description": "So, the good news is that a solution exists. The bad news is that getting what you need to be able to survive the dread is going to require a bit of effort. I know, its unfortunate that it's so hard to get good help these days. If this adventurer had managed to do the one simple thing I asked them to do in the first place, you'd be tucking in a hot meal and a cold ale at an inn somewhere, none the wiser about any of this right now.",
+    "objective": "Find the adventurer that the Shadowy Figure described, and recover the Void-Powered Vambraces.",
+    "progress": "How goes the search?",
+    "completion": "Ah it seems that these are de-powered. Unfortunate, but easily remedied. To recharge these, you'll need to find a dense concentration of Naga spellcasters and massacre them en masse. Rarely, they may carry something called a \"Voidcore\", so sift through the bodies, bring me one and.... Hah! Joking! If you could see the look on your face...\n\nGive me one moment and I should be able to infuse these with some power.... and there we are! You are ready to slay a Nightmare."
+  }
+}

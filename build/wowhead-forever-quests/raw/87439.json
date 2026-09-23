@@ -1,0 +1,12 @@
+{
+  "id": 87439,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=87439",
+  "source": {
+    "title": "Argent Dawn Cloth Gloves",
+    "description": null,
+    "objective": "ProgressIf you bring me thirty necrotic runes, I will give you your choice of hand protection in return. These should prove valuable in our fight against the <race> Scourge.",
+    "progress": null,
+    "completion": "You've done well, <name>. Take your pick of hand protection in thanks for your efforts."
+  }
+}

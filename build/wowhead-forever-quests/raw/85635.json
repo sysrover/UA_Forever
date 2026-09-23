@@ -1,0 +1,12 @@
+{
+  "id": 85635,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85635",
+  "source": {
+    "title": "Paragons of Power: The Madcap's Mantle",
+    "description": "One of Zandalar's legendary madcaps was Khar'vaxal the Cracked.  Legend states that when facing the enemies of the tribe for the first time, Kar'xavan used his mantle specifically woven with \"the weave of madness\".  His form was shrouded not only by the mantle, but also with the blinding speed of his twin daggers.  Madcaps today cherish their mantle as a sign of their place in the tribe.\n\nBring to me the Paragons of Power I seek, and such a mantle will be yours to weave madness unto your own enemies.",
+    "objective": "Bring Falthir the Sightless a Primal Hakkari Girdle.  You must also have a reputation equal to or greater than Honored with the Zandalar Tribe.\n\nFalthir the Sightless is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "You've returned - do you have the Paragons of Power I need?\n\nThe legend of Khar'vaxal the Cracked serves us today as a reminder that no foe - no matter how great a threat they may be - is impossible to overcome.  Chaos will bring everyone to their knees, that much is certain... and perhaps the most non-chaotic elements of chaos.",
+    "completion": "Victory is ours this day, thanks to the madness you have sowed upon our mutual enemies!  You are to be honored amongst the Zandalar, and there is no better way of showing gratitude for your deeds than by offering you the madcap's mantle!"
+  }
+}

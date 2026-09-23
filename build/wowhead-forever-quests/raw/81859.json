@@ -1,0 +1,12 @@
+{
+  "id": 81859,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81859",
+  "source": {
+    "title": "Feralas Mission V: Cenarion Intelligence",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough, and journey to the Nightmare Incursion at the Twin Colossals. Retrieve an intelligence report from Dreamwarden Gorlas there and return to me.",
+    "objective": "Gather intelligence from Dreamwarden Gorlas in the Feralas Nightmare Incursion near the waterfall at the Twin Colossals and return to Field Captain Arunnel.",
+    "progress": "You have the report?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

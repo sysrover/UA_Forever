@@ -1,0 +1,12 @@
+{
+  "id": 92481,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92481",
+  "source": {
+    "title": "A Student of the Arcane",
+    "description": "While you were away dealing with our vuldren problem, our resident mage trainer--Dorii Brightwhisper--left this recall crystal for you. It contains some sort of message for you, so give it a look. Afterwards, you can find Dorii in the structure just behind me.",
+    "objective": "Examine the Glowing Recall Crystal, then speak with Dorii Brightwhisper in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

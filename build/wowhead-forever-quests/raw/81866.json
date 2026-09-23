@@ -1,0 +1,12 @@
+{
+  "id": 81866,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81866",
+  "source": {
+    "title": "Feralas Mission XI: Greater Moonstone",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough and collect Greater Moonstone from within the Nightmare Incursions. We can harness its magic to reverse the damage. You will need the assistance of a miner.",
+    "objective": "Gather 10 Greater Moonstone in the Feralas Nightmare Incursions and return to Field Captain Arunnel.",
+    "progress": "You have the Greater Moonstone?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

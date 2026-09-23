@@ -1,0 +1,12 @@
+{
+  "id": 80133,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=80133",
+  "source": {
+    "title": "Chief Engineer Scooty",
+    "description": "As soon as we got word from Kernobee about the new gnomish rig, Scooty and I began work on the Transpolyporter 6000: The fastest and most reliable way to Gnomeregan.\n\nIt's finally ready for passengers to board, <name>. If you want to give it a try, go to Booty Bay and talk with Scooty at the wind rider roost. To get to Booty Bay, take the boat from Ratchet.\n\nOf course, you could always try and make the run to Gnomeregan through the dwarf infested mountains of Dun Morogh!",
+    "objective": "Speak with Scooty in Booty Bay.",
+    "progress": null,
+    "completion": "She's a beauty, isn't she? Pinnacle of goblin transport technology -- only exploded a dozen or so times.\n\nDon't worry, <name>, I've got her all fixed up. She won't blow up on you - and if she does, it'll be quick and painless."
+  }
+}

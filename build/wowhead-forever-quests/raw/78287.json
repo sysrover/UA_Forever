@@ -1,0 +1,12 @@
+{
+  "id": 78287,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78287",
+  "source": {
+    "title": "Let Me Make You An Offer",
+    "description": "The first run's all packed up, <name>. Take this to Stormwind and get it in front of the higher-ups. Someone who can sign today!",
+    "objective": "Take the Arms Shipment to Master Wood in Stormwind City.",
+    "progress": "A delivery from Ratchet? I didn't order anything from Ratchet.",
+    "completion": "An arms supplier in Ratchet? Well... the Alliance does need all the supplies we can get. And we don't want the Horde signing a deal. We should act fast."
+  }
+}

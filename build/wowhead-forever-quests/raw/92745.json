@@ -1,0 +1,12 @@
+{
+  "id": 92745,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=92745",
+  "source": {
+    "title": "The State of the Mines",
+    "description": "The well samples you collected contain toxic metals! If we do not put an end to this corruption quickly, it will be decades before crops can grow in this soil again.\nThe Defias have seized the mines of Westfall and use creatures as labor to strip their resources. Disrupt them by slaying their miners in the Jangolode Mine to the north, and the Gold Coast Quarry to the west.",
+    "objective": "Slay 4 Kobold Diggers in the Jangolode Mine and 6 Riverpaw Miners in the Gold Coast Quarry.",
+    "progress": null,
+    "completion": null
+  }
+}

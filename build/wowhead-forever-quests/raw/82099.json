@@ -1,0 +1,12 @@
+{
+  "id": 82099,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=82099",
+  "source": {
+    "title": "Haze of Evil",
+    "description": "To tell you the truth, <name>, I've never seen any plants like this in my travels. Perhaps I should take a trip to this crater...\n\nAt any rate, I think I know just the thing Muigin's looking for -- Atal'ai haze. It's horrid stuff, hard to collect, but it's just what he needs to control the little monsters.\n\nYou'll need to visit the temple of Atal'Hakkar in the Swamp of Sorrows. The Atal'ai haze can be collected from the deep lurkers, murk worms, or oozes found there. Good luck, <name>!",
+    "objective": "Collect 5 samples of Atal'ai Haze, then return to Muigin in Un'Goro Crater.",
+    "progress": "Larion's still not speaking to me! He sure knows how to hold a grudge.",
+    "completion": "I admit, I'm a bit hesitant to touch that stuff, <name>! But if Gregan says it'll work, then I'm willing to give it a try!"
+  }
+}

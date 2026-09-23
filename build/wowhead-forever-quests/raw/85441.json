@@ -1,0 +1,12 @@
+{
+  "id": 85441,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85441",
+  "source": {
+    "title": "Thunderaan the Windseeker",
+    "description": "I have told you what I know, <name>. It is you who must find elementium. It is you who must destroy the Firelord's corporeal form.\n\nDo this and gain the blessing of Thunderaan.",
+    "objective": "To harness the power of the Windseeker, you must present the right and left halves of the Bindings of the Windseeker, 10 bars of Elementium, and the Essence of the Firelord to Highlord Demitrian in The Crystal Vale.",
+    "progress": "Bring the world to its knees if you must!",
+    "completion": "Even in dreams I did not dare forsee this day.\n\nGo, mortal. Speak to me again when you are ready and wish to challenge the Windseeker."
+  }
+}

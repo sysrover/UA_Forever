@@ -1,0 +1,12 @@
+{
+  "id": 90116,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=90116",
+  "source": {
+    "title": "Holy Threads",
+    "description": "This loom is special. Did you know that? All of our craftsmen had their tools of the trade blessed by our high priests.\n\nIn particular, the loom attracts stray fabrics and thread destined to be used in the holiest of our ceremonial vestaments. Over time, we will have enough gathered to create a new robe, and these days are a cause for celebration, for me at least.\n\nIf you are interested in the process for your own curiosity, thread some bolts near the loom and watch the Light at work.",
+    "objective": "Acquire Dawnwoven Fabrics by weaving cloth into bolts while in close proximity to the Crusader's Loom. Return to Taylor once you have enough.",
+    "progress": "Normally it takes a few larger projects like shirts or trousers to accumulate enough dawnwoven fabric, but for the purposes of your demonstration I figure weaving bolts would be a simple enough task.",
+    "completion": "Magnificent! Of course this is just a small portion of a robe fit for a Scarlet abbot, but I imagine you now have a deeper appreciation toward your own craftsmanship.\n\nI will take this off your hands and store them away. The pattern for the sacred robes is a closely guarded secret, but I would like you to have this one instead. Deep and sturdy packs are a luxury these days, but well worth the investment. Who knows, maybe you can start a business selling bags?"
+  }
+}

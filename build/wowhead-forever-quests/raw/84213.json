@@ -1,0 +1,12 @@
+{
+  "id": 84213,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84213",
+  "source": {
+    "title": "Rift Away",
+    "description": "Join me in this historic experiment and witness the wonders of my invention! I've calculated two locations with suitable geothermic bioflux energy. With manual-auto-locking phasers, I'm ready to send us to the coordinates within compatible regions.",
+    "objective": "Assist Doctor Jurgens with rift opening at either Tirisfal Glades or Westfall",
+    "progress": null,
+    "completion": "Jurgens has gone missing in the chaos. You see a shimmering wafer within a cylindrical crystal container. Inside are the smashed-up remains of interior workings of the golem. You reach inside, unfasten wires from the housing, and open it."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 84636,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84636",
+  "source": {
+    "title": "Prowler",
+    "description": "Da druids be concerned about a fragment of earth in da barrows east of da lake. It be guarded by angry earth elementals, and preventing da druids from carrying out dere rites.\n\nDescend into da barrows and retrieve the elemental fragment. Take my cat companion, Siopi, to sneak past da elementals, if you do not have a cat companion of your own. Siopi probably be asleep in da grass near here.",
+    "objective": "Travel to the barrows on the east side of Moonglade, on Kalimdor. Descend into the southeastern most Stormrage barrow den, and look for an earth elemental fragment in the depths. Use the Prowl skill of an animal companion to bypass the guardians and retrieve a fragment of elemental earth.",
+    "progress": "Have you taken da earth fragment from da barrows?",
+    "completion": "Ah, da earth shard. Da druids will take dis with da air shard and return dem where dey need to go."
+  }
+}

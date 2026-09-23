@@ -1,0 +1,12 @@
+{
+  "id": 89471,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89471",
+  "source": {
+    "title": "Goblin Tinkering",
+    "description": "I think it's safe to say our business relationship is already firmly established. I am the brains, you are the brawn. That's great, because I realized about thirty seconds ago that I am missing some critical components!\n\nHere's a list of things I need based on these schematics, excluding all the gnomish garbage. I'll get these designs fixed up in the meantime. When you're back, we can get straight to work.",
+    "objective": null,
+    "progress": "Took you a while, I was starting to think those Scarlet Crusaders finally did you in. Did you get everything I asked for?",
+    "completion": "I should have known you would conveniently ignore the grocery list. How is a goblin supposed to get a bite around here? Whatever.\n\nYou will be pleased to know that I finished the schematic for my newest invention: the Tinkerbox! This device is innocuous on its own, but that's the whole point! All you need to do is cram a few carefully calibrated parts into the back panel and then, when you're ready, press the big red button!\n\nWhat will happen? That's what you're about to find out!"
+  }
+}

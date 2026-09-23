@@ -1,0 +1,12 @@
+{
+  "id": 80134,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=80134",
+  "source": {
+    "title": "Gnomer-gooooone!",
+    "description": "As long as you have the transponder in your possession, all you need to do is step on the pad and you'll be teleported to Gnomeregan.\n\nYou may experience some unusual side effects, but none of those should be permanent... anymore.\n\nI almost forgot the most important part - getting back. When you're ready to come back, just step on the transpolyporter pad in Gnomeregan!\n\nNow to calibrate the transponder to your size and weight.",
+    "objective": "Wait for Scooty to calibrate the Goblin Transponder.",
+    "progress": null,
+    "completion": "All done! When you're ready, just step on the pad."
+  }
+}

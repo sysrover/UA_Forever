@@ -1,0 +1,12 @@
+{
+  "id": 84015,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84015",
+  "source": {
+    "title": "More Greater Moonstones",
+    "description": "We still need more Greater Moonstones to reverse the Nightmare Incursions. Travel through the Emerald Portal in Dream Bough and bring me back some.",
+    "objective": "Gather 10 Greater Moonstones in the Feralas Nightmare Incursions and return to Field Captain Arunnel.",
+    "progress": "You have the Greater Moonstones?",
+    "completion": "Well done! Thank you. Your services will be remembered."
+  }
+}

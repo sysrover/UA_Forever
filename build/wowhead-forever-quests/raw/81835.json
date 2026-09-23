@@ -1,0 +1,12 @@
+{
+  "id": 81835,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81835",
+  "source": {
+    "title": "Hinterlands Mission XII: Starshells",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Seradane and collect Sharshells from the giant turtles within the Nightmare Incursions. We can harness their magic to reverse the damage. You will need the assistance of a skinner.",
+    "objective": "Gather 10 Sharshells in the Hinterlands Nightmare Incursions and return to Field Captain Korlian.",
+    "progress": "You have the Starshells?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

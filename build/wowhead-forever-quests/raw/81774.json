@@ -1,0 +1,12 @@
+{
+  "id": 81774,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81774",
+  "source": {
+    "title": "Ashenvale Mission VII: Recover Dreamengine",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion at the Warsong Lumber Camp. Retrieve a powerful artifact known as the Dreamengine and deliver it to me.",
+    "objective": "Recover the Dreamengine in the Ashenvale Nightmare Incursion from the forge at Warsong Lumber Camp and return to Field Captain Hannalah.",
+    "progress": "You have the Dreamengine?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 80136,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80136",
+  "source": {
+    "title": "Essential Artificials",
+    "description": "A nigh-universal mechanical component--the essential artificial--was of great use to the tinkers and smiths of Gnomeregan.  But during the frantic exodus from our city, no one remembered to take any of these devices with them!  And I need a large supply of them for work I will soon undertake.\n\nPlease, go into Gnomeregan and get me some essential artificials.  You'll find them in the deeper areas of our city, held in containers called artificial extrapolators.\n\nThank you, <name>, and please hurry!",
+    "objective": "Bring 12 Essential Artificials to Klockmort Spannerspan in Ironforge.",
+    "progress": "Do you have the essential artificials?",
+    "completion": "You got them!  Now I can begin my new experiments!\n\nI can't thank you enough, <name>!  You're bravery has advanced gnomish research by a leap and a bound!"
+  }
+}

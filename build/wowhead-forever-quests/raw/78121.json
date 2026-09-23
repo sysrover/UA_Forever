@@ -1,0 +1,12 @@
+{
+  "id": 78121,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78121",
+  "source": {
+    "title": "Wrangling a Wild Wyvern",
+    "description": "With the wand made, there's only one thing left to do. I'm gonna tame myself a wyvern!\n\nYou should come with, <name>. You'll have a front row seat to my newest act!",
+    "objective": "Follow Jixo Madrocket, and watch him tame a Wyvern.",
+    "progress": null,
+    "completion": "Let me tell ya, <name>, that fall hurt even worse than it looked. I'll be fine, but I don't think Wyvern wrangling is in the cards for old Jixo.\n\nMaybe I should just stick to the hits, y'know? Stunts like jumpin' over a row of twenty gnomes on a chopper. Folks eat that stuff up.\n\nTake the wand. I've got no use for it anymore. And have this too; a little something extra for all the trouble."
+  }
+}

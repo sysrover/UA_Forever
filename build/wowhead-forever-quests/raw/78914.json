@@ -1,0 +1,12 @@
+{
+  "id": 78914,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=78914",
+  "source": {
+    "title": "Soul Vessel",
+    "description": "Goblin Engineers have tried to create a synthetic Soul Stone, but their methods were crude to say the least. Regardless of their shortcoming, they are on the right track.\n\nI've heard the Goblins swindled a faction of merchants into buying the rights to the recipe. It's unlikely they know the Soul Vessel by itself holds no magical properties. Surely someone will be interested in parting with the pattern, given enough coin.",
+    "objective": "Now that we have a way to weaken the demon we need a vessel to bind them within. The Burning Blade have overrun ancient elven ruins in southern Desolace, using it as a staging ground to summon demons to Azeroth.\n\nOnce you have found a Soul Vessel meet us in Desolace, there we will complete the ritual.",
+    "progress": "With the Bough of Shadows and Soul Vessel we will be ready to begin the ritual.",
+    "completion": "Ah, yes... yes. That's exactly what we need."
+  }
+}

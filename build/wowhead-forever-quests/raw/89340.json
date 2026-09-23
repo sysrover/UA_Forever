@@ -1,0 +1,12 @@
+{
+  "id": 89340,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89340",
+  "source": {
+    "title": "Preposterously Prosed Postage",
+    "description": "To the Esteemed Head Chef of New Avalon: Carrie Hearthfire,\n\nI trust this letter finds you in good spirits! Your departure from Hearthglen has left a hole in our hearts, and in our stomachs. Not a day passes by without a complaint of the morning gruel, yearning for the next delightful meal.\n\nTo that end we are planning a banquet; one which we intend to serve only the finest dishes in Lordaeron: yours.\n\nAn escorted caravan will arrive in a fortnight. You and your meals ought best be prepared.",
+    "objective": "Finish the delivery.",
+    "progress": null,
+    "completion": "<Carrie ultimately takes the letter after your insistence and skims the contents. Her eyes go wide.>\n\nHow am I supposed to gather the ingredients and prepare meals for an entire sect of the Scarlet Crusade... in less than two weeks? Truly terrible timing.\n\nWhatever the case, the citizens of New Avalon come first. In the meantime I must hope for a helping hand, I suppose.\n\n<She pauses.>\n\nWait a minute, why was this already opened?"
+  }
+}

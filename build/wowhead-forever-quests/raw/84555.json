@@ -1,0 +1,12 @@
+{
+  "id": 84555,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84555",
+  "source": {
+    "title": "Nostro's Compendium",
+    "description": "You have uncovered something of great importance. This book is unlike any that you have seen.\n\nIt would appear as if someone or something has managed to shatter the seal of Athenaeum. The text within is garbled and barely legible.",
+    "objective": "Return Nostro's Compendium of Dragon Slaying to the Athenaeum.",
+    "progress": "Ah, one of our greatest compilations. This one has been missing for ages.",
+    "completion": "You could have gotten quite a lot of gold for this book on the black market, <name>. Especially since the protective seal has been broken, leaving the secrets of dragon slaying viewable to any with the requisite intellect to consume the knowledge held within the sacred pages.\n\nPerhaps a grand reward is in order... Well, a reward that will require enormous effort to obtain."
+  }
+}

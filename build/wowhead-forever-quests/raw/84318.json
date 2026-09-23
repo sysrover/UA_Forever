@@ -1,0 +1,12 @@
+{
+  "id": 84318,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84318",
+  "source": {
+    "title": "Oi!",
+    "description": "Oi! <class>! Yes, ye! Ye did me a solid by smashing up that depressin' mess of a meatsuit I've been riding in all these years, but I dinnae feel much of a pull to move on. I'm expectin' it's because I got some \"Unfinished Business\" to get up to 'afore I can be on me way. Well dull-wit, ye just been conscripted to help!\n\nI need ye to fetch me 'ammer. Should be somewhere in Corrin's Crossing and it'll be hard to miss.\n\nOi, take this too. It's me favorite gold tooth. Give it a rub when you've found me weapon.",
+    "objective": "Find Orthas' missing hammer in Corrin's Crossing.\n\nProvided item:",
+    "progress": "Whadda want?",
+    "completion": "Aye I'm much obliged tae ye! Now that we've got that out of the way, let's work on puttin the rest together so you can send me on me way!"
+  }
+}

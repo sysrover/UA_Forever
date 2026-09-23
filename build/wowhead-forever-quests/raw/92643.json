@@ -1,0 +1,12 @@
+{
+  "id": 92643,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92643",
+  "source": {
+    "title": "The Turncoat",
+    "description": "There is a turncoat amongst the Al'Aketh. They claim to know the cult's true intentions for the island and want to come in, but will only do so with assurances of protection.\n\nThis defector is hiding at a secluded residence just northwest of Valanaar inside the highlands. I need someone who can discreetly go there, find the traitor, and escort him back to us. This might be a trap, but if this information is as important as this traitor claims, its worth some risk.",
+    "objective": "Find the cultist turncoat at the house just inside the highlands northwest of Valanaar.",
+    "progress": null,
+    "completion": null
+  }
+}

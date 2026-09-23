@@ -1,0 +1,12 @@
+{
+  "id": 90560,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=90560",
+  "source": {
+    "title": "Familiar Foulness",
+    "description": "<You have found a vial of foul, viscous liquid on a laboratory table. It was surrounded by various ingredients that have been meticulously measured and diced into careful portions. Though the herbs are unidentifiable, one undamaged and discolored beast heart rests nearby.\n\nThe concoction is familiar, reminiscent of recent experiments performed by the Royal Apothecary Society. If your curiosity overpowers your disgust, perhaps one of their members may be interested in your discovery.>",
+    "objective": "Gather Discolored Beast Hearts from creatures in the plaguelands and then bring them and the Mishandled Healing Potion to an interested member of the Royal Apothecary Society in Undercity.",
+    "progress": "Hm? Do you have something for me?",
+    "completion": "Ah, hm, what a considerate offering, I suppose. Given some time and a few additional reagents I could probably solve whatever mystery you're looking to solve with this potion, but I have far more urgent matters to tend to at the moment. Sickly creature hearts are more Apothecary Renferrel's forte anyway.\n\nFortunately for you, I have been meaning to run an errand for Renferrel. Are you up for killing two humans with one plague? ...Metaphorically speaking, of course."
+  }
+}

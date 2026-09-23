@@ -1,0 +1,12 @@
+{
+  "id": 87516,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87516",
+  "source": {
+    "title": "Decapitation Strike",
+    "description": "Our forces are mustered and we will move into positions to begin the forward attack while your forces sneak around to the rear of the cathedral using the mountain path.\n\nOnce inside make your way to the abbey and ring the bell to signal the attack.\n\nYou'll be in the thickest of the fighting until we arrive to relieve you, so take care.",
+    "objective": "Enter the Scarlet Enclave via the mountain path and engage the Tyr's Hand defenders. Ring the bell inside of the abbey to create confusion and signal Beatrix's forces to attack.\n\nOnce the bell is rung, confront Balnazzar and destroy him.",
+    "progress": "This was very nearly a complete disaster...",
+    "completion": "We have been betrayed! After Balnazzar fell, Beatrix assumed control of the leaderless defenders and immediately turned her newly bolstered forces on us! Casualties were heavy but we hit back hard and were able to fall back and regroup. We feared the worst for your force until our scouts reported you were here.\n\nI don't know what Beatrix and Caldoran are playing at, but at this point I'm ready to put down anyone I see wearing red and leave the the light to sort them out."
+  }
+}

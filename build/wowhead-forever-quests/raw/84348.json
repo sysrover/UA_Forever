@@ -1,0 +1,12 @@
+{
+  "id": 84348,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=84348",
+  "source": {
+    "title": "Priority Target: Duke Tectonis",
+    "description": "There's a particularly nasty elemental called Tectonis calling the shots near the base of blackrock mountain and he's just gotta go! Put an end to this pile o' rocks and report back to me when the deed is done!\n\nYou'll find Duke Tectonis in a valley to the southeast, near the entrance to Blackrock Mountain.",
+    "objective": "Hansel Heavyhands at Thorium Point wants you to destroy Duke Tectonis. Duke Tectonis can be found in a small valley just to the west of the Searing Gorge entrance to Blackrock Mountain.",
+    "progress": null,
+    "completion": "This will set our enemies back for sure, <name>! Huzzah!"
+  }
+}

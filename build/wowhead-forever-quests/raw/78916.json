@@ -1,0 +1,12 @@
+{
+  "id": 78916,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78916",
+  "source": {
+    "title": "The Heart of the Void",
+    "description": "The dread beast Aku'mai lies dead.  Hidden amongst the viscera and gore of its swollen corpse is an enormous iridescent pearl teeming with raw Void energy.",
+    "objective": "Bring the Blackfathom Pearl to Dawnwatcher Selgorm in Darnassus.",
+    "progress": "<name>, what news do you have from Blackfathom?",
+    "completion": "The servant of the Old Gods, Aku'mai, is dead. Such an accomplishment is the stuff of real heroes.\n\nThis object may be the key to much greater understanding of the nature of the Void and its effect on our world, It must be studied at once. Thank you, <name>."
+  }
+}

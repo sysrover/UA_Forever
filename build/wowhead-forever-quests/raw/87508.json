@@ -1,0 +1,12 @@
+{
+  "id": 87508,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87508",
+  "source": {
+    "title": "Report to Lord Tyrosus",
+    "description": "Please, <name>, a messenger just arrived. You must return to Light's Hope Chapel with all haste! We are under attack and Lord Maxwell Tyrosus has requested your presence at once.",
+    "objective": "Speak with Lord Maxwell Tyrosus at Light's Hope Chapel in Eastern Plaguelands.",
+    "progress": null,
+    "completion": "We have been attacked! Some sort of dragon-like... abomination flew in fast from the direction of the Scarlet Enclave and hit us hard. I've seen dragons before but I've never seen anything like this.\n\nThe strangest part is that the dragon just... left. It hit us with a single terrible blast and then just flew away. This is a blessing, to be sure--but is deeply unsettling. We were caught completely unaware. It could have inflicted enormous damage but it seemed to choose not to."
+  }
+}

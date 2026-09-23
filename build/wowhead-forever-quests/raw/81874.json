@@ -1,0 +1,12 @@
+{
+  "id": 81874,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81874",
+  "source": {
+    "title": "Feralas Mission XVIII: Rescue Jamniss Treemender",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Dream Bough, and journey to the Nightmare Incursion at the Ruins of Ravenwind. Find the sleeping Druid of the Claw Jamnice Treemender there and escort her to safety. Then return to me.",
+    "objective": "Rescue Jamnice Treemender from the Feralas Nightmare Incursion at the northern edge of the Ruins of Ravenwind and return to Field Captain Arunnel.",
+    "progress": null,
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

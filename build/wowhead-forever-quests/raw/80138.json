@@ -1,0 +1,12 @@
+{
+  "id": 80138,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80138",
+  "source": {
+    "title": "Tinkmaster Overspark",
+    "description": "Tinkmaster Overspark is very upset with the fate of his mechanical creation, Techbot.  I remember Techbot as a kind and helpful tool for the gnomes, but Overspark tells me it's malfunctioned.\n\nVery sad.  But with luck perhaps he can be fixed!\n\nSpeak with Tinkmaster Overspark, in Tinker Town in Ironforge.  He would welcome your help.",
+    "objective": "Speak with Tinkmaster Overspark in Ironforge.",
+    "progress": null,
+    "completion": "Yes it's true.  Techbot has gone rogue!  Please, can you help me?"
+  }
+}

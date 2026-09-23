@@ -1,0 +1,12 @@
+{
+  "id": 80180,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80180",
+  "source": {
+    "title": "The Grand Betrayal",
+    "description": "I trusted Thermaplugg, <race>. Never did I expect that he would betray me and the entire gnomish people. And for what? Power? Wealth? All things that he would have had in time. Now we have been displaced from our home and that madman is in charge. The king of nothing....\n\nWe will retake Gnomeregan, <name>. We will not stop until the city is back in our control. If you wish to join in our fight, a simple task I ask of you: Kill the betrayer. Destroy Mekgineer Thermaplugg.",
+    "objective": "Venture to Gnomeregan and kill Mekgineer Thermaplugg. Return to High Tinker Mekkatorque when the task is complete.",
+    "progress": null,
+    "completion": "I like to think that the last thing that went through his head as he collapsed to the ground was your foot, <race>. With Thermaplugg dead, our plans to retake Gnomeregan are one step closer to becoming a reality."
+  }
+}

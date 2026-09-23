@@ -1,0 +1,12 @@
+{
+  "id": 92642,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92642",
+  "source": {
+    "title": "Disrupting Logistics",
+    "description": "Valennia only sent one person to help repel a full-scale assault... by the winds.\n\nYou don't look like much but I'll take what I can get. We need to inflict as much damage as possible to stop this soon. My people can't hold out much longer.\n\nGo down the hill and disrupt their logistics. Their healers are keeping the attackers coming, if we take them out we might be able to rally and push them back. Any other cultists you kill while you are out there are helpful as well.",
+    "objective": "Slay 4 Al'Aketh Healers and 8 Al'Aketh Brawlers in the Gustberry Lowlands.",
+    "progress": null,
+    "completion": null
+  }
+}

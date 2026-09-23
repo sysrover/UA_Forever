@@ -1,0 +1,12 @@
+{
+  "id": 87361,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=87361",
+  "source": {
+    "title": "Laid to Rest",
+    "description": "Plucked from a Shadow of Doom, the heart faintly pulses and vibrates.\n\nYou move to put it in your bag, but are struck with an overwhelming sense of anger, fear, dread, and then... sadness.\n\nAs these feeling subside, you feel as though you've just lived another life.\n\nPerhaps someone at Light's Hope Chapel can shed some light on what you just felt.",
+    "objective": "See if anyone can assist you at Light's Hope Chapel in Eastern Plaguelands.",
+    "progress": "You need not explain, <name>.\n\nYour presence here and this orb tell me all I need to know.\n\nThe darkness has tested you, <name>.\n\nYou're lucky. The scourge and their curses are nothing to toy with.\n\nThe Light follows you.",
+    "completion": "Almost none who touch these cursed objects are still in possession of their faculties.\n\n<Although his expression is unchanged, tears begin to trail down his face as you hand him the heart>\n\nAh... this one doesn't want to go. They were a <class>... like yourself...\n\n<name>, if you are willing to bear the weight, I may be able to assist you. I can engrave this restless soul onto your armor...\n\nI have found that just like the weight of the world, the best place to carry a soul - is on your shoulders."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 80143,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=80143",
+  "source": {
+    "title": "Data Rescue",
+    "description": "When we fled Gnomeregan, we left so much data behind!  Vitally important data!\n\nI need the data on a prismatic punch card, from a Matrix Punchograph 3005-D high security terminal, deep in Gnomeregan.  You must access the terminal, but to do that you first need clearance... and to get that you must access lower security terminals-- models -A, -B and -C.  And to do THAT you need security punch cards, starting with white... and we left all the punch cards in the city.\n\nIt's a catastrophe!  Can you help?",
+    "objective": "Bring a Prismatic Punch Card to Master Mechanic Castpipe in Ironforge.",
+    "progress": "Do you have the prismatic punch card??",
+    "completion": "You did it!  You found the prismatic punch card and recovered the lost data!  Vitally, critically, immeasurably important data that we could not live another moment without!\n\nYour service to the gnomes will be long remembered, <name>."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 92485,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92485",
+  "source": {
+    "title": "A Student of Nature",
+    "description": "While you were away dealing with our vuldren problem, our resident druid trainer--Xyton Silverwind--left this note for you. Read it as soon as you can, and then seek out Silverwind on the ground floor of this great tree just behind me.\n\nHeed his words and his counsel, he can teach you much.",
+    "objective": "Read the Folded Parchment then speak with Xyton Silverwind in Thendal Grove.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 92528,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92528",
+  "source": {
+    "title": "Among the Faithful",
+    "description": "The faithful of Al'Akir grow ever stronger with each eager new recruit like yourself. As you can see, our strength gives form to the storm itself!\n\nNormally I'd send you straight to Skypriest Aanders for assessment, but he is occupied at present receiving a guest at the inn on the north side of town. Please avoid that place for now. An unshaven recruit like yourself in the presence of such a guest would be inappropriate.\n\nFor now, just don't get in anyone's way.",
+    "objective": "Look around Falaath Village to learn about the cult's intentions in the Shen'dar Highlands.",
+    "progress": null,
+    "completion": null
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 81837,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81837",
+  "source": {
+    "title": "Hinterlands Mission XIII: Defeat Florius",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Seradane, and journey to the Nightmare Incursion in Agol'watha. Defeat the dragon Florius there and return to me.",
+    "objective": "Defeat Florius in the Hinterlands Nightmare Incursion at the main courtyard in Agol'watha and return to Field Captain Korlian.",
+    "progress": "You've dealt with Florius?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

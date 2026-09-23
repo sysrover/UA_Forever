@@ -1,0 +1,12 @@
+{
+  "id": 79229,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=79229",
+  "source": {
+    "title": "Highway Robbery",
+    "description": "The campsite before you is a grisly scene. Judging by the remains, the victims were two humans and a dwarf. Markings on the bones indicate a savage attack, but the looted supplies tell you this wasn't done by an animal. The wounds don't match centaur weaponry either.\n\nPerhaps an experienced scavenger of these lands would know what to make of this.",
+    "objective": "Find someone in Desolace who knows about the pillaged campsite.",
+    "progress": null,
+    "completion": "Ah, so you found another one..."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 85882,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85882",
+  "source": {
+    "title": "End of the Dark Horde",
+    "description": "The deed is done. Dal'rend Blackhand, Warchief of the Dark Horde, lies dead at your feet. Take his head and present it to Master Shaw.",
+    "objective": "Take the Head of Rend Blackhand to Master Mathias Shaw in Stormwind.",
+    "progress": null,
+    "completion": "Well done, champion.  The Warchief of the Dark Horde is dead, ending an era of terror in our lands. Let all of Stormwind know of your victory!"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 81775,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81775",
+  "source": {
+    "title": "Ashenvale Mission VIII: Recover Azsharan Prophecy",
+    "description": "While these demons distract us here, the Emerald Dream is being corrupted into nightmare. Quick, travel through the Emerald Dream Portal in Bough Shadow, and journey to the Nightmare Incursion at Satyrnaar. Retrieve a lost scroll known as the Azsharan Prophecy and deliver it to me.",
+    "objective": "Recover the Azsharan Prophecy in the Ashenvale Nightmare Incursion from the small tent in Satyrnaar and return to Field Captain Hannalah.",
+    "progress": "You have the Azsharan Prophecy?",
+    "completion": "Well done! Your services shall be well rewarded. Perhaps another mission?"
+  }
+}

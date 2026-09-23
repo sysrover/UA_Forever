@@ -1,0 +1,12 @@
+{
+  "id": 82272,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=82272",
+  "source": {
+    "title": "Glowing Scorpid Blood",
+    "description": null,
+    "objective": "ProgressIn all my time working the Faire, I've learned a lot of things about customers.  Here's one of those nuggets of wisdom: customers love stuff that glows!  It doesn't matter what it is - you could take a broken chair leg and make it glow, and every child will come from miles around to get one!\n\nSo, <name>, I need glowing scorpid blood.  You can find it from the scorpids of Sillithus, or the Blasted Lands, or the Burning Steppes.",
+    "progress": null,
+    "completion": "Great job, <name>!  Thanks a lot!  I'm going to make paint from this blood and turn all kinds of cheap junk into glowing treasure!\n\nHere are your tickets, and thanks again!"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 80156,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=80156",
+  "source": {
+    "title": "The Sparklematic 5200!",
+    "description": "This contraption stands out amongst the gnomes holding out against the madness outside the room.  A small plaque on the device reads \"The Sparklematic 5200\", followed by some text:\n\n\"Grime and residue ruining your sparklies?  The Sparklematic 5200 puts the shine back in shine-tastic!  Insert the item you wish to clean and deposit three silver coins in the coin slot.  Give the Sparklematic 5200 a moment for operation, and voila!  Your valuables will emerge clean and shiny!\"\n\n        See if you've already completed this by typing:\n\n        /run print(C_QuestLog.IsQuestFlaggedCompleted(80156))",
+    "objective": null,
+    "progress": null,
+    "completion": null
+  }
+}

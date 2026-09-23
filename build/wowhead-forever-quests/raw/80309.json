@@ -1,0 +1,12 @@
+{
+  "id": 80309,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80309",
+  "source": {
+    "title": "A Full Shipment",
+    "description": null,
+    "objective": "ProgressDo you have something for me?",
+    "progress": null,
+    "completion": "Everything's accounted for! Thank you, <name>. These supplies are critical for the front lines."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 81968,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=81968",
+  "source": {
+    "title": "Answering Air's Call",
+    "description": "You strong enough. Understand... yes... you stop corruption.\n\n<The elemental shifts in discomfort.>\n\nElements in Feralas. Use Essence to find Shrine.\n\nTake fragment. Will help with corruption.",
+    "objective": "Collect 3 Elemental Essence from the water elementals on The Forgotten Coast across from Sardor Isle in Feralas and combine them with the Fragment of Air to summon help at the corrupted shrine there.\n\nProvided item:",
+    "progress": "You found shrine. Clarify shrine.",
+    "completion": "Corruption... clarify now. Help needed. Perhaps others... yes... other elements help."
+  }
+}

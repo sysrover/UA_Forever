@@ -1,0 +1,12 @@
+{
+  "id": 84330,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84330",
+  "source": {
+    "title": "A Wee Bit O' Necromancy",
+    "description": "So ye see, we need tae find a suitable Dwarf corpse and do a bit o' ritual to em' to get my spirit grounded so I can be sent on me way! All perfectly normal stuff, o' course! We'll also need a bit o' Necrotic Runestone from a necromancer type, of course. I hear there's one in Stratholme. Goes by Maleki the Pallid or some such. Can't expect he'll be too willin' tae part with it willingly but there's a solve fer that!\n\nGet me that stone and then head to the undercroft. There's a corpse there that'll do!",
+    "objective": "Obtain a Necrotic Runestone from Maleki the Pallid in Stratholme, then find the Rotting Dwarf Corpse near the Undercroft in southwestern Eastern Plaguelands.",
+    "progress": "...",
+    "completion": "<You reach down to touch the corpse and the hairs on the back of your neck stand on end... you have a bad feeling about this>"
+  }
+}

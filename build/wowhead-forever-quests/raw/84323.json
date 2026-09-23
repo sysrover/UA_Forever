@@ -1,0 +1,12 @@
+{
+  "id": 84323,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=84323",
+  "source": {
+    "title": "The Prize Within",
+    "description": "Power radiates from inside the box. This must be the artifact! Now you just need to get it open...",
+    "objective": "Find a way to open the box and claim the artifact, then deliver it to High Priestess Laurena in Stormwind Cathedral.\n\nProvided item:",
+    "progress": "What have you found, <name>?",
+    "completion": "So the story was true... I will hold on to this and investigate its potential. This could be the defense against the Scourge we need.\n\nTake this, <name>, with my thanks."
+  }
+}

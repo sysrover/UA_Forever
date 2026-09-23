@@ -1,0 +1,12 @@
+{
+  "id": 85251,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85251",
+  "source": {
+    "title": "Showdown at Un'Goro Crater",
+    "description": "It's time at last. It's taken everything out of me to find Van Amburgh's camp here, and I was wounded by one of his traps. His beasts are with him. Are you ready to finish this?",
+    "objective": "Travel to the camp of Van Amburgh in Un'Goro crater, in the south of Kalimdor, and defeat the dwarf and his menagerie.",
+    "progress": null,
+    "completion": "It's done. Van Amburgh will commit no further atrocities."
+  }
+}

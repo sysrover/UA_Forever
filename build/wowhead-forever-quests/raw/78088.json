@@ -1,0 +1,12 @@
+{
+  "id": 78088,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78088",
+  "source": {
+    "title": "A Strange Artifact",
+    "description": null,
+    "objective": "ProgressDid you find something in the tower?",
+    "progress": null,
+    "completion": "You were right to bring this to me, <name>."
+  }
+}

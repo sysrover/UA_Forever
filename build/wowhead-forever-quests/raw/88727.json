@@ -1,0 +1,12 @@
+{
+  "id": 88727,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=88727",
+  "source": {
+    "title": "Epic Armaments of Battle - Revered Amongst the Dawn",
+    "description": "Greetings, friend. Have you insignias of the Dawn or the Crusade that you would like to redeem for items of great power?\n\nI must warn you; epic purchases made at revered reputation with the Dawn are still quite expensive. I would advise that you gain a better reputation with the Dawn before moving forward with your plans.",
+    "objective": "For 45 Insignias of the Dawn and 45 Insignias of the Crusade you may choose an item from the Argent Dawn's treasure cache.",
+    "progress": "Choose carefully. There are no refunds.",
+    "completion": "Good day, <name>. It was a pleasure doing business with you."
+  }
+}

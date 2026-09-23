@@ -1,0 +1,12 @@
+{
+  "id": 78537,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=78537",
+  "source": {
+    "title": "Elixir of Insight",
+    "description": "The motes you gathered are an important clue, <name>, but we will also need some spiritual guidance if we're to fully understand the situation.\n\nThere is a ritual I often practice that requires an Elixir of Insight. The visions it grants will reveal the next steps we must take.\n\nI can brew the elixir from two others. An Elixir of Water Breathing to free the body, and an Elixir of Wisdom to open the mind.\n\nBring these to me, and we can begin the ritual.",
+    "objective": "Bring an Elixir of Water Breathing and an Elixir of Wisdom to Je'neu Sancrea at Zoram'gar Outpost, Ashenvale.",
+    "progress": "Have you acquired the component elixirs, <name>?",
+    "completion": "Well done. Now the ritual can begin."
+  }
+}

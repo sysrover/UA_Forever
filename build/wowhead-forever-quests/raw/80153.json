@@ -1,0 +1,12 @@
+{
+  "id": 80153,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=80153",
+  "source": {
+    "title": "The Sparklematic 5200!",
+    "description": "This contraption stands out amongst the gnomes holding out against the madness outside the room.  A small plaque on the device reads \"The Sparklematic 5200\", followed by some text:\n\n\"Grime and residue ruining your sparklies?  The Sparklematic 5200 puts the shine back in shine-tastic!  Insert the item you wish to clean and deposit three silver coins in the coin slot.  Give The Sparklematic 5200 a moment for operation, and voila!  Your valuables will emerge clean and shiny!\"",
+    "objective": "Insert a Grime-Encrusted Item into the Sparklematic 5200, and be sure to have three silver coins to start the machine.",
+    "progress": "It would seem that the device needs some sort of grime-encrusted object to clean and three silver coins to get the contraption working.  So long as both are present, the Sparklematic 5200 should work...",
+    "completion": "You insert the grime-encrusted item and three silver coins into the Sparklematic 5200.  The machine surges to life in a frenzied attempt to purge the grime from the unknown item.  Loud, violent churning sounds beat from the heart of the machine.  The metal frame of the beast creaks and groans as it lurches from side to side..."
+  }
+}

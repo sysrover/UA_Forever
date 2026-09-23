@@ -1,0 +1,12 @@
+{
+  "id": 93320,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=93320",
+  "source": {
+    "title": "Tower Defense",
+    "description": "I've just received word that the cult is attacking the pylon watchtower just outside of town! I've sent the few extra peacekeepers we have here to try and break through the enemy back line to relieve the defenders, but any additional help could mean the difference between our people there living or dying.\n\nPlease leave immediately for the east watchtower and provide whatever aid you can.\n\nMy lieutenant Yorana Windyreed led the relief force. If she still lives she can tell you how best to help.",
+    "objective": "Report to Yorana Windyreed at the eastern watchtower in the Gustberry Lowlands.",
+    "progress": null,
+    "completion": null
+  }
+}

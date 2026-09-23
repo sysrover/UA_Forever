@@ -1,0 +1,12 @@
+{
+  "id": 90626,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=90626",
+  "source": {
+    "title": "Sinew of Light",
+    "description": "Grok'lo will arrange a meeting with special crafter once you find a suitable string to go with that giant bat wing.\n\nGrok'lo recommend finding best string possible.\n\n<Grok'lo smiles under his helmet>\n\nDragon Sinew definitely best string.",
+    "objective": "Defeat Solistrasza and obtain a Mature Light Dragon Sinew, then bring it to Grok'lo at Light's Hope Chapel in the Eastern Plaguelands.\n\nProvided item:",
+    "progress": "Have you found a string to go with your bat wing?",
+    "completion": "Now that's a string! Grok'lo loves bright things!\n\n<Grok'lo nods>\n\nAh, no doubt in Grok'lo's head you'll get a lot of gold for this when it's made into a bow."
+  }
+}

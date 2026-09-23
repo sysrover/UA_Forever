@@ -1,0 +1,12 @@
+{
+  "id": 85985,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=85985",
+  "source": {
+    "title": "Ten Commendation Signets",
+    "description": null,
+    "objective": "ProgressI accept commendation signets from adventurers who have received them in the line of duty.  For each set of ten that you hand to me, I will make sure that you receive a great boon recognition with the Zandalar Tribe.  I also accept single tokens, but with a much smaller boon.  We are much more interested in greater feats of duty, though no feat will be ignored.\n\nWith that said, I'll gladly take your signets if you are ready to hand in a set.",
+    "progress": null,
+    "completion": "Excellent!  You have sacrificed to earn these signets, and you will receive appropriate boons.  Adventurers like you, <name>, truly make a difference.\n\nCome to me if you have additional signets to hand in; I will gladly assist you with the exchange."
+  }
+}

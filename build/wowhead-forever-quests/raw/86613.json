@@ -1,0 +1,12 @@
+{
+  "id": 86613,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=86613",
+  "source": {
+    "title": "Excavation Tools",
+    "description": "The excavation's tools, left behind when the dwarves fled from the troggs, seem mostly untouched. Returning them to the excavators will surely aid their work.",
+    "objective": "Return 6 Excavation Tools to Magmar Fellhew.",
+    "progress": null,
+    "completion": null
+  }
+}

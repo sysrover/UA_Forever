@@ -1,0 +1,12 @@
+{
+  "id": 86671,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86671",
+  "source": {
+    "title": "Imperial Qiraji Regalia",
+    "description": "Arygos theorizes that the element which is born of conflicts between the Old Gods and their minions is also extremely deadly to them under the right conditions. I speak of Elementium, mortal.\n\nFind and bring me Imperial Qiraji Regalia and the toxic element and I shall infuse weapons of great power.",
+    "objective": "Merithra of the Dream in the Temple of Ahn'Qiraj will create Elementium Infused Armaments for you should you bring her Imperial Qiraji Regalia and 3 Elementium Ore.",
+    "progress": "You will strike them down and free us of these bonds.",
+    "completion": "Use the item well, <name>. Let them feel the pain that they so dearly wish to inflict upon others."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 92703,
+  "side": 0,
+  "url": "https://www.wowhead.com/forever/quest=92703",
+  "source": {
+    "title": "Deliver the News",
+    "description": "I guess it doesn't feel quite right to keep calling you stranger after all of this so... thank you, <name>.\n\nIf you wouldn't mind and are back out that way, please let Alvarion know what happened here. Also, tell him that once he's up on his feet he needs to bring a windshaper back here to look at that construct for us to make sure it's safe to have around our... our family.\n\n<Aamelia touches her belly gently.>\n\nHe doesn't know about this part. Let's just keep that bit between us for now.",
+    "objective": "Speak with Alvarion Windfield in Valanaar.",
+    "progress": null,
+    "completion": null
+  }
+}

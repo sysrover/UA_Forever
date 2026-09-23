@@ -1,0 +1,12 @@
+{
+  "id": 86966,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=86966",
+  "source": {
+    "title": "Seeking Survivors",
+    "description": "Oh, I see. Yes, the body you claim to have found does indeed seem to match my recollection of one of the adventurers who passed through here recently. There were five of them, as I recall. I urged them against going any further, but they could not be dissuaded. It seems my warnings were well-founded as I've not seen any of their number pass by since. I feared the worst and, well...\n\nYou say she was the only body you found? If that's true, mayhap there are other survivors somewhere in the pass?",
+    "objective": "Search for any survivors of the unfortunate adventuring party and try to learn what you can about what happened in the crypt.",
+    "progress": null,
+    "completion": "The man stirs slightly as you approach, opening a single eyelid almost imperceptibly to peer at you. Initially he seemed seriously injured, but now you aren't entirely sure..."
+  }
+}

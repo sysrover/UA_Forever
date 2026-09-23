@@ -1,0 +1,12 @@
+{
+  "id": 85615,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=85615",
+  "source": {
+    "title": "Paragons of Power: The Vindicator's Breastplate",
+    "description": "The vindicator's symbol of power is the breastplate.  It is forged with powerful mojo.  It is trusted only to those we revere.  It is the Zandalar symbol of vengeance.\n\nTo become a vindicator is to become vengeance.  Take the Paragons of Power we need from Zul'Gurub.  Bring them to us.  We will take the mojo stolen from us.  We will make the minions of Hakkar pay.  We will reward you with the vindicator's breastplate.\n\nGo.  Be our vengeance, <name>.",
+    "objective": "Bring Jin'rokh the Breaker a Primal Hakkari Kossack.  You must also have a reputation equal to or greater than Revered with the Zandalar Tribe.\n\nJin'rokh the Breaker is located on Yojamba Isle, Stranglethorn Vale.",
+    "progress": "Your presence means victory?  Do you have the Paragons of Power?  Tell me of the vengeance you have wrought today!",
+    "completion": "You are to be revered for your deeds.  The tribe rewards its heroes.  Zul'Gurub has tasted Zandalar vengeance like never before.\n\nYour deeds will herald the deeds of others to come.  They will look upon you as a sign of real power.  They will look upon you as vengeance personified!"
+  }
+}

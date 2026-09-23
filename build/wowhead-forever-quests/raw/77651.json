@@ -1,0 +1,12 @@
+{
+  "id": 77651,
+  "side": 2,
+  "url": "https://www.wowhead.com/forever/quest=77651",
+  "source": {
+    "title": "Into the Brambles",
+    "description": "The warriors of the Horde have much to teach you, <name>, but you must also seek out new techniques on your own.\n\nAs you may know, there is a group of hostile quilboars to the east. Another fledgling warrior ventured into their territory some time ago, and never returned. He was experimenting with engraving mystical runes onto his equipment to improve his combat prowess.\n\nFind the rune among the quilboar and learn this technique yourself. Return to me when you have done so.",
+    "objective": "Recover the lost rune from Brambleblade Ravine. Use the rune to learn a new ability, then report back to Harutt Thunderhorn in Camp Narache.",
+    "progress": "Have you found the rune, <name>?",
+    "completion": "Well done, <name>. Applying the rune to your equipment will grant you powerful new abilities.\n\nThere are many such runes throughout Azeroth. Seek them out, as they will help along your journey."
+  }
+}

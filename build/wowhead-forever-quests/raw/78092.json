@@ -1,0 +1,12 @@
+{
+  "id": 78092,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78092",
+  "source": {
+    "title": "It Must Be Destroyed",
+    "description": "This orb is indeed connected to a powerful entity, somewhere beyond the Twisting Nether. I cannot divine its nature, but I feel its perception reaching through the orb... studying me in return.\n\nI am reluctant to admit this, <name>, but the orb must be destroyed.\n\nIt seems impervious to most damage, but it may be vulnerable to the weapon of a powerful demon lord. I am unsure where you will find such a weapon, but it remains your best option.\n\nGood luck, <name>.",
+    "objective": "Find a way to destroy the orb.",
+    "progress": "<Your hair stands on end as infernal energies surround you>",
+    "completion": "<You raise the orb towards the spear>"
+  }
+}

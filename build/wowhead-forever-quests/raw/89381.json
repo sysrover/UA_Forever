@@ -1,0 +1,12 @@
+{
+  "id": 89381,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=89381",
+  "source": {
+    "title": "Pin Cushion",
+    "description": "Whoa! Awfully brave to be stomping around the shooting grounds amidst our training. You're practically begging for a projectile to the knee, or maybe your behind given the way you're shuffling around.\n\nBut hey, your safety is your prerogative. Since you seem like a real risk taker, why not lend us a helping hand? Gathering our arrows after every round of shots takes away from precious shooting time.\n\nHow about you go grab a few for me, eh?",
+    "objective": "Fetch arrows in the archery range south of the New Avalon town square. You may also acquire arrows when fighting rangers.",
+    "progress": "Those arrows won't fetch themselves. What are you waiting for?",
+    "completion": "Still alive, I see! Watching you dart around the range brought me a few laughs. I will admit, I expected you to scurry away when they started shooting right at you.\n\nThanks for giving my archers a moving target to practice with. I didn't think you would be stupid enough to try it, so I didn't have a reward in mind.\n\nHmm. How about I teach you how to craft a quiver? It'll make your job easier next time."
+  }
+}

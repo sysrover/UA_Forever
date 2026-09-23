@@ -1,0 +1,12 @@
+{
+  "id": 81975,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=81975",
+  "source": {
+    "title": "A Troubling Exchange",
+    "description": "Wait, what? Did you hit your head? Why would I ask you to bring one of these things to help fix that bucket of bolts? All that the Salvagematic needed was a few cartridge fuses, some mithril struts, and bits of enchanting essence. If I were to put a full-power G-7 Unit into that thing... well I don't know what would happen. Nothing good, that's for sure. Explosions, fire, interdimensional monsters. A real horror show most likely.",
+    "objective": "Talk to Ziri.",
+    "progress": null,
+    "completion": "Imagine, thinking I'd try to put a G-7 unit into a Salvagematic! I don't have a death wish, pal.\n\n<Ziri chuckles to herself and returns to her work>"
+  }
+}

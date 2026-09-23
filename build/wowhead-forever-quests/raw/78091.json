@@ -1,0 +1,12 @@
+{
+  "id": 78091,
+  "side": 1,
+  "url": "https://www.wowhead.com/forever/quest=78091",
+  "source": {
+    "title": "Earning Your Salt",
+    "description": "I will study the orb and tell you what I learn, but you must first do something for me.\n\nThe warlocks of the Blackrock clan use specially prepared salts to enhance their summoning rituals. Collect some from the orcs in Redridge.\n\nWhen you return, I will share with you the results of my studies.",
+    "objective": "Collect 14 Summoner's Salt from Blackrock Summoners in Redridge Mountains, then return to Ursula Deline in Stormwind.",
+    "progress": "<The warlock is studying the orb intently>",
+    "completion": "Ah... the salts. I had forgotten all about them.\n\nThis orb is unlike anything I have seen, <name>."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": 94050,
+  "side": 3,
+  "url": "https://www.wowhead.com/forever/quest=94050",
+  "source": {
+    "title": "Training the Beast",
+    "description": "You now have the power to tame a pet, but you must also gain the skills to train it. For this, there is none better than my sister, Quel'dora. She will give you the ability to train your new pet.\n\nGo with the winds, young <class>.",
+    "objective": "Speak to Quel'dora Quickgale in Valanaar.",
+    "progress": null,
+    "completion": null
+  }
+}
