@@ -4,8 +4,12 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 addonTable.forever_ui = {
+    -- WoW formatting-only values are intentionally preserved verbatim.
+    ["|c%s%s|r"] = "|c%s%s|r",
+    ["|n|n"] = "|n|n",
     ["Map & Quest Log"] = "Мапа та журнал завдань",
     ["World"] = "Світ",
+    ["Zone"] = "Зона",
     ["Search Quest Log"] = "Пошук у журналі завдань",
     ["No quests available"] = "Немає доступних завдань",
     ["Accept quests by talking to characters with a ! above their head."] = "Приймайте завдання у персонажів зі знаком ! над головою.",
@@ -17,6 +21,8 @@ addonTable.forever_ui = {
     ["Choose your reward:"] = "Оберіть собі винагороду:",
     ["You will receive:"] = "Ви отримаєте:",
     ["You will also receive:"] = "Ви також отримаєте:",
+    ["You will receive"] = "Ви отримаєте",
+    ["You will also receive"] = "Ви також отримаєте",
     ["Accept"] = "Прийняти",
     ["Decline"] = "Відхилити",
     ["Continue"] = "Продовжити",
