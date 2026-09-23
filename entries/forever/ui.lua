@@ -84,7 +84,14 @@ addonTable.forever_ui = {
     ["Say:"] = "Сказати:",
     ["Warrior"] = "Воїн",
     ["Warlock"] = "Чорнокнижник",
+    ["Equipped"] = "Споряджено",
+    ["Soulbound"] = "Прив’язано до душі",
+    ["One-Hand"] = "Одноручна",
+    ["Shield"] = "Щит",
+    ["Mace"] = "Булава",
+    ["Axe"] = "Сокира",
     ["Free Trial level cap reached."] = "Досягнуто максимального рівня пробної версії.",
+    ["This feature becomes available when your first character reaches level 25."] = "Доступно після 25-го рівня першого персонажа.",
     ["<Right click for Frame Settings>"] = "<Клацніть правою кнопкою для налаштувань рамки>",
     ["Dead"] = "Мертвий",
     ["Unconscious"] = "Непритомний",
@@ -106,6 +113,12 @@ addonTable.forever_ui = {
     ["Snap to Elements"] = "Прив'язувати до елементів",
     ["Show Grid"] = "Показувати сітку",
     ["All Objectives"] = "Усі цілі",
+    ["Show:"] = "Показувати:",
+    ["Show Quest Levels"] = "Показувати рівні завдань",
+    ["Quest Difficulty Color"] = "Колір складності завдань",
+    ["Instance Entrances"] = "Входи до підземель",
+    ["Low-Level Quests"] = "Завдання низького рівня",
+    ["Tracked Items"] = "Відстежувані предмети",
     ["Items"] = "Предмети",
     ["Buffs and Debuffs"] = "Підсилення та послаблення",
     ["Guild"] = "Гільдія",
@@ -142,7 +155,9 @@ addonTable.forever_ui = {
     ["Big Game Hunter"] = "Мисливець на велику дичину",
     ["Damage dealt versus Beasts increased by 5%."] = "Шкоду звірам збільшено на 5%.",
     ["Gives a chance to block enemy melee and ranged attacks."] = "Надає шанс блокувати ворожі атаки ближнього та дальнього бою.",
+    ["Sell Price:"] = "Ціна продажу:",
     ["Press F6 to submit an issue for this Spell"] = "Натисніть F6, щоб повідомити про проблему з цим закляттям",
+    ["Press F6 to submit an issue for this Item"] = "Натисніть F6, щоб повідомити про проблему з цим предметом",
     ["Customer Support"] = "Підтримка користувачів",
     ["Armor Proficiency"] = "Володіння обладунками",
     ["Druid"] = "Друїд",
@@ -229,6 +244,81 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
+        pattern = "^Use: Restores ([%d,]+) mana over ([%d,]+) sec%. Must remain seated while drinking%.$",
+        replace = function (mana, seconds)
+            return "Використання: Відновлює " .. mana .. " мани протягом " .. seconds
+                .. " с. Потрібно сидіти під час пиття."
+        end,
+    },
+    {
+        pattern = "^([%+%-]?%d+) Armor$",
+        replace = function (value)
+            return value .. " броні"
+        end,
+    },
+    {
+        pattern = "^(%d+) Block$",
+        replace = function (value)
+            return value .. " блокування"
+        end,
+    },
+    {
+        pattern = "^([%d%.]+) %- ([%d%.]+) Damage$",
+        replace = function (minimum, maximum)
+            return minimum .. "–" .. maximum .. " шкоди"
+        end,
+    },
+    {
+        pattern = "^Speed ([%d%.]+)$",
+        replace = function (value)
+            return "Швидкість " .. value
+        end,
+    },
+    {
+        pattern = "^%(([%d%.]+) damage per second%)$",
+        replace = function (value)
+            return "(" .. value .. " шкоди за секунду)"
+        end,
+    },
+    {
+        pattern = "^([%+%-]?[%d%.]+) damage per second$",
+        replace = function (value)
+            return value .. " шкоди за секунду"
+        end,
+    },
+    {
+        pattern = "^Durability (%d+) / (%d+)$",
+        replace = function (current, maximum)
+            return "Міцність " .. current .. " / " .. maximum
+        end,
+    },
+    {
+        -- The issue reporter includes an inline colour prefix in the actual
+        -- FontString, so preserve that markup while translating its template.
+        pattern = "^(.-)Press (.-) to submit an issue for this ([A-Za-z]+)(.-)$",
+        replace = function (prefix, shortcut, issue_type, suffix)
+            local nouns = {
+                Item = "предметом",
+                Quest = "завданням",
+                Spell = "закляттям",
+            }
+            local noun = nouns[issue_type]
+            if not noun then
+                return prefix .. "Press " .. shortcut .. " to submit an issue for this "
+                    .. issue_type .. suffix
+            end
+            return prefix .. "Натисніть " .. shortcut
+                .. ", щоб повідомити про проблему з цим " .. noun .. suffix
+        end,
+    },
+    {
+        -- Preserve the client's coin textures and amounts after the label.
+        pattern = "^Sell Price: (.+)$",
+        replace = function (price)
+            return "Ціна продажу: " .. price
+        end,
+    },
+    {
         -- The character name is player data and must remain unchanged.
         pattern = "^(.+) Specific Macros$",
         replace = function (character)
@@ -261,6 +351,14 @@ addonTable.forever_ui_patterns = {
         replace = function (level, class)
             local translated_class = addonTable.forever_ui[class] or class
             return "Рівень " .. level .. ": " .. translated_class
+        end,
+    },
+    {
+        -- Blizzard formats the level before the FontString is updated, so the
+        -- exact client string with "%d" cannot match the visible tooltip.
+        pattern = "^This feature becomes available at level (%d+)%.$",
+        replace = function (level)
+            return "Ця функція стає доступною на " .. level .. "-му рівні."
         end,
     },
     {

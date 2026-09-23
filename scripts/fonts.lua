@@ -23,23 +23,40 @@ local function sanitize_font_flags(font_flags)
 end
 
 fonts.apply_to_font_string = function (font_string)
-    if not options.can_translate("override_system_fonts")
-        or not font_string or not font_string.GetFont or not font_string.SetFont then
+    if not options.can_translate("override_system_fonts") or not font_string then
         return false
     end
 
-    local ok, _, height, flags = pcall(font_string.GetFont, font_string)
+    -- Blizzard_Menu's Compositor proxy raises while merely indexing SetFont;
+    -- checking `font_string.SetFont` outside pcall therefore still produces a
+    -- forbidden-function error. Resolve both methods inside the protected
+    -- call and skip font replacement for restricted menu regions.
+    local methods_ok, get_font, set_font = pcall(function ()
+        return font_string.GetFont, font_string.SetFont
+    end)
+    if not methods_ok or type(get_font) ~= "function" or type(set_font) ~= "function" then
+        return false
+    end
+
+    local ok, _, height, flags = pcall(get_font, font_string)
     if not ok or type(height) ~= "number" or height <= 0 then return false end
 
     -- Some Camelot menu strings report an internal FIXEDHEIGHT value instead
     -- of their rendered size. Measure the still-English text before replacing
     -- it, with a conservative fallback for empty strings.
     if height > 120 then
-        local height_ok, rendered_height = pcall(font_string.GetStringHeight, font_string)
+        local height_method_ok, get_string_height = pcall(function ()
+            return font_string.GetStringHeight
+        end)
+        local height_ok, rendered_height = false, nil
+        if height_method_ok and type(get_string_height) == "function" then
+            height_ok, rendered_height = pcall(get_string_height, font_string)
+        end
         height = height_ok and type(rendered_height) == "number"
             and rendered_height >= 6 and rendered_height <= 60 and rendered_height or 16
     end
-    local set_ok = pcall(font_string.SetFont, font_string, assets.font_frizqt, height, sanitize_font_flags(flags))
+    local set_ok = pcall(set_font, font_string,
+        assets.font_frizqt, height, sanitize_font_flags(flags))
     return set_ok
 end
 

@@ -4,6 +4,7 @@ local menus_ui = addon_table.use("menus_ui")
 local strings = addon_table.use("strings")
 
 local hooked = {}
+local legacy_dropdown_pending = {}
 
 local function hook_owner(owner, key, method, callback)
     local owner_type = type(owner)
@@ -64,6 +65,39 @@ local function translate_micro_button_tooltip(button)
     strings.translate_frame(tooltip)
 end
 
+local function translate_open_menu()
+    local function translate()
+        local manager = _G.Menu and type(_G.Menu.GetManager) == "function"
+            and _G.Menu.GetManager() or nil
+        local menu = manager and type(manager.GetOpenMenu) == "function"
+            and manager:GetOpenMenu() or nil
+        if menu then strings.translate_frame(menu) end
+    end
+
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(0, translate)
+    else
+        translate()
+    end
+end
+
+local function translate_legacy_dropdown(_, level)
+    level = tonumber(level) or tonumber(_G.UIDROPDOWNMENU_MENU_LEVEL) or 1
+    if legacy_dropdown_pending[level] then return end
+    legacy_dropdown_pending[level] = true
+    local function translate()
+        legacy_dropdown_pending[level] = nil
+        local frame = _G["DropDownList" .. level]
+        if frame then strings.translate_frame(frame) end
+    end
+
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(0, translate)
+    else
+        translate()
+    end
+end
+
 menus_ui.prepare = function ()
     -- Forever 1.60.1 creates the escape menu in GameMenuFrameMixin:InitButtons and
     -- micro-button titles in EvaluateTooltipVisibility. Post-hooks translate
@@ -74,6 +108,20 @@ menus_ui.prepare = function ()
     hook_owner(_G.GameMenuFrame, "GameMenuFrame.InitButtons", "InitButtons", translate_game_menu)
     hook_mixin("GameMenuFrameMixin", "InitButtons", translate_game_menu)
     hook_mixin("MainMenuBarMicroButtonMixin", "EvaluateTooltipVisibility", translate_micro_button_tooltip)
+
+    -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
+    -- public manager and translate only the completed menu returned as open.
+    local menu_manager = _G.Menu and type(_G.Menu.GetManager) == "function"
+        and _G.Menu.GetManager() or nil
+    hook_owner(menu_manager, "MenuManager.OpenMenu", "OpenMenu", translate_open_menu)
+    hook_owner(menu_manager, "MenuManager.OpenContextMenu", "OpenContextMenu", translate_open_menu)
+
+    if not hooked["UIDropDownMenu_AddButton"]
+        and type(_G.UIDropDownMenu_AddButton) == "function"
+        and type(_G.hooksecurefunc) == "function" then
+        local ok = pcall(hooksecurefunc, "UIDropDownMenu_AddButton", translate_legacy_dropdown)
+        if ok then hooked["UIDropDownMenu_AddButton"] = true end
+    end
 
     local game_menu = _G.GameMenuFrame
     if game_menu and game_menu.HookScript and not hooked["GameMenuFrame.Script.OnShow"] then

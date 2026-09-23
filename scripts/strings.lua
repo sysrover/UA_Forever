@@ -9,6 +9,10 @@ local rebound_regions = setmetatable({}, { __mode = "k" })
 local rebound_writes = setmetatable({}, { __mode = "k" })
 
 local BUTTON_TEXT_PADDING = 24
+local QUEST_BUTTON_TEXT_PADDING = 16
+local QUEST_BUTTON_MIN_WIDTH = 64
+local BAG_TOOLTIP_TEXT_PADDING = 24
+local BAG_TOOLTIP_MAX_WIDTH = 420
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -86,8 +90,91 @@ local function fit_tooltip_height_to_region(tooltip, region, previous_region_hei
     end
 end
 
+local function fit_bag_tooltip_width(tooltip, region, source)
+    if not is_tooltip(tooltip) or type(source) ~= "string"
+        or not source:match("^%d+ Empty Slots") then return end
+
+    local text_width = unbounded_text_width(region)
+    local tooltip_width = safe_dimension(tooltip, "GetWidth")
+    if not text_width or not tooltip_width or type(tooltip.SetWidth) ~= "function" then return end
+
+    local required_width = math.min(BAG_TOOLTIP_MAX_WIDTH,
+        math.ceil(text_width + BAG_TOOLTIP_TEXT_PADDING))
+    if required_width > tooltip_width then
+        pcall(tooltip.SetWidth, tooltip, required_width)
+    end
+end
+
+local function fit_quest_map_button_group(button)
+    local quest_map = _G.QuestMapFrame
+    local details = quest_map and (quest_map.DetailsFrame
+        or (quest_map.QuestsFrame and quest_map.QuestsFrame.DetailsFrame))
+    if not details then return false end
+
+    local abandon = details.AbandonButton
+    local share = details.ShareButton
+    local track = details.TrackButton
+    if not abandon or not share or not track
+        or (button ~= abandon and button ~= share and button ~= track) then
+        return false
+    end
+
+    -- These three buttons share one fixed-width row. Expanding each button
+    -- independently makes the Ukrainian Track label escape the quest panel.
+    -- Keep the outside buttons pinned to the panel and let Share fill the gap.
+    if type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
+        and (is_protected_frame(abandon) or is_protected_frame(share)
+            or is_protected_frame(track)) then
+        return true
+    end
+
+    local available_width = safe_dimension(details, "GetWidth")
+    if not available_width or available_width < QUEST_BUTTON_MIN_WIDTH * 3 then
+        return true
+    end
+
+    local function desired_width(owner)
+        local region = type(owner.GetFontString) == "function" and owner:GetFontString() or nil
+        local text_width = unbounded_text_width(region)
+        local current_width = safe_dimension(owner, "GetWidth")
+        return math.max(QUEST_BUTTON_MIN_WIDTH,
+            math.ceil((text_width or current_width or QUEST_BUTTON_MIN_WIDTH)
+                + (text_width and QUEST_BUTTON_TEXT_PADDING or 0)))
+    end
+
+    local abandon_width = desired_width(abandon)
+    local share_width = desired_width(share)
+    local track_width = desired_width(track)
+    local desired_total = abandon_width + share_width + track_width
+
+    if desired_total > available_width then
+        local share_target = math.min(share_width,
+            available_width - QUEST_BUTTON_MIN_WIDTH * 2)
+        local side_space = available_width - share_target
+        local side_total = abandon_width + track_width
+
+        abandon_width = math.floor(side_space * abandon_width / side_total + 0.5)
+        abandon_width = math.max(QUEST_BUTTON_MIN_WIDTH,
+            math.min(abandon_width, side_space - QUEST_BUTTON_MIN_WIDTH))
+        track_width = side_space - abandon_width
+    end
+
+    pcall(abandon.SetWidth, abandon, abandon_width)
+    pcall(track.SetWidth, track, track_width)
+
+    pcall(abandon.ClearAllPoints, abandon)
+    pcall(abandon.SetPoint, abandon, "BOTTOMLEFT", details, "BOTTOMLEFT", 0, -2)
+    pcall(track.ClearAllPoints, track)
+    pcall(track.SetPoint, track, "BOTTOMRIGHT", details, "BOTTOMRIGHT", 0, -2)
+    pcall(share.ClearAllPoints, share)
+    pcall(share.SetPoint, share, "LEFT", abandon, "RIGHT", 0, 0)
+    pcall(share.SetPoint, share, "RIGHT", track, "LEFT", 0, 0)
+    return true
+end
+
 local function fit_button_to_text(button, region)
     if not is_button(button) or type(button.SetWidth) ~= "function" then return end
+    if fit_quest_map_button_group(button) then return end
     if type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
         and is_protected_frame(button) then return end
 
@@ -217,7 +304,7 @@ end
 
 strings.translate_region = translate_font_string
 
-strings.set_region_text = function (region, text, tooltip)
+strings.set_region_text = function (region, text, tooltip, source)
     if not region or not region.SetText or type(text) ~= "string" or is_secret(text) then
         return false
     end
@@ -230,6 +317,7 @@ strings.set_region_text = function (region, text, tooltip)
     rebound_writes[region] = nil
     if ok then
         fit_tooltip_height_to_region(tooltip, region, previous_height, previous_tooltip_height)
+        fit_bag_tooltip_width(tooltip, region, source)
     end
     return ok
 end
@@ -398,6 +486,7 @@ local function visible_safe_roots()
         "CalendarFrame", "CommunitiesFrame", "GroupFinderFrame", "LFGListFrame",
         "InspectFrame", "PVPUIFrame", "StableFrame", "ClassTrainerFrame",
         "HelpFrame", "DressUpFrame", "EncounterJournal", "AchievementFrame",
+        "ObjectiveTrackerFrame",
     }
     for _, name in ipairs(candidates) do
         local frame = _G[name]

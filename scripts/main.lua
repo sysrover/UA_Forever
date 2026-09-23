@@ -214,6 +214,7 @@ local function prepare_panel_hooks()
     hook_global_once("QuestInfo_Display", schedule_panel_refresh)
 
     hook_frame_on_show_once("ContainerFrameCombinedBags.OnShow", _G.ContainerFrameCombinedBags)
+    hook_frame_on_show_once("ObjectiveTrackerFrame.OnShow", _G.ObjectiveTrackerFrame)
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
     hook_frame_on_show_once("MacroFrame.OnShow", _G.MacroFrame)

@@ -7,6 +7,8 @@ local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local utils = addon_table.use("utils")
 local tooltip_line
+local MAX_TOOLTIP_LINES = 40
+local aura_spell_titles
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -44,10 +46,47 @@ local function normalized_tooltip_text(text)
         :gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
+local function aura_spell_id_from_title(title)
+    title = normalized_tooltip_text(title)
+    if not title or title == "" then return nil end
+
+    aura_spell_titles = aura_spell_titles or {}
+    local cached = aura_spell_titles[title]
+    if cached ~= nil then return cached or nil end
+
+    -- SpellIdentifier accepts a spell name on clients that expose it. This
+    -- resolves the common case without walking the localization dictionary.
+    if C_Spell and type(C_Spell.GetSpellInfo) == "function" then
+        local ok_info, info = pcall(C_Spell.GetSpellInfo, title)
+        local spell_id = ok_info and info and safe_number(info.spellID) or nil
+        if spell_id then
+            aura_spell_titles[title] = spell_id
+            return spell_id
+        end
+    end
+
+    local best_id, best_priority
+    for spell_id, raw_entry in pairs(addon_table.spell or {}) do
+        if type(raw_entry) == "table"
+            and (raw_entry.en == title or raw_entry[1] == title) then
+            local entry = entries.get_entry("spell", spell_id)
+            local priority = entry and entry[3] and 2
+                or entry and entry[2] and 1 or 0
+            if not best_priority or priority > best_priority then
+                best_id, best_priority = spell_id, priority
+                if priority == 2 then break end
+            end
+        end
+    end
+
+    aura_spell_titles[title] = best_id or false
+    return best_id
+end
+
 local function set_tooltip_translation(tooltip, region, source, translated)
     if not region or type(translated) ~= "string" or translated == "" then return false end
     if not options.is_bilingual_tooltip() then
-        return strings.set_region_text(region, translated, tooltip)
+        return strings.set_region_text(region, translated, tooltip, source)
     end
     if type(source) ~= "string" or is_secret(source) then return false end
 
@@ -75,7 +114,10 @@ local function rewrite_generic_lines(tooltip, line_count)
         local ok_count, value = pcall(tooltip.NumLines, tooltip)
         line_count = ok_count and safe_number(value) or nil
     end
-    if not line_count then return end
+    -- Forever can mark NumLines() as secret even when individual rendered
+    -- FontStrings remain readable. A fixed upper bound avoids comparing or
+    -- iterating with the protected value while still reaching those regions.
+    line_count = line_count or MAX_TOOLTIP_LINES
 
     for index = 1, line_count do
         local left, left_region = tooltip_line(tooltip, "Left", index)
@@ -114,6 +156,16 @@ local function add_item(tooltip, id)
         set_tooltip_translation(tooltip, title_region, native_title, title)
     end
     rewrite_generic_lines(tooltip, line_count)
+    -- Blizzard and its issue reporter can append or rebuild item lines after
+    -- TooltipDataProcessor callbacks finish. Repeat the display-only pass on
+    -- the next frame so late durability, price, comparison, and F6 lines are
+    -- translated without mutating the underlying tooltip data.
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(0, function ()
+            local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
+            if shown_ok and shown then rewrite_generic_lines(tooltip) end
+        end)
+    end
     return title ~= nil
 end
 
@@ -140,19 +192,30 @@ local function add_spell(tooltip, id, aura)
     end
 
     local translated_description = make_text(aura and entry[3] or entry[2], tooltip)
-    local source_description
-    if C_Spell and C_Spell.GetSpellDescription then
-        local ok_description, value = pcall(C_Spell.GetSpellDescription, id)
-        if ok_description and type(value) == "string" and not is_secret(value) then
-            source_description = normalized_tooltip_text(value)
+    if aura and translated_description then
+        -- Aura text can be secret even when GameTooltip:GetSpell() exposes a
+        -- public spell ID. Replace its fixed description region from the ID
+        -- dictionary without comparing the protected English value.
+        local native_description, description_region = tooltip_line(tooltip, "Left", 2)
+        if description_region then
+            set_tooltip_translation(tooltip, description_region,
+                native_description, translated_description)
         end
-    end
-    if translated_description and source_description and native_line_count then
-        for index = 2, native_line_count do
-            local text, region = tooltip_line(tooltip, "Left", index)
-            if normalized_tooltip_text(text) == source_description then
-                set_tooltip_translation(tooltip, region, text, translated_description)
-                break
+    else
+        local source_description
+        if C_Spell and C_Spell.GetSpellDescription then
+            local ok_description, value = pcall(C_Spell.GetSpellDescription, id)
+            if ok_description and type(value) == "string" and not is_secret(value) then
+                source_description = normalized_tooltip_text(value)
+            end
+        end
+        if translated_description and source_description and native_line_count then
+            for index = 2, native_line_count do
+                local text, region = tooltip_line(tooltip, "Left", index)
+                if normalized_tooltip_text(text) == source_description then
+                    set_tooltip_translation(tooltip, region, text, translated_description)
+                    break
+                end
             end
         end
     end
@@ -286,19 +349,23 @@ local function translate_generic_tooltip(tooltip)
     if not tooltip then return end
 
     local left_title = tooltip_line(tooltip, "Left", 1)
-    if type(left_title) ~= "string" or is_secret(left_title) then return end
-    if left_title == "" then return end
 
     -- Unlike older Classic clients, Forever makes aura data secret and taints
     -- secure aura consumers when an addon registers a UnitAura post-call.
-    -- Read only the public spell ID from the already-built tooltip instead.
+    -- Prefer the public spell ID from the already-built tooltip. Some player
+    -- aura tooltips expose no public ID, so fall back to the rendered title
+    -- and the addon's own spell dictionary without querying protected auras.
     if tooltip.GetSpell then
         local ok_spell, _, tooltip_spell_id = pcall(tooltip.GetSpell, tooltip)
         local spell_id = ok_spell and safe_number(tooltip_spell_id) or nil
+        if not spell_id then spell_id = aura_spell_id_from_title(left_title) end
         if spell_id then
             if safe_process(tooltip, { spellID = spell_id }, "aura") then return end
         end
     end
+
+    if type(left_title) ~= "string" or is_secret(left_title) then return end
+    if left_title == "" then return end
 
     local ok_count, line_count = pcall(tooltip.NumLines, tooltip)
     if not ok_count or type(line_count) ~= "number" or is_secret(line_count)
