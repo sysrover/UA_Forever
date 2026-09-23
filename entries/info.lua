@@ -2,7 +2,7 @@ local _, addonTable = ...
 
 addonTable.info = {
     name = "UA Forever",
-    version = "0.10.6-beta",
+    version = "0.10.8-beta",
     client = "World of Warcraft: Forever Beta",
     interface = 16001,
     changelog = [===[
