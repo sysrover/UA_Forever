@@ -5,11 +5,12 @@ local chats     = addon_table.use("chats") ---@class chats_class
 local dev_log   = addon_table.use("dev_log") ---@class dev_log_class
 local entries   = addon_table.use("entries") ---@class entries_class
 local options   = addon_table.use("options") ---@class options_class
+local runtime   = addon_table.use("translation_runtime")
+local scheduler = addon_table.use("translation_scheduler")
 local utils     = addon_table.use("utils") ---@class utils_class
 
 local math_min          = _G.math.min
 local string_format     = _G.string.format
-local C_Timer           = _G.C_Timer
 local UnitName          = _G.UnitName
 
 local known_chat_msg_events = {
@@ -22,25 +23,12 @@ local known_chat_msg_events = {
     CHAT_MSG_RAID_BOSS_WHISPER  = { info=ChatTypeInfo.RAID_BOSS_WHISPER,    verb="шепоче" },
 }
 
+local chat_addition_sequence = 0
+
 chats.styles = {
     { key = "replacement", label = "Заміна" },      -- hand our text to the game and let it print the line as usual
     { key = "addition",    label = "Доповнення" },  -- let the game print the original, then add ours underneath
 }
-
--- the game builds the npc chat line itself, prefixing it with the speaker name and a verb;
--- like the interface strings, these are written once and only put back by a reload
-local function replace_chat_prefixes()
-    if not options.can_translate("translate_chat")
-        or options.account.chat_style ~= "replacement" then
-        return
-    end
-
-    for key, val_uk in pairs(addon_table.chat_string_globals) do
-        if type(_G[key]) == "string" then
-            _G[key] = val_uk
-        end
-    end
-end
 
 local function resolve_npc_name(npc_name, npc_name_uk)
     if npc_name_uk then
@@ -56,14 +44,18 @@ local function translate_chat_bubble(chat_text, chat_text_uk)
     end
 
     -- chat bubble is not spawned just yet, so we wait a moment
-    C_Timer.After(0.01, function ()
+    scheduler.request("chat-bubble:" .. tostring(chat_text), nil, function ()
         local font_string = utils.chat_bubble_font_string_with_text(chat_text)
         if font_string then
             local MAX_CHAT_BUBBLE_WIDTH = 314 -- value observed from default chat bubbles.
-            font_string:SetText(chat_text_uk)
-            font_string:SetWidth(math_min(font_string:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
+            runtime.apply(font_string, { owner = "chat-bubble", slot = "chat.text",
+                source = chat_text, translated = chat_text_uk,
+                priority = runtime.PRIORITY.DOMAIN,
+                after_apply = function (region)
+                    region:SetWidth(math_min(region:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
+                end })
         end
-    end)
+    end, 0.01)
 end
 
 local function resolve_lang_name(chat_frame, lang_name)
@@ -113,6 +105,13 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
     end
 
     if is_replacement then
+        if known_event.verb and self and type(self.AddMessage) == "function" then
+            local info = known_event.info
+            self:AddMessage(string_format("%s %s: %s",
+                resolve_npc_name(npc_name, npc_name_uk),
+                known_event.verb, chat_text_uk), info.r, info.g, info.b)
+            return true
+        end
         return nil, chat_text_uk, npc_name_uk, resolve_lang_name(self, lang_name), ...
     end
 
@@ -122,7 +121,8 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
             or chat_text_uk) -- emote
         local info = known_event.info
 
-        C_Timer.After(0, function ()
+        chat_addition_sequence = chat_addition_sequence + 1
+        scheduler.request("chat-addition:" .. chat_addition_sequence, nil, function ()
             self:AddMessage(chat_message, info.r, info.g, info.b)
         end)
     end
@@ -131,8 +131,6 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
 end
 
 chats.prepare = function()
-    replace_chat_prefixes()
-
     for event_name, _ in pairs(known_chat_msg_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_chat_msg)
     end

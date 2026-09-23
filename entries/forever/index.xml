@@ -27,6 +27,7 @@
     <Script file="deepl_ui.lua"/>
     <Script file="client_import.lua"/>
     <Script file="client_domains_uk.lua"/>
+    <Script file="aura_overrides.lua"/>
     <Script file="client_ui_uk.lua"/>
     <Script file="client_source_ui_uk.lua"/>
 </Ui>

@@ -3640,6 +3640,21 @@ addonTable.spell = {
     "Отримано такі переваги табору:\n\nНамет: ви отримали невелику кількість досвіду відпочинку. Цей ефект можна отримати лише раз на годину.",
     "Отримано такі переваги табору:\n\nНамет: ви отримали невелику кількість досвіду відпочинку. Цей ефект можна отримати лише раз на годину.",
     en="Camp Benefits",
+    aura_lines = {
+        ["Gained the following camp benefits:"] = "Отримано такі переваги табору:",
+        ["Tent: You received a small amount of rest experience. You can only receive this effect once per 1 hour."] =
+            "Намет: ви отримали невелику кількість досвіду відпочинку. Цей ефект можна отримати лише раз на годину.",
+    },
+    aura_patterns = {
+        { "^First Aid Kit: Stamina increased by (%d+)%.?$",
+            "Аптечка першої допомоги: витривалість збільшено на %s." },
+        { "^Sharpening Wheel: Strength increased by (%d+)%.?$",
+            "Заточувальне колесо: силу збільшено на %s." },
+        { "^Fish Bowl: All stats increased by (%d+)%%%.?$",
+            "Акваріум: усі характеристики збільшено на %s%%." },
+        { "^Lodestone: Melee Attack Power increased by (%d+)%.?$",
+            "Магнетит: силу атаки ближнього бою збільшено на %s." },
+    },
 },
 
 }

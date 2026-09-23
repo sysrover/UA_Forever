@@ -8215,7 +8215,7 @@ local client_items = {
     [2885] = { "документи Багряного Походу", en="Scarlet Crusade Documents" },
     [2886] = { "ребро скельного кнура", en="Crag Boar Rib" },
     [2887] = { "зіпсована вовча шкура", en="Ruined Wolf Pelt" },
-    [2888] = { "реберця кнура в пиві", use=5004, en="Beer Basted Boar Ribs" },
+    [2888] = { "реберця кнура в пиві", use="Відновлює {1} здоров'я протягом {2} с. Потрібно сидіти під час їжі. Якщо ви їстимете щонайменше {3} с, то насититеся й отримаєте {4} сили на {5} хв. Крім того, отримуваний за вбивства досвід збільшується на {6}%.#Restores {1} health over {2} sec#at least {3} sec#gain {4} Strength for {5} min#increased by {6}%", en="Beer Basted Boar Ribs" },
     [2889] = { "рецепт: Реберця кнура в пиві", use="Навчає вас приготуванню реберець кнура в пиві.", recipe_result_item=2888, en="Recipe: Beer Basted Boar Ribs" },
     [2890] = { "зіпсована шкура кнура", en="Ruined Boar Pelt" },
     [2891] = { "лист до головного архітектора", en="Letter to the City Architect" },

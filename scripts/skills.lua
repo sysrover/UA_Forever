@@ -2,9 +2,11 @@ local _, addon_table = ...
 
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
+local options = addon_table.use("options")
 local scanner = addon_table.use("scanner")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
+local runtime = addon_table.use("translation_runtime")
 local utils = addon_table.use("utils")
 
 local hooked_frames = {}
@@ -56,6 +58,15 @@ local function text_from(value)
     if not ok_method or type(getter) ~= "function" then return nil end
     local ok, text = pcall(getter, value)
     if ok and type(text) == "string" and not is_secret(text) then return text end
+end
+
+local function apply_skill_text(region, translated, category, slot)
+    if not region or type(translated) ~= "string" then return false end
+    return runtime.apply(region, {
+        owner = "skills", slot = slot, source = text_from(region),
+        translated = translated, category = category,
+        priority = runtime.PRIORITY.DOMAIN,
+    })
 end
 
 local function frame_label(frame)
@@ -114,9 +125,10 @@ local function record_frame_ids(frame, seen_frames, seen_ids, depth)
     end
 end
 
-skills.refresh = function ()
+skills.refresh = function (only_frame)
     local total = { frames = 0, translated = 0 }
-    for _, frame in ipairs(skill_roots()) do
+    local roots = only_frame and { only_frame } or skill_roots()
+    for _, frame in ipairs(roots) do
         if shown(frame) then
             local stats = strings.translate_frame(frame)
             total.frames = total.frames + (stats.frames or 0)
@@ -181,14 +193,18 @@ local function translate_professions(frame)
     }) do
         local profession = content[key]
         if profession then
-            strings.translate_region(profession.ProfessionName)
-            strings.translate_region(profession.specialization)
+            if options.translate_name("skill") then
+                strings.translate_region(profession.ProfessionName, "skill", "skill.name")
+                strings.translate_region(profession.specialization, "skill", "skill.name")
+            end
             strings.translate_region(profession.missingHeader)
             strings.translate_region(profession.missingText)
             strings.translate_region(profession.Rank)
             strings.translate_region(profession.StatusBar and profession.StatusBar.rankText)
             for _, button in ipairs(profession.spellButtons or {}) do
-                strings.translate_region(button.spellString)
+                if options.translate_name("skill") then
+                    strings.translate_region(button.spellString, "skill", "skill.name")
+                end
                 strings.translate_region(button.subSpellString)
                 if translate_profession_spell_button then
                     translate_profession_spell_button(button)
@@ -206,7 +222,7 @@ local function translate_button(button)
     if ok then strings.translate_region(font_string) end
 end
 
-local function translate_element(frame, seen, depth)
+local function translate_element(frame, seen, depth, category)
     if not frame or depth > 4 then return end
     seen = seen or {}
     if seen[frame] then return end
@@ -215,14 +231,22 @@ local function translate_element(frame, seen, depth)
     if frame.GetRegions then
         local ok, regions = pcall(function () return { frame:GetRegions() } end)
         if ok then
-            for _, region in ipairs(regions) do strings.translate_region(region) end
+            for _, region in ipairs(regions) do
+                local is_name = category == "skill"
+                    and (region == frame.Name or region == frame.spellString)
+                if not is_name or options.translate_name(category) then
+                    strings.translate_region(region,
+                        is_name and "skill" or nil,
+                        is_name and "skill.name" or nil)
+                end
+            end
         end
     end
     if frame.GetChildren then
         local ok, children = pcall(function () return { frame:GetChildren() } end)
         if ok then
             for _, child in ipairs(children) do
-                translate_element(child, seen, depth + 1)
+                translate_element(child, seen, depth + 1, category)
             end
         end
     end
@@ -246,10 +270,14 @@ local function translate_spellbook_item(frame)
     if type(spell_id) ~= "number" then return end
     local entry = entries.get_entry("spell", spell_id)
     local text = entry_text(entry, frame)
-    if text then strings.set_region_text(frame.Name, text) end
+    if text and options.translate_name("skill") then
+        apply_skill_text(frame.Name, text, "skill", "skill.name")
+    end
     -- Some Camelot-only passive spells do not have a reviewed ClassicUA ID
     -- entry yet, but their visible names are present in the Forever UI table.
-    strings.translate_region(frame and frame.Name)
+    if options.translate_name("skill") then
+        strings.translate_region(frame and frame.Name, "skill", "skill.name")
+    end
     strings.translate_region(frame and frame.SubName)
     strings.translate_region(frame and frame.RequiredLevel)
 end
@@ -265,7 +293,7 @@ local function translate_spellbook(frame)
         local ok, title = pcall(root.GetTitleText, root)
         if ok then strings.translate_region(title) end
     end
-    translate_element(book, nil, 1)
+    translate_element(book, nil, 1, "skill")
 
     if type(book.ForEachDisplayedSpell) == "function" then
         pcall(book.ForEachDisplayedSpell, book, translate_spellbook_item)
@@ -284,7 +312,9 @@ translate_profession_spell_button = function (frame)
     local spell_id = ok and info and info.spellID
     local entry = type(spell_id) == "number" and entries.get_entry("spell", spell_id)
     local text = entry_text(entry, frame)
-    if text then strings.set_region_text(frame.spellString, text) end
+    if text and options.translate_name("skill") then
+        apply_skill_text(frame.spellString, text, "skill", "skill.name")
+    end
     strings.translate_region(frame.subSpellString)
 end
 
@@ -301,8 +331,10 @@ local function translate_crafting_row(row)
         local ok, title = pcall(row.GetTitleText, row)
         if ok then strings.translate_region(title) end
     end
-    strings.translate_region(row.Label)
-    strings.translate_region(row.Name)
+    if options.translate_name("skill") then
+        strings.translate_region(row.Label, "skill", "skill.name")
+        strings.translate_region(row.Name, "skill", "skill.name")
+    end
     strings.translate_region(row.Text)
 
     local ok, element_data = pcall(function () return row:GetElementData() end)
@@ -310,7 +342,9 @@ local function translate_crafting_row(row)
     local recipe_id = recipe_info and recipe_info.recipeID
     local entry = type(recipe_id) == "number" and entries.get_entry("spell", recipe_id)
     local text = entry_text(entry, row)
-    if text then strings.set_region_text(row.Label or row.Name, text) end
+    if text and options.translate_name("skill") then
+        apply_skill_text(row.Label or row.Name, text, "skill", "skill.name")
+    end
 end
 
 local function translate_reagent_slot(slot)
@@ -331,21 +365,25 @@ local function translate_reagent_slot(slot)
     local entry = type(item_id) == "number" and entries.get_entry("item", item_id)
     local translated = entry_text(entry, slot)
     if not translated then
-        strings.translate_region(slot.Name)
+        if options.translate_name("item") then
+            strings.translate_region(slot.Name, "item", "item.name")
+        end
         return
     end
+    if not options.translate_name("item") then return end
 
     local english = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(item_id)
     local ok, current = pcall(slot.Name.GetText, slot.Name)
     if ok and type(current) == "string" and type(english) == "string" then
         local first, last = current:find(english, 1, true)
         if first then
-            strings.set_region_text(slot.Name,
-                current:sub(1, first - 1) .. translated .. current:sub(last + 1))
+            apply_skill_text(slot.Name,
+                current:sub(1, first - 1) .. translated .. current:sub(last + 1),
+                "item", "item.name")
             return
         end
     end
-    strings.set_region_text(slot.Name, translated)
+    apply_skill_text(slot.Name, translated, "item", "item.name")
 end
 
 local function translate_crafting_page()
@@ -387,7 +425,14 @@ local function translate_crafting_page()
             "RequiredTools", "RecraftingRequiredTools", "Description",
             "Cooldown", "MinimizedCooldown", "RecraftingDescription",
         }) do
-            strings.translate_region(form[field])
+            if field ~= "OutputText" and field ~= "RecraftingOutputText"
+                or options.translate_name("item") then
+                local item_name = field == "OutputText"
+                    or field == "RecraftingOutputText"
+                strings.translate_region(form[field],
+                    item_name and "item" or nil,
+                    item_name and "item.name" or nil)
+            end
         end
         strings.translate_region(form.TrackRecipeCheckbox and
             (form.TrackRecipeCheckbox.Text or form.TrackRecipeCheckbox.Label))
@@ -419,14 +464,18 @@ local function translate_crafting_page()
         if type(recipe_id) == "number" then
             local spell_entry = entries.get_entry("spell", recipe_id)
             local description = entry_text(spell_entry, form, 2)
-            if description then strings.set_region_text(form.Description, description) end
+            if description then
+                apply_skill_text(form.Description, description, nil, "spell.description")
+            end
 
             if C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic then
                 local ok, schematic = pcall(C_TradeSkillUI.GetRecipeSchematic, recipe_id, false)
                 local item_id = ok and schematic and schematic.outputItemID
                 local item_entry = type(item_id) == "number" and entries.get_entry("item", item_id)
                 local output = entry_text(item_entry, form)
-                if output then strings.set_region_text(form.OutputText, output) end
+                if output and options.translate_name("item") then
+                    apply_skill_text(form.OutputText, output, "item", "item.name")
+                end
             end
         end
     end
@@ -558,9 +607,9 @@ skills.prepare = function ()
 
     for _, frame in ipairs(skill_roots()) do
         if not hooked_frames[frame] and frame.HookScript then
-            frame:HookScript("OnShow", skills.refresh)
+            frame:HookScript("OnShow", function (self) skills.refresh(self) end)
             hooked_frames[frame] = true
         end
-        if shown(frame) then skills.refresh() end
+        if shown(frame) then skills.refresh(frame) end
     end
 end

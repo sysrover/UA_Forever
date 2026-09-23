@@ -11,7 +11,7 @@ does not load the legacy ClassicUA frame hooks, options UI, or talent hooks.
 
 ## Current scope
 
-- quest titles and text exposed by the quest APIs;
+- quest titles and text in visible quest frames, tracker rows, and tooltips;
 - gossip text, replies, and quest titles;
 - zone and taxi-node names;
 - translated item, spell, aura, and NPC tooltip blocks;
@@ -41,6 +41,10 @@ when the UI reloads or the client exits.
 - `/uaf off`
 - `/uaf dev on`
 - `/uaf dev off`
+- `/uaf owner` — show the translation claim for the control under the cursor
+- `/uaf tooltip [rows]` — show visible tooltip rows and their translation claims (use a macro while hovering)
+- `/uaf aura 5` — watch for a known aura tooltip for five seconds (hover its icon), save the result to `UA_ForeverDB.scan.auraProbe`, then use `/reload`; `UA_ForeverDB.scan.auraCapture` records whether a tooltip was found; `/uaf aura` captures immediately while hovering
+- `/uaf window 8` — watch for any visible tooltip window for eight seconds, save its entire object tree and public text to `UA_ForeverDB.scan.windowProbe`, then use `/reload`; secret text is marked without saving its value
 - `/uaf ui`
 - `/uaf capture [delay in seconds]`
 - `/uaf scan`
@@ -48,6 +52,15 @@ when the UI reloads or the client exits.
 - `/uaf menus`
 - `/uaf autoscan on`
 - `/uaf autoscan off`
+
+## Translation audits
+
+Run `python tools/audit_translation_conflicts.py`,
+`python tools/audit_domain_overrides.py`, and
+`python tools/audit_pattern_overlaps.py` when updating dictionaries. The audits
+record 79 existing domain field overrides and 15 exact UI keys that overlap
+patterns. New or changed overlaps fail the test suite until reviewed. The
+baselines record existing behavior; they do not authorize new overrides.
 
 The Forever beta may change its UI API between builds. Test after every client
 update and update the TOC Interface number when Blizzard changes it.

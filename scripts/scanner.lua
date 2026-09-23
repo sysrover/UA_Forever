@@ -4,6 +4,7 @@ local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
 local scanner = addon_table.use("scanner")
 local strings = addon_table.use("strings")
+local scheduler = addon_table.use("translation_scheduler")
 local translation = addon_table.use("translation")
 local utils = addon_table.use("utils")
 
@@ -166,11 +167,7 @@ scanner.schedule_menu_capture = function (key, callback, frame)
         if type(callback) == "function" then callback(key, stats) end
     end
 
-    if C_Timer and type(C_Timer.After) == "function" then
-        C_Timer.After(0.35, capture)
-    else
-        capture()
-    end
+    scheduler.request("menu-capture:" .. key, nil, capture, 0.35)
     return true
 end
 
@@ -445,6 +442,7 @@ scanner.run = function ()
         return info and info.name
     end
     local original_quest_title = translation.original["C_QuestLog.GetTitleForQuestID"]
+        or (C_QuestLog and C_QuestLog.GetTitleForQuestID)
 
     sample_table(report, "items", addon_table.item, item_name, 40)
     sample_table(report, "spells", addon_table.spell, spell_name, 40)

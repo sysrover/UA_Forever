@@ -112,7 +112,7 @@ local function prepare_glossary()
     local glossary = {}
 
     -- collect text-key entries: misc, string, object, zone
-    for _, entry_type in pairs({ "misc", "string", "object", "zone" }) do
+    for _, entry_type in ipairs({ "misc", "string", "object", "zone" }) do
         for entry_key, entry_value in pairs(at[entry_type]) do
             local glossary_key = string_trim(entry_key:lower())
             if not glossary[glossary_key] then
@@ -136,7 +136,7 @@ local function prepare_glossary()
     end
 
     -- collect id-key entries: spell, item, npc, quest
-    for _, entry_type in pairs({ "spell", "item", "npc", "quest_faction", "quest_both" }) do
+    for _, entry_type in ipairs({ "spell", "item", "npc", "quest_faction", "quest_both" }) do
         for _, entry_value in pairs(at[entry_type]) do
             if entry_value.en then
                 local glossary_key = string_trim(entry_value.en:lower())
@@ -150,7 +150,25 @@ local function prepare_glossary()
     at.glossary = glossary
 end
 
+local function prepare_name_lookup()
+    local at = addon_table
+    local names = { item = {}, quest = {}, spell = {} }
+    for _, group in ipairs({
+        { "item", at.item }, { "spell", at.spell },
+        { "quest", at.quest_faction }, { "quest", at.quest_both },
+    }) do
+        for _, entry in pairs(group[2] or {}) do
+            if type(entry) == "table" and type(entry.en) == "string"
+                and type(entry[1]) == "string" and names[group[1]][entry.en] == nil then
+                names[group[1]][entry.en] = entry[1]
+            end
+        end
+    end
+    entries.names = names
+end
+
 entries.prepare = function ()
+    if entries.prepared then return end
     -- todo: handle faction update when panda-player chooses faction (mop+)
     -- note: if we expect to update faction at runtime then prepare_quests() needs rework
 
@@ -166,6 +184,15 @@ entries.prepare = function ()
     prepare_quests(is_alliance)
     prepare_codes(name, options.character.name_cases, race, class, is_male)
     prepare_glossary()
+    prepare_name_lookup()
+    entries.prepared = true
+end
+
+entries.lookup_name = function (category, english)
+    local names = entries.names and entries.names[category]
+    local translated = names and names[english] or nil
+    if translated and not translated:find("{%d+}")
+        and not translated:find("#", 1, true) then return translated end
 end
 
 local function make_text(text)
@@ -400,7 +427,7 @@ local function resolve_optional_entry_text(text, tt_lines, tooltip_matches_to_sk
         local values = {}
         local conditions = { string_split("#", condition) }
         for i = 1, #conditions do
-            local pattern = utils.esc(conditions[i]):gsub("{(%d+)}", function () return "([%d,\.]*%d)" end)
+            local pattern = utils.esc(conditions[i]):gsub("{(%d+)}", function () return "([%d,.]*%d)" end)
             local match_number = 0
             for j = 1, #tt_lines do
                 local matches = { tt_lines[j]:match(pattern) }
@@ -442,7 +469,7 @@ entries.make_entry_text = function (text, tooltip, tooltip_matches_to_skip)
 
     local values = {}
     for i = 2, #text do
-        local pattern = utils.esc(text[i]:lower()):gsub("{(%d+)}", function () return "([%d,\.]*%d)" end)
+        local pattern = utils.esc(text[i]:lower()):gsub("{(%d+)}", function () return "([%d,.]*%d)" end)
         local pattern_numbers = {}
         for pattern_number in text[i]:lower():gmatch("{(%d+)}") do
             pattern_numbers[#pattern_numbers + 1] = tonumber(pattern_number)
@@ -721,11 +748,11 @@ entries.translate_taxi_node_name = function (text)
     -- try parse: "NAME1, NAME2"
     local key1, key2 = string_gmatch(text, "(.*), (.*)")()
     if key1 and key2 then
-        key1_text = entries.get_glossary_text(key1, key1, "zone")
-        key2_text = entries.get_glossary_text(key2, key2, "zone")
+        local key1_text = entries.get_glossary_text(key1, key1, "zone")
+        local key2_text = entries.get_glossary_text(key2, key2, "zone")
         text = string_format("%s, %s", key1_text, key2_text)
     else
-        text = entries.get_glossary_text(text, text)
+        text = entries.get_glossary_text(text, text, "zone")
     end
 
     return text

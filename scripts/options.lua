@@ -25,6 +25,12 @@ local default_account = {
     translate_npc_target_frame = true,
     translate_other_tooltips = true,
     tooltip_language_mode = "ukrainian",
+    translation_scope = "full",
+    translate_item_names = true,
+    translate_quest_names = true,
+    translate_spell_names = true,
+    translate_skill_names = true,
+    shift_original_tooltip = true,
     translate_string = true,
     translate_zone = true,
 }
@@ -67,4 +73,16 @@ end
 
 options.is_bilingual_tooltip = function ()
     return options.account and options.account.tooltip_language_mode == "bilingual"
+end
+
+local name_flags = {
+    item = "translate_item_names", quest = "translate_quest_names",
+    spell = "translate_spell_names", skill = "translate_skill_names",
+}
+
+options.translate_name = function (category)
+    local account = options.account
+    if not account or account.translation_scope ~= "custom" then return true end
+    local flag = name_flags[category]
+    return not flag or account[flag] == true
 end

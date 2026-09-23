@@ -5,15 +5,23 @@ local chats = addon_table.use("chats")
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
 local fonts = addon_table.use("fonts")
+local gossip_ui = addon_table.use("gossip_ui")
+local items = addon_table.use("items")
+local map_labels = addon_table.use("map_labels")
 local menus_ui = addon_table.use("menus_ui")
 local options = addon_table.use("options")
 local quest_switcher = addon_table.use("quest_switcher")
+local quest_ui = addon_table.use("quest_ui")
 local scanner = addon_table.use("scanner")
 local settings_ui = addon_table.use("settings_ui")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local translation = addon_table.use("translation")
+local registry = addon_table.use("translation_registry")
+local resolver = addon_table.use("translation_resolver")
+local runtime = addon_table.use("translation_runtime")
+local scheduler = addon_table.use("translation_scheduler")
 local utils = addon_table.use("utils")
 
 local function message(text)
@@ -57,7 +65,9 @@ local function update_target_name()
 
     local region = target_name_region()
     if region and region.SetText and options.can_translate("translate_npc", "translate_npc_target_frame") then
-        region:SetText(utils.cap(entry[1]))
+        runtime.apply(region, { owner = "npc-target", slot = "npc.name",
+            source = UnitName("target"), translated = utils.cap(entry[1]),
+            priority = runtime.PRIORITY.DOMAIN })
     end
 end
 
@@ -65,86 +75,37 @@ local function update_quest_npc_name()
     if not options.can_translate("translate_npc") then return end
     local name = translated_npc_name("questnpc") or translated_npc_name("npc")
     if name and QuestFrameNpcNameText and QuestFrameNpcNameText.SetText then
-        QuestFrameNpcNameText:SetText(name)
-    end
-end
-
-local function update_gossip_npc_name()
-    if not options.can_translate("translate_npc") then return end
-    local name = translated_npc_name("npc")
-    if name and GossipFrame and type(GossipFrame.SetGossipTitle) == "function" then
-        GossipFrame:SetGossipTitle(name)
-    end
-end
-
-local function set_quest_item_name(font_string, item_link)
-    if not font_string or not font_string.SetText or type(item_link) ~= "string" then return end
-    local id = utils.item_id_from_link(item_link)
-    local entry = id and entries.get_entry("item", id)
-    if id then
-        dev_log.record_id("items", id, item_link:match("%[(.-)%]"), entry ~= nil)
-    end
-    if entry and entry[1] then
-        local ukrainian = utils.cap(entry[1])
-        local english = item_link:match("%[(.-)%]")
-        if options.is_bilingual_tooltip() and english and english ~= ukrainian then
-            font_string:SetText(english .. " / " .. ukrainian)
-        else
-            font_string:SetText(ukrainian)
-        end
-    elseif id then
-        dev_log.missing_item(id, item_link:match("%[(.-)%]") or item_link)
-    end
-end
-
-local function update_quest_reward_names()
-    if not options.can_translate("translate_item", "translate_quest_item") then return end
-    local rewards = QuestInfoFrame and QuestInfoFrame.rewardsFrame
-    local buttons = rewards and rewards.RewardButtons
-    local get_item_link = QuestInfoFrame and QuestInfoFrame.questLog and GetQuestLogItemLink or GetQuestItemLink
-    if type(buttons) ~= "table" or type(get_item_link) ~= "function" then return end
-
-    for _, button in ipairs(buttons) do
-        if button.IsShown and button:IsShown() and button.objectType == "item" and button.type and button.GetID then
-            local ok, item_link = pcall(get_item_link, button.type, button:GetID())
-            if ok then set_quest_item_name(button.Name, item_link) end
-        end
+        runtime.apply(QuestFrameNpcNameText, { owner = "quest-npc", slot = "npc.name",
+            source = UnitName("questnpc") or UnitName("npc"), translated = name,
+            priority = runtime.PRIORITY.DOMAIN })
     end
 end
 
 local function refresh_open_panels()
     update_quest_npc_name()
-    update_gossip_npc_name()
-    update_quest_reward_names()
-    strings.translate_visible_ui()
+    items.refresh_quest_rewards()
+    registry.refresh_open()
     quest_switcher.refresh()
 end
 
 local function schedule_panel_refresh()
-    if not C_Timer then
-        refresh_open_panels()
-        return
-    end
-    C_Timer.After(0, refresh_open_panels)
+    scheduler.request("open-panels", nil, refresh_open_panels)
 end
 
 local function schedule_current_quest_capture(event)
+    local expected_id = translation.get_current_quest_id()
     local function capture()
+        if expected_id and translation.get_current_quest_id() ~= expected_id then return end
         local ok, err = pcall(scanner.capture_current_quest, event)
         if not ok then
             dev_log.issue("quest capture: " .. tostring(event), tostring(err))
         end
     end
 
-    if not C_Timer or type(C_Timer.After) ~= "function" then
-        capture()
-        return
-    end
-
     -- The first pass normally sees the data immediately. The short retry
     -- covers Camelot panels whose text getters are filled one frame later.
-    C_Timer.After(0, capture)
-    C_Timer.After(0.2, capture)
+    scheduler.request("quest-capture:" .. event .. ":initial", nil, capture)
+    scheduler.request("quest-capture:" .. event .. ":retry", nil, capture, 0.2)
 end
 
 local function schedule_menu_scan(key)
@@ -164,7 +125,8 @@ local function opened_panel(frame)
         -- initial view have completed. Bind visible safe FontStrings now;
         -- future pooled-row refreshes are translated synchronously by their
         -- own SetText calls rather than by a visible delayed second pass.
-        strings.translate_frame(frame)
+        local surface = registry.find_frame(frame)
+        if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
     end
     schedule_menu_scan(scanner.frame_key(frame))
 end
@@ -172,7 +134,8 @@ end
 local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab is post-hooked: translate the selected panel in
     -- the same call instead of scheduling a second visible replacement pass.
-    strings.translate_frame(frame)
+    local surface = registry.find_frame(frame)
+    if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
     local frame_key = scanner.frame_key(frame)
     if frame_key then
         schedule_menu_scan(scanner.menu_key(frame_key .. ":tab", tab, frame))
@@ -199,10 +162,16 @@ local function hook_owner_once(key, owner, method, callback)
     if ok then panel_hooks[key] = true end
 end
 
-local function translate_character_frame(frame, subframe_name)
+local function translate_character_subframe(_, subframe_name)
     local subframe = type(subframe_name) == "string" and _G[subframe_name] or nil
     if subframe then strings.translate_frame(subframe) end
-    strings.translate_frame(frame or _G.CharacterFrame)
+end
+
+local function translate_character_title(frame)
+    if frame and type(frame.GetTitleText) == "function" then
+        local ok, region = pcall(frame.GetTitleText, frame)
+        if ok then strings.translate_region(region) end
+    end
 end
 
 local function prepare_panel_hooks()
@@ -210,8 +179,9 @@ local function prepare_panel_hooks()
     hook_global_once("ShowUIPanel", opened_panel)
     hook_global_once("PanelTemplates_SetTab", selected_tab)
     hook_global_once("QuestFrame_SetPortrait", update_quest_npc_name)
-    hook_global_once("QuestInfo_ShowRewards", schedule_panel_refresh)
-    hook_global_once("QuestInfo_Display", schedule_panel_refresh)
+    -- QuestInfo_Display and ShowRewards have domain post-hooks in quest_ui and
+    -- items; refreshing every open surface here would rescan the entire map
+    -- for a single quest text update.
 
     hook_frame_on_show_once("ContainerFrameCombinedBags.OnShow", _G.ContainerFrameCombinedBags)
     hook_frame_on_show_once("ObjectiveTrackerFrame.OnShow", _G.ObjectiveTrackerFrame)
@@ -222,9 +192,10 @@ local function prepare_panel_hooks()
     -- Camelot's character tabs and the equipment manager are not opened with
     -- ShowUIPanel. Hook their real owners after Blizzard has populated text.
     hook_owner_once("CharacterFrame.ShowSubFrame", _G.CharacterFrame,
-        "ShowSubFrame", translate_character_frame)
-    hook_owner_once("CharacterFrame.RefreshDisplay", _G.CharacterFrame,
-        "RefreshDisplay", translate_character_frame)
+        "ShowSubFrame", translate_character_subframe)
+    hook_owner_once("CharacterFrame.UpdateTitle", _G.CharacterFrame,
+        "UpdateTitle", translate_character_title)
+    translate_character_title(_G.CharacterFrame)
     local paper_doll = _G.PaperDollFrame
     hook_frame_on_show_once("PaperDollFrame.EquipmentManagerPane.OnShow",
         paper_doll and paper_doll.EquipmentManagerPane)
@@ -245,7 +216,9 @@ local function prepare_nameplates()
         local name = translated_npc_name(frame.unit)
         local region = frame.name or frame.Name
         if name and region and region.SetText then
-            region:SetText(name)
+            runtime.apply(region, { owner = "npc-nameplate", slot = "npc.name",
+                source = UnitName(frame.unit), translated = name,
+                priority = runtime.PRIORITY.DOMAIN })
         end
     end)
 end
@@ -275,16 +248,22 @@ local function show_status()
     ))
 end
 
+local manual_capture_sequence = 0
 local function register_slash_command()
     _G.SLASH_UAFOREVER1 = "/uaf"
     SlashCmdList.UAFOREVER = function (input)
         local command, value = tostring(input or ""):lower():match("^(%S*)%s*(.-)$")
         if command == "on" then
             options.account.enabled = true
-            message("переклад увімкнено; для повного оновлення виконайте /reload")
+            runtime.refresh_policy()
+            registry.refresh_open()
+            if tooltips.refresh_active then tooltips.refresh_active() end
+            message("переклад увімкнено")
         elseif command == "off" then
             options.account.enabled = false
-            message("переклад вимкнено; для повного оновлення виконайте /reload")
+            runtime.refresh_policy()
+            if tooltips.refresh_active then tooltips.refresh_active() end
+            message("переклад вимкнено")
         elseif command == "dev" and (value == "on" or value == "off") then
             options.account.dev_mode = value == "on"
             message("режим розробки " .. (options.account.dev_mode and "увімкнено" or "вимкнено"))
@@ -293,6 +272,141 @@ local function register_slash_command()
             message("автоскан меню " .. (options.account.auto_scan_menus and "увімкнено" or "вимкнено"))
         elseif command == "menus" then
             message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
+        elseif command == "owner" then
+            local frame = type(_G.GetMouseFocus) == "function" and _G.GetMouseFocus() or nil
+            if not frame and type(_G.GetMouseFoci) == "function" then
+                local ok, foci = pcall(_G.GetMouseFoci)
+                if ok and type(foci) == "table" then frame = foci[1] end
+            end
+            local region = frame
+            if frame and type(frame.GetFontString) == "function" then
+                local ok, value = pcall(frame.GetFontString, frame)
+                if ok and value then region = value end
+            end
+            local claim = region and runtime.get(region)
+            if claim then
+                message(string.format("owner=%s; slot=%s; source=%s; translation=%s; generation=%s",
+                    tostring(claim.owner), tostring(claim.slot), tostring(claim.source),
+                    tostring(claim.translated), tostring(claim.generation)))
+            else
+                message("для елемента під курсором немає translation claim")
+            end
+        elseif command == "tooltip" then
+            local tooltip
+            for _, candidate in ipairs({ _G.GameTooltip, _G.ItemRefTooltip,
+                _G.ShoppingTooltip1, _G.ShoppingTooltip2 }) do
+                if candidate and type(candidate.IsShown) == "function" then
+                    local ok, shown = pcall(candidate.IsShown, candidate)
+                    if ok and shown then tooltip = candidate break end
+                end
+            end
+            if not tooltip then
+                message("немає відкритої підказки")
+            else
+                local function short(text)
+                    if type(text) ~= "string" then return "?" end
+                    text = text:gsub("%s+", " ")
+                    return #text > 55 and text:sub(1, 55) .. "…" or text
+                end
+                local limit = math.max(1, math.min(tonumber(value) or 12, 20))
+                local lines = tooltips.inspect(tooltip, limit)
+                message(string.format("підказка: %s; рядків %d",
+                    tostring(tooltip.uaForeverKind or "generic"), #lines))
+                for _, line in ipairs(lines) do
+                    local location = line.side .. line.index
+                    if line.owner then
+                        message(string.format("%s %s/%s: %s → %s", location,
+                            tostring(line.owner), tostring(line.slot),
+                            short(line.source), short(line.translated)))
+                    else
+                        message(location .. " без claim: " .. short(line.visible))
+                    end
+                end
+            end
+        elseif command == "aura" then
+            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+            local status = { state = "waiting", attempts = 0 }
+            UA_ForeverDB.scan.auraCapture = status
+            local function capture_aura()
+                local tooltip = _G.GameTooltip
+                local shown = tooltip and type(tooltip.IsShown) == "function"
+                    and select(2, pcall(tooltip.IsShown, tooltip))
+                if not shown then
+                    status.state = "no_tooltip"
+                    message("підказка аури не відкрита; наведіть курсор і повторіть /uaf aura 5")
+                    return false
+                end
+                local report = tooltips.capture_aura(tooltip)
+                if report then
+                    status.state = "captured"
+                    local before, after = report.before, report.after
+                    message(string.format("скан аури: ID %s, ID за назвою %s, рядків %s, переклад %s → %s",
+                        tostring(before.spellID or before.id or "?"),
+                        tostring(before.titleID or "?"), tostring(before.numLines or "?"),
+                        before.translated and "так" or "ні",
+                        after.translated and "так" or "ні"))
+                    message("зробіть /reload; результат: UA_ForeverDB.scan.auraProbe у SavedVariables/UA_Forever.lua")
+                    return true
+                end
+                status.state = "capture_failed"
+                return false
+            end
+            local delay = tonumber(value)
+            if delay and delay > 0 then
+                delay = math.min(delay, 15)
+                message(string.format("шукаю ауру протягом %.1f с — наведіть курсор на її значок", delay))
+                scheduler.cancel("manual-aura-capture")
+                local max_attempts = math.max(1, math.ceil(delay * 4))
+                local function poll()
+                    status.attempts = status.attempts + 1
+                    if tooltips.aura_probe_candidate(_G.GameTooltip) then
+                        if capture_aura() then return end
+                    end
+                    if status.attempts >= max_attempts then
+                        status.state = "no_matching_tooltip"
+                        message("скан не побачив підказки аури; стан записано в SavedVariables")
+                    else
+                        scheduler.request("manual-aura-capture", nil, poll, 0.25)
+                    end
+                end
+                scheduler.request("manual-aura-capture", nil, poll, 0.25)
+            else
+                capture_aura()
+            end
+        elseif command == "window" then
+            local function capture_window()
+                local ok, report = pcall(tooltips.scan_window)
+                if not ok then
+                    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+                    UA_ForeverDB.scan.windowProbe = { status = "error",
+                        error = tostring(report) }
+                    message("скан вікна завершився помилкою; її записано в SavedVariables")
+                    return
+                end
+                message(string.format("скан вікна: %s; об'єктів %d; верхніх вікон %d",
+                    report.status, #report.objects, #report.topLevel))
+                message("зробіть /reload; результат: UA_ForeverDB.scan.windowProbe")
+            end
+            local duration = tonumber(value)
+            if duration and duration > 0 then
+                duration = math.min(duration, 30)
+                UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+                UA_ForeverDB.scan.windowProbe = { status = "waiting" }
+                message(string.format("шукаю відкрите вікно підказки протягом %.1f с", duration))
+                scheduler.cancel("manual-window-capture")
+                local attempts, max_attempts = 0, math.max(1, math.ceil(duration * 4))
+                local function poll()
+                    attempts = attempts + 1
+                    if tooltips.visible_window() or attempts >= max_attempts then
+                        capture_window()
+                    else
+                        scheduler.request("manual-window-capture", nil, poll, 0.25)
+                    end
+                end
+                scheduler.request("manual-window-capture", nil, poll, 0.25)
+            else
+                capture_window()
+            end
         elseif command == "ui" then
             local stats = strings.translate_visible_ui()
             message(string.format("UI: перевірено %d фреймів, перекладено %d написів", stats.frames, stats.translated))
@@ -303,10 +417,12 @@ local function register_slash_command()
                     stats.frames, stats.captured, stats.new, stats.unique))
             end
             local delay = tonumber(value)
-            if delay and delay > 0 and C_Timer then
+            if delay and delay > 0 then
                 delay = math.min(delay, 30)
                 message(string.format("захоплення UI через %.1f с — відкрийте потрібне меню", delay))
-                C_Timer.After(delay, run_capture)
+                manual_capture_sequence = manual_capture_sequence + 1
+                scheduler.request("manual-ui-capture:" .. manual_capture_sequence,
+                    nil, run_capture, delay)
             else
                 run_capture()
             end
@@ -319,7 +435,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf ui, /uaf capture [секунди], /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf ui, /uaf capture [секунди], /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
         end
     end
 end
@@ -327,6 +443,7 @@ end
 local event_frame = CreateFrame("Frame")
 event_frame:RegisterEvent("ADDON_LOADED")
 event_frame:RegisterEvent("PLAYER_LOGIN")
+event_frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 event_frame:RegisterEvent("PLAYER_TARGET_CHANGED")
 event_frame:RegisterEvent("GOSSIP_SHOW")
 event_frame:RegisterEvent("QUEST_DETAIL")
@@ -341,10 +458,15 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         if loaded_addon ~= addon_name then
             if self.uaForeverReady and type(loaded_addon) == "string" and loaded_addon:find("^Blizzard_") then
                 quest_switcher.prepare()
+                quest_ui.prepare()
+                gossip_ui.prepare()
+                map_labels.prepare()
+                tooltips.prepare()
                 fonts.prepare()
                 prepare_panel_hooks()
                 settings_ui.prepare()
                 menus_ui.prepare()
+                items.prepare()
                 skills.prepare()
                 schedule_panel_refresh()
             end
@@ -372,28 +494,43 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         end
 
         translation.prepare()
+        resolver.prepare()
+        registry.register_defaults(strings.translate_frame)
         tooltips.prepare()
         chats.prepare()
         prepare_nameplates()
         prepare_panel_hooks()
         settings_ui.prepare()
         menus_ui.prepare()
+        items.prepare()
         quest_switcher.prepare()
+        quest_ui.prepare()
+        gossip_ui.prepare()
+        map_labels.prepare()
         skills.prepare()
         update_target_name()
-        if C_Timer then
-            C_Timer.After(0, strings.translate_visible_ui)
-            C_Timer.After(2, function ()
-                local ok, report = pcall(scanner.run)
-                if ok then
-                    message("перевірка сумісності: " .. scanner.summary(report))
-                else
-                    dev_log.issue("scanner.run", tostring(report))
-                    message("сканер сумісності завершився помилкою; увімкніть /uaf dev on")
-                end
-            end)
-        end
+        scheduler.request("compatibility-scan", nil, function ()
+            local ok, report = pcall(scanner.run)
+            if ok then
+                message("перевірка сумісності: " .. scanner.summary(report))
+            else
+                dev_log.issue("scanner.run", tostring(report))
+                message("сканер сумісності завершився помилкою; увімкніть /uaf dev on")
+            end
+        end, 2)
         show_status()
+
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        if self.uaForeverInitialWorldRefresh then return end
+        self.uaForeverInitialWorldRefresh = true
+
+        local function refresh_after_login()
+            fonts.prepare()
+            menus_ui.prepare()
+            registry.refresh_open()
+        end
+        scheduler.request("world-surfaces", nil, refresh_after_login)
+        scheduler.request("world-font-retry", nil, refresh_after_login, 1)
 
     elseif event == "PLAYER_TARGET_CHANGED" then
         update_target_name()
@@ -404,10 +541,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         end
         schedule_panel_refresh()
     elseif event == "QUEST_LOG_UPDATE" then
-        if C_Timer and type(C_Timer.After) == "function" then
-            C_Timer.After(0.2, scanner.capture_quest_log)
-        else
-            scanner.capture_quest_log()
-        end
+        scheduler.request("quest-log-capture", nil,
+            scanner.capture_quest_log, 0.2)
     end
 end)

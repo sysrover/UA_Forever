@@ -45,6 +45,8 @@ addonTable.forever_ui = {
     ["Adventure Guide"] = "Путівник пригод",
     ["Shop"] = "Крамниця",
     ["General"] = "Загальні",
+    ["General Tab"] = "Загальна вкладка",
+    ["<Right click for Tab Settings>"] = "<ПКМ: налаштування вкладки>",
     ["Languages"] = "Мови",
     ["Return to Game"] = "Повернутися до гри",
     ["Options"] = "Налаштування",
@@ -156,8 +158,8 @@ addonTable.forever_ui = {
     ["Damage dealt versus Beasts increased by 5%."] = "Шкоду звірам збільшено на 5%.",
     ["Gives a chance to block enemy melee and ranged attacks."] = "Надає шанс блокувати ворожі атаки ближнього та дальнього бою.",
     ["Sell Price:"] = "Ціна продажу:",
-    ["Press F6 to submit an issue for this Spell"] = "Натисніть F6, щоб повідомити про проблему з цим закляттям",
-    ["Press F6 to submit an issue for this Item"] = "Натисніть F6, щоб повідомити про проблему з цим предметом",
+    ["Press F6 to submit an issue for this Spell"] = "F6: повідомити про помилку",
+    ["Press F6 to submit an issue for this Item"] = "F6: повідомити про помилку",
     ["Customer Support"] = "Підтримка користувачів",
     ["Armor Proficiency"] = "Володіння обладунками",
     ["Druid"] = "Друїд",
@@ -208,8 +210,14 @@ addonTable.forever_ui = {
     ["Buyback"] = "Викуп",
     ["Combined Backpack"] = "Об'єднаний рюкзак",
     ["Merchant"] = "Торговець",
+    ["Guild Master"] = "Розпорядник гільдії",
+    ["Innkeeper"] = "Корчмар",
+    ["Stable Master"] = "Доглядач стайні",
+    ["The Ashbringer"] = "Спопелитель",
+    ["Trade Goods"] = "Товари для ремесел",
     ["Next"] = "Далі",
     ["Prev"] = "Назад",
+    ["Back"] = "Назад",
     ["Abandon"] = "Відмовитися",
     ["Share"] = "Поділитися",
     ["Untrack"] = "Не відстежувати",
@@ -222,7 +230,30 @@ addonTable.forever_ui = {
     ["No quests available|n|nAccept quests by talking to characters with a |TInterface\\GossipFrame\\AvailableQuestIcon:16:16|t above their head."] = "Немає доступних завдань|n|nПриймайте завдання у персонажів зі знаком |TInterface\\GossipFrame\\AvailableQuestIcon:16:16|t над головою.",
 }
 
+local warrior_stances = {
+    ["Battle Stance"] = "бойова стійка",
+    ["Defensive Stance"] = "захисна стійка",
+    ["Berserker Stance"] = "стійка берсерка",
+}
+
 addonTable.forever_ui_patterns = {
+    {
+        pattern = "^Requires (.- Stance), (.- Stance)$",
+        replace = function (first, second)
+            if warrior_stances[first] and warrior_stances[second] then
+                return "Потрібна одна зі стійок: " .. warrior_stances[first]
+                    .. " або " .. warrior_stances[second]
+            end
+        end,
+    },
+    {
+        pattern = "^Requires (.- Stance)$",
+        replace = function (stance)
+            if warrior_stances[stance] then
+                return "Потрібна " .. warrior_stances[stance]
+            end
+        end,
+    },
     {
         -- RequiredTools contains a clickable hyperlink around the station
         -- name. Translate only visible text and keep the link payload intact.
@@ -297,18 +328,12 @@ addonTable.forever_ui_patterns = {
         -- FontString, so preserve that markup while translating its template.
         pattern = "^(.-)Press (.-) to submit an issue for this ([A-Za-z]+)(.-)$",
         replace = function (prefix, shortcut, issue_type, suffix)
-            local nouns = {
-                Item = "предметом",
-                Quest = "завданням",
-                Spell = "закляттям",
-            }
-            local noun = nouns[issue_type]
-            if not noun then
+            if issue_type ~= "Item" and issue_type ~= "Quest"
+                and issue_type ~= "Spell" then
                 return prefix .. "Press " .. shortcut .. " to submit an issue for this "
                     .. issue_type .. suffix
             end
-            return prefix .. "Натисніть " .. shortcut
-                .. ", щоб повідомити про проблему з цим " .. noun .. suffix
+            return prefix .. shortcut .. ": повідомити про помилку" .. suffix
         end,
     },
     {

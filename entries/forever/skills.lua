@@ -155,3 +155,9 @@ local patterns = {
 for _, pattern in ipairs(patterns) do
     addonTable.forever_ui_patterns[#addonTable.forever_ui_patterns + 1] = pattern
 end
+
+-- Everything loaded before the generated client dictionaries is curated.
+addonTable.forever_ui_curated = {}
+for english, ukrainian in pairs(addonTable.forever_ui) do
+    addonTable.forever_ui_curated[english] = ukrainian
+end

@@ -1,18 +1,14 @@
 local _, addon_table = ...
 
-local entries = addon_table.use("entries")
 local fonts = addon_table.use("fonts")
 local options = addon_table.use("options")
 local strings = addon_table.use("strings")
+local runtime = addon_table.use("translation_runtime")
+local resolver = addon_table.use("translation_resolver")
+local walker = addon_table.use("translation_walker")
+local layout = addon_table.use("translation_layout")
 local debug_name
 local rebound_regions = setmetatable({}, { __mode = "k" })
-local rebound_writes = setmetatable({}, { __mode = "k" })
-
-local BUTTON_TEXT_PADDING = 24
-local QUEST_BUTTON_TEXT_PADDING = 16
-local QUEST_BUTTON_MIN_WIDTH = 64
-local BAG_TOOLTIP_TEXT_PADDING = 24
-local BAG_TOOLTIP_MAX_WIDTH = 420
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -41,305 +37,133 @@ local function is_protected_frame(frame)
     return false
 end
 
-local function normalize_text(text)
-    return text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-        :gsub("%s+", " "):match("^%s*(.-)%s*$")
+strings.is_protected_frame = is_protected_frame
+
+local function contains_cyrillic(text)
+    return type(text) == "string"
+        and (text:find("\208", 1, true) or text:find("\209", 1, true)) ~= nil
 end
 
-local function safe_dimension(owner, method)
-    if not owner or type(owner[method]) ~= "function" then return nil end
-    local ok, value = pcall(owner[method], owner)
-    -- On Camelot, tooltip measurements derived from aura data can themselves
-    -- be secret numbers. Checking their Lua type is not sufficient: any
-    -- comparison or arithmetic on such a value taints and raises an error.
-    if not ok or is_secret(value) or type(value) ~= "number" then return nil end
-    if value >= 0 then return value end
-end
-
-local function unbounded_text_width(region)
-    return safe_dimension(region, "GetUnboundedStringWidth")
-        or safe_dimension(region, "GetStringWidth")
-end
-
-local function is_button(frame)
-    if not frame or type(frame.GetObjectType) ~= "function" then return false end
-    local ok, object_type = pcall(frame.GetObjectType, frame)
-    return ok and object_type == "Button"
-end
-
-local function is_tooltip(frame)
-    if not frame or type(frame.GetObjectType) ~= "function" then return false end
-    local ok, object_type = pcall(frame.GetObjectType, frame)
-    return ok and object_type == "GameTooltip"
-end
-
-local function fit_tooltip_height_to_region(tooltip, region, previous_region_height, previous_tooltip_height)
-    if not is_tooltip(tooltip) or not previous_region_height or not previous_tooltip_height then return end
-    local current_region_height = safe_dimension(region, "GetStringHeight")
-        or safe_dimension(region, "GetHeight")
-    if not current_region_height then return end
-
-    local difference = current_region_height - previous_region_height
-    local required_height = previous_tooltip_height + difference
-    if math.abs(difference) >= 0.5 and required_height > 0
-        and type(tooltip.SetHeight) == "function" then
-        -- ClassicUA appends separate lines, which the client sizes natively.
-        -- Forever's Ukrainian-only mode replaces a rendered FontString, so
-        -- only its height delta must be applied; width remains client-owned.
-        pcall(tooltip.SetHeight, tooltip, required_height)
-    end
-end
-
-local function fit_bag_tooltip_width(tooltip, region, source)
-    if not is_tooltip(tooltip) or type(source) ~= "string"
-        or not source:match("^%d+ Empty Slots") then return end
-
-    local text_width = unbounded_text_width(region)
-    local tooltip_width = safe_dimension(tooltip, "GetWidth")
-    if not text_width or not tooltip_width or type(tooltip.SetWidth) ~= "function" then return end
-
-    local required_width = math.min(BAG_TOOLTIP_MAX_WIDTH,
-        math.ceil(text_width + BAG_TOOLTIP_TEXT_PADDING))
-    if required_width > tooltip_width then
-        pcall(tooltip.SetWidth, tooltip, required_width)
-    end
-end
-
-local function fit_quest_map_button_group(button)
-    local quest_map = _G.QuestMapFrame
-    local details = quest_map and (quest_map.DetailsFrame
-        or (quest_map.QuestsFrame and quest_map.QuestsFrame.DetailsFrame))
-    if not details then return false end
-
-    local abandon = details.AbandonButton
-    local share = details.ShareButton
-    local track = details.TrackButton
-    if not abandon or not share or not track
-        or (button ~= abandon and button ~= share and button ~= track) then
-        return false
-    end
-
-    -- These three buttons share one fixed-width row. Expanding each button
-    -- independently makes the Ukrainian Track label escape the quest panel.
-    -- Keep the outside buttons pinned to the panel and let Share fill the gap.
-    if type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
-        and (is_protected_frame(abandon) or is_protected_frame(share)
-            or is_protected_frame(track)) then
-        return true
-    end
-
-    local available_width = safe_dimension(details, "GetWidth")
-    if not available_width or available_width < QUEST_BUTTON_MIN_WIDTH * 3 then
-        return true
-    end
-
-    local function desired_width(owner)
-        local region = type(owner.GetFontString) == "function" and owner:GetFontString() or nil
-        local text_width = unbounded_text_width(region)
-        local current_width = safe_dimension(owner, "GetWidth")
-        return math.max(QUEST_BUTTON_MIN_WIDTH,
-            math.ceil((text_width or current_width or QUEST_BUTTON_MIN_WIDTH)
-                + (text_width and QUEST_BUTTON_TEXT_PADDING or 0)))
-    end
-
-    local abandon_width = desired_width(abandon)
-    local share_width = desired_width(share)
-    local track_width = desired_width(track)
-    local desired_total = abandon_width + share_width + track_width
-
-    if desired_total > available_width then
-        local share_target = math.min(share_width,
-            available_width - QUEST_BUTTON_MIN_WIDTH * 2)
-        local side_space = available_width - share_target
-        local side_total = abandon_width + track_width
-
-        abandon_width = math.floor(side_space * abandon_width / side_total + 0.5)
-        abandon_width = math.max(QUEST_BUTTON_MIN_WIDTH,
-            math.min(abandon_width, side_space - QUEST_BUTTON_MIN_WIDTH))
-        track_width = side_space - abandon_width
-    end
-
-    pcall(abandon.SetWidth, abandon, abandon_width)
-    pcall(track.SetWidth, track, track_width)
-
-    pcall(abandon.ClearAllPoints, abandon)
-    pcall(abandon.SetPoint, abandon, "BOTTOMLEFT", details, "BOTTOMLEFT", 0, -2)
-    pcall(track.ClearAllPoints, track)
-    pcall(track.SetPoint, track, "BOTTOMRIGHT", details, "BOTTOMRIGHT", 0, -2)
-    pcall(share.ClearAllPoints, share)
-    pcall(share.SetPoint, share, "LEFT", abandon, "RIGHT", 0, 0)
-    pcall(share.SetPoint, share, "RIGHT", track, "LEFT", 0, 0)
-    return true
-end
-
-local function fit_button_to_text(button, region)
-    if not is_button(button) or type(button.SetWidth) ~= "function" then return end
-    if fit_quest_map_button_group(button) then return end
-    if type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
-        and is_protected_frame(button) then return end
-
-    region = region or (type(button.GetFontString) == "function" and button:GetFontString())
-    local text_width = unbounded_text_width(region)
-    local button_width = safe_dimension(button, "GetWidth")
-    if not text_width or not button_width then return end
-
-    local padding = type(button.fitTextWidthPadding) == "number"
-        and button.fitTextWidthPadding or BUTTON_TEXT_PADDING
-    local required_width = math.ceil(text_width + padding)
-    if required_width > button_width then
-        pcall(button.SetWidth, button, required_width)
-        local parent = type(button.GetParent) == "function" and button:GetParent() or nil
-        if parent and type(parent.MarkDirty) == "function" then
-            pcall(parent.MarkDirty, parent)
-        end
-    end
-end
-
+local safe_dimension = layout.safe_dimension
+local is_button = layout.is_button
+local is_tooltip = layout.is_tooltip
+local fit_tooltip_height_to_region = layout.fit_tooltip_height_to_region
+local fit_tooltip_width_to_region = layout.fit_tooltip_width_to_region
+local fit_bag_tooltip_width = layout.fit_bag_tooltip_width
+local fit_button_to_text = layout.fit_button_to_text
 strings.fit_button_to_text = fit_button_to_text
-
-local function find_context_translation(normalized, region)
-    if not region or not addon_table.forever_ui_context then return nil end
-    local frame_name = debug_name(region)
-    for _, rule in ipairs(addon_table.forever_ui_context) do
-        if rule.text == normalized and frame_name:find(rule.frame, 1, true) then
-            return rule.translation
-        end
-    end
-end
-
-local function find_domain_translation(normalized, region)
-    if not region or type(entries.get_glossary_text) ~= "function" then return nil end
-    local frame_name = debug_name(region)
-    for _, marker in ipairs({
-        "Merchant", "QuestInfoItem", "QuestInfoRewards",
-        "Professions", "TradeSkill", "CraftFrame",
-    }) do
-        if frame_name:find(marker, 1, true) then
-            return entries.get_glossary_text(normalized, nil)
-        end
-    end
-end
-
-local function find_translation(text, region)
-    local normalized = normalize_text(text)
-    local translated = find_context_translation(normalized, region)
-    if not translated and addon_table.string then
-        translated = addon_table.string[text] or addon_table.string[normalized]
-    end
-    if not translated and addon_table.forever_ui then
-        translated = addon_table.forever_ui[text] or addon_table.forever_ui[normalized]
-    end
-    if not translated then
-        for _, item in ipairs(addon_table.forever_ui_patterns or {}) do
-            -- Try the original value first so a replacement can retain WoW
-            -- hyperlinks and colour codes. Plain patterns still fall back to
-            -- the normalized text used by scanned UI strings.
-            local captures = { text:match(item.pattern) }
-            if #captures == 0 and normalized ~= text then
-                captures = { normalized:match(item.pattern) }
-            end
-            if #captures > 0 then
-                translated = item.replace(unpack(captures))
-                break
-            end
-        end
-    end
-    if not translated then translated = find_domain_translation(normalized, region) end
-    return translated, normalized
-end
 
 strings.find_ui_translation = function (text, region)
     if type(text) ~= "string" or is_secret(text) then return nil end
-    return find_translation(text, region)
+    return resolver.find_ui(text, region)
 end
 
-local function translate_font_string(region)
-    if not region or not region.GetText or not region.SetText then return false end
+local function translate_font_string(region, category, slot, surface)
+    if not region then return false end
+    local methods_ok, get_text, set_text = pcall(function ()
+        return region.GetText, region.SetText
+    end)
+    if not methods_ok or type(get_text) ~= "function"
+        or type(set_text) ~= "function" then return false end
 
-    local ok, text = pcall(region.GetText, region)
+    local ok, text = pcall(get_text, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return false end
     if text == "" then return false end
 
-    local translated = find_translation(text, region)
+    -- A cold login can leave already translated button labels on their old
+    -- Latin-only font when the addon font was not ready during the first
+    -- pass. OnShow and the post-login refresh must be able to repair the font
+    -- even though there is no longer an English string to translate.
+    if contains_cyrillic(text) then
+        if not options.can_translate("override_system_fonts") then return false end
+        return fonts.apply_to_font_string(region)
+    end
+
+    local translated, _, source_kind, inferred_category, inferred_slot =
+        resolver.find_ui(text, region)
     if not translated or translated == text then return false end
+    category = category or inferred_category
+    slot = slot or inferred_slot
 
     local parent
-    if type(region.GetParent) == "function" then
-        local ok_parent, value = pcall(region.GetParent, region)
+    local parent_method_ok, get_parent = pcall(function () return region.GetParent end)
+    if parent_method_ok and type(get_parent) == "function" then
+        local ok_parent, value = pcall(get_parent, region)
         if ok_parent then parent = value end
     end
-    if parent and is_tooltip(parent) and options.is_bilingual_tooltip() then
-        local key = text .. "\031" .. translated
-        parent.uaForeverBilingualLines = parent.uaForeverBilingualLines or {}
-        if parent.uaForeverBilingualLines[key] then return true end
+    if parent and is_tooltip(parent) then return false end
 
-        local r, g, b = 1, 1, 1
-        if type(region.GetTextColor) == "function" then
-            local ok_color, red, green, blue = pcall(region.GetTextColor, region)
-            if ok_color and not is_secret(red) and not is_secret(green) and not is_secret(blue)
-                and type(red) == "number" and type(green) == "number" and type(blue) == "number" then
-                r, g, b = red, green, blue
-            end
-        end
-        local add_ok = pcall(parent.AddLine, parent, translated, r, g, b, true)
-        if add_ok then parent.uaForeverBilingualLines[key] = true end
-        return add_ok
-    end
-
-    -- Apply the Cyrillic font while the English text can still report its
-    -- actual rendered height (GameMenuFrame otherwise becomes blank).
-    fonts.apply_to_font_string(region)
     local previous_height = parent and is_tooltip(parent)
         and (safe_dimension(region, "GetStringHeight") or safe_dimension(region, "GetHeight")) or nil
     local previous_tooltip_height = previous_height and safe_dimension(parent, "GetHeight") or nil
-    local set_ok = pcall(region.SetText, region, translated)
-    if set_ok then
-        fit_tooltip_height_to_region(parent, region, previous_height, previous_tooltip_height)
-    end
-    if set_ok and parent and is_button(parent) then
-        fit_button_to_text(parent, region)
-    end
+    local priority = runtime.priority_for_source(source_kind)
+    local set_ok = runtime.apply(region, {
+        owner = "ui", slot = slot or "ui.text", source = text,
+        translated = translated, category = category,
+        surface = surface,
+        priority = priority, tooltip = is_tooltip(parent) and parent or nil,
+        after_apply = function (applied)
+            fit_tooltip_width_to_region(parent, applied)
+            fit_tooltip_height_to_region(parent, applied,
+                previous_height, previous_tooltip_height)
+            if parent and is_button(parent) then fit_button_to_text(parent, applied) end
+        end,
+    })
     return set_ok
 end
 
 strings.translate_region = translate_font_string
 
-strings.set_region_text = function (region, text, tooltip, source)
-    if not region or not region.SetText or type(text) ~= "string" or is_secret(text) then
+strings.set_region_text = function (region, text, tooltip, source, category, slot)
+    if not region or type(text) ~= "string" or is_secret(text) then
         return false
     end
-    fonts.apply_to_font_string(region)
+    -- Protected aura tooltip regions can reject SetFont even though SetText
+    -- remains available. Do not apply the cold-login button safeguard here:
+    -- the caller can fall back to an addon-owned tooltip line if SetText is
+    -- also rejected.
     local previous_height = tooltip and is_tooltip(tooltip)
         and (safe_dimension(region, "GetStringHeight") or safe_dimension(region, "GetHeight")) or nil
     local previous_tooltip_height = previous_height and safe_dimension(tooltip, "GetHeight") or nil
-    rebound_writes[region] = true
-    local ok = pcall(region.SetText, region, text)
-    rebound_writes[region] = nil
-    if ok then
-        fit_tooltip_height_to_region(tooltip, region, previous_height, previous_tooltip_height)
-        fit_bag_tooltip_width(tooltip, region, source)
-    end
+    local ok = runtime.apply(region, {
+        owner = "legacy-domain", slot = slot or "domain.text", source = source,
+        translated = text, priority = runtime.PRIORITY.DOMAIN,
+        tooltip = tooltip, category = category, allow_unknown_source = true,
+        after_apply = function (applied)
+            fit_tooltip_width_to_region(tooltip, applied)
+            fit_tooltip_height_to_region(tooltip, applied,
+                previous_height, previous_tooltip_height)
+            fit_bag_tooltip_width(tooltip, applied, source)
+        end,
+    })
     return ok
 end
 
 local function apply_ukrainian_font(region)
-    if not region or not region.GetText then return end
-    local ok, text = pcall(region.GetText, region)
+    if not region then return end
+    local method_ok, get_text = pcall(function () return region.GetText end)
+    if not method_ok or type(get_text) ~= "function" then return end
+    local ok, text = pcall(get_text, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return end
-    if text:find("\208", 1, true) or text:find("\209", 1, true) then
+    if contains_cyrillic(text) then
         fonts.apply_to_font_string(region)
     end
 end
 
 debug_name = function (region)
-    if region.GetDebugName then
-        local ok, name = pcall(region.GetDebugName, region)
+    local name_method_ok, get_name = pcall(function () return region.GetDebugName end)
+    if name_method_ok and type(get_name) == "function" then
+        local ok, name = pcall(get_name, region)
         if ok and type(name) == "string" and not is_secret(name) and name ~= "" then return name end
     end
-    if region.GetParent then
-        local ok, parent = pcall(region.GetParent, region)
-        if ok and parent and parent.GetDebugName then
-            local name_ok, name = pcall(parent.GetDebugName, parent)
+    local parent_method_ok, get_parent = pcall(function () return region.GetParent end)
+    if parent_method_ok and type(get_parent) == "function" then
+        local ok, parent = pcall(get_parent, region)
+        local parent_name_ok, parent_get_name = parent and pcall(function ()
+            return parent.GetDebugName
+        end)
+        if ok and parent_name_ok and type(parent_get_name) == "function" then
+            local name_ok, name = pcall(parent_get_name, parent)
             if name_ok and type(name) == "string" and not is_secret(name) and name ~= "" then
                 return name .. "::<FontString>"
             end
@@ -365,7 +189,7 @@ local function capture_font_string(region, stats)
     local ok, text = pcall(region.GetText, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return end
 
-    local translated, normalized = find_translation(text, region)
+    local translated, normalized = resolver.find_ui(text, region)
     if translated or normalized == "" or normalized == "EN" or normalized == "UA"
         or not normalized:find("[A-Za-z]") then return end
 
@@ -396,73 +220,42 @@ local function capture_font_string(region, stats)
 end
 
 local function capture_frame(frame, seen, depth, stats, allow_protected)
-    if not frame or seen[frame] or depth > 20
-        or (not allow_protected and is_protected_frame(frame)) then return end
-    seen[frame] = true
-    stats.frames = stats.frames + 1
-
-    if frame.GetRegions then
-        local ok, regions = pcall(function () return { frame:GetRegions() } end)
-        if ok then
-            for _, region in ipairs(regions) do capture_font_string(region, stats) end
-        end
-    end
-    if frame.GetChildren then
-        local ok, children = pcall(function () return { frame:GetChildren() } end)
-        if ok then
-            for _, child in ipairs(children) do
-                local shown_ok, shown = pcall(child.IsShown, child)
-                if shown_ok and shown then
-                    capture_frame(child, seen, depth + 1, stats, allow_protected)
-                end
-            end
-        end
-    end
+    walker.walk(frame, function (region) capture_font_string(region, stats) end,
+        not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
 local function bind_font_string(region)
+    local quest_root = _G.QuestObjectiveTracker
+    if quest_root then
+        local ancestor = region
+        for _ = 1, 16 do
+            if ancestor == quest_root then return end
+            local ok, parent = pcall(function ()
+                return type(ancestor.GetParent) == "function"
+                    and ancestor:GetParent() or nil
+            end)
+            if not ok or not parent or parent == ancestor then break end
+            ancestor = parent
+        end
+    end
     if rebound_regions[region] or not region or type(_G.hooksecurefunc) ~= "function"
         or not region.GetText or not region.SetText or is_protected_frame(region) then return end
 
     local ok = pcall(hooksecurefunc, region, "SetText", function (self)
-        if rebound_writes[self] then return end
-        rebound_writes[self] = true
+        if runtime.is_applying(self) then return end
         translate_font_string(self)
-        rebound_writes[self] = nil
     end)
     if ok then rebound_regions[region] = true end
 end
 
-local function scan_frame(frame, seen, depth, stats, allow_protected, bind_regions)
-    if not frame or seen[frame] or depth > 20
-        or (not allow_protected and is_protected_frame(frame)) then return end
-    seen[frame] = true
-    stats.frames = stats.frames + 1
-
-    if frame.GetRegions then
-        local ok, regions = pcall(function () return { frame:GetRegions() } end)
-        if ok then
-            for _, region in ipairs(regions) do
-                if translate_font_string(region) then
-                    stats.translated = stats.translated + 1
-                end
-                apply_ukrainian_font(region)
-                if bind_regions then bind_font_string(region) end
-            end
+local function scan_frame(frame, seen, depth, stats, allow_protected, bind_regions, surface)
+    walker.walk(frame, function (region)
+        if translate_font_string(region, nil, nil, surface) then
+            stats.translated = stats.translated + 1
         end
-    end
-
-    if frame.GetChildren then
-        local ok, children = pcall(function () return { frame:GetChildren() } end)
-        if ok then
-            for _, child in ipairs(children) do
-                local shown_ok, shown = pcall(child.IsShown, child)
-                if shown_ok and shown then
-                    scan_frame(child, seen, depth + 1, stats, allow_protected, bind_regions)
-                end
-            end
-        end
-    end
+        apply_ukrainian_font(region)
+        if bind_regions then bind_font_string(region) end
+    end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
 strings.prepare = function ()
@@ -522,11 +315,12 @@ strings.translate_visible_ui = function ()
     return stats
 end
 
-strings.translate_frame = function (frame)
+strings.translate_frame = function (frame, bind_regions, surface)
     local stats = { frames = 0, translated = 0 }
     if not options.can_translate("translate_string") or not frame then return stats end
     local tooltip = allows_protected_children(frame)
-    scan_frame(frame, {}, 1, stats, tooltip, not tooltip)
+    scan_frame(frame, {}, 1, stats, tooltip,
+        not tooltip and bind_regions ~= false, surface)
     return stats
 end
 
@@ -538,7 +332,7 @@ strings.capture_visible_ui = function ()
         capture_frame(frame, seen, 1, stats, allows_protected_children(frame))
     end
     for text, record in pairs(UA_ForeverDB.scan.ui or {}) do
-        local translated, normalized = find_translation(text)
+        local translated, normalized = resolver.find_ui(text)
         local eligible = not translated and normalized ~= "" and normalized:find("[A-Za-z]") ~= nil
         if eligible then
             local frames = type(record) == "table" and record.frames or nil

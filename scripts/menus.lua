@@ -1,10 +1,17 @@
 local _, addon_table = ...
 
 local menus_ui = addon_table.use("menus_ui")
+local entries = addon_table.use("entries")
 local strings = addon_table.use("strings")
+local tooltips = addon_table.use("tooltips")
+local registry = addon_table.use("translation_registry")
+local scheduler = addon_table.use("translation_scheduler")
+local resolver = addon_table.use("translation_resolver")
+local runtime = addon_table.use("translation_runtime")
+local translation = addon_table.use("translation")
+local utils = addon_table.use("utils")
 
 local hooked = {}
-local legacy_dropdown_pending = {}
 
 local function hook_owner(owner, key, method, callback)
     local owner_type = type(owner)
@@ -17,6 +24,13 @@ end
 
 local function hook_mixin(name, method, callback)
     hook_owner(_G[name], name .. "." .. method, method, callback)
+end
+
+local function hook_global(name, callback)
+    if hooked[name] or type(_G[name]) ~= "function"
+        or type(_G.hooksecurefunc) ~= "function" then return end
+    local ok = pcall(hooksecurefunc, name, callback)
+    if ok then hooked[name] = true end
 end
 
 local function translate_game_menu(frame)
@@ -62,7 +76,7 @@ end
 local function translate_micro_button_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip.GetOwner or tooltip:GetOwner() ~= button then return end
-    strings.translate_frame(tooltip)
+    if tooltips.finalize then tooltips.finalize(tooltip) end
 end
 
 local function translate_open_menu()
@@ -74,31 +88,131 @@ local function translate_open_menu()
         if menu then strings.translate_frame(menu) end
     end
 
-    if C_Timer and type(C_Timer.After) == "function" then
-        C_Timer.After(0, translate)
-    else
-        translate()
-    end
+    scheduler.request("open-menu", nil, translate)
 end
 
 local function translate_legacy_dropdown(_, level)
     level = tonumber(level) or tonumber(_G.UIDROPDOWNMENU_MENU_LEVEL) or 1
-    if legacy_dropdown_pending[level] then return end
-    legacy_dropdown_pending[level] = true
     local function translate()
-        legacy_dropdown_pending[level] = nil
         local frame = _G["DropDownList" .. level]
         if frame then strings.translate_frame(frame) end
     end
 
-    if C_Timer and type(C_Timer.After) == "function" then
-        C_Timer.After(0, translate)
-    else
-        translate()
+    scheduler.request("legacy-dropdown:" .. level, nil, translate)
+end
+
+local function translate_lfg_frame(frame)
+    local root = _G.LFGListFrame
+    local entry = root and root.EntryCreation or frame
+    if not entry then return end
+    local function translate(region)
+        if region then strings.translate_region(region) end
+    end
+    translate(entry.Label)
+    translate(entry.Name and entry.Name.Instructions)
+    translate(entry.Description and entry.Description.EditBox
+        and entry.Description.EditBox.Instructions)
+    translate(entry.ItemLevel and entry.ItemLevel.EditBox
+        and entry.ItemLevel.EditBox.Instructions)
+    translate(entry.CrossFactionGroup and entry.CrossFactionGroup.Label)
+    local button = entry.ListGroupButton
+    if button and type(button.GetFontString) == "function" then
+        local ok, region = pcall(button.GetFontString, button)
+        if ok then translate(region) end
     end
 end
 
+local function translate_lfg_activity_button(button)
+    if not button then return end
+    if type(button.GetFontString) == "function" then
+        local ok, font_string = pcall(button.GetFontString, button)
+        if ok and font_string and font_string.GetText then
+            local text_ok, source = pcall(font_string.GetText, font_string)
+            if text_ok and type(source) == "string" then
+                runtime.clear(font_string)
+                local translated, _, kind = resolver.find_ui(source, font_string)
+                if translated then
+                    local id_ok, activity_id = pcall(function ()
+                        return button.activityID or (button.info and button.info.activityID)
+                    end)
+                    local secret = false
+                    if type(_G.issecretvalue) == "function" then
+                        local secret_ok, value = pcall(_G.issecretvalue, activity_id)
+                        secret = not secret_ok or value
+                    end
+                    local slot = id_ok and not secret and type(activity_id) == "number"
+                        and "activity:" .. activity_id or "activity.name"
+                    runtime.apply(font_string, { owner = "lfg", slot = slot,
+                        source = source, translated = translated,
+                        priority = kind == "domain" and runtime.PRIORITY.DOMAIN
+                            or runtime.PRIORITY.CONTEXT })
+                end
+            end
+        end
+    end
+end
+
+local function translate_lfg_quest_description(entry)
+    local region = entry and entry.Description and entry.Description.EditBox
+        and entry.Description.EditBox.Instructions
+    local info_getter = _G.C_LFGList and _G.C_LFGList.GetActiveEntryInfo
+    if not region or type(info_getter) ~= "function" then return end
+    local info_ok, info = pcall(info_getter)
+    local id = info_ok and info and info.questID
+    if type(id) ~= "number" then return end
+    local title_getter = translation.original
+        and translation.original["C_QuestLog.GetTitleForQuestID"]
+        or (_G.C_QuestLog and _G.C_QuestLog.GetTitleForQuestID)
+    if type(title_getter) ~= "function" then return end
+    local title_ok, english = pcall(title_getter, id)
+    local quest = entries.get_entry("quest", id)
+    local ukrainian = quest and quest[1]
+    if not title_ok or type(english) ~= "string" or english == ""
+        or type(ukrainian) ~= "string" or ukrainian == "" then return end
+    local world_ok, is_world = pcall(_G.QuestUtils_IsQuestWorldQuest or function () return false end, id)
+    if not world_ok then return end
+    local format = is_world and _G.AUTO_GROUP_CREATION_WORLD_QUEST
+        or _G.AUTO_GROUP_CREATION_NORMAL_QUEST
+    if type(format) ~= "string" then return end
+    local translated_format = resolver.find_ui(format)
+    if type(translated_format) ~= "string" then return end
+    local source_ok, source = pcall(string.format, format, english)
+    ukrainian = utils.cap(ukrainian)
+    local native_uk_ok, native_uk = pcall(string.format, format, ukrainian)
+    local ua_ok, translated = pcall(string.format, translated_format, ukrainian)
+    local mixed_ok, name_original = pcall(string.format, translated_format, english)
+    if not source_ok or not native_uk_ok or not ua_ok or not mixed_ok then return end
+    local text_ok, current = pcall(region.GetText, region)
+    if not text_ok or (current ~= source and current ~= native_uk) then return end
+    runtime.clear(region)
+    runtime.apply(region, {
+        owner = "lfg-quest", slot = "quest:" .. id .. ".description",
+        source = source, translated = translated, name_original = name_original,
+        category = "quest", option = "translate_quest",
+        priority = runtime.PRIORITY.DOMAIN,
+    })
+end
+
+local function translate_lfg_edit_mode(entry, edit_mode)
+    if edit_mode then translate_lfg_quest_description(entry) end
+    translate_lfg_frame(entry)
+end
+
 menus_ui.prepare = function ()
+    local lfg = registry.get("lfg")
+    if lfg then
+        lfg.dynamic_hooks = {
+            "LFGListEntryCreationActivityFinder_InitButton",
+            "LFGListEntryCreation_SetEditMode", "LFGListEntryCreation_Select",
+        }
+        lfg.slots = { "activity.name", "entry.label" }
+        lfg.domains = { "ui", "context", "zone" }
+        lfg.dynamic = function ()
+            local root = _G.LFGListFrame
+            local entry = root and root.EntryCreation
+            if entry then translate_lfg_frame(entry) end
+        end
+    end
     -- Forever 1.60.1 creates the escape menu in GameMenuFrameMixin:InitButtons and
     -- micro-button titles in EvaluateTooltipVisibility. Post-hooks translate
     -- only completed FontStrings; button data and tooltipText stay English.
@@ -108,6 +222,15 @@ menus_ui.prepare = function ()
     hook_owner(_G.GameMenuFrame, "GameMenuFrame.InitButtons", "InitButtons", translate_game_menu)
     hook_mixin("GameMenuFrameMixin", "InitButtons", translate_game_menu)
     hook_mixin("MainMenuBarMicroButtonMixin", "EvaluateTooltipVisibility", translate_micro_button_tooltip)
+
+    -- The LFG entry-creation page fills pooled activity rows and resets its
+    -- labels after the parent panel is already visible. Translate at those
+    -- completed writes instead of relying on the initial ShowUIPanel pass.
+    hook_global("LFGListEntryCreationActivityFinder_InitButton",
+        translate_lfg_activity_button)
+    hook_global("LFGListEntryCreation_SetEditMode", translate_lfg_edit_mode)
+    hook_global("LFGListEntryCreation_Show", translate_lfg_frame)
+    hook_global("LFGListEntryCreation_Select", translate_lfg_frame)
 
     -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
     -- public manager and translate only the completed menu returned as open.
