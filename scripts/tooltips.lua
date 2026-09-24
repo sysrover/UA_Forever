@@ -899,6 +899,15 @@ local function process(tooltip, data, kind)
         id = safe_number(data.id) or safe_number(data.itemID)
             or safe_number(data.spellID) or safe_number(data.questID)
     end
+    -- Player GUIDs have no NPC entry. Translate their rendered unit tooltip
+    -- during the Unit post-call so a frequently refreshed player frame does
+    -- not alternate between native and deferred translated text.
+    if kind == "npc" and not id and type(data.guid) == "string"
+        and not is_secret(data.guid) and data.guid:match("^Player%-") then
+        begin_tooltip(tooltip, "player:" .. data.guid)
+        tooltip.uaForeverKind = "player"
+        return rewrite_generic_lines(tooltip) > 0
+    end
     if not id then return end
 
     local key = tooltip_key(kind, id)
@@ -1513,6 +1522,10 @@ local function translate_generic_tooltip(tooltip)
         or tooltip.uaForeverKind == "npc"
         or tooltip.uaForeverKind == "quest" then
         rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2)
+        return
+    end
+    if tooltip.uaForeverKind == "player" then
+        rewrite_generic_lines(tooltip)
         return
     end
 
