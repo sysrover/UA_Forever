@@ -28,10 +28,18 @@ build mismatch until it is regenerated for `1.60.1.69977`.
 
 - `/uaf [status|on|off]` and `/uaf dev on|off`
 - `/uaf ui`, `/uaf capture [seconds]`, `/uaf scan`, `/uaf report`
-- `/uaf menus`, `/uaf autoscan on|off`
+- `/uaf menus` (історичний лічильник меню), `/uaf autoscan on|off`
 - `/uaf owner`, `/uaf tooltip [rows]`, `/uaf aura [seconds]`, `/uaf window [seconds]`
 
 Scanned IDs, missing translations, menu captures, and diagnostics are saved in
 `UA_ForeverDB` when the client reloads or exits. Run the translation audits in
 `tools/` when changing dictionaries. The pattern overlap audit currently fails
 because its baseline still uses old pattern positions.
+
+У **Налаштування → Додатки → UA Forever** можна увімкнути автоскан
+неперекладеного контенту. Він збирає нові предмети з текстом підказок, діалоги
+й імена NPC, тексти та задачі квестів, навички, закляття, аури й вислови NPC
+до `UA_ForeverDB.scan.auto`. Кнопка **Показати зібрані дані** відкриває експорт
+частинами: натисніть **Виділити для Ctrl+C**, потім Ctrl+C і вставте текст на
+сайті. Користувач сам надсилає дані. WoW записує `SavedVariables` на диск під
+час `/reload` або виходу з гри.

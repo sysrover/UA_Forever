@@ -1,8 +1,8 @@
 local _, addon_table = ...
 
 local options = addon_table.use("options")
+local auto_scan = addon_table.use("auto_scan")
 local items = addon_table.use("items")
-local scanner = addon_table.use("scanner")
 local settings_ui = addon_table.use("settings_ui")
 local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
@@ -15,6 +15,95 @@ local tooltip_mode_buttons = {}
 local scope_buttons = {}
 local name_buttons = {}
 local shift_button
+local auto_scan_button
+local export_window
+
+local function show_export_window()
+    if not export_window then
+        local window = CreateFrame("Frame", "UA_ForeverExportWindow", UIParent,
+            "BasicFrameTemplateWithInset")
+        window:SetSize(690, 510)
+        window:SetPoint("CENTER")
+        window:SetFrameStrata("DIALOG")
+        window:EnableMouse(true)
+        window:SetMovable(true)
+        window:RegisterForDrag("LeftButton")
+        window:SetScript("OnDragStart", window.StartMoving)
+        window:SetScript("OnDragStop", window.StopMovingOrSizing)
+        if window.TitleText then
+            runtime.set_fallback_text(window.TitleText, "UA Forever: дані автоскана")
+        end
+
+        local help = window:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        help:SetPoint("TOPLEFT", 18, -38)
+        help:SetWidth(645)
+        help:SetJustifyH("LEFT")
+        runtime.set_fallback_text(help,
+            "Натисніть «Скопіювати», потім Ctrl+C. Вставте текст на сайті та надішліть самі.")
+
+        local scroll = CreateFrame("ScrollFrame", nil, window,
+            "UIPanelScrollFrameTemplate")
+        scroll:SetPoint("TOPLEFT", 20, -75)
+        scroll:SetPoint("BOTTOMRIGHT", -42, 66)
+        local edit = CreateFrame("EditBox", nil, scroll)
+        edit:SetMultiLine(true)
+        edit:SetAutoFocus(false)
+        edit:SetFontObject("ChatFontNormal")
+        edit:SetWidth(610)
+        edit:SetHeight(380)
+        edit:SetScript("OnEscapePressed", function () window:Hide() end)
+        scroll:SetScrollChild(edit)
+
+        local position = window:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        position:SetPoint("BOTTOM", 0, 36)
+
+        local previous = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        previous:SetSize(95, 24)
+        previous:SetPoint("BOTTOMLEFT", 20, 14)
+        runtime.set_fallback_text(previous, "Назад")
+        local copy = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        copy:SetSize(190, 24)
+        copy:SetPoint("BOTTOM", 0, 14)
+        runtime.set_fallback_text(copy, "Виділити для Ctrl+C")
+        local following = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        following:SetSize(95, 24)
+        following:SetPoint("BOTTOMRIGHT", -20, 14)
+        runtime.set_fallback_text(following, "Далі")
+
+        window.parts = {}
+        window.index = 1
+        local function refresh()
+            local count = #window.parts
+            local part = window.parts[window.index]
+            local content = part or "Даних для експорту поки немає."
+            edit:SetHeight(math.max(380, math.ceil(#content / 65) * 16))
+            edit:SetText(content)
+            edit:SetCursorPosition(0)
+            position:SetText(string.format("Частина %d із %d", count > 0 and window.index or 0, count))
+            previous:SetEnabled(window.index > 1)
+            following:SetEnabled(window.index < count)
+            scroll:SetVerticalScroll(0)
+        end
+        previous:SetScript("OnClick", function ()
+            window.index = window.index - 1
+            refresh()
+        end)
+        following:SetScript("OnClick", function ()
+            window.index = window.index + 1
+            refresh()
+        end)
+        copy:SetScript("OnClick", function ()
+            edit:SetFocus()
+            edit:HighlightText()
+        end)
+        window.refresh = refresh
+        export_window = window
+    end
+    export_window.parts = auto_scan.export_parts()
+    export_window.index = 1
+    export_window.refresh()
+    export_window:Show()
+end
 
 local function refresh_open_text()
     runtime.refresh_policy()
@@ -41,6 +130,10 @@ local function refresh_tooltip_mode_controls()
         shift_button:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT",
             scope == "custom" and -20 or 0, -24)
         shift_button:SetChecked(options.account and options.account.shift_original_tooltip ~= false)
+    end
+    if auto_scan_button then
+        auto_scan_button:SetChecked(options.account
+            and options.account.auto_scan_content == true)
     end
 end
 
@@ -137,6 +230,34 @@ local function register_addon_settings()
         options.account.shift_original_tooltip = self:GetChecked() == true
         refresh_open_text()
     end)
+
+    local scan_heading = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    scan_heading:SetPoint("TOPLEFT", 365, -112)
+    runtime.set_fallback_text(scan_heading, "Збір неперекладених даних")
+
+    auto_scan_button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    auto_scan_button:SetPoint("TOPLEFT", scan_heading, "BOTTOMLEFT", 0, -12)
+    auto_scan_button.text:SetFontObject("GameFontHighlight")
+    runtime.set_fallback_text(auto_scan_button.text, "Автоскан")
+    auto_scan_button:SetScript("OnClick", function (self)
+        options.account.auto_scan_content = self:GetChecked() == true
+        if options.account.auto_scan_content then
+            options.account.auto_scan_menus = false
+        end
+    end)
+
+    local scan_help = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+    scan_help:SetPoint("TOPLEFT", auto_scan_button, "BOTTOMLEFT", 2, -10)
+    scan_help:SetWidth(270)
+    scan_help:SetJustifyH("LEFT")
+    runtime.set_fallback_text(scan_help,
+        "Предмети, діалоги та імена NPC, квести, навички, закляття, аури й вислови NPC.")
+
+    local export_button = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
+    export_button:SetSize(210, 27)
+    export_button:SetPoint("TOPLEFT", scan_help, "BOTTOMLEFT", 0, -15)
+    runtime.set_fallback_text(export_button, "Показати зібрані дані")
+    export_button:SetScript("OnClick", show_export_window)
 
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
@@ -280,14 +401,9 @@ local function schedule_visible_settings(panel)
     end)
 end
 
-local function displayed_category(panel, category)
+local function displayed_category(panel)
     translate_panel_chrome(panel)
     schedule_visible_settings(panel)
-
-    if not options.account or not options.account.auto_scan_menus or not category then return end
-    local id = category.GetID and category:GetID()
-    local key = "settings-category:" .. tostring(id or category)
-    scanner.schedule_menu_capture(key, nil, panel)
 end
 
 settings_ui.prepare = function ()

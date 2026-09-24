@@ -3,7 +3,6 @@ local _, addon_table = ...
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
-local scanner = addon_table.use("scanner")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
@@ -112,6 +111,11 @@ local function record_frame_ids(frame, seen_frames, seen_ids, depth)
                 if descriptor.entry then
                     local ok, entry = pcall(entries.get_entry, descriptor.entry, id)
                     translated = ok and entry ~= nil
+                elseif name then
+                    local glossary = entries.get_glossary_text(name)
+                    local ui = strings.find_ui_translation(name)
+                    translated = glossary ~= nil and glossary ~= name
+                        or ui ~= nil and ui ~= name
                 end
                 dev_log.record_id(descriptor.group, id, name, translated)
                 seen_ids[key] = true
@@ -138,9 +142,6 @@ skills.refresh = function (only_frame)
             total.frames = total.frames + (stats.frames or 0)
             total.translated = total.translated + (stats.translated or 0)
             record_frame_ids(frame, {}, {}, 1)
-
-            local key = scanner.frame_text_key("skills", frame)
-            if key then scanner.schedule_menu_capture(key) end
         end
     end
     return total

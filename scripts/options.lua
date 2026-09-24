@@ -7,7 +7,8 @@ local default_account = {
     enabled = true,
     dev_mode = false,
     dev_mode_notify_activity = false,
-    auto_scan_menus = true,
+    auto_scan_menus = false,
+    auto_scan_content = false,
     override_system_fonts = true,
     disable_all_translation = false,
     translate_quest = true,
@@ -68,7 +69,8 @@ options.can_translate = function (...)
 end
 
 options.can_lookup = function (...)
-    return options.account and (options.account.dev_mode or options.can_translate(...))
+    return options.account and (options.account.dev_mode
+        or options.account.auto_scan_content or options.can_translate(...))
 end
 
 options.is_bilingual_tooltip = function ()

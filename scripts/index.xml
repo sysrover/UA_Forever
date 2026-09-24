@@ -4,6 +4,7 @@
     <Script file="options.lua"/>
     <Script file="fonts.lua"/>
     <Script file="dev_log.lua"/>
+    <Script file="auto_scan.lua"/>
     <Script file="utils.lua"/>
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>

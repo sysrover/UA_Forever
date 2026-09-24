@@ -146,14 +146,6 @@ local function schedule_current_quest_capture(event)
     scheduler.request("quest-capture:" .. event .. ":retry", nil, capture, 0.2)
 end
 
-local function schedule_menu_scan(key)
-    if not options.account or not options.account.auto_scan_menus then return end
-    scanner.schedule_menu_capture(key, function (captured_key, stats)
-        message(string.format("автоскан: %s; нових рядків %d; меню пройдено %d",
-            captured_key, stats.new or 0, scanner.menu_count()))
-    end)
-end
-
 local function opened_panel(frame)
     -- Forever's escape menu and Settings panel have dedicated native-mixin
     -- hooks. Running the generic delayed walker as well causes a visible
@@ -164,17 +156,12 @@ local function opened_panel(frame)
         local surface = registry.find_frame(frame)
         if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
     end
-    schedule_menu_scan(scanner.frame_key(frame))
 end
 
 local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
     if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
-    local frame_key = scanner.frame_key(frame)
-    if frame_key then
-        schedule_menu_scan(scanner.menu_key(frame_key .. ":tab", tab, frame))
-    end
 end
 
 local function translate_character_subframe(_, subframe_name)
@@ -290,13 +277,12 @@ end
 
 local function show_status()
     message(string.format(
-        "v%s; WoW %s; Interface %s; переклад %s; автоскан %s (%d меню); dev %s; пропусків %d",
+        "v%s; WoW %s; Interface %s; переклад %s; автоскан %s; dev %s; пропусків %d",
         tostring(utils.addon_version()),
         tostring(utils.build_version),
         tostring(utils.interface_version),
         options.account.enabled and "увімкнено" or "вимкнено",
-        options.account.auto_scan_menus and "увімкнено" or "вимкнено",
-        scanner.menu_count(),
+        options.account.auto_scan_content and "увімкнено" or "вимкнено",
         options.account.dev_mode and "увімкнено" or "вимкнено",
         missing_count()
     ))
@@ -322,8 +308,9 @@ local function register_slash_command()
             options.account.dev_mode = value == "on"
             message("режим розробки " .. (options.account.dev_mode and "увімкнено" or "вимкнено"))
         elseif command == "autoscan" and (value == "on" or value == "off") then
-            options.account.auto_scan_menus = value == "on"
-            message("автоскан меню " .. (options.account.auto_scan_menus and "увімкнено" or "вимкнено"))
+            options.account.auto_scan_content = value == "on"
+            options.account.auto_scan_menus = false
+            message("автоскан контенту " .. (options.account.auto_scan_content and "увімкнено" or "вимкнено"))
         elseif command == "menus" then
             message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
         elseif command == "owner" then
@@ -572,7 +559,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         skills.prepare()
         update_target_name()
         scheduler.request("compatibility-scan", nil, function ()
-            local ok, report = pcall(scanner.run)
+            local ok, report = pcall(scanner.run, false)
             if ok then
                 message("перевірка сумісності: " .. scanner.summary(report))
             else

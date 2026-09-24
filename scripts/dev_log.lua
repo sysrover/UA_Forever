@@ -3,6 +3,7 @@ local _, addon_table = ...
 local assets = addon_table.use("assets")
 local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
+local auto_scan = addon_table.use("auto_scan")
 
 local missing
 local scanned_ids
@@ -82,6 +83,10 @@ dev_log.record_id = function (group, id, name, translated)
     if translated == false then
         put(group, id, clean_name or true)
     end
+    if group == "items" or group == "npcs" or group == "quests"
+        or group == "spells" or group == "skills" then
+        auto_scan.record_id(group, id, clean_name, translated)
+    end
 end
 
 dev_log.record_quest_text = function (id, fields, missing_fields)
@@ -112,6 +117,7 @@ dev_log.record_quest_text = function (id, fields, missing_fields)
         end
     end
     scanned_ids.quests[id] = record
+    auto_scan.record_quest(id, fields, missing_fields)
 end
 
 dev_log.issue = function (key, data) put("issues", tostring(key), data) end
@@ -133,8 +139,10 @@ end
 
 dev_log.missing_gossip = function (id, code, text, is_reply)
     put("gossips", tostring(id) .. ":" .. tostring(code), { text, is_reply = is_reply })
+    auto_scan.record_gossip(id, code, text, is_reply)
 end
 
 dev_log.missing_chat_text = function (name, code, text, language)
     put("chats", tostring(name) .. ":" .. tostring(code), { text, language = language })
+    auto_scan.record_chat(name, code, text, language)
 end
