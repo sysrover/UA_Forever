@@ -24,6 +24,7 @@ local known_chat_msg_events = {
 }
 
 local chat_addition_sequence = 0
+local chat_bubble_sequence = 0
 
 chats.styles = {
     { key = "replacement", label = "Заміна" },      -- hand our text to the game and let it print the line as usual
@@ -44,18 +45,27 @@ local function translate_chat_bubble(chat_text, chat_text_uk)
     end
 
     -- chat bubble is not spawned just yet, so we wait a moment
-    scheduler.request("chat-bubble:" .. tostring(chat_text), nil, function ()
+    chat_bubble_sequence = chat_bubble_sequence + 1
+    local key = "chat-bubble:" .. chat_bubble_sequence
+    local attempts = 0
+    local function find_bubble()
+        if not options.can_translate("translate_chat_bubble") then return end
+        attempts = attempts + 1
         local font_string = utils.chat_bubble_font_string_with_text(chat_text)
         if font_string then
             local MAX_CHAT_BUBBLE_WIDTH = 314 -- value observed from default chat bubbles.
-            runtime.apply(font_string, { owner = "chat-bubble", slot = "chat.text",
+            if runtime.apply(font_string, { owner = "chat-bubble", slot = "chat.text",
                 source = chat_text, translated = chat_text_uk,
                 priority = runtime.PRIORITY.DOMAIN,
                 after_apply = function (region)
                     region:SetWidth(math_min(region:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
-                end })
+                end }) then return end
         end
-    end, 0.01)
+        if attempts < 3 then
+            scheduler.request(key, nil, find_bubble, attempts == 1 and 0.05 or 0.15)
+        end
+    end
+    scheduler.request(key, nil, find_bubble, 0.01)
 end
 
 local function resolve_lang_name(chat_frame, lang_name)

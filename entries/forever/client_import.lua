@@ -6137,7 +6137,16 @@ local client_spells = {
     [422621] = { "Підготовка", "Зменшує витрати ресурсів закляттями та здібностями на {1}%.#by {1}%", "Зменшує витрати ресурсів закляттями та здібностями на {1}%.#by {1}%", en="Preparation" },
 }
 addonTable.spell = addonTable.spell or {}
-for id, entry in pairs(client_spells) do addonTable.spell[id] = entry end
+for id, entry in pairs(client_spells) do
+    local curated = addonTable.spell[id]
+    if type(curated) == "table" then
+        for field, value in pairs(entry) do
+            if curated[field] == nil then curated[field] = value end
+        end
+    elseif curated == nil then
+        addonTable.spell[id] = entry
+    end
+end
 local invalid_spells = {
     [132] = true,
     [603] = true,
@@ -19837,7 +19846,16 @@ local client_items = {
     [277977] = { "полотняна сумка із застібкою", en="Canvas Latchbag" },
 }
 addonTable.item = addonTable.item or {}
-for id, entry in pairs(client_items) do addonTable.item[id] = entry end
+for id, entry in pairs(client_items) do
+    local curated = addonTable.item[id]
+    if type(curated) == "table" then
+        for field, value in pairs(entry) do
+            if curated[field] == nil then curated[field] = value end
+        end
+    elseif curated == nil then
+        addonTable.item[id] = entry
+    end
+end
 local invalid_items = {
     [2454] = true,
     [2613] = true,
@@ -20948,4 +20966,8 @@ local client_zones = {
     ["Zuuldaia Ruins"] = "руїни Зуулдая",
 }
 addonTable.zone = addonTable.zone or {}
-for english, ukrainian in pairs(client_zones) do addonTable.zone[english] = ukrainian end
+for english, ukrainian in pairs(client_zones) do
+    if addonTable.zone[english] == nil then
+        addonTable.zone[english] = ukrainian
+    end
+end

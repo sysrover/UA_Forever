@@ -30,6 +30,7 @@ addonTable.forever_ui = {
     ["Cancel"] = "Скасувати",
     ["Close"] = "Закрити",
     ["Description"] = "Опис",
+    ["DESCRIPTION"] = "ОПИС",
     ["Required Items:"] = "Потрібні предмети:",
     ["Quest Log"] = "Журнал завдань",
     ["Quests"] = "Завдання",
@@ -87,6 +88,8 @@ addonTable.forever_ui = {
     ["Warrior"] = "Воїн",
     ["Warlock"] = "Чорнокнижник",
     ["Equipped"] = "Споряджено",
+    ["Cannot change equip status while in combat"] =
+        "Не можна змінювати спорядження під час бою",
     ["Soulbound"] = "Прив’язано до душі",
     ["One-Hand"] = "Одноручна",
     ["Shield"] = "Щит",
@@ -101,6 +104,7 @@ addonTable.forever_ui = {
     ["Fishing"] = "Рибальство",
     ["First Aid"] = "Перша допомога",
     ["Cooking"] = "Кулінарія",
+    ["New Recipe Learned!"] = "Вивчено новий рецепт!",
     ["AddOn Usage"] = "Використання аддонів",
     ["Filter"] = "Фільтр",
     ["Load out of date AddOns"] = "Завантажувати застарілі аддони",
@@ -192,6 +196,10 @@ addonTable.forever_ui = {
     ["Smelting"] = "Переплавлення",
     ["Smelted Bars"] = "Виплавлені злитки",
     ["Smelt Copper"] = "Виплавити мідь",
+    ["Weapon Stones"] = "Точильні камені",
+    ["Mail Chestguards"] = "Кольчужні нагрудники",
+    ["Mail Bracers"] = "Кольчужні наручі",
+    ["Inert Enchanting Rods"] = "Заготовки чарівних жезлів",
     ["Copper Bar"] = "Мідний злиток",
     ["Copper Ore"] = "Мідна руда",
     ["Forge"] = "Кузня",
@@ -220,6 +228,7 @@ addonTable.forever_ui = {
     ["Back"] = "Назад",
     ["Abandon"] = "Відмовитися",
     ["Share"] = "Поділитися",
+    ["Track"] = "Відстежувати",
     ["Untrack"] = "Не відстежувати",
     ["Ah, well aren't you a sturdy-looking one? Perhaps you can assist me with a thing or two. Not much help around here except for green apprentices, and they've other things to worry about."] = "О, а ти міцний на вигляд, еге ж? Можливо, допоможеш мені з дечим. Тут небагато помічників, окрім зелених учнів, та й у них є про що турбуватися.",
     ["Visit a trainer to learn first aid. First aid lets you turn cloth into bandages for healing yourself and others."] = "Відвідайте вчителя, щоб опанувати першу допомогу. Вона дає змогу робити з тканини бинти для лікування себе та інших.",
@@ -235,6 +244,23 @@ local warrior_stances = {
     ["Defensive Stance"] = "захисна стійка",
     ["Berserker Stance"] = "стійка берсерка",
 }
+
+local function translate_requirement(requirement)
+    local skill, rank = requirement:match("^(.-) %((%d+)%)$")
+    local name = skill or requirement
+    local level = name:match("^Level (%d+)$")
+    if level then return "Необхідний рівень " .. level end
+
+    local translated = addonTable.forever_ui and addonTable.forever_ui[name]
+        or addonTable.string and addonTable.string[name]
+    if not translated then
+        local entries = addonTable.use("entries")
+        translated = entries.lookup_name("spell", name)
+            or entries.lookup_name("item", name)
+    end
+    if not translated then return nil end
+    return "Потрібно: " .. translated .. (rank and " (" .. rank .. ")" or "")
+end
 
 addonTable.forever_ui_patterns = {
     {
@@ -253,6 +279,12 @@ addonTable.forever_ui_patterns = {
                 return "Потрібна " .. warrior_stances[stance]
             end
         end,
+    },
+    {
+        -- Blizzard has already formatted Requires %s (%d) before the tooltip
+        -- is rendered. Resolve its visible skill/item name separately.
+        pattern = "^Requires (.+)$",
+        replace = translate_requirement,
     },
     {
         -- RequiredTools contains a clickable hyperlink around the station

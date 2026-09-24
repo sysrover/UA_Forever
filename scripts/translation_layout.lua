@@ -14,7 +14,7 @@ local TOOLTIP_COMPACT_WIDTH = 180
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
     local ok, result = pcall(_G.issecretvalue, value)
-    return ok and result or false
+    return not ok or result == true
 end
 
 local function is_protected_frame(frame)
@@ -39,15 +39,19 @@ local function unbounded_text_width(region)
 end
 
 local function is_button(frame)
-    if not frame or type(frame.GetObjectType) ~= "function" then return false end
-    local ok, object_type = pcall(frame.GetObjectType, frame)
-    return ok and object_type == "Button"
+    if not frame then return false end
+    local method_ok, get_type = pcall(function () return frame.GetObjectType end)
+    if not method_ok or type(get_type) ~= "function" then return false end
+    local ok, object_type = pcall(get_type, frame)
+    return ok and not is_secret(object_type) and object_type == "Button"
 end
 
 local function is_tooltip(frame)
-    if not frame or type(frame.GetObjectType) ~= "function" then return false end
-    local ok, object_type = pcall(frame.GetObjectType, frame)
-    return ok and object_type == "GameTooltip"
+    if not frame then return false end
+    local method_ok, get_type = pcall(function () return frame.GetObjectType end)
+    if not method_ok or type(get_type) ~= "function" then return false end
+    local ok, object_type = pcall(get_type, frame)
+    return ok and not is_secret(object_type) and object_type == "GameTooltip"
 end
 
 local function fit_tooltip_height_to_region(tooltip, region, previous_region_height, previous_tooltip_height)

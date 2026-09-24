@@ -26585,7 +26585,16 @@ local client_spells = {
     [1320658] = { "Розкрийте рій", en="Unleash Swarm" },
 }
 addonTable.spell = addonTable.spell or {}
-for id, entry in pairs(client_spells) do addonTable.spell[id] = entry end
+for id, entry in pairs(client_spells) do
+    local curated = addonTable.spell[id]
+    if type(curated) == "table" then
+        for field, value in pairs(entry) do
+            if curated[field] == nil then curated[field] = value end
+        end
+    elseif curated == nil then
+        addonTable.spell[id] = entry
+    end
+end
 
 local client_items = {
     [41] = { "СТАРИЙПояс новобранця", en="OLDRecruit's Belt" },
@@ -37163,7 +37172,16 @@ local client_items = {
     [286554] = { "Печатка воєначальника", en="Warleader's Signet" },
 }
 addonTable.item = addonTable.item or {}
-for id, entry in pairs(client_items) do addonTable.item[id] = entry end
+for id, entry in pairs(client_items) do
+    local curated = addonTable.item[id]
+    if type(curated) == "table" then
+        for field, value in pairs(entry) do
+            if curated[field] == nil then curated[field] = value end
+        end
+    elseif curated == nil then
+        addonTable.item[id] = entry
+    end
+end
 
 local item_flavor = {
     [728] = "Навчить вас готувати рагу з Вестфоллу.",
@@ -43360,7 +43378,16 @@ local client_npcs = {
     [271486] = { "шаман-вендиго", en="Wendigo Shaman" },
 }
 addonTable.npc = addonTable.npc or {}
-for id, entry in pairs(client_npcs) do addonTable.npc[id] = entry end
+for id, entry in pairs(client_npcs) do
+    local curated = addonTable.npc[id]
+    if type(curated) == "table" then
+        for field, value in pairs(entry) do
+            if curated[field] == nil then curated[field] = value end
+        end
+    elseif curated == nil then
+        addonTable.npc[id] = entry
+    end
+end
 
 local client_objects = {
     ["Dwarven Brazier"] = "дворфійська жаровня",

@@ -1,6 +1,5 @@
 local _, addon_table = ...
 
-local fonts = addon_table.use("fonts")
 local options = addon_table.use("options")
 local strings = addon_table.use("strings")
 local runtime = addon_table.use("translation_runtime")
@@ -8,21 +7,21 @@ local resolver = addon_table.use("translation_resolver")
 local walker = addon_table.use("translation_walker")
 local layout = addon_table.use("translation_layout")
 local debug_name
-local rebound_regions = setmetatable({}, { __mode = "k" })
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
     local ok, result = pcall(_G.issecretvalue, value)
-    return ok and result or false
+    return not ok or result == true
 end
 
 local function is_protected_frame(frame)
     if not frame then return false end
     for _, method in ipairs({ "IsForbidden", "IsProtected" }) do
         local ok_method, callback = pcall(function () return frame[method] end)
+        if not ok_method then return true end
         if ok_method and type(callback) == "function" then
             local ok, result = pcall(callback, frame)
-            if ok and result then return true end
+            if not ok or is_secret(result) or result then return true end
         end
     end
 
@@ -58,7 +57,7 @@ strings.find_ui_translation = function (text, region)
     return resolver.find_ui(text, region)
 end
 
-local function translate_font_string(region, category, slot, surface)
+local function translate_font_string(region, category, slot, surface, phase)
     if not region then return false end
     local methods_ok, get_text, set_text = pcall(function ()
         return region.GetText, region.SetText
@@ -76,7 +75,7 @@ local function translate_font_string(region, category, slot, surface)
     -- even though there is no longer an English string to translate.
     if contains_cyrillic(text) then
         if not options.can_translate("override_system_fonts") then return false end
-        return fonts.apply_to_font_string(region)
+        return runtime.ensure_font(region)
     end
 
     local translated, _, source_kind, inferred_category, inferred_slot =
@@ -100,7 +99,7 @@ local function translate_font_string(region, category, slot, surface)
     local set_ok = runtime.apply(region, {
         owner = "ui", slot = slot or "ui.text", source = text,
         translated = translated, category = category,
-        surface = surface,
+        surface = surface, phase = phase,
         priority = priority, tooltip = is_tooltip(parent) and parent or nil,
         after_apply = function (applied)
             fit_tooltip_width_to_region(parent, applied)
@@ -146,7 +145,7 @@ local function apply_ukrainian_font(region)
     local ok, text = pcall(get_text, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return end
     if contains_cyrillic(text) then
-        fonts.apply_to_font_string(region)
+        runtime.ensure_font(region)
     end
 end
 
@@ -224,37 +223,12 @@ local function capture_frame(frame, seen, depth, stats, allow_protected)
         not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
-local function bind_font_string(region)
-    local quest_root = _G.QuestObjectiveTracker
-    if quest_root then
-        local ancestor = region
-        for _ = 1, 16 do
-            if ancestor == quest_root then return end
-            local ok, parent = pcall(function ()
-                return type(ancestor.GetParent) == "function"
-                    and ancestor:GetParent() or nil
-            end)
-            if not ok or not parent or parent == ancestor then break end
-            ancestor = parent
-        end
-    end
-    if rebound_regions[region] or not region or type(_G.hooksecurefunc) ~= "function"
-        or not region.GetText or not region.SetText or is_protected_frame(region) then return end
-
-    local ok = pcall(hooksecurefunc, region, "SetText", function (self)
-        if runtime.is_applying(self) then return end
-        translate_font_string(self)
-    end)
-    if ok then rebound_regions[region] = true end
-end
-
-local function scan_frame(frame, seen, depth, stats, allow_protected, bind_regions, surface)
+local function scan_frame(frame, seen, stats, allow_protected, surface)
     walker.walk(frame, function (region)
         if translate_font_string(region, nil, nil, surface) then
             stats.translated = stats.translated + 1
         end
         apply_ukrainian_font(region)
-        if bind_regions then bind_font_string(region) end
     end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
@@ -299,6 +273,8 @@ local function allows_protected_children(frame)
         or frame == _G.ItemRefTooltip
         or frame == _G.ShoppingTooltip1
         or frame == _G.ShoppingTooltip2
+        or frame == _G.EmbeddedItemTooltip
+        or frame == _G.BuffFrameTooltip
 end
 
 strings.translate_visible_ui = function ()
@@ -310,17 +286,16 @@ strings.translate_visible_ui = function ()
     local seen = {}
     for _, frame in ipairs(visible_safe_roots()) do
         local tooltip = allows_protected_children(frame)
-        scan_frame(frame, seen, 1, stats, tooltip, not tooltip)
+        scan_frame(frame, seen, stats, tooltip)
     end
     return stats
 end
 
-strings.translate_frame = function (frame, bind_regions, surface)
+strings.translate_frame = function (frame, surface)
     local stats = { frames = 0, translated = 0 }
     if not options.can_translate("translate_string") or not frame then return stats end
     local tooltip = allows_protected_children(frame)
-    scan_frame(frame, {}, 1, stats, tooltip,
-        not tooltip and bind_regions ~= false, surface)
+    scan_frame(frame, {}, stats, tooltip, surface)
     return stats
 end
 

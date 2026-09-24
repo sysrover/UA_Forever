@@ -12,10 +12,14 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
     if not id or type(callback) ~= "function" then return end
     local request = pending[id]
     if request then
-        request.callback = callback
-        request.generation = generation
-        request.owner_surface = owner_surface
-        return
+        if request.generation == generation
+            and request.owner_surface == owner_surface then
+            request.callback = callback
+            return
+        end
+        -- A new generation needs its own timer. The old closure sees that
+        -- its request is no longer pending and cannot run the new callback.
+        pending[id] = nil
     end
     request = { generation = generation, callback = callback,
         owner_surface = owner_surface }

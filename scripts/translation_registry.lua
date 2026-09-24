@@ -19,11 +19,27 @@ registry.get = function (id)
 end
 
 registry.find_frame = function (frame)
+    if not frame then return nil end
     for _, surface in pairs(surfaces) do
         for _, root in ipairs(surface.roots or {}) do
             if _G[root] == frame then return surface end
         end
     end
+end
+
+registry.prepare_root_hooks = function ()
+    local hook_module = addon_table.use("translation_hooks")
+    if type(hook_module.bind) ~= "function" then return end
+    local hooks = hook_module.bind("registry")
+    registry.each(function (surface)
+        if type(surface.static) ~= "function" then return end
+        for _, name in ipairs(surface.roots or {}) do
+            local frame = _G[name]
+            hooks.region_script(frame, "OnShow", function ()
+                registry.refresh(surface.id)
+            end)
+        end
+    end)
 end
 
 registry.register_defaults = function (translate_frame)
@@ -101,7 +117,9 @@ registry.register_defaults = function (translate_frame)
             id = group[1], roots = roots, name_category = group[3],
             domains = { "ui", "context" },
             protected = group[1] == "game-menu" or group[1] == "skills",
-            dynamic_hooks = meta.hooks or {}, slots = meta.slots or { "ui.text" },
+            static_hooks = { "OnShow", "ShowUIPanel" },
+            dynamic_hooks = meta.hooks or { "PanelTemplates_SetTab" },
+            slots = meta.slots or { "ui.text" },
             clear_on_reuse = true,
             static = function (surface)
                 for _, name in ipairs(roots) do
@@ -109,10 +127,7 @@ registry.register_defaults = function (translate_frame)
                     if frame and frame.IsShown then
                         local ok, shown = pcall(frame.IsShown, frame)
                         if ok and shown then
-                            local managed = group[1] == "lfg" or group[1] == "settings"
-                                or group[1] == "skills" or group[1] == "game-menu"
-                                or name == "MerchantFrame" or name == "GossipFrame"
-                            translate_frame(frame, not managed, surface)
+                            translate_frame(frame, surface)
                         end
                     end
                 end
@@ -131,7 +146,8 @@ registry.register_defaults = function (translate_frame)
     end
     registry.register_surface({
         id = "tooltip", roots = { "GameTooltip", "ItemRefTooltip",
-            "ShoppingTooltip1", "ShoppingTooltip2" },
+            "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+            "BuffFrameTooltip" },
         domains = { "npc", "item", "quest", "spell", "zone", "ui" },
         slots = { "npc.name", "npc.subtitle", "item.name", "item.use", "quest.name",
             "spell.name", "skill.name", "zone.name", "spell.description",
@@ -156,6 +172,7 @@ registry.register_defaults = function (translate_frame)
         protected = true, clear_on_reuse = true,
     })
     registry.register_surface({ id = "npc-world", roots = { "TargetFrame" },
+        unit_roots = { "target", "nameplate%d+" }, name_category = "none",
         domains = { "npc" }, slots = { "npc.name" },
         dynamic_hooks = { "PLAYER_TARGET_CHANGED", "CompactUnitFrame_UpdateName" },
         protected = true, clear_on_reuse = true })
@@ -177,10 +194,16 @@ registry.refresh = function (id, phase)
         if callback then callback(surface) end
         return
     end
+    if surface.refresh_pending then return end
+    surface.refresh_pending = true
     surface.generation = surface.generation + 1
     runtime.next_generation(surface)
     local generation = surface.generation
     scheduler.request(id, generation, function ()
+        surface.refresh_pending = false
+        if type(surface.is_open) == "function" and not surface.is_open() then
+            return
+        end
         if surface.static then surface.static(surface) end
         if surface.dynamic then surface.dynamic(surface) end
     end)

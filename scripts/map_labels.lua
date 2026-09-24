@@ -7,23 +7,7 @@ local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local translation = addon_table.use("translation")
 local walker = addon_table.use("translation_walker")
-
-local provider_hooked
-local minimap_hooked
-local zone_event_hooked
-local subzone_load_hooked
-local scenario_hooked
-local widget_zone_hooked = {}
-local queue_zone_hooked
-local queue_menu_hooked
-local zone_label_hooked
-local adventure_zone_hooked
-local worldmap_menu_hooked
-local worldmap_nav_hooked
-local story_header_hooked
-local story_tooltip_hooked
-local worldmap_coords_hooked
-local hooked_labels = setmetatable({}, { __mode = "k" })
+local hooks = addon_table.use("translation_hooks").bind("map-labels")
 
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
@@ -112,10 +96,7 @@ local function after_evaluate(label)
 end
 
 local function hook_label(label)
-    if not label or hooked_labels[label]
-        or type(label.EvaluateLabels) ~= "function" then return end
-    local ok = pcall(_G.hooksecurefunc, label, "EvaluateLabels", after_evaluate)
-    if ok then hooked_labels[label] = true end
+    hooks.region(label, "EvaluateLabels", after_evaluate)
 end
 
 local function after_minimap_update()
@@ -542,104 +523,48 @@ local function after_worldmap_menu(owner)
 end
 
 map_labels.prepare = function ()
-    if type(_G.hooksecurefunc) ~= "function" then return end
-    if not minimap_hooked and type(_G.Minimap_Update) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "Minimap_Update", after_minimap_update)
-        if ok then minimap_hooked = true end
-    end
-    if not zone_event_hooked and type(_G.ZoneText_OnEvent) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "ZoneText_OnEvent", after_zone_text_event)
-        if ok then zone_event_hooked = true end
-    end
-    if not subzone_load_hooked and type(_G.SubZoneText_OnLoad) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "SubZoneText_OnLoad", after_subzone_load)
-        if ok then subzone_load_hooked = true end
-    end
-    local scenario = _G.ScenarioObjectiveTrackerMixin
-    if not scenario_hooked and scenario
-        and type(scenario.LayoutContents) == "function" then
-        local ok = pcall(_G.hooksecurefunc, scenario, "LayoutContents",
-            after_scenario_layout)
-        if ok then scenario_hooked = true end
-    end
+    hooks.global("Minimap_Update", after_minimap_update)
+    hooks.global("ZoneText_OnEvent", after_zone_text_event)
+    hooks.global("SubZoneText_OnLoad", after_subzone_load)
+    -- ZoneTextFrame's XML script keeps its own function reference. Hook the
+    -- frame event as well so each newly written area name is translated.
+    hooks.region_script(_G.ZoneTextFrame, "OnEvent", after_zone_text_event,
+        "zone-announcement")
+    hooks.region_script(_G.ZoneTextFrame, "OnShow", after_zone_text_event,
+        "zone-announcement")
+    hooks.region_script(_G.SubZoneTextFrame, "OnShow", after_zone_text_event,
+        "subzone-announcement")
+    hooks.region(_G.ScenarioObjectiveTrackerMixin, "LayoutContents",
+        after_scenario_layout)
     local widget = _G.UIWidgetObjectiveTrackerMixin
-    if widget then
-        for _, method in ipairs({ "OnEvent", "LayoutContents" }) do
-            if not widget_zone_hooked[method]
-                and type(widget[method]) == "function" then
-                local ok = pcall(_G.hooksecurefunc, widget, method,
-                    after_widget_zone)
-                if ok then widget_zone_hooked[method] = true end
-            end
-        end
+    for _, method in ipairs({ "OnEvent", "LayoutContents" }) do
+        hooks.region(widget, method, after_widget_zone)
     end
-    if not queue_zone_hooked
-        and type(_G.QueueStatusEntry_SetUpActiveWorldPVP) == "function" then
-        local ok = pcall(_G.hooksecurefunc,
-            "QueueStatusEntry_SetUpActiveWorldPVP", after_queue_zone)
-        if ok then queue_zone_hooked = true end
-    end
-    local queue_button = _G.QueueStatusButtonMixin
-    if not queue_menu_hooked and queue_button
-        and type(queue_button.ShowContextMenu) == "function" then
-        local ok = pcall(_G.hooksecurefunc, queue_button,
-            "ShowContextMenu", after_queue_menu)
-        if ok then queue_menu_hooked = true end
-    end
-    local provider = _G.AreaLabelDataProviderMixin
-    if not provider_hooked and provider and type(provider.OnAdded) == "function" then
-        local ok = pcall(_G.hooksecurefunc, provider, "OnAdded", function (self)
-            hook_label(self and self.Label)
-        end)
-        if ok then provider_hooked = true end
-    end
-    local zone_label = _G.ZoneLabelDataProviderMixin
-    if not zone_label_hooked and zone_label
-        and type(zone_label.EvaluateBestAreaTrigger) == "function" then
-        local ok = pcall(_G.hooksecurefunc, zone_label,
-            "EvaluateBestAreaTrigger", after_zone_label_evaluation)
-        if ok then zone_label_hooked = true end
-    end
-    local adventure = _G.AdventureMap_ZoneSummaryProviderMixin
-    if not adventure_zone_hooked and adventure
-        and type(adventure.RefreshAllData) == "function" then
-        local ok = pcall(_G.hooksecurefunc, adventure,
-            "RefreshAllData", after_adventure_zone_refresh)
-        if ok then adventure_zone_hooked = true end
-    end
+    hooks.global("QueueStatusEntry_SetUpActiveWorldPVP", after_queue_zone)
+    hooks.region(_G.QueueStatusButtonMixin, "ShowContextMenu", after_queue_menu)
+    hooks.region(_G.AreaLabelDataProviderMixin, "OnAdded", function (self)
+        hook_label(self and self.Label)
+    end)
+    hooks.region(_G.ZoneLabelDataProviderMixin, "EvaluateBestAreaTrigger",
+        after_zone_label_evaluation)
+    hooks.region(_G.AdventureMap_ZoneSummaryProviderMixin, "RefreshAllData",
+        after_adventure_zone_refresh)
     local menu_api = _G.Menu
-    if not worldmap_menu_hooked and menu_api
-        and type(menu_api.ModifyMenu) == "function" then
-        local ok = pcall(menu_api.ModifyMenu, "MENU_MINIMAP_BATTLEFIELD",
-            after_worldmap_menu)
-        if ok then worldmap_menu_hooked = true end
+    if menu_api and type(menu_api.ModifyMenu) == "function" then
+        hooks.once("MENU_MINIMAP_BATTLEFIELD", function ()
+            return pcall(menu_api.ModifyMenu, "MENU_MINIMAP_BATTLEFIELD",
+                after_worldmap_menu)
+        end)
     end
-    local nav = _G.WorldMapNavBarMixin
-    if not worldmap_nav_hooked and nav and type(nav.Refresh) == "function" then
-        local ok = pcall(_G.hooksecurefunc, nav, "Refresh",
-            after_worldmap_nav_refresh)
-        if ok then worldmap_nav_hooked = true end
-    end
-    local coords = _G.WorldMapCoordsPanelMixin
-    if not worldmap_coords_hooked and coords
-        and type(coords.OnUpdate) == "function" then
-        local ok = pcall(_G.hooksecurefunc, coords, "OnUpdate",
-            after_worldmap_coords_update)
-        if ok then worldmap_coords_hooked = true end
-    end
-    if not story_header_hooked
-        and type(_G.QuestLogQuests_Update) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "QuestLogQuests_Update",
-            after_story_header_update)
-        if ok then story_header_hooked = true end
-    end
-    local story = _G.StoryHeaderMixin
-    if not story_tooltip_hooked and story
-        and type(story.ShowTooltip) == "function" then
-        local ok = pcall(_G.hooksecurefunc, story, "ShowTooltip",
-            after_story_tooltip)
-        if ok then story_tooltip_hooked = true end
-    end
+    -- XML mixes Refresh into the already-created nav frame. The mixin hook
+    -- only covers instances created after this point.
+    local world_map = _G.WorldMapFrame
+    hooks.region(world_map and world_map.NavBar, "Refresh",
+        after_worldmap_nav_refresh)
+    hooks.region(_G.WorldMapNavBarMixin, "Refresh", after_worldmap_nav_refresh)
+    hooks.region(_G.WorldMapCoordsPanelMixin, "OnUpdate", after_worldmap_coords_update)
+    hooks.global("QuestLogQuests_Update", after_story_header_update)
+    hooks.region(_G.StoryHeaderMixin, "ShowTooltip", after_story_tooltip)
     for _, name in ipairs({ "WorldMapFrame", "FlightMapFrame" }) do
         local map = _G[name]
         local providers = map and map.dataProviders

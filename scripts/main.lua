@@ -22,6 +22,7 @@ local registry = addon_table.use("translation_registry")
 local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
+local hooks = addon_table.use("translation_hooks").bind("main")
 local utils = addon_table.use("utils")
 
 local function message(text)
@@ -30,53 +31,85 @@ local function message(text)
     end
 end
 
+local function is_secret(value)
+    if type(_G.issecretvalue) ~= "function" then return false end
+    local ok, secret = pcall(_G.issecretvalue, value)
+    return not ok or secret == true
+end
+
+local function safe_unit_name(unit)
+    if type(unit) ~= "string" or is_secret(unit) then return nil end
+    local ok, name = pcall(UnitName, unit)
+    if ok and type(name) == "string" and not is_secret(name) and name ~= "" then
+        return name
+    end
+end
+
 local function translated_npc_name(unit)
     if not options.can_translate("translate_npc") then return nil end
     local id = utils.npc_id_from_unit_id(unit)
     local entry = id and entries.get_entry("npc", id)
+    local source = id and safe_unit_name(unit)
     if id then
-        dev_log.record_id("npcs", id, UnitName(unit), entry ~= nil)
-        if not entry then dev_log.missing_npc(id, UnitName(unit)) end
+        dev_log.record_id("npcs", id, source, entry ~= nil)
+        if not entry then dev_log.missing_npc(id, source) end
     end
-    return entry and utils.cap(entry[1]) or nil
+    return entry and utils.cap(entry[1]) or nil, source
 end
 
 local function target_name_region()
     if not TargetFrame then return nil end
-    if TargetFrame.name then return TargetFrame.name end
-
-    local content = TargetFrame.TargetFrameContent
-    local main = content and content.TargetFrameContentMain
-    return main and (main.Name or main.name) or nil
+    local ok, region = pcall(function ()
+        if TargetFrame.name then return TargetFrame.name end
+        local content = TargetFrame.TargetFrameContent
+        local main = content and content.TargetFrameContentMain
+        return main and (main.Name or main.name) or nil
+    end)
+    return ok and region or nil
 end
 
 local function update_target_name()
-    if type(_G.issecretvalue) == "function" then return end
     if not options.can_lookup("translate_npc", "translate_npc_target_frame") then return end
     local id = utils.npc_id_from_unit_id("target")
     if not id then return end
 
     local entry = entries.get_entry("npc", id)
-    dev_log.record_id("npcs", id, UnitName("target"), entry ~= nil)
+    local source = safe_unit_name("target")
+    dev_log.record_id("npcs", id, source, entry ~= nil)
     if not entry then
-        dev_log.missing_npc(id, UnitName("target"))
+        dev_log.missing_npc(id, source)
         return
     end
 
     local region = target_name_region()
-    if region and region.SetText and options.can_translate("translate_npc", "translate_npc_target_frame") then
+    if source and region
+        and options.can_translate("translate_npc", "translate_npc_target_frame") then
+        local visible_ok, visible = pcall(function () return region:GetText() end)
+        local claim = runtime.get(region)
+        if not visible_ok or is_secret(visible)
+            or (visible ~= source
+                and not (claim and claim.source == source
+                    and visible == claim.translated)) then return end
         runtime.apply(region, { owner = "npc-target", slot = "npc.name",
-            source = UnitName("target"), translated = utils.cap(entry[1]),
+            source = source, translated = utils.cap(entry[1]),
             priority = runtime.PRIORITY.DOMAIN })
     end
 end
 
 local function update_quest_npc_name()
     if not options.can_translate("translate_npc") then return end
-    local name = translated_npc_name("questnpc") or translated_npc_name("npc")
-    if name and QuestFrameNpcNameText and QuestFrameNpcNameText.SetText then
+    local name, source = translated_npc_name("questnpc")
+    if not name then name, source = translated_npc_name("npc") end
+    if name and source and QuestFrameNpcNameText then
+        local region = QuestFrameNpcNameText
+        local visible_ok, visible = pcall(function () return region:GetText() end)
+        local claim = runtime.get(region)
+        if not visible_ok or is_secret(visible)
+            or (visible ~= source
+                and not (claim and claim.source == source
+                    and visible == claim.translated)) then return end
         runtime.apply(QuestFrameNpcNameText, { owner = "quest-npc", slot = "npc.name",
-            source = UnitName("questnpc") or UnitName("npc"), translated = name,
+            source = source, translated = name,
             priority = runtime.PRIORITY.DOMAIN })
     end
 end
@@ -121,10 +154,8 @@ local function opened_panel(frame)
     -- hooks. Running the generic delayed walker as well causes a visible
     -- second replacement pass and can touch protected internal controls.
     if frame ~= _G.GameMenuFrame and frame ~= _G.SettingsPanel then
-        -- ShowUIPanel is post-hooked, so all native SetText calls for the
-        -- initial view have completed. Bind visible safe FontStrings now;
-        -- future pooled-row refreshes are translated synchronously by their
-        -- own SetText calls rather than by a visible delayed second pass.
+        -- ShowUIPanel runs after the native initial text writes. The surface
+        -- refresh handles static labels; pooled rows have domain post-hooks.
         local surface = registry.find_frame(frame)
         if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
     end
@@ -132,34 +163,13 @@ local function opened_panel(frame)
 end
 
 local function selected_tab(frame, tab)
-    -- PanelTemplates_SetTab is post-hooked: translate the selected panel in
-    -- the same call instead of scheduling a second visible replacement pass.
+    -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
     if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
     local frame_key = scanner.frame_key(frame)
     if frame_key then
         schedule_menu_scan(scanner.menu_key(frame_key .. ":tab", tab, frame))
     end
-end
-
-local panel_hooks = {}
-
-local function hook_global_once(name, callback)
-    if panel_hooks[name] or type(_G[name]) ~= "function" then return end
-    hooksecurefunc(name, callback)
-    panel_hooks[name] = true
-end
-
-local function hook_frame_on_show_once(key, frame)
-    if panel_hooks[key] or not frame or not frame.HookScript then return end
-    frame:HookScript("OnShow", opened_panel)
-    panel_hooks[key] = true
-end
-
-local function hook_owner_once(key, owner, method, callback)
-    if panel_hooks[key] or not owner or type(owner[method]) ~= "function" then return end
-    local ok = pcall(hooksecurefunc, owner, method, callback)
-    if ok then panel_hooks[key] = true end
 end
 
 local function translate_character_subframe(_, subframe_name)
@@ -176,51 +186,59 @@ end
 
 local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
-    hook_global_once("ShowUIPanel", opened_panel)
-    hook_global_once("PanelTemplates_SetTab", selected_tab)
-    hook_global_once("QuestFrame_SetPortrait", update_quest_npc_name)
+    hooks.global("ShowUIPanel", opened_panel)
+    hooks.global("PanelTemplates_SetTab", selected_tab)
+    hooks.global("QuestFrame_SetPortrait", update_quest_npc_name)
     -- QuestInfo_Display and ShowRewards have domain post-hooks in quest_ui and
     -- items; refreshing every open surface here would rescan the entire map
     -- for a single quest text update.
 
-    hook_frame_on_show_once("ContainerFrameCombinedBags.OnShow", _G.ContainerFrameCombinedBags)
-    hook_frame_on_show_once("ObjectiveTrackerFrame.OnShow", _G.ObjectiveTrackerFrame)
+    hooks.region_script(_G.ContainerFrameCombinedBags, "OnShow", opened_panel)
+    hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow", opened_panel)
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
-    hook_frame_on_show_once("MacroFrame.OnShow", _G.MacroFrame)
+    hooks.region_script(_G.MacroFrame, "OnShow", opened_panel)
 
     -- Camelot's character tabs and the equipment manager are not opened with
     -- ShowUIPanel. Hook their real owners after Blizzard has populated text.
-    hook_owner_once("CharacterFrame.ShowSubFrame", _G.CharacterFrame,
-        "ShowSubFrame", translate_character_subframe)
-    hook_owner_once("CharacterFrame.UpdateTitle", _G.CharacterFrame,
-        "UpdateTitle", translate_character_title)
+    hooks.region(_G.CharacterFrame, "ShowSubFrame", translate_character_subframe)
+    hooks.region(_G.CharacterFrame, "UpdateTitle", translate_character_title)
     translate_character_title(_G.CharacterFrame)
     local paper_doll = _G.PaperDollFrame
-    hook_frame_on_show_once("PaperDollFrame.EquipmentManagerPane.OnShow",
-        paper_doll and paper_doll.EquipmentManagerPane)
+    hooks.region_script(paper_doll and paper_doll.EquipmentManagerPane,
+        "OnShow", opened_panel)
 end
 
 local function prepare_nameplates()
-    if type(_G.issecretvalue) == "function" then return end
-    if type(_G.CompactUnitFrame_UpdateName) ~= "function" or type(_G.hooksecurefunc) ~= "function" then
-        return
-    end
-
-    hooksecurefunc("CompactUnitFrame_UpdateName", function (frame)
-        if not frame or not frame.unit or not options.can_translate("translate_npc", "translate_nameplates") then
+    hooks.global("CompactUnitFrame_UpdateName", function (frame)
+        if not frame or not options.can_translate("translate_npc", "translate_nameplates") then
             return
         end
-        if frame.IsForbidden and frame:IsForbidden() then return end
-
-        local name = translated_npc_name(frame.unit)
-        local region = frame.name or frame.Name
-        if name and region and region.SetText then
+        local frame_ok, unit, region, is_forbidden = pcall(function ()
+            return frame.unit, frame.name or frame.Name, frame.IsForbidden
+        end)
+        if not frame_ok or type(unit) ~= "string" or is_secret(unit)
+            or not unit:match("^nameplate%d+$")
+            or not region then return end
+        if type(is_forbidden) == "function" then
+            local ok, forbidden = pcall(is_forbidden, frame)
+            if not ok or is_secret(forbidden) or forbidden then return end
+        end
+        local source = safe_unit_name(unit)
+        if not source then return end
+        local text_ok, visible = pcall(function () return region:GetText() end)
+        if not text_ok or is_secret(visible) or visible ~= source then return end
+        local name = translated_npc_name(unit)
+        if name then
             runtime.apply(region, { owner = "npc-nameplate", slot = "npc.name",
-                source = UnitName(frame.unit), translated = name,
+                source = source, translated = name,
                 priority = runtime.PRIORITY.DOMAIN })
         end
     end)
+end
+
+local function prepare_target_frame()
+    hooks.region(_G.TargetFrame, "Update", update_target_name)
 end
 
 local function missing_count()
@@ -293,8 +311,10 @@ local function register_slash_command()
             end
         elseif command == "tooltip" then
             local tooltip
-            for _, candidate in ipairs({ _G.GameTooltip, _G.ItemRefTooltip,
-                _G.ShoppingTooltip1, _G.ShoppingTooltip2 }) do
+            for _, name in ipairs({ "GameTooltip", "ItemRefTooltip",
+                "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+                "BuffFrameTooltip" }) do
+                local candidate = _G[name]
                 if candidate and type(candidate.IsShown) == "function" then
                     local ok, shown = pcall(candidate.IsShown, candidate)
                     if ok and shown then tooltip = candidate break end
@@ -456,7 +476,8 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
     if event == "ADDON_LOADED" then
         local loaded_addon = ...
         if loaded_addon ~= addon_name then
-            if self.uaForeverReady and type(loaded_addon) == "string" and loaded_addon:find("^Blizzard_") then
+            if self.uaForeverLoginReady and type(loaded_addon) == "string"
+                and loaded_addon:find("^Blizzard_") then
                 quest_switcher.prepare()
                 quest_ui.prepare()
                 gossip_ui.prepare()
@@ -468,6 +489,9 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 menus_ui.prepare()
                 items.prepare()
                 skills.prepare()
+                prepare_nameplates()
+                prepare_target_frame()
+                registry.prepare_root_hooks()
                 schedule_panel_refresh()
             end
             return
@@ -496,9 +520,11 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         translation.prepare()
         resolver.prepare()
         registry.register_defaults(strings.translate_frame)
+        registry.prepare_root_hooks()
         tooltips.prepare()
         chats.prepare()
         prepare_nameplates()
+        prepare_target_frame()
         prepare_panel_hooks()
         settings_ui.prepare()
         menus_ui.prepare()
@@ -518,6 +544,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 message("сканер сумісності завершився помилкою; увімкніть /uaf dev on")
             end
         end, 2)
+        self.uaForeverLoginReady = true
         show_status()
 
     elseif event == "PLAYER_ENTERING_WORLD" then

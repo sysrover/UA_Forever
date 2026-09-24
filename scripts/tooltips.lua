@@ -8,6 +8,7 @@ local layout = addon_table.use("translation_layout")
 local translation = addon_table.use("translation")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
+local hooks = addon_table.use("translation_hooks").bind("tooltips")
 local tooltips = addon_table.use("tooltips")
 local utils = addon_table.use("utils")
 local tooltip_line
@@ -63,12 +64,12 @@ local function first_template_part(text)
     return text:match("^(.-)#") or text
 end
 
-local function make_text(text, tooltip)
+local function make_text(text, tooltip, source_line)
     if type(text) ~= "string" then
         return nil
     end
 
-    local ok, result = pcall(entries.make_entry_text, text, tooltip)
+    local ok, result = pcall(entries.make_entry_text, text, tooltip, nil, source_line)
     result = ok and result or first_template_part(text)
     if type(result) ~= "string" or result:find("{%d+}") then
         return nil
@@ -139,7 +140,7 @@ local function aura_spell_id_from_title(title)
     return nil
 end
 
-local function set_tooltip_translation(tooltip, region, source, translated, slot, category, owner, source_kind)
+local function set_tooltip_translation(tooltip, region, source, translated, slot, category, owner, source_kind, allow_fallback, adjust_layout)
     if not tooltip or type(translated) ~= "string" or translated == "" then return false end
     if type(source) == "string" and not is_secret(source)
         and translated == source then return false end
@@ -166,10 +167,13 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     local domain_options = owner == "npc-tooltip"
         and { "translate_npc", "translate_npc_tooltip" } or nil
     if region and not options.is_bilingual_tooltip() then
-        local previous_height = layout.safe_dimension(region, "GetStringHeight")
-            or layout.safe_dimension(region, "GetHeight")
-        local previous_tooltip_height = previous_height
-            and layout.safe_dimension(tooltip, "GetHeight") or nil
+        local previous_height, previous_tooltip_height
+        if adjust_layout ~= false then
+            previous_height = layout.safe_dimension(region, "GetStringHeight")
+                or layout.safe_dimension(region, "GetHeight")
+            previous_tooltip_height = previous_height
+                and layout.safe_dimension(tooltip, "GetHeight") or nil
+        end
         local ok = runtime.apply(region, {
             owner = owner or "tooltip", slot = slot, source = source,
             translated = translated, priority = priority, category = category,
@@ -177,10 +181,12 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             generation = tooltip.uaForeverGeneration, tooltip = tooltip,
             allow_unknown_source = true,
             after_apply = function (applied)
-                layout.fit_tooltip_width_to_region(tooltip, applied)
-                layout.fit_tooltip_height_to_region(tooltip, applied,
-                    previous_height, previous_tooltip_height)
-                layout.fit_bag_tooltip_width(tooltip, applied, source)
+                if adjust_layout ~= false then
+                    layout.fit_tooltip_width_to_region(tooltip, applied)
+                    layout.fit_tooltip_height_to_region(tooltip, applied,
+                        previous_height, previous_tooltip_height)
+                    layout.fit_bag_tooltip_width(tooltip, applied, source)
+                end
             end,
         })
         if ok then
@@ -192,6 +198,8 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             return true
         end
     end
+
+    if allow_fallback == false then return false end
 
     -- A rejected generic write must not reappear as an addon-owned line when
     -- a domain or context handler already owns this FontString.
@@ -256,7 +264,20 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     return ok
 end
 
-local function rewrite_generic_lines(tooltip, line_count, first_index)
+tooltips.translate_profession_recipe = function (tooltip, english)
+    if not tooltip or type(english) ~= "string" or is_secret(english) then return end
+    local source, region = tooltip_line(tooltip, "Left", 1)
+    if not region or source ~= english then return end
+    local translated = entries.lookup_name("spell", english)
+        or entries.lookup_name("item", english)
+    if not translated then return end
+    if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
+    tooltip.uaForeverReservedFirst = 2
+    set_tooltip_translation(tooltip, region, source, utils.cap(translated),
+        "skill.name", "skill", "spell-tooltip")
+end
+
+local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fallback, adjust_layout)
     line_count = safe_number(line_count)
     if not line_count then
         local ok_count, value = pcall(tooltip.NumLines, tooltip)
@@ -275,11 +296,13 @@ local function rewrite_generic_lines(tooltip, line_count, first_index)
         local translated_right, _, right_kind = strings.find_ui_translation(right, right_region)
         if translated_left and translated_left ~= left then
             if set_tooltip_translation(tooltip, left_region, left, translated_left,
-                "generic.left:" .. index, nil, "generic", left_kind) then applied = applied + 1 end
+                "generic.left:" .. index, nil, "generic", left_kind,
+                allow_fallback, adjust_layout) then applied = applied + 1 end
         end
         if translated_right and translated_right ~= right then
             if set_tooltip_translation(tooltip, right_region, right, translated_right,
-                "generic.right:" .. index, nil, "generic", right_kind) then applied = applied + 1 end
+                "generic.right:" .. index, nil, "generic", right_kind,
+                allow_fallback, adjust_layout) then applied = applied + 1 end
         end
     end
     return applied
@@ -340,6 +363,197 @@ local function translate_item_lines(tooltip, entry, line_count)
     return applied
 end
 
+local function item_field_text(value, tooltip, source_line)
+    if type(value) == "number" then
+        local spell = entries.get_entry("spell", value)
+        value = spell and spell[2]
+    end
+    return type(value) == "string" and make_text(value, tooltip, source_line) or nil
+end
+
+local function item_field_values(value)
+    if type(value) == "table" then return value end
+    return value and { value } or {}
+end
+
+local function item_field_source_pattern(value)
+    local raw = value
+    if type(value) == "number" then
+        local spell = entries.get_entry("spell", value)
+        raw = spell and spell[2]
+    end
+    local hint = type(raw) == "string" and raw:match("#([^#]+)") or nil
+    if not hint or hint == "" then return nil end
+    return hint:lower():gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+        :gsub("{%d+}", "[%%d,.]+")
+end
+
+local function match_item_effects(effect)
+    local values = effect.values
+    local lines = effect.lines
+    local matched = {}
+    if #values == 1 then
+        if effect.used[1] then return matched end
+        local pattern = item_field_source_pattern(values[1])
+        if pattern then
+            local found
+            for _, line in ipairs(lines) do
+                if line.visible:lower():find(pattern) then
+                    if found then return matched end
+                    found = line.index
+                end
+            end
+            if found then matched[found] = 1 end
+        elseif #lines == 1 then
+            matched[lines[1].index] = 1
+        end
+        return matched
+    end
+
+    local candidates, hints = {}, {}
+    for value_index, value in ipairs(values) do
+        local pattern = item_field_source_pattern(value)
+        hints[value_index] = pattern
+        candidates[value_index] = {}
+        if pattern and not effect.used[value_index] then
+            for _, line in ipairs(lines) do
+                if line.visible:lower():find(pattern) then
+                    local possible = candidates[value_index]
+                    possible[#possible + 1] = line.index
+                end
+            end
+        end
+    end
+
+    local used_values = {}
+    local used_count = 0
+    for value_index in pairs(effect.used) do
+        used_values[value_index] = true
+        used_count = used_count + 1
+    end
+    local changed = true
+    while changed do
+        changed = false
+        local singles, conflicts = {}, {}
+        for value_index, possible in ipairs(candidates) do
+            if not used_values[value_index] then
+                local available
+                local count = 0
+                for _, line_index in ipairs(possible) do
+                    if not matched[line_index] then
+                        available = line_index
+                        count = count + 1
+                    end
+                end
+                if count == 1 then
+                    if singles[available] then conflicts[available] = true end
+                    singles[available] = value_index
+                end
+            end
+        end
+        for line_index, value_index in pairs(singles) do
+            if not conflicts[line_index] then
+                matched[line_index] = value_index
+                used_values[value_index] = true
+                changed = true
+            end
+        end
+    end
+
+    if #lines + used_count == #values then
+        local remaining_value, remaining_line, value_count, line_count
+            = nil, nil, 0, 0
+        for value_index in ipairs(values) do
+            if not used_values[value_index] then
+                remaining_value = value_index
+                value_count = value_count + 1
+            end
+        end
+        for _, line in ipairs(lines) do
+            if not matched[line.index] then
+                remaining_line = line.index
+                line_count = line_count + 1
+            end
+        end
+        if value_count == 1 and line_count == 1
+            and not hints[remaining_value] then
+            matched[remaining_line] = remaining_value
+        end
+    end
+    return matched
+end
+
+local function translate_item_fields(tooltip, entry, line_count)
+    local ok, count = pcall(tooltip.NumLines, tooltip)
+    count = line_count or (ok and safe_number(count)) or MAX_TOOLTIP_LINES
+    local effects = {
+        equip = { values = item_field_values(entry.equip), lines = {}, used = {},
+            prefix = "Екіпірування:" },
+        hit = { values = item_field_values(entry.hit), lines = {}, used = {},
+            prefix = "При влучанні:" },
+    }
+    for index = 2, math.min(count, MAX_TOOLTIP_LINES) do
+        local source, region = tooltip_line(tooltip, "Left", index)
+        local visible = normalized_tooltip_text(source)
+        local claim = region and runtime.get(region)
+        if claim and claim.owner == "item-tooltip" then
+            local equip_index = claim.slot:match("^item%.equip:(%d+)$")
+            local hit_index = claim.slot:match("^item%.hit:(%d+)$")
+            if equip_index then effects.equip.used[tonumber(equip_index)] = true end
+            if hit_index then effects.hit.used[tonumber(hit_index)] = true end
+        end
+        local effect = visible and visible:match("^Equip:%s*")
+            and effects.equip or visible and visible:match("^Chance on hit:%s*")
+            and effects.hit or nil
+        if effect then
+            effect.lines[#effect.lines + 1] = { index = index, visible = visible }
+        end
+    end
+    effects.equip.matches = match_item_effects(effects.equip)
+    effects.hit.matches = match_item_effects(effects.hit)
+    local applied = 0
+    for index = 2, math.min(count, MAX_TOOLTIP_LINES) do
+        local source, region = tooltip_line(tooltip, "Left", index)
+        local visible = normalized_tooltip_text(source)
+        if visible and region then
+            local value, slot
+            if visible:match("^Equip:%s*") then
+                local effect = effects.equip
+                local value_index = effect.matches[index]
+                value = value_index and item_field_text(effect.values[value_index], tooltip, visible)
+                if value then value = effect.prefix .. " " .. value end
+                slot = value_index and "item.equip:" .. value_index
+            elseif visible:match("^Chance on hit:%s*") then
+                local effect = effects.hit
+                local value_index = effect.matches[index]
+                value = value_index and item_field_text(effect.values[value_index], tooltip, visible)
+                if value then value = effect.prefix .. " " .. value end
+                slot = value_index and "item.hit:" .. value_index
+            elseif type(entry.flavor) == "string"
+                and visible:match('^".*"$') then
+                value = item_field_text(entry.flavor, tooltip)
+                if value then value = '"' .. value .. '"' end
+                slot = "item.flavor"
+            elseif type(entry.desc) == "string"
+                and (visible:match("^Adds [%d.,]+ damage per second%.?$")
+                    or visible:match("^%d+ Slot Herb Bag$")) then
+                local number = entry.desc:match("[%d.,]+")
+                if number and visible:find(number, 1, true) then
+                    value = item_field_text(entry.desc, tooltip)
+                end
+                slot = "item.description"
+            end
+            local claim = runtime.get(region)
+            if value and (not claim or claim.owner ~= "item-tooltip")
+                and set_tooltip_translation(tooltip, region, source, value,
+                    slot, nil, "item-tooltip") then
+                applied = applied + 1
+            end
+        end
+    end
+    return applied
+end
+
 local function add_item(tooltip, id)
     if not options.can_lookup("translate_item") then return false end
     local entry = entries.get_entry("item", id)
@@ -367,6 +581,7 @@ local function add_item(tooltip, id)
     end
     local use_applied = translate_item_use(tooltip, entry, line_count)
     local description_count = translate_item_lines(tooltip, entry, line_count)
+        + translate_item_fields(tooltip, entry, line_count)
     local generic_count = rewrite_generic_lines(tooltip, line_count,
         tooltip.uaForeverReservedFirst)
     -- Blizzard and its issue reporter can append or rebuild item lines after
@@ -379,6 +594,7 @@ local function add_item(tooltip, id)
             if shown_ok and shown then
                 translate_item_use(tooltip, entry)
                 translate_item_lines(tooltip, entry)
+                translate_item_fields(tooltip, entry)
                 rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst)
             end
         end, nil, tooltip)
@@ -659,6 +875,25 @@ local function safe_process(tooltip, data, kind)
     return result == true
 end
 
+tooltips.refresh_quest_reward = function (tooltip, button, force)
+    if not tooltip or not button or button.objectType ~= "item"
+        or type(button.GetID) ~= "function" then return end
+    local quest_frame = _G.QuestInfoFrame
+    local getter = quest_frame and quest_frame.questLog
+        and _G.GetQuestLogItemLink or _G.GetQuestItemLink
+    if type(getter) ~= "function" then return end
+    local index_ok, index = pcall(button.GetID, button)
+    if not index_ok or not safe_number(index) then return end
+    local link_ok, link = pcall(getter, button.type, index)
+    if not link_ok or type(link) ~= "string" or is_secret(link) then return end
+    local id = safe_number(utils.item_id_from_link(link))
+    local entry = id and entries.get_entry("item", id)
+    if not entry then return end
+    local source = tooltip_line(tooltip, "Left", 1)
+    if not force and source ~= entry.en then return end
+    safe_process(tooltip, { itemID = id }, "item")
+end
+
 local function translate_quest_map_tooltip(button)
     local tooltip = _G.GameTooltip
     local id = button and button.questID
@@ -666,20 +901,6 @@ local function translate_quest_map_tooltip(button)
     safe_process(tooltip, { id = id }, "quest")
 end
 
-local quest_map_hooked
-local quest_game_tooltip_hooked
-local quest_pin_hooked
-local quest_blob_hooked
-local flight_map_hooked
-local minimap_zone_hooked
-local taxi_node_hooked
-local bag_portrait_hooked
-local guild_news_zone_hooked
-local adventure_zone_pin_hooked
-local recruit_activity_hooked
-local calling_poi_hooked
-local covenant_calling_hooked
-local talent_condition_hooked
 local function visible_quest_title_matches(tooltip, id, cached)
     local current = tooltip_line(tooltip, "Left", 1)
     if type(current) ~= "string" or is_secret(current) then return false end
@@ -950,24 +1171,14 @@ local function translate_flight_map_tooltip(self)
 end
 
 local function prepare_quest_map_hook()
-    if type(_G.hooksecurefunc) ~= "function" then return end
-    if not quest_game_tooltip_hooked and type(_G.GameTooltip_AddQuest) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "GameTooltip_AddQuest", function (self)
+    hooks.global("GameTooltip_AddQuest", function (self)
             local id = self and self.questID
             if type(id) == "number" then
                 safe_process(_G.GameTooltip, { id = id }, "quest")
             end
         end)
-        if ok then quest_game_tooltip_hooked = true end
-    end
-    if not quest_map_hooked and type(_G.QuestMapLogTitleButton_OnEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "QuestMapLogTitleButton_OnEnter",
-            translate_quest_map_tooltip)
-        if ok then quest_map_hooked = true end
-    end
-    local pin = _G.QuestPinMixin
-    if not quest_pin_hooked and pin and type(pin.OnMouseEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, pin, "OnMouseEnter", function (self)
+    hooks.global("QuestMapLogTitleButton_OnEnter", translate_quest_map_tooltip)
+    hooks.region(_G.QuestPinMixin, "OnMouseEnter", function (self)
             local get_id = self and self.GetQuestID
             if type(get_id) ~= "function" then return end
             local id_ok, id = pcall(get_id, self)
@@ -975,12 +1186,7 @@ local function prepare_quest_map_hook()
                 safe_process(_G.GameTooltip, { id = id }, "quest")
             end
         end)
-        if ok then quest_pin_hooked = true end
-    end
-    local blob = _G.QuestBlobPinMixin
-    if not quest_blob_hooked and blob
-        and type(blob.UpdateTooltip) == "function" then
-        local ok = pcall(_G.hooksecurefunc, blob, "UpdateTooltip", function (self)
+    hooks.region(_G.QuestBlobPinMixin, "UpdateTooltip", function (self)
             local tooltip = _G.GameTooltip
             if not tooltip or type(tooltip.GetOwner) ~= "function" then return end
             local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
@@ -1024,74 +1230,33 @@ local function prepare_quest_map_hook()
                 end
             end
         end)
-        if ok then quest_blob_hooked = true end
-    end
-    local bounty = _G.WorldMapBountyBoardMixin
-    if bounty and type(bounty.ShowBountyTooltip) == "function"
-        and not tooltips.bounty_hooked then
-        local ok = pcall(_G.hooksecurefunc, bounty, "ShowBountyTooltip",
-            function (self, index)
+    hooks.region(_G.WorldMapBountyBoardMixin, "ShowBountyTooltip",
+        function (self, index)
                 local data = self.bounties and self.bounties[index]
                 local id = data and data.questID
                 if type(id) == "number" then
                     safe_process(_G.GameTooltip, { id = id }, "quest")
                 end
-            end)
-        if ok then tooltips.bounty_hooked = true end
-    end
-    if bounty and type(bounty.ShowLockedByQuestTooltip) == "function"
-        and not tooltips.locked_bounty_hooked then
-        local ok = pcall(_G.hooksecurefunc, bounty, "ShowLockedByQuestTooltip",
-            function (self)
+        end)
+    hooks.region(_G.WorldMapBountyBoardMixin, "ShowLockedByQuestTooltip",
+        function (self)
                 local id = self.lockedQuestID
                 if type(id) == "number" then
                     safe_process(_G.GameTooltip,
                         { id = id, uaForeverSkipTitle = true }, "quest")
                 end
-            end)
-        if ok then tooltips.locked_bounty_hooked = true end
-    end
-    local flight = _G.FlightMap_ZoneSummaryDataProvider
-    if not flight_map_hooked and flight
-        and type(flight.CheckMouse) == "function" then
-        local ok = pcall(_G.hooksecurefunc, flight, "CheckMouse",
-            translate_flight_map_tooltip)
-        if ok then flight_map_hooked = true end
-    end
-    if not minimap_zone_hooked and type(_G.Minimap_SetTooltip) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "Minimap_SetTooltip",
-            translate_minimap_zone_tooltip)
-        if ok then minimap_zone_hooked = true end
-    end
-    if not taxi_node_hooked and type(_G.TaxiNodeOnButtonEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "TaxiNodeOnButtonEnter",
-            translate_taxi_node_tooltip)
-        if ok then taxi_node_hooked = true end
-    end
-    local bag = _G.ContainerFramePortraitButtonMixin
-    if not bag_portrait_hooked and bag and type(bag.OnEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, bag, "OnEnter",
-            translate_bag_portrait_tooltip)
-        if ok then bag_portrait_hooked = true end
-    end
-    if not guild_news_zone_hooked
-        and type(_G.CommunitiesGuildNewsButton_OnEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc,
-            "CommunitiesGuildNewsButton_OnEnter", translate_guild_news_zone)
-        if ok then guild_news_zone_hooked = true end
-    end
-    local adventure_pin = _G.AdventureMap_ZoneSummaryPinMixin
-    if not adventure_zone_pin_hooked and adventure_pin
-        and type(adventure_pin.OnMouseEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, adventure_pin,
-            "OnMouseEnter", translate_adventure_zone_pin)
-        if ok then adventure_zone_pin_hooked = true end
-    end
-    local recruit = _G.RecruitActivityButtonMixin
-    if not recruit_activity_hooked and recruit
-        and type(recruit.OnEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, recruit, "OnEnter",
-            function (self)
+        end)
+    hooks.region(_G.FlightMap_ZoneSummaryDataProvider, "CheckMouse",
+        translate_flight_map_tooltip)
+    hooks.global("Minimap_SetTooltip", translate_minimap_zone_tooltip)
+    hooks.global("TaxiNodeOnButtonEnter", translate_taxi_node_tooltip)
+    hooks.region(_G.ContainerFramePortraitButtonMixin, "OnEnter",
+        translate_bag_portrait_tooltip)
+    hooks.global("CommunitiesGuildNewsButton_OnEnter", translate_guild_news_zone)
+    hooks.region(_G.AdventureMap_ZoneSummaryPinMixin, "OnMouseEnter",
+        translate_adventure_zone_pin)
+    hooks.region(_G.RecruitActivityButtonMixin, "OnEnter",
+        function (self)
                 local id = self and self.activityInfo
                     and self.activityInfo.rewardQuestID
                 local tooltip = _G.EmbeddedItemTooltip
@@ -1102,40 +1267,24 @@ local function prepare_quest_map_hook()
                     and visible_quest_title_matches(tooltip, id, self.questName) then
                     safe_process(tooltip, { id = id }, "quest")
                 end
-            end)
-        if ok then recruit_activity_hooked = true end
-    end
-    if not calling_poi_hooked and type(_G.CallingPOI_OnEnter) == "function" then
-        local ok = pcall(_G.hooksecurefunc, "CallingPOI_OnEnter",
-            function (pin)
+        end)
+    hooks.global("CallingPOI_OnEnter", function (pin)
                 local id = pin and pin.questID
                 if type(id) == "number" and not is_secret(id) and _G.GameTooltip
                     and visible_quest_title_matches(_G.GameTooltip, id) then
                     safe_process(_G.GameTooltip, { id = id }, "quest")
                 end
-            end)
-        if ok then calling_poi_hooked = true end
-    end
-    local covenant = _G.CovenantCallingQuestMixin
-    if not covenant_calling_hooked and covenant
-        and type(covenant.UpdateTooltipQuestActive) == "function" then
-        local ok = pcall(_G.hooksecurefunc, covenant,
-            "UpdateTooltipQuestActive", function (self)
+        end)
+    hooks.region(_G.CovenantCallingQuestMixin, "UpdateTooltipQuestActive",
+        function (self)
                 local id = self and self.calling and self.calling.questID
                 if type(id) == "number" and not is_secret(id) and _G.GameTooltip
                     and visible_quest_title_matches(_G.GameTooltip, id) then
                     safe_process(_G.GameTooltip, { id = id }, "quest")
                 end
-            end)
-        if ok then covenant_calling_hooked = true end
-    end
-    local talent = _G.TalentFrameBaseMixin
-    if not talent_condition_hooked and talent
-        and type(talent.AddConditionsToTooltip) == "function" then
-        local ok = pcall(_G.hooksecurefunc, talent,
-            "AddConditionsToTooltip", translate_talent_quest_conditions)
-        if ok then talent_condition_hooked = true end
-    end
+        end)
+    hooks.region(_G.TalentFrameBaseMixin, "AddConditionsToTooltip",
+        translate_talent_quest_conditions)
 end
 
 local function reset_tooltip(self)
@@ -1270,6 +1419,13 @@ local function translate_generic_tooltip(tooltip)
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
 
+    -- Settings uses its own GameTooltip frame with UI text, not item or aura
+    -- data. Resolve every rendered line directly through the UI dictionary.
+    if tooltip == _G.SettingsTooltip then
+        rewrite_generic_lines(tooltip)
+        return
+    end
+
     if tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell"
         or tooltip.uaForeverKind == "npc"
         or tooltip.uaForeverKind == "quest" then
@@ -1344,6 +1500,56 @@ local function translate_generic_tooltip(tooltip)
 end
 
 tooltips.finalize = translate_generic_tooltip
+
+local refreshing_comparison = false
+local function is_shopping_tooltip(tooltip)
+    return tooltip == _G.ShoppingTooltip1 or tooltip == _G.ShoppingTooltip2
+end
+
+local function after_comparison_refresh(manager)
+    if refreshing_comparison or not manager or not manager.tooltip then return end
+    refreshing_comparison = true
+    local ok_refresh, refresh_error = pcall(function ()
+        for _, comparison in ipairs(manager.tooltip.shoppingTooltips or {}) do
+            local ok, shown = pcall(comparison.IsShown, comparison)
+            if ok and shown then
+                if not comparison.uaForeverSessionKey then
+                    begin_tooltip(comparison, "generic")
+                end
+                local source, region = tooltip_line(comparison, "Left", 1)
+                local translated = source and not is_secret(source)
+                    and entries.lookup_name("item", source)
+                if translated then
+                    set_tooltip_translation(comparison, region, source,
+                        utils.cap(translated), "item.name", "item",
+                        "item-tooltip", nil, false, false)
+                end
+                local header = comparison.CompareHeader
+                local label = header and header.Label
+                if label and type(label.GetText) == "function" then
+                    local ok_text, header_source = pcall(label.GetText, label)
+                    if ok_text and type(header_source) == "string"
+                        and not is_secret(header_source) then
+                        local header_text, _, source_kind =
+                            strings.find_ui_translation(header_source, label)
+                        if header_text then
+                            set_tooltip_translation(comparison, label, header_source,
+                                header_text, "comparison.header", nil, "generic",
+                                source_kind, false, false)
+                        end
+                    end
+                end
+                -- The comparison manager has finished every native write,
+                -- including delta lines. Replace them in this same frame only.
+                rewrite_generic_lines(comparison, nil, 2, false, false)
+            end
+        end
+    end)
+    refreshing_comparison = false
+    if not ok_refresh then
+        dev_log.issue("Forever comparison tooltip", tostring(refresh_error))
+    end
+end
 
 tooltips.aura_probe_candidate = function (tooltip)
     if not tooltip or type(tooltip.IsShown) ~= "function" then return false end
@@ -1450,8 +1656,10 @@ local function object_list(object, method)
 end
 
 local function visible_tooltip_window()
-    for _, candidate in ipairs({ _G.GameTooltip, _G.ItemRefTooltip,
-        _G.ShoppingTooltip1, _G.ShoppingTooltip2 }) do
+    for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
+        "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+        "BuffFrameTooltip" }) do
+        local candidate = _G[name]
         if candidate and public_object_value(candidate, "IsShown") == true then
             return candidate
         end
@@ -1555,8 +1763,63 @@ local function schedule_tooltip_finalize(tooltip)
         finalize, 0.2, tooltip)
 end
 
+local function prepare_tooltip_frames()
+    for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
+        "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+        "BuffFrameTooltip" }) do
+        local tooltip = _G[name]
+        if tooltip then
+            hooks.region_script(tooltip, "OnShow", function (self)
+                note_tooltip_event(self, "onShow")
+                if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
+                if not is_shopping_tooltip(self) then
+                    schedule_tooltip_finalize(self)
+                end
+            end)
+            hooks.region_script(tooltip, "OnTooltipCleared", function (self)
+                    note_tooltip_event(self, "onTooltipCleared")
+                    reset_tooltip(self)
+                    if not is_shopping_tooltip(self) then
+                        schedule_tooltip_finalize(self)
+                    end
+                end)
+            hooks.region_script(tooltip, "OnHide", reset_tooltip)
+            -- Setter callbacks ignore their potentially secret aura arguments.
+            for _, method in ipairs({ "SetUnitAuraByAuraInstanceID",
+                "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
+                "SetUnitBuff", "SetUnitDebuff" }) do
+                hooks.region(tooltip, method, function (self)
+                    note_tooltip_event(self, "auraMethod")
+                    local shown_ok, shown = pcall(self.IsShown, self)
+                    if shown_ok and shown then
+                        translate_generic_tooltip(self)
+                        if self.uaForeverKind == "aura" and self.uaForeverKey then
+                            scheduler.cancel("tooltip:" .. tostring(self))
+                            scheduler.cancel("tooltip-late:" .. tostring(self))
+                        end
+                    end
+                end)
+            end
+        end
+    end
+end
+
+local function after_game_tooltip_update(tooltip)
+    if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if owner_ok and owner and owner.objectType == "item"
+        and owner.questID then
+        tooltips.refresh_quest_reward(tooltip, owner)
+    end
+end
+
 tooltips.prepare = function ()
     prepare_quest_map_hook()
+    prepare_tooltip_frames()
+    hooks.region(_G.TooltipComparisonManager, "RefreshItems",
+        after_comparison_refresh)
+    hooks.region_script(_G.GameTooltip, "OnUpdate", after_game_tooltip_update,
+        "quest-reward")
     if tooltips.prepared then return end
 
     if not TooltipDataProcessor or not Enum or not Enum.TooltipDataType then
@@ -1568,7 +1831,9 @@ tooltips.prepare = function ()
     local types = Enum.TooltipDataType
     if types.Item then
         TooltipDataProcessor.AddTooltipPostCall(types.Item, function (tooltip, data)
-            safe_process(tooltip, data, "item")
+            if not is_shopping_tooltip(tooltip) then
+                safe_process(tooltip, data, "item")
+            end
         end)
     end
     if types.Spell then
@@ -1593,51 +1858,6 @@ tooltips.prepare = function ()
         TooltipDataProcessor.AddTooltipPostCall(types.Object, function (tooltip, data)
             safe_process(tooltip, data, "object")
         end)
-    end
-
-    for _, tooltip in ipairs({ GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2 }) do
-        if tooltip and tooltip.HookScript then
-            pcall(tooltip.HookScript, tooltip, "OnShow", function (self)
-                note_tooltip_event(self, "onShow")
-                if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
-                schedule_tooltip_finalize(self)
-            end)
-            pcall(tooltip.HookScript, tooltip, "OnTooltipCleared", function (self)
-                note_tooltip_event(self, "onTooltipCleared")
-                reset_tooltip(self)
-                -- Aura tooltips may clear and rebuild after OnShow. The clear
-                -- cancels that pass, so schedule one after the rebuilt lines
-                -- are visible without hooking the protected UnitAura data.
-                schedule_tooltip_finalize(self)
-            end)
-            pcall(tooltip.HookScript, tooltip, "OnHide", reset_tooltip)
-            -- Blizzard refreshes hovered aura tooltips through these setters,
-            -- often every frame. Their post-hooks run after the new lines are
-            -- built, so translate the displayed public tooltip immediately.
-            -- Callback arguments can include secret aura identifiers; ignore
-            -- them entirely and resolve only the finished tooltip.
-            if type(_G.hooksecurefunc) == "function" then
-                for _, method in ipairs({ "SetUnitAuraByAuraInstanceID",
-                    "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
-                    "SetUnitBuff", "SetUnitDebuff" }) do
-                    if type(tooltip[method]) == "function" then
-                        pcall(_G.hooksecurefunc, tooltip, method,
-                            function (self)
-                                note_tooltip_event(self, "auraMethod")
-                                local shown_ok, shown = pcall(self.IsShown, self)
-                                if shown_ok and shown then
-                                    translate_generic_tooltip(self)
-                                    if self.uaForeverKind == "aura"
-                                        and self.uaForeverKey then
-                                        scheduler.cancel("tooltip:" .. tostring(self))
-                                        scheduler.cancel("tooltip-late:" .. tostring(self))
-                                    end
-                                end
-                            end)
-                    end
-                end
-            end
-        end
     end
 
     local shift_frame = CreateFrame("Frame")

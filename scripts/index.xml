@@ -8,6 +8,7 @@
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>
     <Script file="translation_scheduler.lua"/>
+    <Script file="translation_hooks.lua"/>
     <Script file="translation_registry.lua"/>
     <Script file="translation_resolver.lua"/>
     <Script file="translation_walker.lua"/>

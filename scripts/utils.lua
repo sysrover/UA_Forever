@@ -198,9 +198,26 @@ end
 
 utils.tooltip_lines = function (tooltip, is_right)
     local lines = {}
-    for j = 1, tooltip:NumLines() do
-        local k = tooltip:GetName() .. (is_right and "TextRight" or "TextLeft") .. j
-        lines[#lines + 1] = _G[k]:GetText()
+    if not tooltip then return lines end
+    local count_ok, count = pcall(function () return tooltip:NumLines() end)
+    local name_ok, name = pcall(function () return tooltip:GetName() end)
+    local function secret(value)
+        if type(_G.issecretvalue) ~= "function" then return false end
+        local ok, result = pcall(_G.issecretvalue, value)
+        return not ok or result == true
+    end
+    if not count_ok or secret(count) or type(count) ~= "number"
+        or not name_ok or secret(name) or type(name) ~= "string" then
+        return lines
+    end
+    for j = 1, math.min(math.floor(count), 100) do
+        local region = _G[name .. (is_right and "TextRight" or "TextLeft") .. j]
+        if region then
+            local ok, value = pcall(function () return region:GetText() end)
+            if ok and not secret(value) and type(value) == "string" then
+                lines[#lines + 1] = value
+            end
+        end
     end
     return lines
 end
@@ -246,14 +263,49 @@ utils.tooltip_item_suffix_id = function (tooltip)
 end
 
 utils.chat_bubble_font_string_with_text = function (text)
-    local bubbles = C_ChatBubbles:GetAllChatBubbles()
+    local function secret(value)
+        if type(_G.issecretvalue) ~= "function" then return false end
+        local ok, result = pcall(_G.issecretvalue, value)
+        return not ok or result == true
+    end
+    if secret(text) or type(text) ~= "string" then return nil end
+    local bubbles_api = _G.C_ChatBubbles
+    if not bubbles_api or type(bubbles_api.GetAllChatBubbles) ~= "function" then
+        return nil
+    end
+    local bubbles_ok, bubbles = pcall(bubbles_api.GetAllChatBubbles)
+    if not bubbles_ok or secret(bubbles) or type(bubbles) ~= "table" then return nil end
     for _, bubble in pairs(bubbles) do
-        if not bubble:IsForbidden() then
-            local frame = select(1, bubble:GetChildren())
-            for i = 1, frame:GetNumRegions() do
-                local region = select(i, frame:GetRegions())
-                if region:GetObjectType() == "FontString" and region:GetText() == text then
-                    return region
+        local forbidden_ok, forbidden = pcall(function ()
+            return bubble:IsForbidden()
+        end)
+        if forbidden_ok and not secret(forbidden) and not forbidden then
+            local frame_ok, frame = pcall(function ()
+                return bubble:GetChildren()
+            end)
+            if frame_ok and frame and not secret(frame) then
+                local count_ok, count = pcall(function ()
+                    return frame:GetNumRegions()
+                end)
+                if count_ok and not secret(count) and type(count) == "number" then
+                    for i = 1, math.min(math.floor(count), 100) do
+                        local region_ok, region = pcall(function ()
+                            return select(i, frame:GetRegions())
+                        end)
+                        if region_ok and region and not secret(region) then
+                            local kind_ok, kind = pcall(function ()
+                                return region:GetObjectType()
+                            end)
+                            if kind_ok and not secret(kind) and kind == "FontString" then
+                                local text_ok, current = pcall(function ()
+                                    return region:GetText()
+                                end)
+                                if text_ok and not secret(current) and current == text then
+                                    return region
+                                end
+                            end
+                        end
+                    end
                 end
             end
         end
@@ -262,14 +314,18 @@ end
 
 -- unit_id is one of https://warcraft.wiki.gg/wiki/UnitId
 utils.npc_id_from_unit_id = function (unit_id)
-    if type(unit_id) == "string" then
-        local guid = UnitGUID(unit_id)
-        if guid then
-            local kind, _, _, _, _, id, _ = string_split("-", guid)
-            if id and (kind == "Creature" or kind == "Vehicle") then
-                return tonumber(id)
-            end
-        end
+    local function secret(value)
+        if type(_G.issecretvalue) ~= "function" then return false end
+        local ok, result = pcall(_G.issecretvalue, value)
+        return not ok or result == true
+    end
+    if type(unit_id) ~= "string" or secret(unit_id)
+        or type(UnitGUID) ~= "function" then return nil end
+    local ok, guid = pcall(UnitGUID, unit_id)
+    if not ok or secret(guid) or type(guid) ~= "string" then return nil end
+    local kind, _, _, _, _, id = string_split("-", guid)
+    if id and not secret(id) and (kind == "Creature" or kind == "Vehicle") then
+        return tonumber(id)
     end
 end
 

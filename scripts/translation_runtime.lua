@@ -19,15 +19,18 @@ local claims = setmetatable({}, { __mode = "k" })
 local generations = setmetatable({}, { __mode = "k" })
 local writing = setmetatable({}, { __mode = "k" })
 
+local function is_secret_value(value)
+    if type(_G.issecretvalue) ~= "function" then return false end
+    local ok, secret = pcall(_G.issecretvalue, value)
+    return not ok or secret == true
+end
+
 runtime.is_applying = function (region)
     return writing[region] == true
 end
 
 local function safe_string(value)
-    if type(_G.issecretvalue) == "function" then
-        local ok, secret = pcall(_G.issecretvalue, value)
-        if not ok or secret then return nil end
-    end
+    if is_secret_value(value) then return nil end
     if type(value) == "string" and value ~= "" then return value end
 end
 
@@ -50,7 +53,8 @@ end
 local function protected_in_combat(region)
     if type(_G.InCombatLockdown) ~= "function" then return false end
     local combat_ok, in_combat = pcall(_G.InCombatLockdown)
-    if not combat_ok or not in_combat then return false end
+    if not combat_ok or is_secret_value(in_combat) then return true end
+    if not in_combat then return false end
     local frame = region
     for _ = 1, 5 do
         if not frame then break end
@@ -58,13 +62,13 @@ local function protected_in_combat(region)
             local method_ok, callback = pcall(function () return frame[method] end)
             if method_ok and type(callback) == "function" then
                 local ok, value = pcall(callback, frame)
-                if not ok or value then return true end
+                if not ok or is_secret_value(value) or value then return true end
             end
         end
         local parent_ok, parent = pcall(function ()
             return type(frame.GetParent) == "function" and frame:GetParent() or nil
         end)
-        if not parent_ok or parent == frame then break end
+        if not parent_ok or is_secret_value(parent) or parent == frame then break end
         frame = parent
     end
     return false
@@ -104,6 +108,11 @@ runtime.allowed = function (spec)
     return options.translate_name(spec.category)
 end
 
+runtime.ensure_font = function (region)
+    if not region or protected_in_combat(region) then return false end
+    return fonts.apply_to_font_string(region)
+end
+
 runtime.apply = function (region, spec)
     if not region or not spec then return false end
     local method_ok, set_text = pcall(function () return region.SetText end)
@@ -119,6 +128,7 @@ runtime.apply = function (region, spec)
     local previous = claims[region]
     local generation = spec.generation or (spec.surface and runtime.generation(spec.surface)) or 0
     local priority = spec.priority or runtime.PRIORITY.STATIC_UI
+    local phase = spec.phase or "dynamic"
 
     -- A new Blizzard write to a pooled region begins a new claim. A lower
     -- priority pass cannot replace a still visible domain/context claim.
@@ -135,7 +145,10 @@ runtime.apply = function (region, spec)
         end
     end
     if previous
-        and (previous.priority > priority
+        and (previous.phase == "static" and phase ~= "static"
+            or previous.priority > priority
+            or (previous.generation == generation
+                and previous.owner == spec.owner and previous.slot ~= spec.slot)
             or (previous.priority == priority and previous.owner ~= spec.owner)) then
         return false
     end
@@ -166,7 +179,7 @@ runtime.apply = function (region, spec)
     if spec.tooltip and spec.tooltip.uaForeverShowOriginal then return false end
 
     if options.can_translate("override_system_fonts") then
-        local font_ok = fonts.apply_to_font_string(region)
+        local font_ok = runtime.ensure_font(region)
         if not font_ok and display:find("[\208\209]") then return false end
     end
     writing[region] = true
@@ -177,7 +190,8 @@ runtime.apply = function (region, spec)
         owner = spec.owner or "ui", slot = spec.slot or "ui.text",
         priority = priority, source = source, translated = translated,
         name_original = name_original,
-        generation = generation, surface = spec.surface, category = spec.category,
+        generation = generation, surface = spec.surface, phase = phase,
+        category = spec.category,
         option = spec.option,
         options = spec.options,
         after_visibility = spec.after_visibility,
@@ -225,7 +239,7 @@ runtime.refresh_policy = function ()
         local method_ok, is_shown = pcall(function () return region.IsShown end)
         if method_ok and type(is_shown) == "function" then
             local ok, value = pcall(is_shown, region)
-            shown = ok and value
+            shown = ok and not is_secret_value(value) and value == true
         end
         if shown then
             local name_disabled = claim.category and claim.slot:match("%.name$")

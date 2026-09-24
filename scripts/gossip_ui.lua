@@ -5,8 +5,7 @@ local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local gossip_ui = addon_table.use("gossip_ui")
 local utils = addon_table.use("utils")
-
-local hooked = {}
+local hooks = addon_table.use("translation_hooks").bind("gossip")
 
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
@@ -119,21 +118,10 @@ local function gossip_title(frame, source)
         "translate_npc")
 end
 
-local function hook(mixin, method, callback)
-    if not mixin or hooked[mixin] and hooked[mixin][method]
-        or type(mixin[method]) ~= "function"
-        or type(_G.hooksecurefunc) ~= "function" then return end
-    local ok = pcall(_G.hooksecurefunc, mixin, method, callback)
-    if ok then
-        hooked[mixin] = hooked[mixin] or {}
-        hooked[mixin][method] = true
-    end
-end
-
 gossip_ui.prepare = function ()
-    hook(_G.GossipFrameSharedMixin, "SetGossipTitle", gossip_title)
-    hook(_G.GossipGreetingTextMixin, "Setup", greeting)
-    hook(_G.GossipOptionButtonMixin, "Setup", option)
-    hook(_G.GossipSharedAvailableQuestButtonMixin, "Setup", quest_title)
-    hook(_G.GossipSharedActiveQuestButtonMixin, "Setup", quest_title)
+    hooks.region(_G.GossipFrameSharedMixin, "SetGossipTitle", gossip_title)
+    hooks.region(_G.GossipGreetingTextMixin, "Setup", greeting)
+    hooks.region(_G.GossipOptionButtonMixin, "Setup", option)
+    hooks.region(_G.GossipSharedAvailableQuestButtonMixin, "Setup", quest_title)
+    hooks.region(_G.GossipSharedActiveQuestButtonMixin, "Setup", quest_title)
 end

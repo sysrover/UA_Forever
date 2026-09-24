@@ -10,10 +10,8 @@ local translation = addon_table.use("translation")
 local quest_switcher = addon_table.use("quest_switcher")
 local walker = addon_table.use("translation_walker")
 local utils = addon_table.use("utils")
+local hooks = addon_table.use("translation_hooks").bind("quest")
 
-local hooked
-local dialog_hooks = {}
-local method_hooks = setmetatable({}, { __mode = "k" })
 
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
@@ -156,23 +154,11 @@ local function quest_info_field(region, field, live_getter, log_getter, log_resu
 end
 
 local function prepare_dialog_hook(name, callback)
-    if dialog_hooks[name] or type(_G[name]) ~= "function"
-        or type(_G.hooksecurefunc) ~= "function" then return end
-    local ok = pcall(_G.hooksecurefunc, name, callback)
-    if ok then dialog_hooks[name] = true end
+    hooks.global(name, callback)
 end
 
 local function prepare_method_hook(owner, name, callback)
-    if not owner or type(owner[name]) ~= "function"
-        or type(_G.hooksecurefunc) ~= "function" then return end
-    local hooked_names = method_hooks[owner]
-    if hooked_names and hooked_names[name] then return end
-    local ok = pcall(_G.hooksecurefunc, owner, name, callback)
-    if ok then
-        hooked_names = hooked_names or {}
-        method_hooks[owner] = hooked_names
-        hooked_names[name] = true
-    end
+    hooks.region(owner, name, callback)
 end
 
 local function prepare_extra_tracker_hooks()
@@ -229,7 +215,25 @@ local function prepare_extra_tracker_hooks()
         end)
 end
 
-local function objective_region(region, slot, after_apply)
+local native_objectives = {}
+
+local function native_quest_objective(quest_id)
+    if type(quest_id) ~= "number" then return nil end
+    if native_objectives[quest_id] then return native_objectives[quest_id] end
+    local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
+    local get_text = translation.original and translation.original["GetQuestLogQuestText"]
+        or _G.GetQuestLogQuestText
+    if type(get_index) ~= "function" or type(get_text) ~= "function" then return nil end
+    local index_ok, index = pcall(get_index, quest_id)
+    if not index_ok or type(index) ~= "number" or index < 1 then return nil end
+    local text_ok, _, objective = pcall(get_text, index)
+    if not text_ok then return nil end
+    objective = safe_string(objective)
+    if objective then native_objectives[quest_id] = objective end
+    return objective
+end
+
+local function objective_region(region, slot, after_apply, quest_id)
     local source = safe_text(region)
     if not source then return false end
     local previous = runtime.get(region)
@@ -238,7 +242,15 @@ local function objective_region(region, slot, after_apply)
     end
     runtime.clear(region)
     if not options.can_lookup("translate_quest") then return false end
-    local ok, translated = pcall(entries.translate_quest_objective_task, source)
+    local ok, translated = pcall(entries.translate_quest_objective_task,
+        source, quest_id)
+    if ok and translated == source then
+        local native = native_quest_objective(quest_id)
+        if native and source:lower() == native:lower() then
+            local entry = entries.get_entry("quest", quest_id)
+            translated = entry and entry[3]
+        end
+    end
     if not ok or not safe_string(translated) or translated == source then return false end
     return runtime.apply(region, {
         owner = "quest-objective", slot = slot, source = source,
@@ -405,12 +417,56 @@ local function translate_info_objectives()
     for index, row in ipairs(rows) do
         local shown_ok, shown = pcall(row.IsShown, row)
         if shown_ok and shown then
-            objective_region(row, "quest:" .. id .. ":info-objective:" .. index)
+            objective_region(row, "quest:" .. id .. ":info-objective:" .. index,
+                nil, id)
+        end
+    end
+end
+
+local quest_map_labels = {
+    Back = true, Abandon = true, Share = true, Track = true, Untrack = true,
+    Description = true, DESCRIPTION = true, Rewards = true, REWARDS = true,
+}
+
+local function translate_quest_map_labels()
+    local map = _G.QuestMapFrame
+    local details = map and (map.DetailsFrame
+        or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
+    if not details then return end
+    local back = details.BackFrame and details.BackFrame.BackButton
+    for _, button in pairs({ back, details.AbandonButton,
+        details.ShareButton, details.TrackButton }) do
+        local ok, region = pcall(function () return button:GetFontString() end)
+        if ok and quest_map_labels[safe_text(region)] then
+            strings.translate_region(region)
+        end
+    end
+    walker.walk(details, function (region)
+        if quest_map_labels[safe_text(region)] then
+            strings.translate_region(region)
+        end
+    end, nil, { frames = 0 })
+end
+
+local function translate_tracking_buttons()
+    local map = _G.QuestMapFrame
+    local details = map and (map.DetailsFrame
+        or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
+    local popup = _G.QuestLogPopupDetailFrame
+    for _, button in pairs({ details and details.TrackButton,
+        popup and popup.TrackButton }) do
+        local ok, region = pcall(function () return button:GetFontString() end)
+        if ok and quest_map_labels[safe_text(region)] then
+            strings.translate_region(region)
         end
     end
 end
 
 local function prepare_dialog_hooks()
+    -- The client writes Track/Untrack after QuestInfo_Display and again when
+    -- the watched quest changes. Translate after that final native write.
+    prepare_dialog_hook("QuestMapFrame_UpdateQuestDetailsButtons",
+        translate_tracking_buttons)
     prepare_dialog_hook("StaticPopup_Show", function (which, _, _, data)
         if which ~= "PREMADE_GROUP_INSECURE_SEARCH"
             and which ~= "ABANDON_QUEST"
@@ -468,8 +524,10 @@ local function prepare_dialog_hooks()
             dialog_field(_G.QuestInfoRewardText,
                 dialog_quest_id(), 5, "GetRewardText")
         end
+        translate_quest_map_labels()
     end)
     prepare_dialog_hook("QuestLogQuests_Update", function ()
+        translate_quest_map_labels()
         local scroll = _G.QuestScrollFrame
         local pool = scroll and scroll.objectiveFramePool
         if not pool or type(pool.EnumerateActive) ~= "function" then return end
@@ -485,7 +543,7 @@ local function prepare_dialog_hooks()
                         if height_ok and type(height) == "number" then
                             pcall(frame.SetHeight, frame, height)
                         end
-                    end)
+                    end, id)
                 changed = applied or changed
             end
         end
@@ -506,11 +564,24 @@ local function translate_objectives(block, id)
         local source = safe_text(region)
         if not source then return end
         local applied = objective_region(region,
-            "quest:" .. id .. ":" .. tostring(key) .. ".description")
+            "quest:" .. id .. ":" .. tostring(key) .. ".description",
+            nil, id)
         if not applied and options.can_translate("translate_quest") then
             strings.translate_region(region)
         end
     end)
+end
+
+local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
+
+local function translate_tracker_labels()
+    local tracker = _G.ObjectiveTrackerFrame
+    if not tracker or not options.can_translate("translate_string") then return end
+    walker.walk(tracker, function (region)
+        if tracker_labels[safe_text(region)] then
+            strings.translate_region(region)
+        end
+    end, nil, { frames = 0 })
 end
 
 local function after_update(self, quest)
@@ -530,14 +601,17 @@ local function after_update(self, quest)
     if not block_ok or not block then return end
     translate_header(block, id)
     translate_objectives(block, id)
+    translate_tracker_labels()
 end
 
 quest_ui.prepare = function ()
     prepare_dialog_hooks()
     prepare_extra_tracker_hooks()
-    local tracker = _G.QuestObjectiveTracker
-    if hooked or not tracker or type(tracker.UpdateSingle) ~= "function"
-        or type(_G.hooksecurefunc) ~= "function" then return end
-    local ok = pcall(_G.hooksecurefunc, tracker, "UpdateSingle", after_update)
-    if ok then hooked = true end
+    local map = _G.QuestMapFrame
+    local details = map and (map.DetailsFrame
+        or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
+    hooks.region_script(details, "OnShow", translate_quest_map_labels)
+    hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
+        translate_tracker_labels, "quest-labels")
+    hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
 end

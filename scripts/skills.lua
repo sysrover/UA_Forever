@@ -6,11 +6,13 @@ local options = addon_table.use("options")
 local scanner = addon_table.use("scanner")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
+local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
 local utils = addon_table.use("utils")
+local hooks = addon_table.use("translation_hooks").bind("skills")
+local hook_mixin = hooks.mixin
+local hook_owner = hooks.region
 
-local hooked_frames = {}
-local hooked_mixins = {}
 local translate_profession_spell_button
 
 local function is_secret(value)
@@ -142,21 +144,6 @@ skills.refresh = function (only_frame)
     return total
 end
 
-local function hook_owner(owner, key, method, callback)
-    local owner_type = type(owner)
-    if hooked_mixins[key] or (owner_type ~= "table" and owner_type ~= "userdata")
-        or type(owner[method]) ~= "function" or type(_G.hooksecurefunc) ~= "function" then
-        return
-    end
-
-    local ok = pcall(hooksecurefunc, owner, method, callback)
-    if ok then hooked_mixins[key] = true end
-end
-
-local function hook_mixin(name, method, callback)
-    hook_owner(_G[name], name .. "." .. method, method, callback)
-end
-
 local function translate_character_category(frame)
     strings.translate_region(frame and frame.Title)
 end
@@ -208,8 +195,7 @@ local function translate_professions(frame)
                 strings.translate_region(button.subSpellString)
                 if translate_profession_spell_button then
                     translate_profession_spell_button(button)
-                    hook_owner(button, "ProfessionSpellButton." .. tostring(button) .. ".UpdateButton",
-                        "UpdateButton", translate_profession_spell_button)
+                    hook_owner(button, "UpdateButton", translate_profession_spell_button)
                 end
             end
         end
@@ -327,9 +313,18 @@ end
 
 local function translate_crafting_row(row)
     if not row then return end
-    if type(row.GetTitleText) == "function" then
-        local ok, title = pcall(row.GetTitleText, row)
-        if ok then strings.translate_region(title) end
+    if type(row.GetTitleRegion) == "function" then
+        local ok, title = pcall(row.GetTitleRegion, row)
+        if ok and title and type(title.GetText) == "function" then
+            local text_ok, source = pcall(title.GetText, title)
+            local translated = text_ok and type(source) == "string"
+                and strings.find_ui_translation(source, title)
+            if translated then
+                runtime.apply(title, { owner = "skills", slot = "recipe.category",
+                    source = source, translated = translated,
+                    priority = runtime.PRIORITY.CONTEXT })
+            end
+        end
     end
     if options.translate_name("skill") then
         strings.translate_region(row.Label, "skill", "skill.name")
@@ -344,6 +339,21 @@ local function translate_crafting_row(row)
     local text = entry_text(entry, row)
     if text and options.translate_name("skill") then
         apply_skill_text(row.Label or row.Name, text, "skill", "skill.name")
+    end
+    if recipe_info then
+        hook_owner(row, "OnEnter", function (self)
+            local tooltip = _G.GameTooltip
+            if not tooltip or type(tooltip.GetOwner) ~= "function" then return end
+            local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+            if owner_ok and owner == self.Label then
+                local data_ok, current = pcall(self.GetElementData, self)
+                local info = data_ok and current and current.data
+                    and current.data.recipeInfo
+                if info then
+                    tooltips.translate_profession_recipe(tooltip, info.name)
+                end
+            end
+        end)
     end
 end
 
@@ -397,7 +407,20 @@ local function translate_crafting_page()
     end
 
     local rank = page.RankBar and page.RankBar.Rank
-    strings.translate_region(rank and rank.Text)
+    local rank_text = rank and rank.Text
+    if rank_text and type(rank_text.GetText) == "function" then
+        local ok, source = pcall(rank_text.GetText, rank_text)
+        local profession, progress
+        if ok and type(source) == "string" then
+            profession, progress = source:match("^(.-) (%d+/%d+)$")
+        end
+        local translated = profession and entries.lookup_name("spell", profession)
+        if translated then
+            runtime.apply(rank_text, { owner = "skills", slot = "profession.rank",
+                source = source, translated = utils.cap(translated) .. " " .. progress,
+                priority = runtime.PRIORITY.CONTEXT })
+        end
+    end
 
     local list = page.RecipeList
     if list then
@@ -411,8 +434,7 @@ local function translate_crafting_page()
             pcall(scroll_box.ForEachFrame, scroll_box, function (row)
                 translate_crafting_row(row)
                 if row and type(row.Init) == "function" then
-                    hook_owner(row, "ProfessionsCraftingRow." .. tostring(row) .. ".Init",
-                        "Init", translate_crafting_row)
+                    hook_owner(row, "Init", translate_crafting_row)
                 end
             end)
         end
@@ -449,8 +471,7 @@ local function translate_crafting_page()
             if ok and type(slots) == "table" then
                 for _, slot in ipairs(slots) do
                     translate_reagent_slot(slot)
-                    hook_owner(slot, "ProfessionsReagentSlot." .. tostring(slot) .. ".Update",
-                        "Update", translate_reagent_slot)
+                    hook_owner(slot, "Update", translate_reagent_slot)
                 end
             end
         end
@@ -484,7 +505,40 @@ local function translate_crafting_page()
     translate_button(page.CreateAllButton)
 end
 
+local function translate_crafting_requirements(form)
+    if not form then return end
+    strings.translate_region(form.RequiredTools)
+    strings.translate_region(form.RecraftingRequiredTools)
+end
+
+local function translate_new_recipe_alert(frame, recipe_id)
+    if not frame then return end
+    strings.translate_region(frame.Title)
+    if type(recipe_id) ~= "number" or is_secret(recipe_id)
+        or not options.translate_name("spell") then return end
+
+    local entry = entries.get_entry("spell", recipe_id)
+    local english = entry and entry.en
+    local ukrainian = entry and entry[1]
+    local source = text_from(frame.Name)
+    if type(english) ~= "string" or type(ukrainian) ~= "string"
+        or not source then return end
+    local first, last = source:find(english, 1, true)
+    if not first then return end
+    local translated = source:sub(1, first - 1) .. utils.cap(ukrainian)
+        .. source:sub(last + 1)
+    runtime.apply(frame.Name, {
+        owner = "recipe-alert", slot = "spell.name", source = source,
+        translated = translated, category = "spell",
+        option = "translate_spell", priority = runtime.PRIORITY.DOMAIN,
+    })
+end
+
 skills.prepare = function ()
+    -- The alert system stores a direct reference to its setup function, so
+    -- hook that stored field rather than only the global function name.
+    hook_owner(_G.NewRecipeLearnedAlertSystem, "setUpFunction",
+        translate_new_recipe_alert)
     -- Forever uses pooled ScrollBox rows for character statistics. Translate
     -- each row in its native Init callback so recycled rows never spend a
     -- rendered frame in English. ClassicUA's older static-frame lifecycle is
@@ -528,6 +582,8 @@ skills.prepare = function ()
     hook_mixin("ProfessionsRecipeSchematicFormMixin", "Refresh", translate_crafting_page)
     hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateOutputItem", translate_crafting_page)
     hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateRecipeDescription", translate_crafting_page)
+    hook_mixin("ProfessionsRecipeSchematicFormMixin", "Update",
+        translate_crafting_requirements)
     hook_mixin("ProfessionsRecipeListCategoryMixin", "Init", translate_crafting_row)
     hook_mixin("ProfessionsRecipeListRecipeMixin", "Init", translate_crafting_row)
     hook_mixin("ProfessionsReagentSlotMixin", "Update", translate_reagent_slot)
@@ -539,77 +595,58 @@ skills.prepare = function ()
     local spellbook = _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.SpellBookFrame
 
     for _, method in ipairs({ "OnShow", "OnPagedSpellsUpdate", "UpdateDisplayedSpells", "SetTab" }) do
-        hook_owner(spellbook, "PlayerSpellsFrame.SpellBookFrame." .. method,
-            method, translate_spellbook)
+        hook_owner(spellbook, method, translate_spellbook)
     end
-    if _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.HookScript
-        and not hooked_mixins["PlayerSpellsFrame.Script.OnShow"] then
-        local ok = pcall(_G.PlayerSpellsFrame.HookScript, _G.PlayerSpellsFrame,
-            "OnShow", translate_spellbook)
-        if ok then hooked_mixins["PlayerSpellsFrame.Script.OnShow"] = true end
-    end
+    hooks.region_script(_G.PlayerSpellsFrame, "OnShow", translate_spellbook,
+        "spellbook")
     translate_spellbook(spellbook)
 
     -- Several base Camelot frames already exist before UA_Forever loads and
     -- therefore own copied mixin functions. Hook those concrete owners too.
     for _, descriptor in ipairs({
-        { _G.ReputationFrame, "ReputationFrame.Update", "Update" },
+        { _G.ReputationFrame, "Update" },
         { _G.ReputationFrame and _G.ReputationFrame.DetailFrame,
-            "ReputationFrame.DetailFrame.Refresh", "Refresh" },
-        { _G.PVPRankFrame, "PVPRankFrame.Update", "Update" },
+            "Refresh" },
+        { _G.PVPRankFrame, "Update" },
         { _G.PVPRankFrame and _G.PVPRankFrame.DetailFrame,
-            "PVPRankFrame.DetailFrame.Refresh", "Refresh" },
-        { _G.TokenFrame, "TokenFrame.Update", "Update" },
+            "Refresh" },
+        { _G.TokenFrame, "Update" },
         { _G.TokenFrame and _G.TokenFrame.DetailFrame,
-            "TokenFrame.DetailFrame.Refresh", "Refresh" },
-        { _G.StatisticsFrame, "StatisticsFrame.Update", "Update" },
-        { _G.SkillsFrame, "SkillsFrame.Update", "Update" },
+            "Refresh" },
+        { _G.StatisticsFrame, "Update" },
+        { _G.SkillsFrame, "Update" },
         { _G.SkillsFrame and _G.SkillsFrame.DetailFrame,
-            "SkillsFrame.DetailFrame.Refresh", "Refresh" },
+            "Refresh" },
     }) do
-        hook_owner(descriptor[1], descriptor[2], descriptor[3], translate_character_element)
+        hook_owner(descriptor[1], descriptor[2], translate_character_element)
     end
 
-    hook_owner(professions_frame, "ProfessionsFrame.SelectBookPage", "SelectBookPage", translate_professions)
-    hook_owner(professions_frame, "ProfessionsFrame.Refresh", "Refresh", translate_professions)
-    hook_owner(professions_frame, "ProfessionsFrame.OnShow", "OnShow", translate_professions)
+    hook_owner(professions_frame, "SelectBookPage", translate_professions)
+    hook_owner(professions_frame, "Refresh", translate_professions)
+    hook_owner(professions_frame, "OnShow", translate_professions)
     hook_owner(professions_frame and professions_frame.BookPage,
-        "ProfessionsFrame.BookPage.Update", "Update", translate_professions)
-    hook_owner(_G.ProfessionsBookFrame,
-        "ProfessionsBookFrame.Update", "Update", translate_professions)
+        "Update", translate_professions)
+    hook_owner(_G.ProfessionsBookFrame, "Update", translate_professions)
 
     local crafting_page = professions_frame and professions_frame.CraftingPage
     local schematic_form = crafting_page and crafting_page.SchematicForm
     for _, method in ipairs({ "Refresh", "Update", "ValidateControls", "OnRecipeSelected" }) do
-        hook_owner(crafting_page, "ProfessionsFrame.CraftingPage." .. method,
-            method, translate_crafting_page)
+        hook_owner(crafting_page, method, translate_crafting_page)
     end
     for _, method in ipairs({ "Init", "Refresh", "UpdateOutputItem", "UpdateRecipeDescription" }) do
-        hook_owner(schematic_form, "ProfessionsFrame.CraftingPage.SchematicForm." .. method,
-            method, translate_crafting_page)
+        hook_owner(schematic_form, method, translate_crafting_page)
     end
-    if professions_frame and professions_frame.HookScript
-        and not hooked_mixins["ProfessionsFrame.Script.OnShow"] then
-        local ok = pcall(professions_frame.HookScript, professions_frame, "OnShow", translate_professions)
-        if ok then hooked_mixins["ProfessionsFrame.Script.OnShow"] = true end
-    end
-    if crafting_page and crafting_page.HookScript
-        and not hooked_mixins["ProfessionsFrame.CraftingPage.Script.OnShow"] then
-        local ok = pcall(crafting_page.HookScript, crafting_page, "OnShow", translate_crafting_page)
-        if ok then hooked_mixins["ProfessionsFrame.CraftingPage.Script.OnShow"] = true end
-    end
-    if _G.ProfessionsBookFrame and _G.ProfessionsBookFrame.HookScript
-        and not hooked_mixins["ProfessionsBookFrame.Script.OnShow"] then
-        local ok = pcall(_G.ProfessionsBookFrame.HookScript, _G.ProfessionsBookFrame,
-            "OnShow", translate_professions)
-        if ok then hooked_mixins["ProfessionsBookFrame.Script.OnShow"] = true end
-    end
+    hook_owner(schematic_form, "Update", translate_crafting_requirements)
+    hooks.region_script(professions_frame, "OnShow", translate_professions,
+        "professions")
+    hooks.region_script(crafting_page, "OnShow", translate_crafting_page,
+        "crafting")
+    hooks.region_script(_G.ProfessionsBookFrame, "OnShow", translate_professions,
+        "professions")
 
     for _, frame in ipairs(skill_roots()) do
-        if not hooked_frames[frame] and frame.HookScript then
-            frame:HookScript("OnShow", function (self) skills.refresh(self) end)
-            hooked_frames[frame] = true
-        end
+        hooks.region_script(frame, "OnShow", function (self) skills.refresh(self) end,
+            "refresh")
         if shown(frame) then skills.refresh(frame) end
     end
 end

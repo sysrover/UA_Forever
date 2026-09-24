@@ -89,6 +89,7 @@ local settings = {
     ["Anti-Aliasing"] = "Згладжування",
     ["Multisample Anti-Aliasing"] = "Багатовибіркове згладжування",
     ["Texture Resolution"] = "Роздільна здатність текстур",
+    ["Color 2x / Depth 2x"] = "Колір 2× / глибина 2×",
     ["Texture Filtering"] = "Фільтрація текстур",
     ["Projected Textures"] = "Проєкційні текстури",
     ["View Distance"] = "Дальність огляду",

@@ -451,7 +451,7 @@ local function resolve_optional_entry_text(text, tt_lines, tooltip_matches_to_sk
     end)
 end
 
-entries.make_entry_text = function (text, tooltip, tooltip_matches_to_skip)
+entries.make_entry_text = function (text, tooltip, tooltip_matches_to_skip, source_line)
     if not text then
         return
     end
@@ -462,7 +462,7 @@ entries.make_entry_text = function (text, tooltip, tooltip_matches_to_skip)
     if not tooltip_matches_to_skip then
         tooltip_matches_to_skip = 0
     end
-    local tt_lines = utils.tooltip_lines(tooltip)
+    local tt_lines = source_line and { source_line } or utils.tooltip_lines(tooltip)
 
     text = resolve_optional_entry_text(text, tt_lines, tooltip_matches_to_skip)
     text = { string_split("#", text) }
@@ -708,14 +708,19 @@ entries.get_item_suffix = function (item_name_en)
     return at.item_suffix[item_suffix_en]
 end
 
-entries.translate_quest_objective_task = function (text)
+entries.translate_quest_objective_task = function (text, quest_id)
     -- Camelot's quest tracker gets its visible objective strings from the
     -- legacy GetQuestLogLeaderBoard API. Keep the live C_QuestLog objective
     -- table pristine and translate only the text after its dynamic N/N prefix.
     local progress_prefix, objective_text = text:match("^(%d+/%d+%s+)(.+)$")
     if progress_prefix and objective_text then
-        return progress_prefix .. entries.translate_quest_objective_task(objective_text)
+        return progress_prefix .. entries.translate_quest_objective_task(objective_text, quest_id)
     end
+
+    local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
+        or addon_table.quest_both[tonumber(quest_id)])
+    local task = quest and quest.tasks and quest.tasks[text]
+    if type(task) == "string" then return task end
 
     -- try parse "LEFT: RIGHT"
     local parts = { string_split(":", text, 2) }

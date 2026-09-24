@@ -390,11 +390,21 @@ local function quest_source()
     return result
 end
 
+scanner.catalog_status = function (version, build)
+    local catalog = addon_table.forever_client_catalog
+    local catalog_build = catalog and catalog.build
+    local client_build = type(version) == "string" and type(build) == "string"
+        and version .. "." .. build or nil
+    if type(catalog_build) ~= "string" or not client_build then return nil end
+    return { build = catalog_build, matches = catalog_build == client_build }
+end
+
 scanner.run = function ()
     local version, build, build_date, interface = GetBuildInfo()
     local report = {
         timestamp = _G.date("!%Y-%m-%dT%H:%M:%SZ"),
         client = { version = version, build = build, buildDate = build_date, interface = interface },
+        catalog = scanner.catalog_status(version, build),
         project = { id = WOW_PROJECT_ID, mainline = WOW_PROJECT_MAINLINE },
         apis = {},
         frames = {},
@@ -465,6 +475,11 @@ scanner.summary = function (report)
     for _, ok in pairs(report.frames or {}) do if not ok then missing_frames = missing_frames + 1 end end
 
     local parts = { "API відсутні: " .. missing_api, "фрейми відсутні: " .. missing_frames }
+    if report.catalog and report.catalog.matches == false then
+        parts[#parts + 1] = "каталог клієнта: " .. report.catalog.build
+            .. " ≠ " .. tostring(report.client and report.client.version)
+            .. "." .. tostring(report.client and report.client.build)
+    end
     if report.ui then
         parts[#parts + 1] = string.format("UI нових: %d, усього: %d", report.ui.new or 0, report.ui.unique or 0)
     end

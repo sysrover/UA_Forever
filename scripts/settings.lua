@@ -9,8 +9,8 @@ local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local tooltips = addon_table.use("tooltips")
+local hooks = addon_table.use("translation_hooks").bind("settings")
 
-local hooked = {}
 local tooltip_mode_buttons = {}
 local scope_buttons = {}
 local name_buttons = {}
@@ -150,22 +150,15 @@ local function register_addon_settings()
     refresh_tooltip_mode_controls()
 end
 
-local function hook_owner(owner, key, method, callback)
-    local owner_type = type(owner)
-    if hooked[key] or (owner_type ~= "table" and owner_type ~= "userdata")
-        or type(owner[method]) ~= "function"
-        or type(_G.hooksecurefunc) ~= "function" then return end
-
-    local ok = pcall(hooksecurefunc, owner, method, callback)
-    if ok then hooked[key] = true end
-end
-
-local function hook_mixin(name, method, callback)
-    hook_owner(_G[name], name .. "." .. method, method, callback)
-end
-
 local function translate_region(region)
     if region then strings.translate_region(region) end
+end
+
+local function translate_static_region(region)
+    if region then
+        strings.translate_region(region, nil, nil,
+            registry.get("settings"), "static")
+    end
 end
 
 local function translate_row(frame)
@@ -211,17 +204,52 @@ local function translate_expandable_section(frame)
     translate_region(frame and frame.Button and frame.Button.Text)
 end
 
+local function translate_advanced_quality_section(section)
+    if not section then return end
+    -- This graphics section is one pooled Settings row with its own XML
+    -- controls, so the ordinary SettingsListElement hooks never see its labels.
+    local regions_ok, regions = pcall(function () return { section:GetRegions() } end)
+    if regions_ok then
+        for _, region in ipairs(regions) do translate_region(region) end
+    end
+    local base_tab = section.BaseTab
+    local raid_tab = section.RaidTab
+    local base_label = base_tab and base_tab.Text
+    if base_label then
+        runtime.apply(base_label, { owner = "settings-graphics",
+            slot = "graphics.base-tab", source = "Base", translated = "Основні",
+            priority = runtime.PRIORITY.CONTEXT })
+    end
+    translate_region(raid_tab and raid_tab.Text)
+
+    for _, controls in ipairs({ section.BaseQualityControls,
+        section.RaidQualityControls }) do
+        if controls then
+            for _, control in ipairs(controls.Controls or {}) do
+                translate_region(control and control.Text)
+                local dropdown = control and control.Control and control.Control.Dropdown
+                if dropdown then
+                    translate_region(dropdown.Text)
+                    hooks.region(dropdown, "UpdateText", function (self)
+                        translate_region(self.Text)
+                    end)
+                end
+            end
+        end
+    end
+end
+
 local function translate_panel_chrome(panel)
     if not panel then return end
-    translate_region(panel.NineSlice and panel.NineSlice.Text)
-    translate_region(panel.CloseButton and panel.CloseButton.Text)
-    translate_region(panel.ApplyButton and panel.ApplyButton.Text)
+    translate_static_region(panel.NineSlice and panel.NineSlice.Text)
+    translate_static_region(panel.CloseButton and panel.CloseButton.Text)
+    translate_static_region(panel.ApplyButton and panel.ApplyButton.Text)
 
     local container = panel.Container
     local list = container and container.SettingsList
     local header = list and list.Header
-    translate_region(header and header.Title)
-    translate_region(header and header.DefaultsButton and header.DefaultsButton.Text)
+    translate_static_region(header and header.Title)
+    translate_static_region(header and header.DefaultsButton and header.DefaultsButton.Text)
 end
 
 local function translate_visible_settings(panel)
@@ -233,7 +261,15 @@ local function translate_visible_settings(panel)
     if not scroll_box or type(scroll_box.GetFrames) ~= "function" then return end
     local ok, frames = pcall(scroll_box.GetFrames, scroll_box)
     if not ok or type(frames) ~= "table" then return end
-    for _, frame in ipairs(frames) do translate_row(frame) end
+    for _, frame in ipairs(frames) do
+        if frame.BaseQualityControls then
+            hooks.region(frame, "Init", translate_advanced_quality_section)
+            hooks.region(frame, "OnTabSelected", translate_advanced_quality_section)
+            translate_advanced_quality_section(frame)
+        else
+            translate_row(frame)
+        end
+    end
 end
 
 local function schedule_visible_settings(panel)
@@ -256,15 +292,25 @@ end
 
 settings_ui.prepare = function ()
     register_addon_settings()
+    local surface = registry.get("settings")
+    if surface then
+        surface.static = function ()
+            translate_visible_settings(_G.SettingsPanel)
+        end
+    end
     -- These hooks correspond directly to the Camelot 1.60.1 Settings mixins.
     -- Blizzard keeps its English category/setting data unchanged; translation
     -- happens only after each recycled row writes its visible FontString.
-    hook_mixin("SettingsCategoryListButtonMixin", "Init", translate_category_button)
-    hook_mixin("SettingsCategoryListHeaderMixin", "Init", translate_category_header)
-    hook_mixin("SettingsListSearchCategoryMixin", "Init", translate_search_category)
-    hook_mixin("SettingsListSectionHeaderMixin", "Init", translate_section_header)
-    hook_mixin("SettingsListElementMixin", "Init", translate_list_element)
-    hook_mixin("SettingsExpandableSectionMixin", "Init", translate_expandable_section)
+    hooks.mixin("SettingsCategoryListButtonMixin", "Init", translate_category_button)
+    hooks.mixin("SettingsCategoryListHeaderMixin", "Init", translate_category_header)
+    hooks.mixin("SettingsListSearchCategoryMixin", "Init", translate_search_category)
+    hooks.mixin("SettingsListSectionHeaderMixin", "Init", translate_section_header)
+    hooks.mixin("SettingsListElementMixin", "Init", translate_list_element)
+    hooks.mixin("SettingsExpandableSectionMixin", "Init", translate_expandable_section)
+    hooks.mixin("SettingsAdvancedQualitySectionMixin", "Init",
+        translate_advanced_quality_section)
+    hooks.mixin("SettingsAdvancedQualitySectionMixin", "OnTabSelected",
+        translate_advanced_quality_section)
 
     for _, name in ipairs({
         "SettingsCheckboxControlMixin",
@@ -278,16 +324,16 @@ settings_ui.prepare = function ()
         "SettingsCheckboxWithColorSwatchControlMixin",
         "KeyBindingFrameBindingTemplateMixin",
     }) do
-        hook_mixin(name, "Init", translate_row)
+        hooks.mixin(name, "Init", translate_row)
     end
 
-    hook_mixin("SettingsPanelMixin", "OnShow", translate_panel_chrome)
-    hook_mixin("SettingsPanelMixin", "DisplayCategory", displayed_category)
-    hook_mixin("SettingsListMixin", "Display", function ()
+    hooks.mixin("SettingsPanelMixin", "OnShow", translate_panel_chrome)
+    hooks.mixin("SettingsPanelMixin", "DisplayCategory", displayed_category)
+    hooks.mixin("SettingsListMixin", "Display", function ()
         schedule_visible_settings(_G.SettingsPanel)
     end)
-    hook_owner(_G.SettingsPanel, "SettingsPanel.OnShow", "OnShow", translate_panel_chrome)
-    hook_owner(_G.SettingsPanel, "SettingsPanel.DisplayCategory", "DisplayCategory", displayed_category)
+    hooks.region(_G.SettingsPanel, "OnShow", translate_panel_chrome)
+    hooks.region(_G.SettingsPanel, "DisplayCategory", displayed_category)
     schedule_visible_settings(_G.SettingsPanel)
     translate_panel_chrome(_G.SettingsPanel)
 end
