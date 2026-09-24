@@ -7,6 +7,9 @@ Hold Shift to see the original tooltip; quest conversations have an EN/UA
 switch. Target client: `wow_forever_beta` build `1.60.1.69977` (Interface
 `16001`).
 
+UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever Beta, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
+Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: wow_forever_beta, збірка 1.60.1.69977 (інтерфейс 16001).
+
 ## ClassicUA translations
 
 We use Ukrainian texts and terminology from ClassicUA for classic quests,
