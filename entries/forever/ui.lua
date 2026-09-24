@@ -266,6 +266,7 @@ addonTable.forever_ui = {
     ["Attack"] = "Атака",
     ["Coldridge Valley"] = "Морозна долина",
     ["Backpack"] = "Рюкзак",
+    ["Bag Slots:"] = "Сумки:",
     ["<Click for Bag Settings>"] = "<Клацніть, щоб відкрити налаштування сумок>",
     ["Buyback"] = "Викуп",
     ["Combined Backpack"] = "Об'єднаний рюкзак",
