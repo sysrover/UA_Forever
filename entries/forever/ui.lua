@@ -4,6 +4,29 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 addonTable.forever_ui = {
+    -- Chat channels use WoW group and guild terminology, not the literal
+    -- meanings of "party", "officer", or "say" from the generated catalog.
+    ["Say"] = "Сказати",
+    ["Emote"] = "Емоції",
+    ["Officer Chat"] = "Чат офіцерів",
+    ["Blizzard Whispers"] = "Приватні повідомлення Battle.net",
+    ["Party"] = "Група",
+    ["Party Leader"] = "Лідер групи",
+    ["Raid Leader"] = "Лідер рейду",
+    ["Raid Warning"] = "Попередження рейду",
+    ["Instance"] = "Група підземелля",
+    ["Instance Leader"] = "Лідер групи підземелля",
+    ["Guild Config"] = "Налаштування чату гільдії",
+    ["Main Hand"] = "Основна рука",
+    ["Off Hand"] = "Друга рука",
+    ["Ranged"] = "Дальній бій",
+    ["Attack Speed (seconds)"] = "Швидкість атаки (с)",
+    ["Damage:"] = "Шкода:",
+    ["DPS:"] = "Шкода/с:",
+    ["Instantly removes and grants immunity to all Bleed, Poison, and Disease effects, and reduces all Physical damage taken by 10% for 8 sec."] = "Миттєво знімає всі ефекти кровотечі, отрути та хвороб і дає до них невразливість, а також зменшує всю отримувану фізичну шкоду на 10% протягом 8 с.",
+    ["Increases chance to |cFFFFFFFFBlock|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFDefense|r\\n\\n|cFFFFFFFFBlock Value %d|r\\nIncreased by |cFFFFFFFFStrength|r\\n\\n|cFFBCBCBCBlocking reduces the attack's damage by your Block Value|r\\n\\n|cFFBCBCBCOnly Melee and Ranged attacks from the front may be Blocked|r"] = "Збільшує шанс |cFFFFFFFFблокування|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFзахисту|r\\n\\n|cFFFFFFFFВеличина блокування: %d|r\\nЗалежить від |cFFFFFFFFсили|r\\n\\n|cFFBCBCBCБлокування зменшує отриману шкоду на величину блокування|r\\n\\n|cFFBCBCBCБлокувати можна лише атаки ближнього й дальнього бою спереду|r",
+    ["Increases chance to |cFFFFFFFFDodge|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFAgility|r and |cFFFFFFFFDefense|r\\n\\n|cFFBCBCBCDodging nullifies the attack|r\\n\\n|cFFBCBCBCFor Players, only Melee attacks from the front may be Dodged\\n\\nFor Creatures, Melee attacks may be Dodged from any direction|r"] = "Збільшує шанс |cFFFFFFFFухилення|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFспритності|r та |cFFFFFFFFзахисту|r\\n\\n|cFFBCBCBCУхилення зводить шкоду від атаки нанівець|r\\n\\n|cFFBCBCBCГравці можуть ухилятися від атак ближнього бою лише спереду.\\n\\nІстоти можуть ухилятися від них із будь-якого боку.|r",
+    ["Increases chance to |cFFFFFFFFParry|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFDefense|r\\n\\n|cFFBCBCBCParrying nullifies the attack and reduces the time until the defender's next Melee attack by 40%%|r\\n\\n|cFFBCBCBCOnly Melee attacks from the front may be Parried|r"] = "Збільшує шанс |cFFFFFFFFпарирування|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFзахисту|r\\n\\n|cFFBCBCBCПарирування зводить шкоду від атаки нанівець і скорочує час до наступної атаки ближнього бою на 40%%|r\\n\\n|cFFBCBCBCПарирувати можна лише атаки ближнього бою спереду|r",
     -- WoW formatting-only values are intentionally preserved verbatim.
     ["|c%s%s|r"] = "|c%s%s|r",
     ["|n|n"] = "|n|n",
