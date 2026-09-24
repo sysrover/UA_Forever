@@ -17,6 +17,50 @@ local name_buttons = {}
 local shift_button
 local auto_scan_button
 local export_window
+local form_link_window
+local FORM_URL = "https://forms.gle/b2oGGebJGTxZsnfn8"
+
+local function show_form_link()
+    if not form_link_window then
+        local window = CreateFrame("Frame", "UA_ForeverFormLinkWindow", UIParent,
+            "BasicFrameTemplateWithInset")
+        window:SetSize(530, 170)
+        window:SetPoint("CENTER")
+        window:SetFrameStrata("FULLSCREEN_DIALOG")
+        if window.TitleText then
+            runtime.set_fallback_text(window.TitleText, "Форма для надсилання даних")
+        end
+
+        local help = window:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        help:SetPoint("TOPLEFT", 20, -42)
+        help:SetWidth(480)
+        help:SetJustifyH("LEFT")
+        runtime.set_fallback_text(help,
+            "Скопіюйте адресу, відкрийте її в браузері та вставте зібрані дані у форму.")
+
+        local edit = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
+        edit:SetSize(475, 28)
+        edit:SetPoint("TOP", 0, -83)
+        edit:SetAutoFocus(false)
+        edit:SetText(FORM_URL)
+        edit:SetScript("OnEscapePressed", function () window:Hide() end)
+
+        local select_button = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        select_button:SetSize(215, 25)
+        select_button:SetPoint("BOTTOM", 0, 17)
+        runtime.set_fallback_text(select_button, "Виділити для Ctrl+C")
+        select_button:SetScript("OnClick", function ()
+            edit:SetFocus()
+            edit:HighlightText()
+        end)
+        window.edit = edit
+        form_link_window = window
+    end
+    form_link_window:Show()
+    form_link_window.edit:SetText(FORM_URL)
+    form_link_window.edit:SetFocus()
+    form_link_window.edit:HighlightText()
+end
 
 local function show_export_window()
     if not export_window then
@@ -36,10 +80,16 @@ local function show_export_window()
 
         local help = window:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         help:SetPoint("TOPLEFT", 18, -38)
-        help:SetWidth(645)
+        help:SetWidth(475)
         help:SetJustifyH("LEFT")
         runtime.set_fallback_text(help,
-            "Натисніть «Скопіювати», потім Ctrl+C. Вставте текст на сайті та надішліть самі.")
+            "Виділіть дані, натисніть Ctrl+C і вставте текст у форму.")
+
+        local form_button = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        form_button:SetSize(135, 24)
+        form_button:SetPoint("TOPRIGHT", -28, -37)
+        runtime.set_fallback_text(form_button, "Адреса форми")
+        form_button:SetScript("OnClick", show_form_link)
 
         local scroll = CreateFrame("ScrollFrame", nil, window,
             "UIPanelScrollFrameTemplate")
@@ -258,6 +308,12 @@ local function register_addon_settings()
     export_button:SetPoint("TOPLEFT", scan_help, "BOTTOMLEFT", 0, -15)
     runtime.set_fallback_text(export_button, "Показати зібрані дані")
     export_button:SetScript("OnClick", show_export_window)
+
+    local form_button = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
+    form_button:SetSize(210, 27)
+    form_button:SetPoint("TOPLEFT", export_button, "BOTTOMLEFT", 0, -10)
+    runtime.set_fallback_text(form_button, "Форма для надсилання")
+    form_button:SetScript("OnClick", show_form_link)
 
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)

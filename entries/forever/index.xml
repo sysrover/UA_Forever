@@ -2,7 +2,6 @@
     <Script file="book.lua"/>
     <Script file="chat.lua"/>
     <Script file="gossip.lua"/>
-    <Script file="gossip_manual.lua"/>
     <Script file="item.lua"/>
     <Script file="npc.lua"/>
     <Script file="object.lua"/>
@@ -10,7 +9,6 @@
     <Script file="quest_both.lua"/>
     <Script file="quest_horde.lua"/>
     <Script file="quest_missing.lua"/>
-    <Script file="quest_missing_60tools.lua"/>
     <Script file="quest_tasks.lua"/>
     <Script file="spell.lua"/>
     <Script file="spell_druid.lua"/>
