@@ -3,7 +3,7 @@
 ## Title: |cff1177eeUA|r |cffffdd00Forever|r
 ## Notes: Ukrainian localization for World of Warcraft: Forever Beta.
 ## Author: UA Forever contributors; based on ClassicUA
-## Version: 0.10.12-beta
+## Version: 0.10.13-beta
 ## IconTexture: Interface\AddOns\UA_Forever\assets\icon.png
 ## SavedVariables: UA_ForeverDB
 
