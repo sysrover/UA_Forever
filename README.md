@@ -2,7 +2,7 @@
 
 Experimental Ukrainian localization addon for World of Warcraft: Forever Beta.
 
-Target client: `wow_classic_beta`, build `1.60.1.69913`, Interface `16001`.
+Target client: `wow_forever_beta`, build `1.60.1.69977`, Interface `16001`.
 
 The addon is based on [ClassicUA](https://github.com/greenya/ClassicUA) and
 reuses its original-world translation data under `entries/forever`, but has a
