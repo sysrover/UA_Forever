@@ -21,6 +21,14 @@ local function safe_string(value)
     return type(value) == "string" and value ~= "" and value or nil
 end
 
+local function safe_number(value)
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, value)
+        if not ok or secret then return nil end
+    end
+    return type(value) == "number" and value or nil
+end
+
 local function safe_text(region)
     if not region then return nil end
     local method_ok, get_text = pcall(function () return region.GetText end)
@@ -259,6 +267,15 @@ local function objective_region(region, slot, after_apply, quest_id)
     })
 end
 
+local function grow_quest_log_row(button, delta)
+    if not button or not delta or math.abs(delta) < 0.5 then return end
+    local ok, height = pcall(button.GetHeight, button)
+    height = ok and safe_number(height)
+    if height and height + delta > 0 then
+        return pcall(button.SetHeight, button, height + delta)
+    end
+end
+
 local function quest_log_titles(scroll)
     if not options.can_lookup("translate_quest") then return false end
     local pool = scroll and scroll.titleFramePool
@@ -277,11 +294,25 @@ local function quest_log_titles(scroll)
             local source = replace_once(current, ukrainian, english) or current
             local translated = replace_once(source, english, ukrainian)
             if translated then
+                local height_ok, old_height = pcall(region.GetStringHeight, region)
+                old_height = height_ok and safe_number(old_height)
                 runtime.clear(region)
                 changed = runtime.apply(region, {
                     owner = "quest-log", slot = "quest:" .. id .. ".name",
                     source = source, translated = translated, category = "quest",
                     option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+                    after_apply = function ()
+                        local ok, new_height = pcall(region.GetStringHeight, region)
+                        new_height = ok and safe_number(new_height)
+                        if old_height and new_height then
+                            local frame_ok, frame_height = pcall(region.GetHeight, region)
+                            frame_height = frame_ok and safe_number(frame_height)
+                            if frame_height and new_height > frame_height then
+                                pcall(region.SetHeight, region, new_height)
+                            end
+                            grow_quest_log_row(button, new_height - old_height)
+                        end
+                    end,
                 }) or changed
             end
         elseif region then
@@ -532,19 +563,35 @@ local function prepare_dialog_hooks()
         local pool = scroll and scroll.objectiveFramePool
         if not pool or type(pool.EnumerateActive) ~= "function" then return end
         local counters, changed = {}, quest_log_titles(scroll)
+        local buttons = {}
+        local titles = scroll.titleFramePool
+        if titles and type(titles.EnumerateActive) == "function" then
+            for button in titles:EnumerateActive() do
+                if type(button.questID) == "number" then
+                    buttons[button.questID] = button
+                end
+            end
+        end
         for frame in pool:EnumerateActive() do
             local id = frame.questID
             if type(id) == "number" and frame.Text then
                 counters[id] = (counters[id] or 0) + 1
                 local applied = objective_region(frame.Text,
                     "quest:" .. id .. ":log-objective:" .. counters[id],
-                    function (region)
-                        local height_ok, height = pcall(region.GetStringHeight, region)
-                        if height_ok and type(height) == "number" then
-                            pcall(frame.SetHeight, frame, height)
-                        end
-                    end, id)
-                changed = applied or changed
+                    nil, id)
+                local old_ok, old_height = pcall(frame.GetHeight, frame)
+                local new_ok, new_height = pcall(frame.Text.GetStringHeight, frame.Text)
+                old_height = old_ok and safe_number(old_height)
+                new_height = new_ok and safe_number(new_height)
+                local resized = false
+                if old_height and new_height and new_height > 0
+                    and math.abs(new_height - old_height) >= 0.5 then
+                    resized = pcall(frame.SetHeight, frame, new_height)
+                    if resized then
+                        grow_quest_log_row(buttons[id], new_height - old_height)
+                    end
+                end
+                changed = applied or resized or changed
             end
         end
         if changed and scroll.Contents and type(scroll.Contents.Layout) == "function" then
@@ -557,7 +604,30 @@ local function translate_header(block, id)
     quest_name_region(block.HeaderText, id, "quest-tracker")
 end
 
-local function translate_objectives(block, id)
+local function fit_tracker_line(module, block, line, region)
+    if not block.used or type(line.SetHeight) ~= "function"
+        or type(block.SetHeight) ~= "function" then return end
+    local text_ok, text_height = pcall(region.GetStringHeight, region)
+    local line_ok, line_height = pcall(line.GetHeight, line)
+    text_height = text_ok and safe_number(text_height)
+    line_height = line_ok and safe_number(line_height)
+    local block_height = safe_number(block.height)
+    local contents_height = safe_number(module.contentsHeight)
+    if not text_height or not line_height or not block_height
+        or not contents_height then return end
+    local delta = text_height - line_height
+    if math.abs(delta) < 0.5 or text_height <= 0
+        or block_height + delta <= 0 or contents_height + delta < 0 then return end
+    if not pcall(line.SetHeight, line, text_height) then return end
+    if not pcall(block.SetHeight, block, block_height + delta) then
+        pcall(line.SetHeight, line, line_height)
+        return
+    end
+    block.height = block_height + delta
+    module.contentsHeight = contents_height + delta
+end
+
+local function translate_objectives(module, block, id)
     if type(block.ForEachUsedLine) ~= "function" then return end
     pcall(block.ForEachUsedLine, block, function (line, key)
         local region = line and line.Text
@@ -567,8 +637,9 @@ local function translate_objectives(block, id)
             "quest:" .. id .. ":" .. tostring(key) .. ".description",
             nil, id)
         if not applied and options.can_translate("translate_quest") then
-            strings.translate_region(region)
+            applied = strings.translate_region(region)
         end
+        if applied then fit_tracker_line(module, block, line, region) end
     end)
 end
 
@@ -600,7 +671,7 @@ local function after_update(self, quest)
     end)
     if not block_ok or not block then return end
     translate_header(block, id)
-    translate_objectives(block, id)
+    translate_objectives(self, block, id)
     translate_tracker_labels()
 end
 

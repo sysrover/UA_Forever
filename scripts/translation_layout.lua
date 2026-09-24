@@ -88,6 +88,18 @@ local function fit_tooltip_width_to_region(tooltip, region)
     end
 end
 
+local function fit_aura_header_width(tooltip, left, right, padding)
+    if not is_tooltip(tooltip) or not left or not right then return end
+    local left_width = unbounded_text_width(left)
+    local right_width = unbounded_text_width(right)
+    local tooltip_width = safe_dimension(tooltip, "GetWidth")
+    if not left_width or not right_width or not tooltip_width then return end
+    local required = math.ceil(left_width + right_width + (padding or 32))
+    if required > tooltip_width and required <= 420 then
+        pcall(tooltip.SetWidth, tooltip, required)
+    end
+end
+
 local function fit_bag_tooltip_width(tooltip, region, source)
     if not is_tooltip(tooltip) or type(source) ~= "string"
         or not source:match("^%d+ Empty Slots") then return end
@@ -198,5 +210,6 @@ layout.is_button = is_button
 layout.is_tooltip = is_tooltip
 layout.fit_tooltip_height_to_region = fit_tooltip_height_to_region
 layout.fit_tooltip_width_to_region = fit_tooltip_width_to_region
+layout.fit_aura_header_width = fit_aura_header_width
 layout.fit_bag_tooltip_width = fit_bag_tooltip_width
 layout.fit_button_to_text = fit_button_to_text
