@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local dev_log = addon_table.use("dev_log")
+local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local strings = addon_table.use("strings")
@@ -921,6 +922,21 @@ local function process(tooltip, data, kind)
         dev_log.record_id("objects", id, data.name, false)
     end
     if translated then tooltip.uaForeverKey = key end
+    if options.account and options.account.auto_scan_content
+        and (kind == "item" or kind == "spell" or kind == "aura") then
+        local missing_entry = not entries.get_entry(
+            kind == "item" and "item" or "spell", id)
+        if missing_entry then
+            auto_scan.capture_tooltip(tooltip, kind, id, true)
+        end
+        local generation = tooltip.uaForeverGeneration
+        scheduler.request("auto-tooltip:" .. tostring(tooltip), generation, function ()
+            local ok, shown = pcall(tooltip.IsShown, tooltip)
+            if ok and shown and tooltip.uaForeverGeneration == generation then
+                auto_scan.capture_tooltip(tooltip, kind, id, missing_entry)
+            end
+        end, 0.15, tooltip)
+    end
     return translated
 end
 
@@ -2136,6 +2152,10 @@ local function prepare_tooltip_frames()
                     local shown_ok, shown = pcall(self.IsShown, self)
                     if shown_ok and shown then
                         translate_generic_tooltip(self)
+                        if options.account and options.account.auto_scan_content
+                            and not self.uaForeverID then
+                            auto_scan.capture_tooltip(self, "aura")
+                        end
                         if self.uaForeverKind == "aura" and self.uaForeverKey then
                             scheduler.cancel("tooltip:" .. tostring(self))
                             scheduler.cancel("tooltip-late:" .. tostring(self))

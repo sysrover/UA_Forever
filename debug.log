@@ -1,0 +1,23 @@
+[24.09.2026 11:40:54]: CASCHandlerBase: loading CDN indices...
+[24.09.2026 11:40:55]: CDNIndexHandler.Initialize() completed in 00:00:01.2440311
+[24.09.2026 11:40:55]: FileIndexHandler() completed in 00:00:00.0045276
+[24.09.2026 11:40:55]: CASCHandlerBase: loaded 5022478 CDN indexes
+[24.09.2026 11:40:55]: CASCHandlerBase: loading local indices...
+[24.09.2026 11:40:56]: LocalIndexHandler: loaded 1218247 indexes
+[24.09.2026 11:40:56]: LocalIndexHandler.Initialize() completed in 00:00:00.2606459
+[24.09.2026 11:40:56]: CASCHandlerBase: loaded 1218247 local indexes
+[24.09.2026 11:40:56]: CASCHandler: loading encoding data...
+[24.09.2026 11:40:58]: new EncodingHandler() completed in 00:00:02.3088635
+[24.09.2026 11:40:58]: CASCHandler: loaded 2500517 encoding data
+[24.09.2026 11:40:58]: CASCHandler: loading root data...
+[24.09.2026 11:40:59]: new RootHandler() completed in 00:00:00.9642222
+[24.09.2026 11:40:59]: CASCHandler: loaded 1441771 root data
+[24.09.2026 11:40:59]: CASCHandler: loading install data...
+[24.09.2026 11:40:59]: new InstallHandler() completed in 00:00:00.0028574
+[24.09.2026 11:40:59]: CASCHandler: loaded 219 install data
+[24.09.2026 11:40:59]: new CASCHandler() completed in 00:00:04.7901725
+[24.09.2026 11:40:59]: WowRootHandler: list file missing!
+[24.09.2026 11:40:59]: WowRootHandler::LoadListFile() completed in 00:00:00.0000878
+[24.09.2026 11:41:01]: WowRootHandler: 1436176 file names missing for locale enUS
+[24.09.2026 11:41:01]: WowRootHandler::SetFlags() completed in 00:00:01.7903874
+[24.09.2026 11:41:01]: 4A95BB96696FB7D8

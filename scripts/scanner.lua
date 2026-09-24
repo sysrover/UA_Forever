@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local dev_log = addon_table.use("dev_log")
+local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
 local scanner = addon_table.use("scanner")
 local strings = addon_table.use("strings")
@@ -265,6 +266,24 @@ local function collect_quest_log_ids()
                 end
             end
             dev_log.record_quest_text(info.questID, fields)
+            local missing_fields = {}
+            local scan_fields = { title = info.title }
+            missing_fields.title = not entry or type(entry[1]) ~= "string"
+                or entry[1] == "" or entry[1] == info.title
+            for _, field in ipairs({ { "description", 2 }, { "objective", 3 } }) do
+                local key, index = field[1], field[2]
+                scan_fields[key] = fields[key]
+                missing_fields[key] = not entry or type(entry[index]) ~= "string"
+                    or entry[index] == "" or entry[index] == fields[key]
+            end
+            for task_index, task in ipairs(fields.tasks or {}) do
+                local key = "task" .. task_index
+                scan_fields[key] = task
+                local ok_task, translated_task = pcall(
+                    entries.translate_quest_objective_task, task, info.questID)
+                missing_fields[key] = not ok_task or translated_task == task
+            end
+            auto_scan.record_quest(info.questID, scan_fields, missing_fields)
             found = found + 1
         end
     end
@@ -317,6 +336,7 @@ scanner.capture_current_quest = function (event)
         local source = original_quest_text(field.getter)
         local translated = entry and type(entry[field.index]) == "string"
             and not is_secret(entry[field.index]) and entry[field.index] ~= ""
+            and entry[field.index] ~= source
 
         if field.key == "title" then
             title = source
@@ -339,7 +359,8 @@ scanner.capture_current_quest = function (event)
             local ok, value = pcall(title_getter, id)
             if ok and type(value) == "string" and not is_secret(value) and value ~= "" then
                 title = value
-                if not entry or type(entry[1]) ~= "string" or entry[1] == "" then
+                if not entry or type(entry[1]) ~= "string" or entry[1] == ""
+                    or entry[1] == value then
                     captured.title = value
                 end
             end
@@ -399,7 +420,7 @@ scanner.catalog_status = function (version, build)
     return { build = catalog_build, matches = catalog_build == client_build }
 end
 
-scanner.run = function ()
+scanner.run = function (capture_ui)
     local version, build, build_date, interface = GetBuildInfo()
     local report = {
         timestamp = _G.date("!%Y-%m-%dT%H:%M:%SZ"),
@@ -412,7 +433,7 @@ scanner.run = function ()
         collected = {},
     }
 
-    report.ui = strings.capture_visible_ui()
+    if capture_ui ~= false then report.ui = strings.capture_visible_ui() end
 
     report.collected.questLog = collect_quest_log_ids()
     report.collected.questRewards = collect_current_quest_rewards()

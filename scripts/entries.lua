@@ -622,7 +622,7 @@ entries.get_gossip_text_for_npc_talk = function (npc_id, gossip_text)
         return text_uk
     end
 
-    if options.account.dev_mode and gossip_code then
+    if (options.account.dev_mode or options.account.auto_scan_content) and gossip_code then
         dev_log.missing_gossip(npc_id, gossip_code, gossip_text, false)
     end
 end
@@ -646,7 +646,7 @@ entries.get_gossip_text_for_player_reply = function (npc_id, gossip_text)
         return found_text
     end
 
-    if options.account.dev_mode then
+    if options.account.dev_mode or options.account.auto_scan_content then
         local gossip_code = utils.get_text_code(gossip_text)
         if gossip_code then
             dev_log.missing_gossip(npc_id, gossip_code, gossip_text, true)
