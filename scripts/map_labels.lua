@@ -101,6 +101,7 @@ end
 
 local function after_minimap_update()
     local region = _G.MinimapZoneText
+    if region and runtime.is_applying(region) then return end
     local current = visible_text(region)
     local getter = _G.GetMinimapZoneText
     if not current or type(getter) ~= "function" then return end
@@ -524,6 +525,8 @@ end
 
 map_labels.prepare = function ()
     hooks.global("Minimap_Update", after_minimap_update)
+    hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
+    after_minimap_update()
     hooks.global("ZoneText_OnEvent", after_zone_text_event)
     hooks.global("SubZoneText_OnLoad", after_subzone_load)
     -- ZoneTextFrame's XML script keeps its own function reference. Hook the

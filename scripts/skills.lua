@@ -441,17 +441,16 @@ local function translate_reagent_slot(slot)
     if not options.translate_name("item") then return end
 
     local english = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(item_id)
-    local ok, current = pcall(slot.Name.GetText, slot.Name)
-    if ok and type(current) == "string" and type(english) == "string" then
-        local first, last = current:find(english, 1, true)
-        if first then
-            apply_skill_text(slot.Name,
-                current:sub(1, first - 1) .. translated .. current:sub(last + 1),
-                "item", "item.name")
-            return
-        end
+    if type(english) ~= "string" or english == "" then
+        english = entry.en
     end
-    apply_skill_text(slot.Name, translated, "item", "item.name")
+    local current = text_from(slot.Name)
+    if not current or type(english) ~= "string" or english == "" then return end
+    local first, last = current:find(english, 1, true)
+    if not first then return end
+    apply_skill_text(slot.Name,
+        current:sub(1, first - 1) .. translated .. current:sub(last + 1),
+        "item", "item.name")
 end
 
 local function translate_crafting_page()
