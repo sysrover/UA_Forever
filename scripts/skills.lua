@@ -14,6 +14,8 @@ local hook_mixin = hooks.mixin
 local hook_owner = hooks.region
 
 local translate_profession_spell_button
+local hook_crafting_requirements
+local hook_crafting_description
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -151,6 +153,52 @@ end
 local function translate_character_stat(frame)
     strings.translate_region(frame and frame.Label)
     strings.translate_region(frame and frame.Value)
+    hooks.region_script(frame, "OnEnter", function (self)
+        tooltips.translate_character_stat(self)
+    end, "character-stat-tooltip")
+end
+
+local function translate_profession_rank(region, profession, profession_info)
+    if not region or not options.translate_name("skill") then return end
+    local source = text_from(region)
+    local name, progress = source and source:match("^(.-)%s+(%d+/%d+)$")
+    if profession_info then
+        local ok, info_name, level, maximum = pcall(function ()
+            return profession_info.professionName,
+                profession_info.skillLevel, profession_info.maxSkillLevel
+        end)
+        if ok and type(info_name) == "string" and not is_secret(info_name)
+            and type(level) == "number" and not is_secret(level)
+            and type(maximum) == "number" and not is_secret(maximum) then
+            name = info_name
+            progress = source and source:match("(%d+.-/%d+)%s*$")
+                or math.floor(level) .. "/" .. math.floor(maximum)
+        end
+    end
+    name = name or profession and profession.skillName
+    local translated = name and (entries.lookup_name("spell", name)
+        or strings.find_ui_translation(name)
+        or (name:find("[\208\209]") and name))
+    if not translated or not progress then return end
+    runtime.apply(region, { owner = "skills", slot = "skill.name",
+        source = source, translated = utils.cap(translated) .. " " .. progress,
+        category = "skill", priority = runtime.PRIORITY.DOMAIN,
+        allow_unknown_source = true })
+end
+
+local function hook_profession_rank(region, profession)
+    if not region then return end
+    hook_owner(region, "SetText", function (self)
+        if not runtime.is_applying(self) then translate_profession_rank(self, profession) end
+    end)
+    translate_profession_rank(region, profession)
+end
+
+local function translate_updated_profession_bar(bar, profession_info)
+    local region = bar and bar.Rank and bar.Rank.Text
+    if region then
+        translate_profession_rank(region, bar:GetParent(), profession_info)
+    end
 end
 
 local function translate_professions(frame)
@@ -187,7 +235,16 @@ local function translate_professions(frame)
             strings.translate_region(profession.missingHeader)
             strings.translate_region(profession.missingText)
             strings.translate_region(profession.Rank)
-            strings.translate_region(profession.StatusBar and profession.StatusBar.rankText)
+            local bar = profession.StatusBar
+            hook_profession_rank(bar and bar.Rank and bar.Rank.Text, profession)
+            hook_owner(bar, "Update", translate_updated_profession_bar)
+            local profession_api = _G.C_TradeSkillUI
+            if bar and profession.skillLine and profession_api
+                and type(profession_api.GetProfessionInfoBySkillLineID) == "function" then
+                local ok, info = pcall(profession_api.GetProfessionInfoBySkillLineID,
+                    profession.skillLine)
+                if ok and info then translate_updated_profession_bar(bar, info) end
+            end
             for _, button in ipairs(profession.spellButtons or {}) do
                 if options.translate_name("skill") then
                     strings.translate_region(button.spellString, "skill", "skill.name")
@@ -442,6 +499,8 @@ local function translate_crafting_page()
 
     local form = page.SchematicForm
     if form then
+        hook_crafting_requirements(form)
+        hook_crafting_description(form)
         for _, field in ipairs({
             "OutputText", "RecraftingOutputText", "OutputSubText",
             "RequiredTools", "RecraftingRequiredTools", "Description",
@@ -505,10 +564,109 @@ local function translate_crafting_page()
     translate_button(page.CreateAllButton)
 end
 
+local function requirement_name(name)
+    if type(name) ~= "string" or is_secret(name) then return nil end
+    if name == "Forge" then return "кузня" end
+    return entries.lookup_name("item", name)
+        or entries.lookup_name("spell", name)
+        or strings.find_ui_translation(name)
+end
+
+local function requirement_text_from_recipe(form)
+    if type(form.GetRecipeInfo) ~= "function"
+        or not C_TradeSkillUI or not C_TradeSkillUI.GetRecipeRequirements then return nil end
+    local ok_info, recipe_id = pcall(function ()
+        local info = form:GetRecipeInfo()
+        return info and info.recipeID
+    end)
+    if not ok_info or is_secret(recipe_id) or type(recipe_id) ~= "number" then return nil end
+    local ok, requirements = pcall(C_TradeSkillUI.GetRecipeRequirements, recipe_id)
+    if not ok or type(requirements) ~= "table" or is_secret(requirements) then return nil end
+
+    local link_types = Enum and Enum.RecipeRequirementType
+    local names = {}
+    if link_types then
+        if link_types.SpellFocus then names[link_types.SpellFocus] = "SpellFocusRequirement" end
+        if link_types.Totem then names[link_types.Totem] = "TotemRequirement" end
+        if link_types.Area then names[link_types.Area] = "AreaRequirement" end
+    end
+    local parts = {}
+    for _, requirement in ipairs(requirements) do
+        local ok_fields, name, met, kind = pcall(function ()
+            return requirement.name, requirement.met, requirement.type
+        end)
+        if not ok_fields or is_secret(kind) then return nil end
+        local translated = requirement_name(name)
+        local link_type = names[kind]
+        if not translated or not link_type then return nil end
+        local part = "|H" .. link_type .. "|h" .. translated .. "|h"
+        if not is_secret(met) and met == false then
+            part = "|cffff2020" .. part .. "|r"
+        end
+        parts[#parts + 1] = part
+    end
+    if #parts == 0 then return nil end
+    return "Потрібно: " .. table.concat(parts, ", ")
+end
+
+local function translate_crafting_requirement_region(form, region)
+    if not region then return end
+    if strings.translate_region(region) then return end
+
+    local source = text_from(region)
+    local translated
+    if source then
+        if not source:find("Requires:", 1, true) then return end
+        local plain = source:match("^Requires:%s*(.-)%s*$")
+        local plain_name = plain and not plain:find("|", 1, true)
+            and requirement_name(plain)
+        if plain_name then
+            translated = "Потрібно: " .. plain_name
+        else
+            translated = source:gsub("|H([^|]+)|h([^|]+)|h", function (link, name)
+                local replacement = requirement_name(name)
+                return "|H" .. link .. "|h" .. (replacement or name) .. "|h"
+            end)
+            translated = translated:gsub("Requires:", "Потрібно:", 1)
+        end
+        if translated == source then return end
+    else
+        -- Camelot can mark the rendered text secret while leaving recipe
+        -- requirement fields public. Rebuild only fully known requirements.
+        translated = requirement_text_from_recipe(form)
+        if not translated then return end
+    end
+
+    runtime.apply(region, { owner = "skills", slot = "profession.required_tools",
+        source = source, translated = translated,
+        priority = runtime.PRIORITY.DOMAIN, allow_unknown_source = true })
+end
+
 local function translate_crafting_requirements(form)
     if not form then return end
-    strings.translate_region(form.RequiredTools)
-    strings.translate_region(form.RecraftingRequiredTools)
+    translate_crafting_requirement_region(form, form.RequiredTools)
+    translate_crafting_requirement_region(form, form.RecraftingRequiredTools)
+end
+
+hook_crafting_requirements = function (form)
+    if not form then return end
+    for _, region in pairs({ form.RequiredTools, form.RecraftingRequiredTools }) do
+        hooks.region(region, "SetText", function (self)
+            if not runtime.is_applying(self) then
+                translate_crafting_requirement_region(form, self)
+            end
+        end)
+    end
+    translate_crafting_requirements(form)
+end
+
+hook_crafting_description = function (form)
+    local region = form and form.Description
+    if not region then return end
+    hooks.region(region, "SetText", function (self)
+        if not runtime.is_applying(self) then strings.translate_region(self) end
+    end)
+    strings.translate_region(region)
 end
 
 local function translate_new_recipe_alert(frame, recipe_id)
@@ -545,6 +703,10 @@ skills.prepare = function ()
     -- not compatible with this Camelot implementation.
     hook_mixin("CharacterStatFrameCategoryScrollBoxElementMixin", "Init", translate_character_category)
     hook_mixin("CharacterStatFrameScrollBoxBaseElementMixin", "Init", translate_character_stat)
+    hook_mixin("CharacterStatFrameMixin", "OnEnter",
+        tooltips.translate_character_stat)
+    hook_mixin("CharacterStatFrameScrollBoxBaseElementMixin", "OnEnter",
+        tooltips.translate_character_stat)
     hook_mixin("ReputationHeaderMixin", "Initialize", translate_character_element)
     hook_mixin("ReputationEntryMixin", "Initialize", translate_character_element)
     hook_mixin("ReputationSubHeaderMixin", "Initialize", translate_character_element)
@@ -570,6 +732,7 @@ skills.prepare = function ()
     hook_mixin("SpellBookFrameMixin", "UpdateDisplayedSpells", translate_spellbook)
     hook_mixin("SpellBookFrameMixin", "SetTab", translate_spellbook)
     hook_mixin("ProfessionSpellButtonMixin", "UpdateButton", translate_profession_spell_button)
+    hook_mixin("ProfessionsRankBarMixin", "Update", translate_updated_profession_bar)
     hook_mixin("ProfessionsBookFrameMixin", "Update", translate_professions)
     hook_mixin("ProfessionsMixin", "SelectBookPage", translate_professions)
     hook_mixin("ProfessionsMixin", "Refresh", translate_professions)
@@ -630,6 +793,8 @@ skills.prepare = function ()
 
     local crafting_page = professions_frame and professions_frame.CraftingPage
     local schematic_form = crafting_page and crafting_page.SchematicForm
+    hook_crafting_requirements(schematic_form)
+    hook_crafting_description(schematic_form)
     for _, method in ipairs({ "Refresh", "Update", "ValidateControls", "OnRecipeSelected" }) do
         hook_owner(crafting_page, method, translate_crafting_page)
     end

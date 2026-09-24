@@ -100,17 +100,22 @@ local function update_quest_npc_name()
     if not options.can_translate("translate_npc") then return end
     local name, source = translated_npc_name("questnpc")
     if not name then name, source = translated_npc_name("npc") end
-    if name and source and QuestFrameNpcNameText then
-        local region = QuestFrameNpcNameText
-        local visible_ok, visible = pcall(function () return region:GetText() end)
-        local claim = runtime.get(region)
-        if not visible_ok or is_secret(visible)
-            or (visible ~= source
-                and not (claim and claim.source == source
-                    and visible == claim.translated)) then return end
-        runtime.apply(QuestFrameNpcNameText, { owner = "quest-npc", slot = "npc.name",
-            source = source, translated = name,
-            priority = runtime.PRIORITY.DOMAIN })
+    if name and source then
+        for _, region in pairs({ _G.QuestFrameNpcNameText,
+            _G.QuestFrameTitleText }) do
+            if region then
+                local visible_ok, visible = pcall(function () return region:GetText() end)
+                local claim = runtime.get(region)
+                if visible_ok and not is_secret(visible)
+                    and (visible == source
+                        or (claim and claim.source == source
+                            and visible == claim.translated)) then
+                    runtime.apply(region, { owner = "quest-npc", slot = "npc.name",
+                        source = source, translated = name,
+                        priority = runtime.PRIORITY.DOMAIN })
+                end
+            end
+        end
     end
 end
 
@@ -184,11 +189,30 @@ local function translate_character_title(frame)
     end
 end
 
+local function translate_character_level(region)
+    if not region or runtime.is_applying(region) then return end
+    strings.translate_region(region)
+    local ok, source = pcall(region.GetText, region)
+    if not ok or type(source) ~= "string" or is_secret(source) then return end
+    local class = type(_G.UnitClass) == "function" and _G.UnitClass("player")
+    if type(class) ~= "string" or class == "" or is_secret(class) then return end
+    local translated = strings.find_ui_translation(class)
+    if not translated then return end
+    local start_at, end_at = source:find(class, 1, true)
+    if not start_at then return end
+    runtime.apply(region, { owner = "character-level",
+        slot = "character.level_class", source = source,
+        translated = source:sub(1, start_at - 1) .. translated
+            .. source:sub(end_at + 1),
+        priority = runtime.PRIORITY.CONTEXT })
+end
+
 local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
     hooks.global("PanelTemplates_SetTab", selected_tab)
     hooks.global("QuestFrame_SetPortrait", update_quest_npc_name)
+    hooks.global("QuestFrameGreetingPanel_OnShow", update_quest_npc_name)
     -- QuestInfo_Display and ShowRewards have domain post-hooks in quest_ui and
     -- items; refreshing every open surface here would rescan the entire map
     -- for a single quest text update.
@@ -204,6 +228,18 @@ local function prepare_panel_hooks()
     hooks.region(_G.CharacterFrame, "ShowSubFrame", translate_character_subframe)
     hooks.region(_G.CharacterFrame, "UpdateTitle", translate_character_title)
     translate_character_title(_G.CharacterFrame)
+    for _, name in ipairs({ "CharacterLevelText", "HonorLevelText" }) do
+        local region = _G[name]
+        if region then
+            hooks.region(region, "SetText", translate_character_level)
+            hooks.region(region, "SetFormattedText", translate_character_level)
+            translate_character_level(region)
+        end
+    end
+    hooks.global("PaperDollFrame_SetLevel", function ()
+        translate_character_level(_G.CharacterLevelText)
+        translate_character_level(_G.HonorLevelText)
+    end)
     local paper_doll = _G.PaperDollFrame
     hooks.region_script(paper_doll and paper_doll.EquipmentManagerPane,
         "OnShow", opened_panel)

@@ -67,11 +67,33 @@ addonTable.forever_ui = {
     ["Intellect:"] = "Інтелект:",
     ["Spirit:"] = "Дух:",
     ["Movement Speed:"] = "Швидкість руху:",
+    ["Increases |cFFFFFFFFAttack Power|r by %d\\nIncreases |cFFFFFFFFBlock Value|r by %d"] =
+        "Збільшує |cFFFFFFFFсилу атаки|r на %d\nЗбільшує |cFFFFFFFFвеличину блокування|r на %d",
+    ["Increases |cFFFFFFFFWeapon Skill|r improvement rate"] =
+        "Прискорює розвиток |cFFFFFFFFвміння володіння зброєю|r",
+    ["|cFFBCBCBCBase Speeds (In Yards Per Second):\\n7.0 yd/s Running\\n4.7 yd/s Swimming\\n4.5 yd/s Backpedaling\\n2.5 yd/s Walking|r"] =
+        "|cFFBCBCBCБазова швидкість (ярдів за секунду):\n7,0 — біг\n4,7 — плавання\n4,5 — рух назад\n2,5 — ходьба|r",
     ["Attack Power:"] = "Сила атаки:",
     ["Ranged Attack Power:"] = "Сила атаки дальнього бою:",
     ["Main Hand:"] = "Основна рука:",
     ["Modifiers"] = "Модифікатори",
     ["Critical Strike:"] = "Критичний удар:",
+    ["Increases |cFFFFFFFFMelee|r critical chance by %.2f%%"] =
+        "Збільшує шанс критичного удару |cFFFFFFFFу ближньому бою|r на %.2f%%",
+    ["Increases |cFFFFFFFFRanged|r critical chance by %.2f%%"] =
+        "Збільшує шанс критичного удару |cFFFFFFFFзброєю дальнього бою|r на %.2f%%",
+    ["Increases |cFFFFFFFFSpell|r critical chance by %.2f%%"] =
+        "Збільшує шанс критичного удару |cFFFFFFFFзакляттями|r на %.2f%%",
+    ["Increased by |cFFFFFFFFAgility|r for Attacks\\r\\n\\n|cFFBCBCBCMelee and Ranged critical strikes deal 100%% increased damage\\n\\nSpell and Healing critical strikes are 50%% more effective\\n\\nMost periodic effects can critically strike|r"] =
+        "Залежить від |cFFFFFFFFспритності|r для атак\n\n"
+        .. "|cFFBCBCBCКритичні удари ближнього й дальнього бою завдають на 100% більше шкоди.\n\n"
+        .. "Критичні удари заклять і зцілення на 50% ефективніші.\n\n"
+        .. "Більшість періодичних ефектів можуть завдати критичного удару.|r",
+    ["Increased by |cFFFFFFFFAgility|r for Attacks|r\\n\\n|cFFBCBCBCMelee and Ranged critical strikes deal 100%% increased damage\\n\\nSpell and Healing critical strikes are 50%% more effective\\n\\nMost periodic effects can critically strike|r"] =
+        "Залежить від |cFFFFFFFFспритності|r для атак\n\n"
+        .. "|cFFBCBCBCКритичні удари ближнього й дальнього бою завдають на 100% більше шкоди.\n\n"
+        .. "Критичні удари заклять і зцілення на 50% ефективніші.\n\n"
+        .. "Більшість періодичних ефектів можуть завдати критичного удару.|r",
     ["Defense:"] = "Захист:",
     ["Dodge:"] = "Ухилення:",
     ["Parry:"] = "Парирування:",
@@ -103,6 +125,7 @@ addonTable.forever_ui = {
     ["Join or Create Community"] = "Приєднатися до спільноти або створити її",
     ["Fishing"] = "Рибальство",
     ["First Aid"] = "Перша допомога",
+    ["Magic"] = "Магія",
     ["Cooking"] = "Кулінарія",
     ["New Recipe Learned!"] = "Вивчено новий рецепт!",
     ["AddOn Usage"] = "Використання аддонів",
@@ -192,13 +215,19 @@ addonTable.forever_ui = {
     ["Spellbook"] = "Книга заклять",
     ["Revert All Changes"] = "Скасувати всі зміни",
     ["Professions"] = "Професії",
+    ["Secondary Skills"] = "Другорядні навички",
     ["Group Finder"] = "Пошук групи",
     ["Smelting"] = "Переплавлення",
     ["Smelted Bars"] = "Виплавлені злитки",
+    ["Everyday Meals"] = "Повсякденні страви",
+    ["Stamina Food"] = "Їжа для витривалості",
+    ["Strength Food"] = "Їжа для сили",
+    ["Craft a Basic Campfire."] = "Створіть звичайне вогнище.",
     ["Smelt Copper"] = "Виплавити мідь",
     ["Weapon Stones"] = "Точильні камені",
     ["Mail Chestguards"] = "Кольчужні нагрудники",
     ["Mail Bracers"] = "Кольчужні наручі",
+    ["Mail Legguards"] = "Кольчужні поножі",
     ["Inert Enchanting Rods"] = "Заготовки чарівних жезлів",
     ["Copper Bar"] = "Мідний злиток",
     ["Copper Ore"] = "Мідна руда",
@@ -293,6 +322,10 @@ addonTable.forever_ui_patterns = {
         replace = function (before, after)
             return "Потрібно: " .. before .. "кузня" .. after
         end,
+    },
+    {
+        pattern = "^Requires: (.+)$",
+        replace = translate_requirement,
     },
     {
         pattern = "^Mining (%d+)/(%d+)$",

@@ -33,7 +33,8 @@ end
 local function begin_tooltip(tooltip, key)
     if tooltip.uaForeverSessionKey == key then return end
     for region in pairs(tooltip.uaForeverClaims or {}) do
-        runtime.show_original(region, true)
+        -- Blizzard may have already reused this FontString for the next
+        -- tooltip. Restoring the old claim would overwrite the new item text.
         runtime.clear(region)
     end
     tooltip.uaForeverSessionKey = key
@@ -308,7 +309,21 @@ local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fal
     return applied
 end
 
-local function translate_item_use(tooltip, entry, line_count)
+local function current_tooltip_item_entry(tooltip)
+    if type(tooltip.GetPrimaryTooltipData) ~= "function" then return nil end
+    local ok, data = pcall(tooltip.GetPrimaryTooltipData, tooltip)
+    if not ok or not data or is_secret(data) then return nil end
+    local fields_ok, kind, id = pcall(function () return data.type, data.id end)
+    if not fields_ok or is_secret(kind) or kind ~= Enum.TooltipDataType.Item then
+        return nil
+    end
+    id = safe_number(id)
+    return id and entries.get_entry("item", id) or nil
+end
+
+local function translate_item_use_region(tooltip, entry, region, source)
+    local visible = normalized_tooltip_text(source)
+    if not region or not visible or not visible:match("^Use:%s*") then return false end
     local use_text = entry.use
     if type(use_text) == "number" then
         local spell_entry = entries.get_entry("spell", use_text)
@@ -318,30 +333,46 @@ local function translate_item_use(tooltip, entry, line_count)
 
     local translated = make_text(use_text, tooltip)
     if not translated then return false end
+    local cooldown = visible:match("%(([%d,.]+) sec Cooldown%)")
+    local unit = "sec"
+    if not cooldown then
+        cooldown = visible:match("%(([%d,.]+) min Cooldown%)")
+        unit = "min"
+    end
+    local description = "Використання: " .. translated
+    if cooldown then
+        description = description .. " (Перезарядка: " .. cooldown
+            .. (unit == "min" and " хв.)" or " с)")
+    end
+    return set_tooltip_translation(tooltip, region, source,
+        description, "item.use", nil, "item-tooltip", nil, false)
+end
+
+local function translate_item_use(tooltip, entry, line_count)
     if not line_count then
         local ok, count = pcall(tooltip.NumLines, tooltip)
         line_count = ok and safe_number(count) or nil
     end
+    local applied = false
     for index = 2, math.min(line_count or MAX_TOOLTIP_LINES, MAX_TOOLTIP_LINES) do
-        local source, region = tooltip_line(tooltip, "Left", index)
+        local source, region = tooltip_line(tooltip, "Left", index, true)
         local visible = normalized_tooltip_text(source)
         if visible and visible:match("^Use:%s*") then
-            local cooldown = visible:match("%(([%d,.]+) sec Cooldown%)")
-            local unit = "sec"
-            if not cooldown then
-                cooldown = visible:match("%(([%d,.]+) min Cooldown%)")
-                unit = "min"
-            end
-            local description = "Використання: " .. translated
-            if cooldown then
-                description = description .. " (Перезарядка: " .. cooldown
-                    .. (unit == "min" and " хв.)" or " с)")
-            end
-            return set_tooltip_translation(tooltip, region, source,
-                description, "item.use", nil, "item-tooltip")
+            hooks.region(region, "SetText", function (self)
+                if runtime.is_applying(self) then return end
+                local current_entry = current_tooltip_item_entry(tooltip)
+                if current_entry then
+                    local ok, current = pcall(self.GetText, self)
+                    if ok then
+                        translate_item_use_region(tooltip, current_entry, self, current)
+                    end
+                end
+            end)
+            applied = translate_item_use_region(tooltip, entry, region, source)
+                or applied
         end
     end
-    return false
+    return applied
 end
 
 local function translate_item_lines(tooltip, entry, line_count)
@@ -649,6 +680,29 @@ local function add_spell(tooltip, id, aura)
         local category = spell_name_category(tooltip)
         applied = set_tooltip_translation(tooltip, title_region, native_title, title,
             category .. ".name", category, "spell-tooltip") or applied
+    end
+
+    if aura then
+        local right, right_region = tooltip_line(tooltip, "Right", 1)
+        if not right_region then
+            -- Camelot can render the aura school in an anonymous FontString.
+            for _, candidate in ipairs(visible_tooltip_font_strings(tooltip)) do
+                local ok, value = pcall(candidate.GetText, candidate)
+                if ok and normalized_tooltip_text(value) == "Magic" then
+                    right, right_region = value, candidate
+                    break
+                end
+            end
+        end
+        local translated, _, source_kind = strings.find_ui_translation(right, right_region)
+        if translated and translated ~= right then
+            applied = set_tooltip_translation(tooltip, right_region, right, translated,
+                "spell.school", nil, "spell-tooltip", source_kind, false, false) or applied
+        end
+        if applied then
+            layout.fit_aura_header_width(tooltip, title_region, right_region,
+                normalized_tooltip_text(right) == "Magic" and 72 or nil)
+        end
     end
 
     local translated_description = make_text(aura and entry[3] or entry[2], tooltip)
@@ -1355,13 +1409,13 @@ visible_tooltip_font_strings = function (tooltip)
     return result
 end
 
-tooltip_line = function (tooltip, side, index)
+tooltip_line = function (tooltip, side, index, allow_hidden)
     local region
     if tooltip.GetName then
         local ok_name, name = pcall(tooltip.GetName, tooltip)
         if ok_name and type(name) == "string" and name ~= "" then
             region = _G[name .. "Text" .. side .. tostring(index)]
-            if region and region.IsShown then
+            if region and region.IsShown and not allow_hidden then
                 local shown_ok, shown = pcall(region.IsShown, region)
                 if not shown_ok or not shown then region = nil end
             end
@@ -1418,6 +1472,12 @@ local function translate_generic_tooltip(tooltip)
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
+
+    -- Empty equipment slots are translated synchronously when ItemUtil has
+    -- finished rebuilding their tooltip. A deferred generic pass can otherwise
+    -- rewrite the one-line tooltip again after it has been shown.
+    if tooltip.uaForeverKind == "equipment-slot"
+        or tooltip.uaForeverKind == "character-stat" then return end
 
     -- Settings uses its own GameTooltip frame with UI text, not item or aura
     -- data. Resolve every rendered line directly through the UI dictionary.
@@ -1500,6 +1560,184 @@ local function translate_generic_tooltip(tooltip)
 end
 
 tooltips.finalize = translate_generic_tooltip
+
+local function character_stat_description(source)
+    local text = normalized_tooltip_text(source)
+    if not text then return nil end
+    local chance = text:match("^Increases chance to Parry by ([%d.,]+)%%")
+    if chance and text:find("Parrying nullifies the attack", 1, true) then
+        return "Збільшує шанс парирування на " .. chance
+            .. "%.\n\nЗалежить від захисту.\n\nПарирування нівелює атаку "
+            .. "й скорочує час до наступної атаки ближнього бою на 40%."
+            .. "\n\nПарирувати можна лише атаки ближнього бою спереду."
+    end
+    chance = text:match("^Increases chance to Dodge by ([%d.,]+)%%")
+    if chance and text:find("Dodging nullifies the attack", 1, true) then
+        return "Збільшує шанс ухилення на " .. chance
+            .. "%.\n\nЗалежить від спритності та захисту.\n\nУхилення "
+            .. "нівелює атаку. Гравці можуть ухилятися від атак ближнього "
+            .. "бою лише спереду, а істоти — з будь-якого боку."
+    end
+    chance = text:match("^Increases chance to Block by ([%d.,]+)%%")
+    if chance and text:find("Blocking reduces the attack's damage", 1, true) then
+        local value = text:match("Block Value ([%d.,]+)")
+        return "Збільшує шанс блокування на " .. chance
+            .. "%.\n\nЗалежить від захисту.\n\nВеличина блокування: "
+            .. (value or "—") .. ". Залежить від сили.\n\nБлокування "
+            .. "зменшує шкоду від атаки на величину блокування. "
+            .. "Блокувати можна лише атаки спереду."
+    end
+end
+
+local stat_tooltip_formats
+local function character_stat_format_text(value)
+    if type(value) ~= "string" or is_secret(value) then return nil end
+    return normalized_tooltip_text(value:gsub("\\r", " "):gsub("\\n", " "))
+end
+
+local function stat_tooltip_pattern(format_text)
+    local parts, conversions = { "^" }, {}
+    local index = 1
+    while index <= #format_text do
+        local char = format_text:sub(index, index)
+        if char == "%" and format_text:sub(index + 1, index + 1) == "%" then
+            parts[#parts + 1] = "%%"
+            index = index + 2
+        elseif char == "%" then
+            local token, conversion = format_text:sub(index):match(
+                "^(%%[%d$%.%+%-]*([cdeEfgGiosuxX]))")
+            if token then
+                parts[#parts + 1] = conversion == "s" and "(.-)"
+                    or "([%+%-]?[%d.,]+)"
+                conversions[#conversions + 1] = conversion
+                index = index + #token
+            else
+                parts[#parts + 1] = "%%"
+                index = index + 1
+            end
+        else
+            parts[#parts + 1] = char:match("[%^%$%(%)%.%[%]%*%+%-%?]")
+                and "%" .. char or char
+            index = index + 1
+        end
+    end
+    parts[#parts + 1] = "$"
+    return table.concat(parts), conversions
+end
+
+local function formatted_character_stat_description(source)
+    if type(source) ~= "string" or is_secret(source) then return nil end
+    local normalized_source = character_stat_format_text(source)
+    if not stat_tooltip_formats then
+        stat_tooltip_formats = {}
+        for key, original in pairs(_G) do
+            if type(key) == "string" and type(original) == "string"
+                and (key:match("^STAT_.*TOOLTIP")
+                    or key:match("^CR_.*TOOLTIP")
+                    or key:match("^STAT_CRIT_")
+                    or key:match("^STAT_.*_CRIT_BONUS$")
+                    or key:match("^DEFAULT_.*TOOLTIP")
+                    or key:match("^%u+_STRENGTH_TOOLTIP$")
+                    or key:match("^%u+_AGILITY_TOOLTIP$")
+                    or key:match("^%u+_STAMINA_TOOLTIP$")
+                    or key:match("^%u+_INTELLECT_TOOLTIP$")
+                    or key:match("^%u+_SPIRIT_TOOLTIP$")
+                    or key:match("^%u+_ATTACK_POWER_TOOLTIP$")
+                    or key == "SPELL_PENETRATION_TOOLTIP"
+                    or key == "MANA_REGEN_TOOLTIP"
+                    or key == "RESILIENCE_TOOLTIP") then
+                local dictionary = addon_table.forever_ui
+                local translated = dictionary and dictionary[original]
+                if not translated and dictionary then
+                    translated = dictionary[original:gsub("\r", "\\r")
+                        :gsub("\n", "\\n")]
+                end
+                if type(translated) == "string" and translated ~= original then
+                    local normalized_original = character_stat_format_text(original)
+                    local pattern, conversions = stat_tooltip_pattern(normalized_original)
+                    if pattern then
+                        stat_tooltip_formats[#stat_tooltip_formats + 1] = {
+                            pattern = pattern, source = normalized_original,
+                            conversions = conversions,
+                            translated = translated:gsub("\\r", "")
+                                :gsub("\\n", "\n"),
+                        }
+                    end
+                end
+            end
+        end
+    end
+    for _, entry in ipairs(stat_tooltip_formats) do
+        if #entry.conversions == 0 and normalized_source:match(entry.pattern) then
+            return entry.translated
+        end
+        local captures = { normalized_source:match(entry.pattern) }
+        if #captures > 0 and #captures == #entry.conversions then
+            local args = {}
+            for index, value in ipairs(captures) do
+                local conversion = entry.conversions[index]
+                local numeric_value = value:gsub(",", "")
+                args[index] = conversion == "s" and value
+                    or tonumber(numeric_value)
+            end
+            local ok, translated = pcall(string.format, entry.translated,
+                unpack(args))
+            if ok and type(translated) == "string" then return translated end
+        end
+    end
+end
+
+tooltips.translate_character_stat = function (frame)
+    local tooltip = _G.GameTooltip
+    if not tooltip or not frame or type(tooltip.GetOwner) ~= "function" then return end
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or owner ~= frame then return end
+    begin_tooltip(tooltip, "character-stat:" .. tostring(frame))
+    tooltip.uaForeverKind = "character-stat"
+    local label
+    if frame.Label and type(frame.Label.GetText) == "function" then
+        local label_ok, value = pcall(frame.Label.GetText, frame.Label)
+        if label_ok then label = normalized_tooltip_text(value) end
+    end
+    if label then label = strings.find_ui_translation(label, frame.Label) or label end
+    local title, title_region = tooltip_line(tooltip, "Left", 1)
+    local visible_title = normalized_tooltip_text(title)
+    local value = visible_title and visible_title:match("([%d][%d.,%%%- ]*)$")
+    if label and value and title_region then
+        local translated = label:gsub(":$", "") .. " " .. value
+        set_tooltip_translation(tooltip, title_region, title, translated,
+            "character.stat.title", nil, "character-stat", nil, false)
+    end
+    local ok_count, count = pcall(tooltip.NumLines, tooltip)
+    count = ok_count and safe_number(count) or MAX_TOOLTIP_LINES
+    local width = layout.safe_dimension(tooltip, "GetWidth")
+    local screen_width = layout.safe_dimension(_G.UIParent, "GetWidth")
+    local target_width = screen_width and math.min(360, screen_width - 32) or 360
+    if width and width < target_width and type(tooltip.SetWidth) == "function" then
+        pcall(tooltip.SetWidth, tooltip, target_width)
+        width = target_width
+    end
+    for index = 2, math.min(count, MAX_TOOLTIP_LINES) do
+        local source, region = tooltip_line(tooltip, "Left", index)
+        if region and width then
+            if type(region.SetWordWrap) == "function" then
+                pcall(region.SetWordWrap, region, true)
+            end
+            if type(region.SetWidth) == "function" then
+                pcall(region.SetWidth, region, math.max(1, width - 24))
+            end
+        end
+        local translated = character_stat_description(source)
+        if not translated then
+            translated = strings.find_ui_translation(source, region)
+        end
+        if not translated then translated = formatted_character_stat_description(source) end
+        if translated and region then
+            set_tooltip_translation(tooltip, region, source, translated,
+                "character.stat:" .. index, nil, "character-stat", nil, false, true)
+        end
+    end
+end
 
 local refreshing_comparison = false
 local function is_shopping_tooltip(tooltip)
@@ -1764,6 +2002,30 @@ local function schedule_tooltip_finalize(tooltip)
 end
 
 local function prepare_tooltip_frames()
+    local item_util = _G.ItemUtil
+    if item_util and type(item_util.GetEmptyEquipSlotTooltip) == "function" then
+        hooks.region(item_util, "DisplayEquipSlotTooltip",
+            function (frame, tooltip, equip_slot)
+                if not frame or not tooltip or type(tooltip.GetOwner) ~= "function" then
+                    return
+                end
+                local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+                if not owner_ok or owner ~= frame then return end
+                local text_ok, native = pcall(item_util.GetEmptyEquipSlotTooltip,
+                    equip_slot)
+                if not text_ok or type(native) ~= "string" or is_secret(native) then
+                    return
+                end
+                local source, region = tooltip_line(tooltip, "Left", 1)
+                if source ~= native or not region then return end
+                local translated = strings.find_ui_translation(native, region)
+                if not translated or translated == native then return end
+                begin_tooltip(tooltip, "empty-equip:" .. tostring(frame))
+                local applied = set_tooltip_translation(tooltip, region, native, translated,
+                    "equipment.slot", nil, "equipment-slot", nil, false, true)
+                if applied then tooltip.uaForeverKind = "equipment-slot" end
+            end)
+    end
     for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
         "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
         "BuffFrameTooltip" }) do
@@ -1807,6 +2069,14 @@ end
 local function after_game_tooltip_update(tooltip)
     if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if owner_ok and owner and owner.Label and owner.Value
+        and type(owner.UpdateTooltip) == "function" then
+        local title, region = tooltip_line(tooltip, "Left", 1)
+        local claim = region and runtime.get(region)
+        if not claim or title ~= claim.translated then
+            tooltips.translate_character_stat(owner)
+        end
+    end
     if owner_ok and owner and owner.objectType == "item"
         and owner.questID then
         tooltips.refresh_quest_reward(tooltip, owner)
