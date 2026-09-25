@@ -25,6 +25,8 @@
     <Script file="spell_warlock.lua"/>
     <Script file="spell_warrior.lua"/>
     <Script file="talent_tree.lua"/>
+    <Script file="talent_description_eligible.lua"/>
+    <Script file="talent_descriptions.lua"/>
     <Script file="ui.lua"/>
     <Script file="settings.lua"/>
     <Script file="skills.lua"/>

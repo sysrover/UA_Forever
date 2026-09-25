@@ -3,6 +3,16 @@ local _, addonTable = ...
 -- Codes copied from the in-game NPC dialogue scan. These codes take
 -- precedence over the older numeric hashes in the generated catalog.
 local manual = {
+    [1355] = {
+        ["cgislelgptadsewesetesepn"] = [===[Куховарство — справа всього життя, і я бачу, що ми поділяємо це захоплення!]===],
+    },
+    [1698] = {
+        ["wtdoyhwt"] = [===[Чого тобі треба?]===],
+    },
+    [264936] = {
+        ["erpeseyrftwhme"] = [===[Землепровидцю, поділися зі мною своїм даром далекоглядності.]===],
+        ["oncrdyyucnensebkmnfmheisbhbladtgattesete"] = [===[Ясного дня звідси видно навіть Чорну гору. Вона водночас прекрасна й жахлива.]===],
+    },
     [1229] = {
         ["tebgwsmtbeorfrnwbtweslhetokporsssp"] = [===[Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!]===],
     },

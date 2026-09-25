@@ -130,6 +130,14 @@ local function schedule_panel_refresh()
     scheduler.request("open-panels", nil, refresh_open_panels)
 end
 
+local function refresh_trainer()
+    registry.refresh("trainer")
+end
+
+local function schedule_trainer_refresh()
+    scheduler.request("trainer-content", nil, refresh_trainer)
+end
+
 local function schedule_current_quest_capture(event)
     local expected_id = translation.get_current_quest_id()
     local function capture()
@@ -198,6 +206,7 @@ local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
     hooks.global("PanelTemplates_SetTab", selected_tab)
+    hooks.global("ClassTrainerFrame_Update", schedule_trainer_refresh)
     hooks.global("QuestFrame_SetPortrait", update_quest_npc_name)
     hooks.global("QuestFrameGreetingPanel_OnShow", update_quest_npc_name)
     -- QuestInfo_Display and ShowRewards have domain post-hooks in quest_ui and
@@ -417,6 +426,35 @@ local function register_slash_command()
             else
                 capture_aura()
             end
+        elseif command == "fullscan" then
+            local function start_full_scan(duration)
+                local report = tooltips.scan_all_objects(function (completed)
+                    message(string.format("скан %s: %d проходів, %d об'єктів, %d текстів, %d глобальних рядків; зробіть /reload",
+                        completed.status, completed.passes or 0, completed.totalObjects or 0, completed.stats.texts or 0,
+                        completed.stats.globals or 0))
+                end, duration)
+                if report.status == "running" then
+                    message("скан усіх доступних об'єктів триває; дочекайтеся повідомлення про завершення")
+                else
+                    message("скан: " .. tostring(report.status))
+                end
+            end
+            local multi_duration = value:match("^multi%s*(%d*)$")
+            if multi_duration then
+                local duration = math.min(math.max(tonumber(multi_duration) or 15, 1), 60)
+                message(string.format("сканую всі доступні UI-об'єкти протягом %d с", duration))
+                start_full_scan(duration)
+            else
+                local delay = tonumber(value)
+                if delay and delay > 0 then
+                    delay = math.min(delay, 30)
+                    message(string.format("повний скан почнеться через %.1f с", delay))
+                    scheduler.request("manual-full-object-scan", nil, start_full_scan,
+                        delay)
+                else
+                    start_full_scan()
+                end
+            end
         elseif command == "window" then
             local function capture_window()
                 local ok, report = pcall(tooltips.scan_window)
@@ -479,7 +517,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf ui, /uaf capture [секунди], /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
         end
     end
 end
@@ -490,6 +528,8 @@ event_frame:RegisterEvent("PLAYER_LOGIN")
 event_frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 event_frame:RegisterEvent("PLAYER_TARGET_CHANGED")
 event_frame:RegisterEvent("GOSSIP_SHOW")
+event_frame:RegisterEvent("TRAINER_SHOW")
+event_frame:RegisterEvent("TRAINER_UPDATE")
 event_frame:RegisterEvent("QUEST_DETAIL")
 event_frame:RegisterEvent("QUEST_PROGRESS")
 event_frame:RegisterEvent("QUEST_COMPLETE")
@@ -585,6 +625,8 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
     elseif event == "PLAYER_TARGET_CHANGED" then
         update_target_name()
+    elseif event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" then
+        schedule_trainer_refresh()
     elseif event == "GOSSIP_SHOW" or event == "QUEST_DETAIL" or event == "QUEST_PROGRESS"
         or event == "QUEST_COMPLETE" or event == "QUEST_GREETING" then
         if event ~= "GOSSIP_SHOW" and event ~= "QUEST_GREETING" then

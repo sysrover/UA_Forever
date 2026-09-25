@@ -2,6 +2,23 @@ local _, addonTable = ...
 
 -- Codes are taken from the in-game NPC speech scan and override generated hashes.
 local manual = {
+    ["Miner Grumnal"] = {
+        [1] = "шахтар Ґрумнал",
+        ["iltewryagtcnadtwinbetowhitdn"] = [===[Візьму все, що наготуєш! І пляшку чогось, щоб запити!]===],
+    },
+    ["Ozzie Togglevolt"] = {
+        [1] = "Оззі Вольтон",
+        ["bktotedgbd"] = [===[Доведеться повернутися до креслень.]===],
+        ["psbtmegewldotetk"] = [===[Може, ще трохи мастила — і все запрацює.]===],
+    },
+    ["Razzle Sprysprocket"] = {
+        [1] = "Раззл Жвавоверт",
+        ["ltmeiltegcgsadrncsadwlfeupterr"] = [===[Дай мені встановити ці гіромеханічні шестірні та зубці рестабілізації, і ми запустимо Рекомбобулятор.]===],
+        ["mtdy"] = [===[Авжеж.]===],
+        ["tetoseteeeghrehegsng"] = [===[Час урятувати весь гном'ячий народ. Ну, поїхали!]===],
+        ["ttsddotetk"] = [===[Це має спрацювати.]===],
+        ["wstgtesetg"] = [===[Я подумав про те саме.]===],
+    },
     ["Durnan Furcutter"] = {
         [1] = "Дарнан Хутростриг",
         ["oohththtifttwtptsginyrspdtkwwtwl"] = [===[Ой-ой-ой, гаряче! Якщо це не додасть тобі бадьорості, то вже не знаю, що додасть!]===],

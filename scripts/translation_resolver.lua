@@ -30,6 +30,8 @@ local function domain_name(text, normalized, frame_name)
     if frame_name:find("Merchant", 1, true)
         or frame_name:find("Bank", 1, true)
         or frame_name:find("Container", 1, true)
+        or frame_name:find("LootFrame", 1, true)
+        or frame_name:find("LootButton", 1, true)
         or frame_name:find("QuestInfoItem", 1, true)
         or frame_name:find("QuestInfoRewards", 1, true) then
         categories = { { "item", "item" } }
@@ -39,7 +41,8 @@ local function domain_name(text, normalized, frame_name)
         categories = { { "spell", "skill" } }
     elseif frame_name:find("Professions", 1, true)
         or frame_name:find("TradeSkill", 1, true)
-        or frame_name:find("CraftFrame", 1, true) then
+        or frame_name:find("CraftFrame", 1, true)
+        or frame_name:find("ClassTrainer", 1, true) then
         categories = { { "spell", "skill" }, { "item", "item" } }
     elseif frame_name:find("QuestLog", 1, true)
         or frame_name:find("QuestMap", 1, true)
@@ -60,6 +63,43 @@ resolver.normalize = function (text)
         :gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
+local function translate_reagents(text)
+    local prefix, reagents = text:match("^(Reagents:%s*|n)(.+)$")
+    if not prefix then
+        prefix, reagents = text:match("^(Reagents:%s*\n)(.+)$")
+    end
+    if not prefix then return nil end
+
+    local translated = reagents:gsub("[^,]+", function (part)
+        local leading, value, trailing = part:match("^(%s*)(.-)(%s*)$")
+        local color, name, reset = value:match("^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
+        name = name or value
+        local item, count = name:match("^(.-)%s+(%(%d+%))$")
+        local replacement = entries.lookup_name("item", item or name)
+        if not replacement then return part end
+        return leading .. (color or "") .. replacement
+            .. (count and " " .. count or "") .. (reset or "") .. trailing
+    end)
+    return "Реагенти:" .. prefix:sub(#"Reagents:" + 1) .. translated
+end
+
+local function translate_recipe_title(text)
+    local profession, recipe = text:match("^([^:]+): (.+)$")
+    if not profession then return nil end
+    local translated_profession = entries.lookup_name("spell", profession)
+    local translated_recipe = entries.lookup_name("spell", recipe)
+        or entries.lookup_name("item", recipe)
+    if translated_profession and translated_recipe then
+        return translated_profession .. ": " .. translated_recipe
+    end
+end
+
+local function translate_recipe_output(text)
+    local name = text:match("^\n([^\n]+)$")
+    local translated = name and entries.lookup_name("item", name)
+    return translated and "\n" .. translated or nil
+end
+
 resolver.find_ui = function (text, region)
     if type(text) ~= "string" or text == "" then return nil end
     if type(_G.issecretvalue) == "function" then
@@ -78,7 +118,7 @@ resolver.find_ui = function (text, region)
     end
     for _, marker in ipairs({
         "Merchant", "QuestInfoItem", "QuestInfoRewards", "Professions",
-        "TradeSkill", "CraftFrame", "GroupFinder", "LFGList", "LFGFrame",
+        "TradeSkill", "CraftFrame", "ClassTrainer", "GroupFinder", "LFGList", "LFGFrame",
     }) do
         if frame_name:find(marker, 1, true) then
             local is_lfg = marker == "GroupFinder" or marker == "LFGList"
@@ -102,6 +142,12 @@ resolver.find_ui = function (text, region)
     if translated then return translated, normalized, "reviewed" end
     translated = compiled.generated[text] or compiled.generated[normalized]
     if translated then return translated, normalized, "generated" end
+    translated = translate_reagents(text)
+    if translated then return translated, normalized, "domain" end
+    translated = translate_recipe_title(text)
+    if translated then return translated, normalized, "domain", "skill", "skill.name" end
+    translated = translate_recipe_output(text)
+    if translated then return translated, normalized, "domain", "item", "item.name" end
     for _, pattern in ipairs(compiled.patterns) do
         local captures = { text:match(pattern.pattern) }
         if #captures == 0 and normalized ~= text then

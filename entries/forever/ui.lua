@@ -69,6 +69,11 @@ addonTable.forever_ui = {
     ["Account Collections"] = "Колекції облікового запису",
     ["Spellbook & Professions"] = "Книга заклять і професії",
     ["Talents"] = "Таланти",
+    ["Arms"] = "Зброя",
+    ["Fury"] = "Шаленство",
+    ["Protection"] = "Захист",
+    ["Unspent Talents"] = "Вільні очки",
+    ["Apply Changes"] = "Застосувати зміни",
     ["Achievements"] = "Досягнення",
     ["Legacy"] = "Спадщина",
     ["Housing Dashboard"] = "Панель житла",
@@ -502,6 +507,19 @@ addonTable.forever_ui = {
     ["Requires: Forge"] = "Потрібно: кузня",
     ["This recipe requires you to be near a special crafting station. These can often be found in dungeons or in the open world."] = "Для цього рецепта потрібно перебувати біля спеціального ремісничого місця. Такі місця часто трапляються у підземеллях або у відкритому світі.",
     ["Reagents:"] = "Реагенти:",
+    ["Reagents:\nWhite Spider Meat (2)"] = "Реагенти:\nБіле м'ясо павука (2)",
+    ["Reagents:\nStringy Wolf Meat, Mild Spices"] = "Реагенти:\nЖилаве м'ясо вовка, лагідні спеції",
+    ["Reagents:\nCrawler Meat, Mild Spices"] = "Реагенти:\nМ'ясо повзуна, лагідні спеції",
+    ["\nSpider Sausage"] = "\nПавуча сосиска",
+    ["\nSpiced Wolf Meat"] = "\nВовчатина з прянощами",
+    ["\nCrab Cake"] = "\nКрабовий пиріжок",
+    ["Use: Restores 58 health over 18 sec.  Must remain seated while eating. (1 Sec Cooldown)"] = "Використання: Відновлює 58 здоров'я протягом 18 с. Під час їжі потрібно сидіти. (Відновлення: 1 с)",
+    ["Use: Restores 530 health over 24 sec.  Must remain seated while eating.  If you spend at least 10 seconds eating you will become well fed and gain 6 Stamina and Spirit for 15 min. (1 Sec Cooldown)"] = "Використання: Відновлює 530 здоров'я протягом 24 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +6 до витривалості та духу на 15 хв. (Відновлення: 1 с)",
+    ["Use: Restores 234 health over 21 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 3 Strength for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 234 здоров'я протягом 21 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +3 до сили на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
+    ["Use: Restores 1,338 health over 30 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 15 Stamina for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 1,338 здоров'я протягом 30 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +15 до витривалості на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
+    ["Use: Restores 58 health over 18 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 1 Agility for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 58 здоров'я протягом 18 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +1 до спритності на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
+    ["Use: Restores 234 health over 21 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 3 Agility for 15 min. Additionally, experience gained from kills is increased by 5%."] = "Використання: Відновлює 234 здоров'я протягом 21 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +3 до спритності на 15 хв. Крім того, досвід за вбивства збільшиться на 5%.",
+    ["Use: Restores 234 health over 21 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 3 Intellect for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 234 здоров'я протягом 21 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +3 до інтелекту на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
     ["Track Recipe"] = "Відстежувати рецепт",
     ["Create All"] = "Створити все",
     ["Create"] = "Створити",
@@ -543,7 +561,11 @@ local warrior_stances = {
 }
 
 local function translate_requirement(requirement)
-    local skill, rank = requirement:match("^(.-) %((%d+)%)$")
+    local skill, color, rank, reset = requirement:match(
+        "^(.-) %((|c%x%x%x%x%x%x%x%x)(%d+)(|r)%)$")
+    if not skill then
+        skill, rank = requirement:match("^(.-) %((%d+)%)$")
+    end
     local name = skill or requirement
     local level = name:match("^Level (%d+)$")
     if level then return "Необхідний рівень " .. level end
@@ -556,7 +578,8 @@ local function translate_requirement(requirement)
             or entries.lookup_name("item", name)
     end
     if not translated then return nil end
-    return "Потрібно: " .. translated .. (rank and " (" .. rank .. ")" or "")
+    return "Потрібно: " .. translated
+        .. (rank and " (" .. (color or "") .. rank .. (reset or "") .. ")" or "")
 end
 
 addonTable.forever_ui_patterns = {
@@ -580,6 +603,19 @@ addonTable.forever_ui_patterns = {
     {
         pattern = "^Rank (%d+)$",
         replace = function (rank) return "Ранг " .. rank end,
+    },
+    {
+        pattern = "^Rank (%d+)/(%d+)$",
+        replace = function (rank, maximum)
+            return "Ранг " .. rank .. "/" .. maximum
+        end,
+    },
+    {
+        pattern = "^Increases the radius of your Battle Shout and Demoralizing Shout abilities by (%d+)%%%.$",
+        replace = function (amount)
+            return "Збільшує радіус дії «Бойового кличу» та «Деморалізуючого кличу» на "
+                .. amount .. "%."
+        end,
     },
     {
         pattern = "^(%d+) Rage$",

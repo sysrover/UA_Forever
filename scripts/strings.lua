@@ -246,7 +246,7 @@ local function visible_safe_roots()
         "QuestFrame", "GossipFrame", "WorldMapFrame", "CharacterFrame",
         "PlayerSpellsFrame", "ProfessionsFrame", "ProfessionsBookFrame",
         "TradeSkillFrame", "CraftFrame", "MerchantFrame", "GameMenuFrame",
-        "ItemTextFrame", "FriendsFrame", "GuildFrame", "CollectionsJournal",
+        "ItemTextFrame", "FriendsFrame", "GuildFrame", "GuildInviteFrame", "CollectionsJournal",
         "ContainerFrameCombinedBags", "MacroFrame", "ReputationFrame",
         "PVPRankFrame", "TokenFrame", "TokenDetailFrame", "StatisticsFrame",
         "SkillsFrame", "AddonList", "AuctionHouseFrame", "BankFrame",
