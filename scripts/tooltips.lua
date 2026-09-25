@@ -611,6 +611,10 @@ local function add_item(tooltip, id)
     local native_title, title_region = tooltip_line(tooltip, "Left", 1)
     local title_applied = false
     if title and title_region then
+        local suffix = type(native_title) == "string"
+            and entry.en and native_title:sub(1, #entry.en + 1) == entry.en .. " "
+            and entries.get_item_suffix(native_title) or nil
+        if suffix then title = title .. " " .. suffix end
         title_applied = set_tooltip_translation(tooltip, title_region, native_title, title,
             "item.name", "item", "item-tooltip")
     end
@@ -844,9 +848,16 @@ local function add_quest(tooltip, id, skip_title)
                     translated = prefix .. objective_text
                 elseif prefix ~= "" and source:sub(1, #prefix) == prefix then
                     local raw = source:sub(#prefix + 1)
-                    local ok, value = pcall(entries.translate_quest_objective_task, raw)
+                    local ok, value = pcall(entries.translate_quest_objective_task, raw, id)
                     if ok and type(value) == "string" and value ~= raw then
                         translated = prefix .. value
+                    end
+                end
+                if not translated then
+                    local ok, value = pcall(entries.translate_quest_objective_task,
+                        source, id)
+                    if ok and type(value) == "string" and value ~= source then
+                        translated = value
                     end
                 end
                 if translated and translated ~= source then
@@ -1589,6 +1600,11 @@ local function translate_generic_tooltip(tooltip)
     if type(left_title) ~= "string" or is_secret(left_title) then return end
     if left_title == "" then return end
 
+    -- Quest blob tooltips can be built without a public quest ID on the pin.
+    -- Resolve their visible English title from the prepared quest catalog.
+    local quest_id = entries.lookup_id and entries.lookup_id("quest", left_title)
+    if quest_id and safe_process(tooltip, { id = quest_id }, "quest") then return end
+
     local ok_count, line_count = pcall(tooltip.NumLines, tooltip)
     if not ok_count or type(line_count) ~= "number" or is_secret(line_count)
         or line_count < 1 then return end
@@ -2183,6 +2199,29 @@ end
 local function after_game_tooltip_update(tooltip)
     if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if owner_ok and owner and _G.Minimap then
+        local current = owner
+        for _ = 1, 8 do
+            if current == _G.Minimap or current == _G.MinimapCluster then
+                local title = tooltip_line(tooltip, "Left", 1)
+                if type(title) == "string" and not is_secret(title)
+                    and type(entries.lookup_id) == "function" then
+                    local id = entries.lookup_id("quest", title)
+                    local entry = id and entries.get_entry("quest", id)
+                    if entry and entry.en == title then
+                        safe_process(tooltip, { id = id }, "quest")
+                    end
+                end
+                break
+            end
+            local parent_ok, parent = pcall(function ()
+                return type(current.GetParent) == "function"
+                    and current:GetParent() or nil
+            end)
+            if not parent_ok or not parent or parent == current then break end
+            current = parent
+        end
+    end
     if owner_ok and is_character_stat_owner(owner) then
         local title, region = tooltip_line(tooltip, "Left", 1)
         local claim = region and runtime.get(region)

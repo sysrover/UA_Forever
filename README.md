@@ -45,3 +45,5 @@ because its baseline still uses old pattern positions.
 [форми збору даних](https://forms.gle/b2oGGebJGTxZsnfn8) для копіювання й
 відкриття в браузері. Користувач сам надсилає дані. WoW записує `SavedVariables` на диск під
 час `/reload` або виходу з гри.
+Після надсилання всіх частин натисніть **Очистити дані** у вікні експорту та
+підтвердьте дію. Це видаляє лише записи автоскана з `UA_ForeverDB.scan.auto`.

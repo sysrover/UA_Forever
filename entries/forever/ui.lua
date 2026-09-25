@@ -12,6 +12,7 @@ addonTable.forever_ui = {
     ["Blizzard Whispers"] = "Приватні повідомлення Battle.net",
     ["Party"] = "Група",
     ["Party Leader"] = "Лідер групи",
+    ["Follow"] = "Слідувати",
     ["Raid Leader"] = "Лідер рейду",
     ["Raid Warning"] = "Попередження рейду",
     ["Instance"] = "Група підземелля",
@@ -24,6 +25,11 @@ addonTable.forever_ui = {
     ["Damage:"] = "Шкода:",
     ["DPS:"] = "Шкода/с:",
     ["Instantly removes and grants immunity to all Bleed, Poison, and Disease effects, and reduces all Physical damage taken by 10% for 8 sec."] = "Миттєво знімає всі ефекти кровотечі, отрути та хвороб і дає до них невразливість, а також зменшує всю отримувану фізичну шкоду на 10% протягом 8 с.",
+    ["Allows the dwarf to sense nearby treasure, making it appear on the minimap.  Lasts until canceled."] = "Дозволяє дворфу відчувати скарби поблизу й бачити їх на мінімапі. Триває до скасування.",
+    ["Blasts nearby enemies, increasing the time between their attacks by 20% for 10 sec and doing 10 damage to them. Will affect up to 4 targets."] = "Вражає ворогів поблизу, збільшуючи інтервал між їхніми атаками на 20% протягом 10 с і завдаючи їм 10 шкоди. Діє не більше ніж на 4 цілі.",
+    ["The warrior shouts, increasing the melee attack power of all party members within 20 yards by 10.  Lasts 3 min."] = "Воїн вигукує бойовий клич, збільшуючи силу атаки ближнього бою всіх учасників групи в межах 20 м на 10. Триває 3 хв.",
+    ["Wounds the target causing them to bleed for 15 damage over 9 sec."] = "Ранить ціль, завдаючи їй 15 шкоди від кровотечі протягом 9 с.",
+    ["A strong attack that increases melee damage by 11 and causes a high amount of threat."] = "Сильна атака, що збільшує шкоду ближнього бою на 11 і створює багато загрози.",
     ["Increases chance to |cFFFFFFFFBlock|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFDefense|r\\n\\n|cFFFFFFFFBlock Value %d|r\\nIncreased by |cFFFFFFFFStrength|r\\n\\n|cFFBCBCBCBlocking reduces the attack's damage by your Block Value|r\\n\\n|cFFBCBCBCOnly Melee and Ranged attacks from the front may be Blocked|r"] = "Збільшує шанс |cFFFFFFFFблокування|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFзахисту|r\\n\\n|cFFFFFFFFВеличина блокування: %d|r\\nЗалежить від |cFFFFFFFFсили|r\\n\\n|cFFBCBCBCБлокування зменшує отриману шкоду на величину блокування|r\\n\\n|cFFBCBCBCБлокувати можна лише атаки ближнього й дальнього бою спереду|r",
     ["Increases chance to |cFFFFFFFFDodge|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFAgility|r and |cFFFFFFFFDefense|r\\n\\n|cFFBCBCBCDodging nullifies the attack|r\\n\\n|cFFBCBCBCFor Players, only Melee attacks from the front may be Dodged\\n\\nFor Creatures, Melee attacks may be Dodged from any direction|r"] = "Збільшує шанс |cFFFFFFFFухилення|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFспритності|r та |cFFFFFFFFзахисту|r\\n\\n|cFFBCBCBCУхилення зводить шкоду від атаки нанівець|r\\n\\n|cFFBCBCBCГравці можуть ухилятися від атак ближнього бою лише спереду.\\n\\nІстоти можуть ухилятися від них із будь-якого боку.|r",
     ["Increases chance to |cFFFFFFFFParry|r by %.2f%%\\n\\nIncreased by |cFFFFFFFFDefense|r\\n\\n|cFFBCBCBCParrying nullifies the attack and reduces the time until the defender's next Melee attack by 40%%|r\\n\\n|cFFBCBCBCOnly Melee attacks from the front may be Parried|r"] = "Збільшує шанс |cFFFFFFFFпарирування|r на %.2f%%\\n\\nЗалежить від |cFFFFFFFFзахисту|r\\n\\n|cFFBCBCBCПарирування зводить шкоду від атаки нанівець і скорочує час до наступної атаки ближнього бою на 40%%|r\\n\\n|cFFBCBCBCПарирувати можна лише атаки ближнього бою спереду|r",
@@ -51,11 +57,13 @@ addonTable.forever_ui = {
     ["Continue"] = "Продовжити",
     ["Complete Quest"] = "Завершити завдання",
     ["Cancel"] = "Скасувати",
+    ["Do you want to make Thunderbrew Distillery your new home?"] = "Хочете зробити винокурню Громовара своїм новим домом?",
     ["Close"] = "Закрити",
     ["Description"] = "Опис",
     ["DESCRIPTION"] = "ОПИС",
     ["Required Items:"] = "Потрібні предмети:",
     ["Quest Log"] = "Журнал завдань",
+    ["Quest Timers"] = "Таймери завдань",
     ["Quests"] = "Завдання",
     ["Game Menu"] = "Меню гри",
     ["Account Collections"] = "Колекції облікового запису",
@@ -302,6 +310,7 @@ addonTable.forever_ui = {
     ["Snowtalon Kills (Shaper's Terrace)"] = "Убивств Снігокігтя (Тераса Творця)",
     ["Primary Attributes"] = "Основні характеристики",
     ["Weapons"] = "Зброя",
+    ["Gun"] = "Рушниця",
     ["Health:"] = "Здоров'я:",
     ["Rage:"] = "Лють:",
     ["Agility:"] = "Спритність:",
@@ -354,7 +363,7 @@ addonTable.forever_ui = {
     ["Equipped"] = "Споряджено",
     ["Cannot change equip status while in combat"] =
         "Не можна змінювати спорядження під час бою",
-    ["Soulbound"] = "Прив’язано до душі",
+    ["Soulbound"] = "Прив’язано до персонажа",
     ["One-Hand"] = "Одноручна",
     ["Shield"] = "Щит",
     ["Mace"] = "Булава",
@@ -428,6 +437,22 @@ addonTable.forever_ui = {
     ["Gives a chance to block enemy melee and ranged attacks."] = "Надає шанс блокувати ворожі атаки ближнього та дальнього бою.",
     ["Sell Price:"] = "Ціна продажу:",
     ["Press F6 to submit an issue for this Spell"] = "F6: повідомити про помилку",
+    ["Next melee"] = "Наступна атака ближнього бою",
+    ["Tools: Mining Pick"] = "Інструменти: шахтарське кайло",
+    ["Tools: Blacksmith Hammer"] = "Інструменти: ковальський молот",
+    ["Reagents:\nCopper Bar (4)"] = "Реагенти:\nМідний злиток (4)",
+    ["Reagents:\nCopper Bar (6), Weak Flux, Linen Cloth (2)"] = "Реагенти:\nМідний злиток (6), слабкий флюс, лляна тканина (2)",
+    ["+1 Stamina"] = "+1 до витривалості",
+    ["+1 Frost Resistance"] = "+1 до опору кризі",
+    ["17 Health"] = "17 здоров'я",
+    ["Bow"] = "Лук",
+    ["Sword"] = "Меч",
+    ["Quest Item"] = "Предмет завдання",
+    ["+1 Shadow Resistance"] = "+1 до опору тіні",
+    ["A strong attack that increases melee damage by 21 and causes a high amount of threat."] = "Сильна атака, що збільшує шкоду ближнього бою на 21 і створює багато загрози.",
+    ["The warrior shouts, increasing the melee attack power of all party members within 20 yards by 11.  Lasts 3 min."] = "Воїн вигукує бойовий клич, збільшуючи силу атаки ближнього бою всіх учасників групи в межах 20 м на 11. Триває 3 хв.",
+    ["You haven't added this to your action bars"] = "Ви ще не додали цю здібність на панелі дій",
+    ["You are no longer rested."] = "Ви більше не відпочиваєте.",
     ["Press F6 to submit an issue for this Item"] = "F6: повідомити про помилку",
     ["Customer Support"] = "Підтримка користувачів",
     ["Armor Proficiency"] = "Володіння обладунками",
@@ -551,6 +576,40 @@ addonTable.forever_ui_patterns = {
                 return "Потрібна " .. warrior_stances[stance]
             end
         end,
+    },
+    {
+        pattern = "^Rank (%d+)$",
+        replace = function (rank) return "Ранг " .. rank end,
+    },
+    {
+        pattern = "^(%d+) Rage$",
+        replace = function (rage) return rage .. " люті" end,
+    },
+    {
+        pattern = "^(%d+)%-(%d+) yd range$",
+        replace = function (minimum, maximum)
+            return "Дальність " .. minimum .. "–" .. maximum .. " м"
+        end,
+    },
+    {
+        pattern = "^(%d+) yd range$",
+        replace = function (range) return "Дальність " .. range .. " м" end,
+    },
+    {
+        pattern = "^([%d%.]+) sec cast$",
+        replace = function (seconds) return "Час застосування: " .. seconds .. " с" end,
+    },
+    {
+        pattern = "^([%d%.]+) sec cooldown$",
+        replace = function (seconds) return "Відновлення: " .. seconds .. " с" end,
+    },
+    {
+        pattern = "^([%d%.]+) min cooldown$",
+        replace = function (minutes) return "Відновлення: " .. minutes .. " хв" end,
+    },
+    {
+        pattern = "^Cooldown remaining: ([%d%.]+) sec$",
+        replace = function (seconds) return "До відновлення: " .. seconds .. " с" end,
     },
     {
         -- Blizzard has already formatted Requires %s (%d) before the tooltip
@@ -809,6 +868,13 @@ addonTable.forever_ui_patterns = {
             local translated = addonTable.string and addonTable.string[label]
                 or addonTable.forever_ui and addonTable.forever_ui[label]
             if translated then return translated .. " (" .. binding .. ")" end
+        end,
+    },
+    {
+        pattern = "^Equip: Your spells pierce ([%d,]+) Magical Resistance%.$",
+        replace = function (amount)
+            return "Екіпірування: Ваші заклинання долають " .. amount
+                .. " од. магічного опору."
         end,
     },
 }
