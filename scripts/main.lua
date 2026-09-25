@@ -206,6 +206,7 @@ local function prepare_panel_hooks()
 
     hooks.region_script(_G.ContainerFrameCombinedBags, "OnShow", opened_panel)
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow", opened_panel)
+    hooks.region_script(_G.QuestTimerFrame, "OnShow", opened_panel)
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
     hooks.region_script(_G.MacroFrame, "OnShow", opened_panel)
@@ -593,5 +594,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
     elseif event == "QUEST_LOG_UPDATE" then
         scheduler.request("quest-log-capture", nil,
             scanner.capture_quest_log, 0.2)
+        scheduler.request("quest-tracker-progress", nil,
+            quest_ui.refresh_tracker_progress, 0.2)
     end
 end)

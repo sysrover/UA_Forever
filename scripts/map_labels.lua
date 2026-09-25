@@ -155,16 +155,58 @@ local function after_subzone_load()
         native_zone_text("GetSubZoneText"), "subzone-announce")
 end
 
+local function ui_message_region(frame, message)
+    if not frame or type(frame.GetRegions) ~= "function" then return nil end
+    local ok, regions = pcall(function () return { frame:GetRegions() } end)
+    if not ok then return nil end
+    for index = 1, math.min(#regions, 80) do
+        local region = regions[index]
+        if visible_text(region) == message then return region end
+    end
+end
+
+local function translate_ui_message(self, message)
+    if type(message) ~= "string" then return end
+    local region = ui_message_region(self, message)
+    if not region then return end
+    if message == "You are no longer rested." then
+        if not options.can_lookup("translate_string") then return end
+        runtime.apply(region, {
+            owner = "ui-message", slot = "rested", source = message,
+            translated = addon_table.forever_ui[message],
+            option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
+        })
+        return
+    end
+    if not options.can_lookup("translate_zone") then return end
+    local zone = message:match("^Discovered:? (.+)$")
+    if not zone then return end
+    local translated = translated_zone_name(zone)
+    if not translated then return end
+    runtime.apply(region, {
+        owner = "zone-discovery", slot = "zone.name", source = message,
+        translated = "Відкрито нову територію: " .. translated,
+        option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
+    })
+end
+
+local function after_ui_message(self, event, _, message)
+    if event == "UI_INFO_MESSAGE" or event == "UI_ERROR_MESSAGE" then
+        translate_ui_message(self, message)
+    end
+end
+
+local function after_ui_add_message(self, message)
+    translate_ui_message(self, message)
+end
+
 local function after_scenario_layout(self)
     local region = self and self.Header and self.Header.Text
     local zone = native_zone_text("GetZoneText")
     if not zone or visible_text(region) ~= zone then return end
-    if type(_G.ShouldShowMawBuffs) ~= "function"
-        or type(_G.IsInJailersTower) ~= "function" then return end
-    local context_ok, show_maw, in_tower = pcall(function ()
-        return ShouldShowMawBuffs(), IsInJailersTower()
-    end)
-    if not context_ok or not show_maw or in_tower then return end
+    -- The rendered header already identifies the zone label. Calling
+    -- ShouldShowMawBuffs here reads protected aura data and can taint the
+    -- Edit Mode objective-tracker layout when auras become secret.
     local scenario = _G.C_Scenario
     if not scenario or type(scenario.GetInfo) ~= "function" then return end
     local info_ok, scenario_type = pcall(function ()
@@ -537,6 +579,9 @@ map_labels.prepare = function ()
         "zone-announcement")
     hooks.region_script(_G.SubZoneTextFrame, "OnShow", after_zone_text_event,
         "subzone-announcement")
+    hooks.region_script(_G.UIErrorsFrame, "OnEvent", after_ui_message,
+        "ui-message")
+    hooks.region(_G.UIErrorsFrame, "AddMessage", after_ui_add_message)
     hooks.region(_G.ScenarioObjectiveTrackerMixin, "LayoutContents",
         after_scenario_layout)
     local widget = _G.UIWidgetObjectiveTrackerMixin

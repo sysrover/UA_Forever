@@ -692,11 +692,47 @@ local function translate_new_recipe_alert(frame, recipe_id)
     })
 end
 
+local function translate_player_cast_bar(frame)
+    if not frame or not options.can_lookup("translate_spell") then return end
+    local region = frame.Text
+    local source = text_from(region)
+    if not source then return end
+    local translated = entries.lookup_name("spell", source)
+    if not translated or translated == source then return end
+    runtime.apply(region, {
+        owner = "player-cast-bar", slot = "spell.name", source = source,
+        translated = utils.cap(translated), category = "spell",
+        option = "translate_spell", priority = runtime.PRIORITY.DOMAIN,
+    })
+end
+
+local function hook_cast_bar(frame)
+    if not frame then return end
+    hook_owner(frame, "HandleCastStart", translate_player_cast_bar)
+    local region = frame.Text
+    if region then
+        hook_owner(region, "SetText", function(self)
+            if not runtime.is_applying(self) then
+                translate_player_cast_bar(frame)
+            end
+        end)
+    end
+end
+
 skills.prepare = function ()
     -- The alert system stores a direct reference to its setup function, so
     -- hook that stored field rather than only the global function name.
     hook_owner(_G.NewRecipeLearnedAlertSystem, "setUpFunction",
         translate_new_recipe_alert)
+    -- Cast bars can write the spell name directly without HandleCastStart.
+    -- Watch the displayed text so each new cast receives its own translation.
+    for _, frame in pairs({
+        _G.PlayerCastingBarFrame, _G.OverlayPlayerCastingBarFrame,
+        _G.CastingBarFrame, _G.TargetFrameSpellBar, _G.FocusFrameSpellBar,
+        _G.PetCastingBarFrame,
+    }) do
+        hook_cast_bar(frame)
+    end
     -- Forever uses pooled ScrollBox rows for character statistics. Translate
     -- each row in its native Init callback so recycled rows never spend a
     -- rendered frame in English. ClassicUA's older static-frame lifecycle is

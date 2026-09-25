@@ -153,18 +153,21 @@ end
 local function prepare_name_lookup()
     local at = addon_table
     local names = { item = {}, quest = {}, spell = {} }
+    local name_ids = { item = {}, quest = {}, spell = {} }
     for _, group in ipairs({
         { "item", at.item }, { "spell", at.spell },
         { "quest", at.quest_faction }, { "quest", at.quest_both },
     }) do
-        for _, entry in pairs(group[2] or {}) do
+        for id, entry in pairs(group[2] or {}) do
             if type(entry) == "table" and type(entry.en) == "string"
                 and type(entry[1]) == "string" and names[group[1]][entry.en] == nil then
                 names[group[1]][entry.en] = entry[1]
+                name_ids[group[1]][entry.en] = id
             end
         end
     end
     entries.names = names
+    entries.name_ids = name_ids
 end
 
 entries.prepare = function ()
@@ -193,6 +196,11 @@ entries.lookup_name = function (category, english)
     local translated = names and names[english] or nil
     if translated and not translated:find("{%d+}")
         and not translated:find("#", 1, true) then return translated end
+end
+
+entries.lookup_id = function (category, english)
+    local ids = entries.name_ids and entries.name_ids[category]
+    return ids and ids[english] or nil
 end
 
 local function make_text(text)
@@ -580,6 +588,17 @@ local function get_gossip_text(npc_id, gossip_text)
 
     npc_id = tonumber(npc_id)
 
+    -- Reviewed in-game scan codes are authoritative for these dialogues.
+    local gossip_code = utils.get_text_code(gossip_text)
+    if gossip_code and #gossip_code > 0 then
+        for _, gossip_key in ipairs({ npc_id, '!common' }) do
+            local npc_strings = at.gossip[gossip_key]
+            if npc_strings and npc_strings[gossip_code] then
+                return make_text(npc_strings[gossip_code]), gossip_code
+            end
+        end
+    end
+
     -- check text hash hit
 
     local gossip_text_hash = utils.get_text_hash(gossip_text)
@@ -592,8 +611,6 @@ local function get_gossip_text(npc_id, gossip_text)
     end
 
     -- check text code hit
-
-    local gossip_code = utils.get_text_code(gossip_text)
 
     if gossip_code and #gossip_code > 0 then
         for _, gossip_key in ipairs({ npc_id, '!common' }) do
@@ -661,6 +678,20 @@ entries.get_chat_text = function (npc_name, chat_text)
         return
     end
 
+    -- Use the codes captured in the NPC speech scan before generated hashes.
+    local chat_code = utils.get_text_code(chat_text)
+    if chat_code and #chat_code > 0 then
+        for _, npc_key in ipairs({ npc_name, '!common' }) do
+            local npc_strings = at.chat[npc_key]
+            if npc_strings and npc_strings[chat_code] then
+                local npc_name_uk = npc_strings[1]
+                    or entries.get_glossary_text(npc_name, npc_name)
+                local chat_text_uk = safe_make_chat_text(chat_text, npc_strings[chat_code])
+                return utils.cap(npc_name_uk), chat_text_uk, chat_code
+            end
+        end
+    end
+
     -- check text hash hit
 
     local chat_hash = utils.get_text_hash(chat_text)
@@ -677,8 +708,6 @@ entries.get_chat_text = function (npc_name, chat_text)
     end
 
     -- check text code hit
-
-    local chat_code = utils.get_text_code(chat_text)
 
     if chat_code and #chat_code > 0 then
         for _, npc_key in ipairs({ npc_name, '!common' }) do
@@ -712,7 +741,7 @@ entries.translate_quest_objective_task = function (text, quest_id)
     -- Camelot's quest tracker gets its visible objective strings from the
     -- legacy GetQuestLogLeaderBoard API. Keep the live C_QuestLog objective
     -- table pristine and translate only the text after its dynamic N/N prefix.
-    local progress_prefix, objective_text = text:match("^(%d+/%d+%s+)(.+)$")
+    local progress_prefix, objective_text = text:match("^(%d+%s*/%s*%d+%s+)(.+)$")
     if progress_prefix and objective_text then
         return progress_prefix .. entries.translate_quest_objective_task(objective_text, quest_id)
     end

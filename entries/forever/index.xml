@@ -1,7 +1,9 @@
 <Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
     <Script file="book.lua"/>
     <Script file="chat.lua"/>
+    <Script file="chat_manual.lua"/>
     <Script file="gossip.lua"/>
+    <Script file="gossip_manual.lua"/>
     <Script file="item.lua"/>
     <Script file="npc.lua"/>
     <Script file="object.lua"/>
@@ -10,6 +12,7 @@
     <Script file="quest_horde.lua"/>
     <Script file="quest_missing.lua"/>
     <Script file="quest_tasks.lua"/>
+    <Script file="quest_manual.lua"/>
     <Script file="spell.lua"/>
     <Script file="spell_druid.lua"/>
     <Script file="spell_hunter.lua"/>
@@ -28,6 +31,8 @@
     <Script file="deepl_ui.lua"/>
     <Script file="client_import.lua"/>
     <Script file="client_domains_uk.lua"/>
+    <Script file="entities_manual.lua"/>
+    <Script file="spell_manual.lua"/>
     <Script file="aura_overrides.lua"/>
     <Script file="client_ui_uk.lua"/>
     <Script file="client_source_ui_uk.lua"/>

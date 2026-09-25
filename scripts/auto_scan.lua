@@ -35,6 +35,10 @@ auto_scan.record_id = function (group, id, name, translated)
     local records = bucket(group)
     id = tonumber(id)
     if not records or not id or id <= 0 then return end
+    if group == "npcs" and translated == true then
+        records[id] = nil
+        return
+    end
     if translated ~= false then
         local domain = group == "items" and "item" or group == "npcs" and "npc"
             or group == "quests" and "quest" or group == "spells" and "spell"
@@ -110,8 +114,12 @@ auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
             lines[#lines + 1] = { index = row.index, side = row.side, text = source }
         end
     end
-    if #lines > #(record.lines or {}) then record.lines = lines end
-    if #lines > 0 then records[key] = record end
+    if #lines == 0 then
+        records[key] = nil
+    else
+        record.lines = lines
+        records[key] = record
+    end
 end
 
 local function field_text(value)
@@ -166,4 +174,10 @@ auto_scan.export_parts = function ()
         flush()
     end
     return parts
+end
+
+auto_scan.clear = function ()
+    if UA_ForeverDB and UA_ForeverDB.scan then
+        UA_ForeverDB.scan.auto = {}
+    end
 end

@@ -183,9 +183,17 @@ local function translate_lfg_edit_mode(entry, edit_mode)
 end
 
 local function popup_text_region(dialog)
-    if not dialog or type(dialog.GetTextFontString) ~= "function" then return nil end
-    local ok, region = pcall(dialog.GetTextFontString, dialog)
-    return ok and region or nil
+    if not dialog then return nil end
+    if type(dialog.GetTextFontString) == "function" then
+        local ok, region = pcall(dialog.GetTextFontString, dialog)
+        if ok and region then return region end
+    end
+    local name
+    if type(dialog.GetName) == "function" then
+        local ok, value = pcall(dialog.GetName, dialog)
+        if ok and type(value) == "string" then name = value end
+    end
+    return dialog.text or dialog.Text or name and _G[name .. "Text"]
 end
 
 local function translate_quit_countdown(dialog)
@@ -206,20 +214,74 @@ local function translate_quit_countdown(dialog)
 end
 
 local function translate_popup_button(dialog, getter)
-    if not dialog or type(dialog[getter]) ~= "function" then return end
-    local ok, button = pcall(dialog[getter], dialog)
-    if not ok or not button or type(button.GetFontString) ~= "function" then return end
+    if not dialog then return end
+    local button
+    if type(dialog[getter]) == "function" then
+        local ok, value = pcall(dialog[getter], dialog)
+        if ok then button = value end
+    end
+    if not button then
+        local number = getter:match("(%d+)$")
+        local name
+        if type(dialog.GetName) == "function" then
+            local ok, value = pcall(dialog.GetName, dialog)
+            if ok and type(value) == "string" then name = value end
+        end
+        button = dialog["button" .. number]
+            or name and _G[name .. "Button" .. number]
+    end
+    if not button or type(button.GetFontString) ~= "function" then return end
     local text_ok, region = pcall(button.GetFontString, button)
     if text_ok then strings.translate_region(region) end
 end
 
+local function translate_home_popup(dialog)
+    if not dialog then return false end
+    local shown_ok, shown = pcall(dialog.IsShown, dialog)
+    if not shown_ok or not shown then return false end
+    local region = popup_text_region(dialog)
+    local text_ok, source
+    if region then text_ok, source = pcall(region.GetText, region) end
+    if not text_ok or type(source) ~= "string"
+        or source:gsub("%s+", " "):match("^%s*(.-)%s*$") ~=
+            "Do you want to make Thunderbrew Distillery your new home?" then
+        return false
+    end
+    if strings.translate_region(region) and type(dialog.Resize) == "function" then
+        pcall(dialog.Resize, dialog)
+    end
+    translate_popup_button(dialog, "GetButton1")
+    translate_popup_button(dialog, "GetButton2")
+    return true
+end
+
+local function refresh_home_popups(which, data)
+    local find = _G.StaticPopup_FindVisible
+    if type(find) == "function" and which then
+        local ok, dialog = pcall(find, which, data)
+        if ok and translate_home_popup(dialog) then return end
+    end
+    for index = 1, 4 do
+        if translate_home_popup(_G["StaticPopup" .. index]) then return end
+    end
+end
+
 local function after_static_popup_show(which, _, _, data)
-    if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT" then return end
+    -- The bind-point text and buttons can be assigned after StaticPopup_Show
+    -- returns, so inspect the rendered popup on the next frame as well.
+    scheduler.request("home-popup:immediate", nil, function()
+        refresh_home_popups(which, data)
+    end)
+    scheduler.request("home-popup:retry", nil, function()
+        refresh_home_popups(which, data)
+    end, 0.1)
     local find = _G.StaticPopup_FindVisible
     if type(find) ~= "function" then return end
     local ok, dialog = pcall(find, which, data)
     if not ok or not dialog then return end
     local region = popup_text_region(dialog)
+    if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT"
+        and not translate_home_popup(dialog) then return end
     if which == "QUIT" then
         translate_quit_countdown(dialog)
     elseif data and data.text == _G.SELL_ALL_JUNK_ITEMS_POPUP then
@@ -235,6 +297,7 @@ local function after_static_popup_update(dialog)
     if dialog and dialog.which == "QUIT" then
         translate_quit_countdown(dialog)
     end
+    translate_home_popup(dialog)
 end
 
 menus_ui.prepare = function ()
@@ -295,6 +358,11 @@ menus_ui.prepare = function ()
     hooks.global("UIDropDownMenu_AddButton", translate_legacy_dropdown)
     hooks.global("StaticPopup_Show", after_static_popup_show)
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
+    for index = 1, 4 do
+        hooks.region_script(_G["StaticPopup" .. index], "OnShow", function()
+            scheduler.request("home-popup:on-show", nil, refresh_home_popups)
+        end)
+    end
 
     local game_menu_frame = _G.GameMenuFrame
     hooks.region_script(game_menu_frame, "OnShow", translate_game_menu)

@@ -94,7 +94,7 @@ local function show_export_window()
         local scroll = CreateFrame("ScrollFrame", nil, window,
             "UIPanelScrollFrameTemplate")
         scroll:SetPoint("TOPLEFT", 20, -75)
-        scroll:SetPoint("BOTTOMRIGHT", -42, 66)
+        scroll:SetPoint("BOTTOMRIGHT", -42, 76)
         local edit = CreateFrame("EditBox", nil, scroll)
         edit:SetMultiLine(true)
         edit:SetAutoFocus(false)
@@ -106,6 +106,11 @@ local function show_export_window()
 
         local position = window:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         position:SetPoint("BOTTOM", 0, 36)
+
+        local clear = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        clear:SetSize(135, 24)
+        clear:SetPoint("BOTTOMLEFT", 20, 44)
+        runtime.set_fallback_text(clear, "Очистити дані")
 
         local previous = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
         previous:SetSize(95, 24)
@@ -132,8 +137,26 @@ local function show_export_window()
             position:SetText(string.format("Частина %d із %d", count > 0 and window.index or 0, count))
             previous:SetEnabled(window.index > 1)
             following:SetEnabled(window.index < count)
+            clear:SetEnabled(count > 0)
             scroll:SetVerticalScroll(0)
         end
+        clear:SetScript("OnClick", function ()
+            StaticPopupDialogs["UA_FOREVER_CLEAR_AUTO_SCAN"] = {
+                text = "Очистити всі зібрані дані автоскана? Переконайтеся, що ви вже надіслали всі частини.",
+                button1 = "Очистити",
+                button2 = "Скасувати",
+                OnAccept = function ()
+                    auto_scan.clear()
+                    window.parts = auto_scan.export_parts()
+                    window.index = 1
+                    refresh()
+                end,
+                timeout = 0,
+                whileDead = true,
+                hideOnEscape = true,
+            }
+            StaticPopup_Show("UA_FOREVER_CLEAR_AUTO_SCAN")
+        end)
         previous:SetScript("OnClick", function ()
             window.index = window.index - 1
             refresh()

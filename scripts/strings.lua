@@ -253,7 +253,7 @@ local function visible_safe_roots()
         "CalendarFrame", "CommunitiesFrame", "GroupFinderFrame", "LFGListFrame",
         "InspectFrame", "PVPUIFrame", "StableFrame", "ClassTrainerFrame",
         "HelpFrame", "DressUpFrame", "EncounterJournal", "AchievementFrame",
-        "ObjectiveTrackerFrame",
+        "ObjectiveTrackerFrame", "QuestTimerFrame",
     }
     for _, name in ipairs(candidates) do
         local frame = _G[name]

@@ -643,6 +643,50 @@ local function translate_objectives(module, block, id)
     end)
 end
 
+-- Some client builds refresh the quest log before repainting a tracked line.
+-- Reconcile only numeric progress from the live journal; static objective
+-- text and the rest of the tracker remain owned by Blizzard's layout pass.
+quest_ui.refresh_tracker_progress = function ()
+    local module = _G.QuestObjectiveTracker
+    local blocks = module and module.usedBlocks and module.usedBlocks[module.blockTemplate]
+    local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
+    local get_objective = _G.GetQuestLogLeaderBoard
+    if type(blocks) ~= "table" or type(get_index) ~= "function"
+        or type(get_objective) ~= "function" then return end
+    for id, block in pairs(blocks) do
+        if type(id) == "number" and block
+            and type(block.ForEachUsedLine) == "function" then
+            local index_ok, index = pcall(get_index, id)
+            if index_ok and safe_number(index) and index > 0 then
+                pcall(block.ForEachUsedLine, block, function (line, key)
+                    if type(key) ~= "number" or not line then return end
+                    local region = line.Text
+                    local current = safe_text(region)
+                    if not current then return end
+                    local text_ok, text = pcall(get_objective, key, index, true)
+                    local native = text_ok and safe_string(text)
+                    local start_at, end_at, old_progress =
+                        current:find("(%d+%s*/%s*%d+)")
+                    local new_progress = native and native:match("(%d+%s*/%s*%d+)")
+                    if old_progress and new_progress
+                        and old_progress ~= new_progress then
+                        local translated = current:sub(1, start_at - 1)
+                            .. new_progress .. current:sub(end_at + 1)
+                        runtime.clear(region)
+                        runtime.apply(region, {
+                            owner = "quest-objective",
+                            slot = "quest:" .. id .. ":" .. key .. ".description",
+                            source = native, translated = translated,
+                            option = "translate_quest",
+                            priority = runtime.PRIORITY.DOMAIN,
+                        })
+                    end
+                end)
+            end
+        end
+    end
+end
+
 local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
 
 local function translate_tracker_labels()
@@ -675,6 +719,29 @@ local function after_update(self, quest)
     translate_tracker_labels()
 end
 
+local function translate_quest_timer(frame)
+    if not frame or not options.can_translate("translate_string") then return end
+    strings.translate_region(frame.Header and frame.Header.Text)
+    for _, button in ipairs(frame.activeElements or {}) do
+        local region = button and button.Name
+        local source = safe_text(region)
+        if source then
+            local translated = source:gsub("(%d+)%s+Day%f[%A]", "%1 дн")
+                :gsub("(%d+)%s+Hr%f[%A]", "%1 год")
+                :gsub("(%d+)%s+Min%f[%A]", "%1 хв")
+                :gsub("(%d+)%s+Sec%f[%A]", "%1 с")
+            if translated ~= source then
+                runtime.apply(region, {
+                    owner = "quest-timer", slot = "timer.remaining",
+                    source = source, translated = translated,
+                    option = "translate_string",
+                    priority = runtime.PRIORITY.CONTEXT,
+                })
+            end
+        end
+    end
+end
+
 quest_ui.prepare = function ()
     prepare_dialog_hooks()
     prepare_extra_tracker_hooks()
@@ -685,4 +752,5 @@ quest_ui.prepare = function ()
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
         translate_tracker_labels, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
+    hooks.mixin("QuestTimerMixin", "UpdateQuestTimers", translate_quest_timer)
 end
