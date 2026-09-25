@@ -4,6 +4,8 @@ local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
 local entries = addon_table.use("entries")
 local tooltips = addon_table.use("tooltips")
+local strings = addon_table.use("strings")
+local utils = addon_table.use("utils")
 
 local groups = {
     { "items", "Предмети" }, { "gossips", "Діалоги NPC" },
@@ -31,20 +33,59 @@ local function bucket(group)
     return store[group]
 end
 
+local domains = { items = "item", npcs = "npc", quests = "quest", spells = "spell" }
+
+local function translated_name(group, id, name)
+    local domain = domains[group]
+    local entry = domain and entries.get_entry and entries.get_entry(domain, id)
+    return entry and type(entry[1]) == "string" and entry[1] ~= ""
+        and (not name or entry[1] ~= name)
+end
+
+local function english_source(text)
+    return safe_text(text) and text:find("[A-Za-z]")
+        and not text:find("[\208\209]")
+end
+
+local function has_ui_translation(text)
+    if not english_source(text) or not strings.find_ui_translation then return false end
+    local ok, translated = pcall(strings.find_ui_translation, text)
+    return ok and type(translated) == "string" and translated ~= text
+end
+
+local function translated_gossip(record)
+    local catalog = addon_table.gossip
+    if type(catalog) ~= "table" or not record.npcID or not record.text then return false end
+    local code = utils.get_text_code(record.text)
+    local hash = utils.get_text_hash(record.text)
+    for _, key in ipairs({ record.npcID, "!common" }) do
+        local values = catalog[key]
+        if type(values) == "table" then
+            local translation = values[code] or values[hash]
+            if not translation and code and type(values["!code"]) == "table" then
+                local pattern = utils.match_text_code(code,
+                    utils.table_string_keys(values["!code"]))
+                translation = pattern and values[values["!code"][pattern]]
+            end
+            if type(translation) == "string" and translation ~= record.text then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 auto_scan.record_id = function (group, id, name, translated)
     local records = bucket(group)
     id = tonumber(id)
     if not records or not id or id <= 0 then return end
-    if group == "npcs" and translated == true then
-        records[id] = nil
+    if translated_name(group, id, name) or (group == "skills" and translated == true) then
+        if group ~= "quests" or not records[id] or not records[id].fields then
+            records[id] = nil
+        end
         return
     end
-    if translated ~= false then
-        local domain = group == "items" and "item" or group == "npcs" and "npc"
-            or group == "quests" and "quest" or group == "spells" and "spell"
-        local entry = domain and entries.get_entry and entries.get_entry(domain, id)
-        if not entry or not name or entry[1] ~= name then return end
-    end
+    if translated ~= false and group == "skills" then return end
     local record = records[id] or {}
     record.name = safe_text(name) or record.name
     records[id] = record
@@ -61,11 +102,15 @@ auto_scan.record_quest = function (id, fields, missing_fields)
         if missing_fields[key] then
             local text = safe_text(value)
             if text then record.fields[key] = text end
+        else
+            record.fields[key] = nil
         end
     end
     if next(record.fields) then
         record.name = safe_text(fields.title) or record.name
         records[id] = record
+    elseif record.name and translated_name("quests", id, record.name) then
+        records[id] = nil
     end
 end
 
@@ -107,10 +152,11 @@ auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
     for _, row in ipairs(rows) do
         local source = safe_text(row.source) or safe_text(row.visible)
         local already_translated = safe_text(row.translated)
-        local untranslated = missing_entry or not already_translated
-            or already_translated == source
-        if source and untranslated and (missing_entry or source:find("[A-Za-z]"))
-            and (missing_entry or not source:find("[\208\209]")) then
+        local translated_by_domain = row.index == 1 and row.side == "Left"
+            and translated_name(group, key, source)
+        if english_source(source) and not translated_by_domain
+            and not (already_translated and already_translated ~= source)
+            and not has_ui_translation(source) then
             lines[#lines + 1] = { index = row.index, side = row.side, text = source }
         end
     end
@@ -127,26 +173,73 @@ local function field_text(value)
     return tostring(value)
 end
 
-auto_scan.export_parts = function ()
+auto_scan.export_text = function ()
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
     for _, descriptor in ipairs(groups) do
         local group, label = descriptor[1], descriptor[2]
         local records = store[group] or {}
         local keys = {}
-        for key in pairs(records) do keys[#keys + 1] = key end
+        for key, record in pairs(records) do
+            if type(record) == "table" then
+                local keep = true
+                if group == "skills" then
+                    keep = english_source(record.name) and not has_ui_translation(record.name)
+                        and not entries.get_glossary_text(record.name)
+                elseif domains[group] and group ~= "quests" then
+                    keep = not translated_name(group, key, record.name)
+                        or type(record.lines) == "table"
+                elseif group == "gossips" then
+                    keep = english_source(record.text) and not translated_gossip(record)
+                elseif group == "chats" then
+                    local ok, _, translated = pcall(entries.get_chat_text,
+                        record.npc, record.text)
+                    keep = english_source(record.text) and not (ok and translated)
+                elseif group == "quests" then
+                    local entry = entries.get_entry and entries.get_entry("quest", key)
+                    local fields = {}
+                    local indices = { title = 1, description = 2, objective = 3,
+                        progress = 4, reward = 5 }
+                    for field, value in pairs(record.fields or {}) do
+                        local index = indices[field]
+                        local translation = index and entry and entry[index]
+                        if field:match("^task%d+$") and entries.translate_quest_objective_task then
+                            local ok, result = pcall(entries.translate_quest_objective_task, value, key)
+                            if ok then translation = result end
+                        end
+                        if english_source(value) and (type(translation) ~= "string"
+                            or translation == "" or translation == value) then
+                            fields[field] = value
+                        end
+                    end
+                    if not next(fields) and english_source(record.name)
+                        and not translated_name(group, key, record.name) then
+                        fields.title = record.name
+                    end
+                    if next(fields) then
+                        record.fields = fields
+                    else keep = false end
+                end
+                if type(record.lines) == "table" then
+                    local lines = {}
+                    for _, row in ipairs(record.lines) do
+                        local title_translated = row.index == 1 and row.side == "Left"
+                            and translated_name(group, key, row.text)
+                        if english_source(row.text) and not title_translated
+                            and not has_ui_translation(row.text) then
+                            lines[#lines + 1] = row
+                        end
+                    end
+                    record.lines = lines
+                    if #lines == 0 then keep = false end
+                end
+                if keep then keys[#keys + 1] = key end
+            end
+        end
         table.sort(keys, function (a, b) return tostring(a) < tostring(b) end)
         local lines = { "UA Forever | " .. label .. " | " .. #keys .. " записів" }
-        local length = #lines[1]
-        local function flush()
-            if #lines > 1 then parts[#parts + 1] = table.concat(lines, "\n") end
-            lines = { "UA Forever | " .. label .. " (продовження)" }
-            length = #lines[1]
-        end
         local function add(line)
-            if length + #line > 12000 then flush() end
             lines[#lines + 1] = line
-            length = length + #line + 1
         end
         for _, key in ipairs(keys) do
             local record = records[key]
@@ -171,9 +264,9 @@ auto_scan.export_parts = function ()
                 end
             end
         end
-        flush()
+        if #lines > 1 then parts[#parts + 1] = table.concat(lines, "\n") end
     end
-    return parts
+    return table.concat(parts, "\n\n")
 end
 
 auto_scan.clear = function ()
