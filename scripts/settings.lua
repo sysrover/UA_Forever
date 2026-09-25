@@ -94,61 +94,45 @@ local function show_export_window()
         local scroll = CreateFrame("ScrollFrame", nil, window,
             "UIPanelScrollFrameTemplate")
         scroll:SetPoint("TOPLEFT", 20, -75)
-        scroll:SetPoint("BOTTOMRIGHT", -42, 76)
+        scroll:SetPoint("BOTTOMRIGHT", -42, 48)
         local edit = CreateFrame("EditBox", nil, scroll)
         edit:SetMultiLine(true)
         edit:SetAutoFocus(false)
+        edit:SetMaxLetters(0)
         edit:SetFontObject("ChatFontNormal")
         edit:SetWidth(610)
         edit:SetHeight(380)
         edit:SetScript("OnEscapePressed", function () window:Hide() end)
         scroll:SetScrollChild(edit)
 
-        local position = window:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-        position:SetPoint("BOTTOM", 0, 36)
-
         local clear = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
         clear:SetSize(135, 24)
-        clear:SetPoint("BOTTOMLEFT", 20, 44)
+        clear:SetPoint("BOTTOMLEFT", 20, 14)
         runtime.set_fallback_text(clear, "Очистити дані")
 
-        local previous = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
-        previous:SetSize(95, 24)
-        previous:SetPoint("BOTTOMLEFT", 20, 14)
-        runtime.set_fallback_text(previous, "Назад")
         local copy = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
         copy:SetSize(190, 24)
-        copy:SetPoint("BOTTOM", 0, 14)
+        copy:SetPoint("BOTTOMRIGHT", -20, 14)
         runtime.set_fallback_text(copy, "Виділити для Ctrl+C")
-        local following = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
-        following:SetSize(95, 24)
-        following:SetPoint("BOTTOMRIGHT", -20, 14)
-        runtime.set_fallback_text(following, "Далі")
 
-        window.parts = {}
-        window.index = 1
         local function refresh()
-            local count = #window.parts
-            local part = window.parts[window.index]
-            local content = part or "Даних для експорту поки немає."
+            local content = auto_scan.export_text()
+            local has_data = content ~= ""
+            if not has_data then content = "Даних для експорту поки немає." end
             edit:SetHeight(math.max(380, math.ceil(#content / 65) * 16))
             edit:SetText(content)
             edit:SetCursorPosition(0)
-            position:SetText(string.format("Частина %d із %d", count > 0 and window.index or 0, count))
-            previous:SetEnabled(window.index > 1)
-            following:SetEnabled(window.index < count)
-            clear:SetEnabled(count > 0)
+            clear:SetEnabled(has_data)
+            copy:SetEnabled(has_data)
             scroll:SetVerticalScroll(0)
         end
         clear:SetScript("OnClick", function ()
             StaticPopupDialogs["UA_FOREVER_CLEAR_AUTO_SCAN"] = {
-                text = "Очистити всі зібрані дані автоскана? Переконайтеся, що ви вже надіслали всі частини.",
+                text = "Очистити всі зібрані дані автоскана? Переконайтеся, що ви вже скопіювали їх.",
                 button1 = "Очистити",
                 button2 = "Скасувати",
                 OnAccept = function ()
                     auto_scan.clear()
-                    window.parts = auto_scan.export_parts()
-                    window.index = 1
                     refresh()
                 end,
                 timeout = 0,
@@ -157,14 +141,6 @@ local function show_export_window()
             }
             StaticPopup_Show("UA_FOREVER_CLEAR_AUTO_SCAN")
         end)
-        previous:SetScript("OnClick", function ()
-            window.index = window.index - 1
-            refresh()
-        end)
-        following:SetScript("OnClick", function ()
-            window.index = window.index + 1
-            refresh()
-        end)
         copy:SetScript("OnClick", function ()
             edit:SetFocus()
             edit:HighlightText()
@@ -172,8 +148,6 @@ local function show_export_window()
         window.refresh = refresh
         export_window = window
     end
-    export_window.parts = auto_scan.export_parts()
-    export_window.index = 1
     export_window.refresh()
     export_window:Show()
 end
