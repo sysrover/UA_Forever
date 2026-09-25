@@ -3,6 +3,16 @@ local _, addonTable = ...
 -- Exact quest-log and tracker text observed in the in-game scan. These
 -- additions load after the generated quest and task tables.
 local manual = {
+    [96392] = {
+        [1] = [===[Дозор Фарсена]===],
+        [4] = [===[Далекоглядність може показати тобі багато чого, навіть те, чого ти волів би не бачити.]===],
+        [5] = [===[Тепер бачиш, воїне? Їх тут як тарганів, і це лише ті, кого ми можемо розгледіти з неба.
+
+Бачу, сили тобі не бракує. Як щодо трохи повоювати?]===],
+    },
+    [96408] = {
+        [5] = [===[Вітаю, друже. Як справи?]===],
+    },
     [98319] = {
         [5] = [===[От же дурень...
 
@@ -27,6 +37,9 @@ local manual = {
                 "Поверніть звіт горянинки Ґретхен Сенірові Білобороду в Хараносі.",
         },
     },
+    [91740] = {
+        [3] = [===[Доставте голову Крокі до Мерелл Росс у Прикордонну вежу.]===],
+    },
     [2160] = { tasks = {
         ["Deliver the Crate of Inn Supplies to Tannok Frosthammer in Kharanos."] =
             "Доставте ящик припасів для корчми Танноку Кригомолоту в Харанос.",
@@ -44,6 +57,10 @@ local manual = {
             "Поговоріть із горянином Талосом.",
     } },
     [287] = { tasks = { ["slain"] = "убито" } },
+    [291] = { tasks = {
+        ["Deliver Senir's report to Senator Barin Redstone in Ironforge."] =
+            "Доставте звіт Сеніра сенатору Беріну Червонокаменю в Залізогарт.",
+    } },
     [3106] = { tasks = {
         ["Read the Simple Rune and speak to Thran Khorman in Coldridge Valley."] =
             "Прочитайте просту руну й поговоріть із Траном Хорманом у Морозній долині.",
@@ -55,6 +72,10 @@ local manual = {
     [3365] = { tasks = {
         ["Return Nori's Mug to Nori Pridedrift."] =
             "Поверніть Норів кухоль Норі Гідношлямбуру.",
+    } },
+    [413] = { tasks = {
+        ["Take the Barrel of Shimmer Stout to Mountaineer Barleybrew."] =
+            "Віднесіть барильце Мерехтливого стаута горянину Ячміновару.",
     } },
     [420] = { tasks = {
         ["Deliver Grelin's report to Senir Whitebeard in Kharanos."] =
@@ -110,6 +131,7 @@ local manual = {
 for questID, fields in pairs(manual) do
     local quest = addonTable.quest_alliance and addonTable.quest_alliance[questID]
         or addonTable.quest_horde and addonTable.quest_horde[questID]
+        or addonTable.quest_both and addonTable.quest_both[questID]
     if quest then
         for key, value in pairs(fields) do
             if key == "tasks" then

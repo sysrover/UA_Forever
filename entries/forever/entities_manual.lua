@@ -3,6 +3,8 @@ local _, addonTable = ...
 -- Server IDs observed in the in-game scan. Keep these overrides separate
 -- from generated item and NPC catalogs.
 local npc = {
+    [264936] = { "землепровидець Фарсен", en="Earthseer Farsen" },
+    [264937] = { "тотем Фарсена", en="Farsen's Totem" },
     [267683] = { "червоний механобіг", en="Red Mechanostrider" },
     [271530] = { "старий вендиго", en="Elder Wendigo" },
     [276003] = { "незначний крижаний елементаль", en="Minor Ice Elemental" },

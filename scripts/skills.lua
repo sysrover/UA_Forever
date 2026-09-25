@@ -266,8 +266,11 @@ local function translate_button(button)
     if ok then strings.translate_region(font_string) end
 end
 
-local function translate_element(frame, seen, depth, category)
-    if not frame or depth > 4 then return end
+local translate_tab_label
+
+local function translate_element(frame, seen, depth, category, max_depth, labels,
+    labels_only)
+    if not frame or depth > (max_depth or 4) then return end
     seen = seen or {}
     if seen[frame] then return end
     seen[frame] = true
@@ -279,19 +282,148 @@ local function translate_element(frame, seen, depth, category)
                 local is_name = category == "skill"
                     and (region == frame.Name or region == frame.spellString)
                 if not is_name or options.translate_name(category) then
-                    strings.translate_region(region,
-                        is_name and "skill" or nil,
-                        is_name and "skill.name" or nil)
+                    local source = labels and text_from(region)
+                    if source and labels[source] and labels_only then
+                        translate_tab_label(region)
+                    elseif source and labels[source] then
+                        runtime.apply(region, { owner = "talents",
+                            slot = "ui.text", source = source,
+                            translated = labels[source],
+                            priority = runtime.PRIORITY.CONTEXT })
+                    elseif not labels_only then
+                        strings.translate_region(region,
+                            is_name and "skill" or nil,
+                            is_name and "skill.name" or nil)
+                    end
                 end
             end
         end
+    end
+    if labels_only then
+        local text_ok, get_text, set_text = pcall(function ()
+            return frame.GetText, frame.SetText
+        end)
+        if text_ok and type(get_text) == "function"
+            and type(set_text) == "function" then
+            translate_tab_label(frame)
+        end
+        local ok, font_string = pcall(function ()
+            return frame.GetFontString and frame:GetFontString()
+        end)
+        if ok and font_string then translate_tab_label(font_string) end
     end
     if frame.GetChildren then
         local ok, children = pcall(function () return { frame:GetChildren() } end)
         if ok then
             for _, child in ipairs(children) do
-                translate_element(child, seen, depth + 1, category)
+                translate_element(child, seen, depth + 1, category,
+                    max_depth, labels, labels_only)
             end
+        end
+    end
+end
+
+local talent_labels = { Primary = "Основна", Secondary = "Додаткова" }
+
+local function translate_named_talent_tab(button, english)
+    local region = button and button.Text
+    local source = text_from(region)
+    if not source or not talent_labels[english] then return end
+    local start_at, end_at = source:find(english, 1, true)
+    if not start_at then return end
+    local translated = source:sub(1, start_at - 1)
+        .. talent_labels[english] .. source:sub(end_at + 1)
+    runtime.apply(region, { owner = "talents", slot = "ui.text",
+        source = source, translated = translated,
+        priority = runtime.PRIORITY.CONTEXT })
+end
+
+local function translate_talent_tab_buttons(frame)
+    if not frame or type(frame.GetTabButton) ~= "function" then return end
+    for _, descriptor in ipairs({
+        { frame.primarySpecTabID, "Primary" },
+        { frame.secondarySpecTabID, "Secondary" },
+    }) do
+        local tab_id, english = descriptor[1], descriptor[2]
+        if tab_id then
+            local ok, button = pcall(frame.GetTabButton, frame, tab_id)
+            if ok and button then
+                hooks.region(button, "UpdateTabText", function (self)
+                    translate_named_talent_tab(self, english)
+                end)
+                translate_named_talent_tab(button, english)
+            end
+        end
+    end
+end
+
+translate_tab_label = function (region)
+    if not region or runtime.is_applying(region) then return end
+    local source = text_from(region)
+    local translated = source and talent_labels[source]
+    if not translated then return end
+    hooks.region(region, "SetText", translate_tab_label)
+    runtime.apply(region, { owner = "talents", slot = "ui.text",
+        source = source, translated = translated,
+        priority = runtime.PRIORITY.CONTEXT })
+end
+
+local function talent_frames()
+    local root = _G.PlayerSpellsFrame
+    local result, seen = {}, {}
+    local function add(frame)
+        if frame and not seen[frame] then
+            result[#result + 1] = frame
+            seen[frame] = true
+        end
+    end
+    if root then
+        add(root.TalentsFrame)
+        add(root.TalentFrame)
+        add(root.ClassTalentFrame)
+    end
+    add(_G.ClassTalentFrame)
+    add(_G.PlayerTalentFrame)
+    add(_G.TalentFrame)
+    if root and root.GetChildren then
+        local ok, children = pcall(function () return { root:GetChildren() } end)
+        if ok then
+            for _, child in ipairs(children) do
+                local name_ok, name = pcall(function () return child:GetDebugName() end)
+                if name_ok and type(name) == "string"
+                    and name:find("Talent", 1, true) then add(child) end
+            end
+        end
+    end
+    return result
+end
+
+local function translate_talents()
+    local seen = {}
+    for _, frame in ipairs(talent_frames()) do
+        local ok, visible = pcall(frame.IsShown, frame)
+        if ok and visible then
+            translate_talent_tab_buttons(frame)
+            translate_element(frame, nil, 1, nil, 10, talent_labels)
+            local parent = frame
+            for _ = 1, 4 do
+                if not parent or parent == _G.UIParent or seen[parent] then break end
+                seen[parent] = true
+                translate_element(parent, nil, 1, nil, 10,
+                    talent_labels, true)
+                local parent_ok, next_parent = pcall(function ()
+                    return parent.GetParent and parent:GetParent()
+                end)
+                if not parent_ok or next_parent == parent then break end
+                parent = next_parent
+            end
+        end
+    end
+    local root = _G.PlayerSpellsFrame
+    if root and not seen[root] then
+        local ok, visible = pcall(root.IsShown, root)
+        if ok and visible then
+            translate_element(root, nil, 1, nil, 10, talent_labels, true)
         end
     end
 end
@@ -413,6 +545,30 @@ local function translate_crafting_row(row)
             end
         end)
     end
+end
+
+local function translate_trainer_row(row)
+    if not row or type(row.GetRegions) ~= "function" then return end
+    local ok, regions = pcall(function () return { row:GetRegions() } end)
+    if not ok then return end
+    for _, region in ipairs(regions) do
+        local type_ok, object_type = pcall(region.GetObjectType, region)
+        if type_ok and object_type == "FontString" then
+            hooks.region(region, "SetText", function (self)
+                if not runtime.is_applying(self) then
+                    strings.translate_region(self)
+                end
+            end)
+            strings.translate_region(region)
+        end
+    end
+end
+
+local function translate_trainer_rows()
+    local frame = _G.ClassTrainerFrame
+    local scroll_box = frame and frame.ScrollBox
+    if not scroll_box or type(scroll_box.ForEachFrame) ~= "function" then return end
+    pcall(scroll_box.ForEachFrame, scroll_box, translate_trainer_row)
 end
 
 local function translate_reagent_slot(slot)
@@ -720,6 +876,16 @@ local function hook_cast_bar(frame)
 end
 
 skills.prepare = function ()
+    local trainer_frame = _G.ClassTrainerFrame
+    local trainer_scroll_box = trainer_frame and trainer_frame.ScrollBox
+    hooks.global("ClassTrainerFrame_Update", translate_trainer_rows)
+    hooks.region_script(trainer_frame, "OnShow", translate_trainer_rows,
+        "trainer-rows")
+    hook_owner(trainer_scroll_box, "Update", translate_trainer_rows)
+    hooks.region_script(trainer_scroll_box, "OnMouseWheel", translate_trainer_rows,
+        "trainer-scroll")
+    translate_trainer_rows()
+
     -- The alert system stores a direct reference to its setup function, so
     -- hook that stored field rather than only the global function name.
     hook_owner(_G.NewRecipeLearnedAlertSystem, "setUpFunction",
@@ -799,6 +965,24 @@ skills.prepare = function ()
     hooks.region_script(_G.PlayerSpellsFrame, "OnShow", translate_spellbook,
         "spellbook")
     translate_spellbook(spellbook)
+
+    -- The talent pane is a separate child of the protected PlayerSpellsFrame.
+    -- Scan only that pane after it opens or its selected tab changes.
+    hooks.region_script(_G.PlayerSpellsFrame, "OnShow", translate_talents,
+        "talents")
+    for _, frame in ipairs(talent_frames()) do
+        hooks.region_script(frame, "OnShow", translate_talents, "talents")
+    end
+    hooks.global("PanelTemplates_SetTab", function (frame)
+        if frame == _G.PlayerSpellsFrame then translate_talents() end
+    end)
+    for _, method in ipairs({ "Update", "Refresh" }) do
+        for _, frame in ipairs(talent_frames()) do
+            hook_owner(frame, method, translate_talents)
+        end
+        hook_mixin("TalentFrameBaseMixin", method, translate_talents)
+    end
+    translate_talents()
 
     -- Several base Camelot frames already exist before UA_Forever loads and
     -- therefore own copied mixin functions. Hook those concrete owners too.

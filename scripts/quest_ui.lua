@@ -326,6 +326,11 @@ local function quest_log_titles(scroll)
             region = ok and region or nil
             local source = safe_text(region)
             local translated = source and entries.get_glossary_text(source, source)
+            local class_forms = source and addon_table.class
+                and addon_table.class[source:lower():gsub(" ", "")]
+            if translated == source and class_forms and class_forms["н"] then
+                translated = utils.cap(class_forms["н"][1])
+            end
             if region then runtime.clear(region) end
             if source and safe_string(translated) and translated ~= source then
                 changed = runtime.apply(region, {

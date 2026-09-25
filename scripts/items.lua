@@ -9,6 +9,7 @@ local tooltips = addon_table.use("tooltips")
 local items = addon_table.use("items")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("items")
+local registry = addon_table.use("translation_registry")
 
 
 local function safe_string(value)
@@ -199,6 +200,16 @@ items.prepare = function ()
     -- reference, bypassing a hook on its global name. Display always runs
     -- after the selected template has populated its reward frame.
     hooks.global("QuestInfo_Display", items.refresh_quest_rewards)
+    hooks.global("LootFrame_Update", function () registry.refresh("items") end)
+    hooks.once("loot-events", function ()
+        if type(_G.CreateFrame) ~= "function" then return false end
+        local frame = _G.CreateFrame("Frame")
+        local opened = pcall(frame.RegisterEvent, frame, "LOOT_OPENED")
+        pcall(frame.RegisterEvent, frame, "LOOT_SLOT_CHANGED")
+        if not opened then return false end
+        frame:SetScript("OnEvent", function () registry.refresh("items") end)
+        return true
+    end)
     hooks.region(_G.ContainerFrameMixin, "UpdateName", bag_title)
     hooks.region(_G.ContainerFrameCombinedBagsMixin, "UpdateName", bag_title)
     local combined = _G.ContainerFrameCombinedBags

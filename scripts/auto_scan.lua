@@ -47,6 +47,14 @@ local function english_source(text)
         and not text:find("[\208\209]")
 end
 
+local function visible_english_tooltip_text(text)
+    text = safe_text(text)
+    if not text then return false end
+    text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        :gsub("|n", "")
+    return text:find("[A-Za-z]") ~= nil
+end
+
 local function has_ui_translation(text)
     if not english_source(text) or not strings.find_ui_translation then return false end
     local ok, translated = pcall(strings.find_ui_translation, text)
@@ -135,7 +143,7 @@ end
 
 auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
     local group = kind == "item" and "items"
-        or (kind == "spell" and "spells")
+        or ((kind == "spell" or kind == "trainer") and "spells")
         or (kind == "aura" and "auras") or nil
     local records = group and bucket(group)
     if not records or not tooltip then return end
@@ -143,21 +151,31 @@ auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
     if not ok or type(rows) ~= "table" or #rows == 0 then return end
     local title = safe_text(rows[1].source) or safe_text(rows[1].visible)
     local key = tonumber(id)
+    if not key and kind == "trainer" and title and entries.lookup_id then
+        key = entries.lookup_id("spell", title)
+            or entries.lookup_id("spell", title:match("^[^:]+: (.+)$") or title)
+    end
+    local trainer_spell_id = kind == "trainer" and key or nil
+    if kind == "trainer" and (key or title) then
+        key = "trainer:" .. tostring(key or title)
+    end
     if not key and kind == "aura" then key = title end
     if not key then return end
 
     local record = records[key] or {}
     record.name = title or record.name
+    if kind == "trainer" then record.spellID = trainer_spell_id end
     local lines = {}
     for _, row in ipairs(rows) do
         local source = safe_text(row.source) or safe_text(row.visible)
-        local already_translated = safe_text(row.translated)
-        local translated_by_domain = row.index == 1 and row.side == "Left"
-            and translated_name(group, key, source)
-        if english_source(source) and not translated_by_domain
-            and not (already_translated and already_translated ~= source)
-            and not has_ui_translation(source) then
-            lines[#lines + 1] = { index = row.index, side = row.side, text = source }
+        if visible_english_tooltip_text(row.visible)
+            and visible_english_tooltip_text(source) then
+            lines[#lines + 1] = {
+                index = row.index, side = row.side, text = source,
+                unapplied = has_ui_translation(source)
+                    or (row.index == 1 and row.side == "Left"
+                        and translated_name(group, key, source)) or nil,
+            }
         end
     end
     if #lines == 0 then
@@ -225,8 +243,9 @@ auto_scan.export_text = function ()
                     for _, row in ipairs(record.lines) do
                         local title_translated = row.index == 1 and row.side == "Left"
                             and translated_name(group, key, row.text)
-                        if english_source(row.text) and not title_translated
-                            and not has_ui_translation(row.text) then
+                        if visible_english_tooltip_text(row.text)
+                            and (row.unapplied or (not title_translated
+                                and not has_ui_translation(row.text))) then
                             lines[#lines + 1] = row
                         end
                     end
@@ -245,7 +264,7 @@ auto_scan.export_text = function ()
             local record = records[key]
             if type(record) == "table" then
                 add("\n# " .. tostring(key))
-                for _, field in ipairs({ "npcID", "npc", "name", "text", "language", "reply" }) do
+                for _, field in ipairs({ "spellID", "npcID", "npc", "name", "text", "language", "reply" }) do
                     if record[field] ~= nil then
                         add(field .. " = " .. field_text(record[field]))
                     end
@@ -260,7 +279,8 @@ auto_scan.export_text = function ()
                 end
                 for _, row in ipairs(record.lines or {}) do
                     add(tostring(row.index) .. " " .. tostring(row.side) .. " = "
-                        .. field_text(row.text))
+                        .. field_text(row.text)
+                        .. (row.unapplied and " [переклад є, але не застосувався]" or ""))
                 end
             end
         end

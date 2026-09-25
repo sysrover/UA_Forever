@@ -202,7 +202,12 @@ end
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
     { text = "Back", frame = "Quest", translation = "Назад" },
+    { text = "Common", frame = "LootFrame", translation = "Звичайний" },
+    { text = "Common", frame = "LootButton", translation = "Звичайний" },
     { text = "General", frame = "ChatFrame", translation = "Загальний" },
     { text = "General", frame = "CharacterStatsPane", translation = "Загальне" },
     { text = "General", frame = "Settings", translation = "Загальні" },
+    { text = "invites you to join the guild:", frame = "GuildInviteFrameInviteText", translation = "запрошує вас до гільдії:" },
+    { text = "Join Guild", frame = "GuildInviteFrameJoinButton", translation = "Вступити" },
+    { text = "Decline Invitation", frame = "GuildInviteFrameDeclineButton", translation = "Відхилити" },
 }
