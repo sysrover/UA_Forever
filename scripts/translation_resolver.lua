@@ -130,7 +130,12 @@ resolver.find_ui = function (text, region)
             else
                 translated = entries.get_glossary_text(normalized, nil)
             end
-            if translated then return translated, normalized, "domain" end
+            if translated then
+                if is_lfg then
+                    return translated, normalized, "domain", nil, "zone.name", "translate_zone"
+                end
+                return translated, normalized, "domain"
+            end
             break
         end
     end

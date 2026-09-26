@@ -78,7 +78,7 @@ local function translate_font_string(region, category, slot, surface, phase)
         return runtime.ensure_font(region)
     end
 
-    local translated, _, source_kind, inferred_category, inferred_slot =
+    local translated, _, source_kind, inferred_category, inferred_slot, inferred_option =
         resolver.find_ui(text, region)
     if not translated or translated == text then return false end
     category = category or inferred_category
@@ -99,6 +99,7 @@ local function translate_font_string(region, category, slot, surface, phase)
     local set_ok = runtime.apply(region, {
         owner = "ui", slot = slot or "ui.text", source = text,
         translated = translated, category = category,
+        option = inferred_option,
         surface = surface, phase = phase,
         priority = priority, tooltip = is_tooltip(parent) and parent or nil,
         after_apply = function (applied)

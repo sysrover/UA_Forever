@@ -220,6 +220,7 @@ end
 
 local function translate_direct_chat_text(message)
     if type(message) ~= "string" then return nil end
+    if message == "You are no longer Away." then return "Ви повернулися." end
     local looted_money = message:match("^You loot (.+)$")
     if looted_money then
         return "Ваша здобич: " .. translate_money_amount(looted_money)
@@ -247,6 +248,8 @@ local function translate_direct_chat_text(message)
     end
     local gained = message:match("^You gained: (.+)$")
     if gained then return "Отримано: " .. gained end
+    local created = message:match("^You create: (.+)$")
+    if created then return "Ви створюєте: " .. translate_item_links(created) end
     local recipe = message:match("^You have learned how to create a new item: (.+)%.$")
     if recipe then
         local name = recipe:find("|Hitem:", 1, true) and translate_item_links(recipe)
@@ -287,7 +290,8 @@ local function translate_system_text(event, message)
         local zone = message:match("^Discovered: (.+)$")
         if zone then
             return "Відкрито нову територію: " ..
-                (addon_table.zone and addon_table.zone[zone] or zone)
+                (options.can_translate("translate_zone")
+                    and addon_table.zone and addon_table.zone[zone] or zone)
         end
     end
 
@@ -295,8 +299,11 @@ local function translate_system_text(event, message)
         local zone, discovery_xp = message:match(
             "^Discovered (.-): ([%d,]+) experience gained%.?$")
         if zone then
-            local translated_zone = addon_table.zone and addon_table.zone[zone]
-                or entries.get_glossary_text(zone, zone, "zone")
+            local translated_zone = zone
+            if options.can_translate("translate_zone") then
+                translated_zone = addon_table.zone and addon_table.zone[zone]
+                    or entries.get_glossary_text(zone, zone, "zone")
+            end
             return "Відкрито нову територію: " .. translated_zone ..
                 ". Досвіду отримано: " .. discovery_xp .. "."
         end

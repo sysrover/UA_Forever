@@ -47,6 +47,16 @@ local settings = {
     ["Colors"] = "Кольори",
     ["Gamepad (Alpha)"] = "Геймпад (альфа)",
     ["Nameplates"] = "Індикатори імен",
+    ["Nameplate Information"] = "Відомості на індикаторах",
+    ["Cast Bar Information"] = "Смуга заклять",
+    ["Enemy NPC Buffs/Debuffs"] = "Ефекти ворожих істот",
+    ["Enemy Player Buffs/Debuffs"] = "Ефекти ворожих гравців",
+    ["Friendly Player Buffs/Debuffs"] = "Ефекти союзників",
+    ["Debuff Padding"] = "Відступ послаблень",
+    ["Spell Name"] = "Назва закляття",
+    ["Spell Icon"] = "Значок закляття",
+    ["Highlight Important Casts"] = "Виділяти важливі закляття",
+    ["Flash When Targeted By Enemy"] = "Блимати, коли ворог бере вас за ціль",
     ["Ping System"] = "Система сигналів",
     ["Subtitles"] = "Субтитри",
     ["Features"] = "Функції",
@@ -201,6 +211,8 @@ end
 
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    { text = "Send Mail", frame = "MailFrameTab2.Text", translation = "Надіслати" },
+    { text = "Custom", frame = "LFGListingFrameCategoryView", translation = "Користувацькі групи" },
     { text = "Back", frame = "Quest", translation = "Назад" },
     { text = "Common", frame = "LootFrame", translation = "Звичайний" },
     { text = "Common", frame = "LootButton", translation = "Звичайний" },

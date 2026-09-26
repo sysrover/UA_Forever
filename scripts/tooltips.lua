@@ -46,6 +46,8 @@ local function begin_tooltip(tooltip, key)
     tooltip.uaForeverClaims = {}
     tooltip.uaForeverFallback = {}
     tooltip.uaForeverBilingualLines = nil
+    tooltip.uaForeverUnitRefreshAt = nil
+    tooltip.uaForeverItemRefreshAt = nil
     tooltip.uaForeverReservedFirst = nil
     tooltip.uaForeverShowOriginal = shift_held() or not options.can_translate()
     tooltip_font_strings[tooltip] = nil
@@ -173,9 +175,17 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         or owner == "zone-tooltip" and "translate_zone" or nil
     local domain_options = owner == "npc-tooltip"
         and { "translate_npc", "translate_npc_tooltip" } or nil
+    local combat_tooltip_text = false
+    if (tooltip.uaForeverKind == "npc" or tooltip.uaForeverKind == "player"
+            or tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell")
+        and type(_G.InCombatLockdown) == "function" then
+        local ok, in_combat = pcall(_G.InCombatLockdown)
+        combat_tooltip_text = ok and not is_secret(in_combat)
+            and in_combat == true
+    end
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
-        if adjust_layout ~= false then
+        if adjust_layout ~= false and not combat_tooltip_text then
             previous_height = layout.safe_dimension(region, "GetStringHeight")
                 or layout.safe_dimension(region, "GetHeight")
             previous_tooltip_height = previous_height
@@ -187,8 +197,9 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             option = option, options = domain_options,
             generation = tooltip.uaForeverGeneration, tooltip = tooltip,
             allow_unknown_source = true,
+            combat_tooltip_text = combat_tooltip_text,
             after_apply = function (applied)
-                if adjust_layout ~= false then
+                if adjust_layout ~= false and not combat_tooltip_text then
                     layout.fit_tooltip_width_to_region(tooltip, applied)
                     layout.fit_tooltip_height_to_region(tooltip, applied,
                         previous_height, previous_tooltip_height)
@@ -821,7 +832,8 @@ local function refresh_npc_tooltip_name(tooltip)
     local translated = utils.cap(entry[1])
     if source == translated then return false end
     local claim = runtime.get(region)
-    if source ~= entry.en and not (claim and claim.owner == "npc-tooltip"
+    if (type(entry.en) ~= "string" or source:lower() ~= entry.en:lower())
+        and not (claim and claim.owner == "npc-tooltip"
         and source == claim.source) then return false end
     if tooltip.uaForeverKind ~= "npc" then
         begin_tooltip(tooltip, "npc:" .. tostring(id))
@@ -832,6 +844,20 @@ local function refresh_npc_tooltip_name(tooltip)
     if tooltip.uaForeverShowOriginal then return false end
     return set_tooltip_translation(tooltip, region, source, translated,
         "npc.name", nil, "npc-tooltip", nil, false)
+end
+
+local function refresh_npc_tooltip_subtitle(tooltip)
+    if tooltip.uaForeverKind ~= "npc" or not tooltip.uaForeverID
+        or tooltip.uaForeverShowOriginal then return false end
+    local entry = entries.get_entry("npc", tooltip.uaForeverID)
+    if not entry or type(entry[2]) ~= "string" then return false end
+    local source, region = tooltip_line(tooltip, "Left", 2)
+    local claim = region and runtime.get(region)
+    if type(source) ~= "string" or is_secret(source) or not claim
+        or claim.owner ~= "npc-tooltip" or claim.slot ~= "npc.subtitle"
+        or source ~= claim.source then return false end
+    return set_tooltip_translation(tooltip, region, source, utils.cap(entry[2]),
+        "npc.subtitle", nil, "npc-tooltip", nil, false, false)
 end
 
 local function translate_npc_quest_lines(tooltip)
@@ -1378,6 +1404,32 @@ local function tooltip_title_parts(source)
     return prefix, title
 end
 
+local function world_cursor_owner(tooltip)
+    if not tooltip or type(tooltip.GetOwner) ~= "function" then return false end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    return ok and not is_secret(owner)
+        and (owner == _G.UIParent or owner == _G.WorldFrame)
+end
+
+local function capture_world_tooltip(tooltip, line_count)
+    if tooltip ~= _G.GameTooltip or not options.account
+        or not options.account.auto_scan_content then return end
+    if tooltip.uaForeverKind ~= "object" then
+        if line_count ~= 1 or minimap_tooltip_owner(tooltip)
+            or not world_cursor_owner(tooltip) then return end
+    end
+    local visible, region = tooltip_line(tooltip, "Left", 1)
+    local claim = region and runtime.get(region)
+    if claim and claim.owner ~= "object-tooltip"
+        and claim.owner ~= "zone-tooltip" then return end
+    local source = claim and claim.source or visible
+    if type(source) ~= "string" or is_secret(source)
+        or type(visible) ~= "string" or is_secret(visible) then return end
+    local _, title = tooltip_title_parts(source)
+    local _, shown_title = tooltip_title_parts(visible)
+    auto_scan.record_world_tooltip(title, shown_title)
+end
+
 translate_object_tooltip_title = function (tooltip)
     if not tooltip or tooltip.uaForeverShowOriginal then return false end
     if tooltip.uaForeverKind ~= "object" and not minimap_tooltip_owner(tooltip) then
@@ -1692,6 +1744,7 @@ local function reset_tooltip(self)
     scheduler.cancel("tooltip:" .. tostring(self))
     scheduler.cancel("tooltip-late:" .. tostring(self))
     scheduler.cancel("tooltip-item:" .. tostring(self))
+    scheduler.cancel("tooltip-comparison:" .. tostring(self))
     scheduler.cancel("tooltip-aura:" .. tostring(self))
     for region in pairs(self.uaForeverClaims or {}) do
         runtime.clear(region)
@@ -1711,6 +1764,8 @@ local function reset_tooltip(self)
     self.uaForeverAuraRetryKey = nil
     self.uaForeverGenericText = nil
     self.uaForeverBilingualLines = nil
+    self.uaForeverUnitRefreshAt = nil
+    self.uaForeverItemRefreshAt = nil
     tooltip_font_strings[self] = nil
 end
 
@@ -1815,8 +1870,27 @@ tooltips.inspect = function (tooltip, limit)
 end
 
 local function is_shopping_tooltip(tooltip)
-    return tooltip == _G.ShoppingTooltip1 or tooltip == _G.ShoppingTooltip2
+    if tooltip == _G.ShoppingTooltip1 or tooltip == _G.ShoppingTooltip2
+        or tooltip == _G.ItemRefShoppingTooltip1
+        or tooltip == _G.ItemRefShoppingTooltip2 then return true end
+    if not tooltip or type(tooltip.GetName) ~= "function" then return false end
+    local ok, name = pcall(tooltip.GetName, tooltip)
+    return ok and type(name) == "string" and not is_secret(name)
+        and name:match("ShoppingTooltip%d+$") ~= nil
 end
+
+local comparison_item_labels = {
+    Cloth = "Тканина", Leather = "Шкіра", Mail = "Кольчуга",
+    Plate = "Лати", Head = "Голова", Neck = "Шия",
+    Shoulder = "Плечі", Shoulders = "Плечі", Back = "Спина",
+    Chest = "Груди", Wrist = "Зап'ястя", Hands = "Кисті",
+    Waist = "Пояс", Legs = "Ноги", Feet = "Ступні",
+    Finger = "Палець", Trinket = "Аксесуар",
+    Shirt = "Сорочка", Tabard = "Накидка",
+    Sword = "Меч", Dagger = "Кинджал", Staff = "Посох",
+    Polearm = "Древкова зброя", Gun = "Рушниця",
+    Bow = "Лук", Crossbow = "Арбалет", Wand = "Жезл",
+}
 
 local function translate_shopping_tooltip(tooltip)
     if not tooltip or tooltip.uaForeverShowOriginal then return end
@@ -1849,10 +1923,14 @@ local function translate_shopping_tooltip(tooltip)
     if count_ok and safe_number(count) then
         for index = 2, math.min(count, MAX_TOOLTIP_LINES) do
             for _, side in ipairs({ "Left", "Right" }) do
-                local text, armor_region = tooltip_line(tooltip, side, index)
-                if text == "Mail" and armor_region then
-                    set_tooltip_translation(tooltip, armor_region, text, "Кольчуга",
-                        "comparison.armor:" .. side .. index, nil,
+                local text, label_region = tooltip_line(tooltip, side, index)
+                local translated_label
+                if type(text) == "string" and not is_secret(text) then
+                    translated_label = comparison_item_labels[text]
+                end
+                if translated_label and label_region then
+                    set_tooltip_translation(tooltip, label_region, text, translated_label,
+                        "comparison.label:" .. side .. index, nil,
                         "item-tooltip", nil, false, false)
                 end
             end
@@ -2145,6 +2223,7 @@ local function translate_generic_tooltip(tooltip)
         translate_npc_quest_lines(tooltip)
     end
     rewrite_generic_lines(tooltip, line_count, tooltip.uaForeverReservedFirst)
+    capture_world_tooltip(tooltip, line_count)
 end
 
 tooltips.finalize = translate_generic_tooltip
@@ -2523,7 +2602,8 @@ end
 
 local function visible_tooltip_window()
     for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
-        "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+        "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
+        "ItemRefShoppingTooltip2", "EmbeddedItemTooltip",
         "BuffFrameTooltip" }) do
         local candidate = _G[name]
         if candidate and public_object_value(candidate, "IsShown") == true then
@@ -2899,6 +2979,18 @@ local function schedule_tooltip_finalize(tooltip)
         finalize, 0.2, tooltip)
 end
 
+local function refresh_item_tooltip_lines(tooltip)
+    if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal then return end
+    -- Item issue, price, and comparison lines can be rebuilt after both the
+    -- Item post-call and the deferred pass. Recheck only rendered UI labels.
+    local time_ok, now = pcall(_G.GetTime)
+    now = time_ok and safe_number(now) or nil
+    if now and now < (tooltip.uaForeverItemRefreshAt or 0) then return end
+    if now then tooltip.uaForeverItemRefreshAt = now + 0.1 end
+    rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2,
+        false, false)
+end
+
 local function prepare_tooltip_frames()
     -- Bag buttons copy their mixin methods when the frames are created, so a
     -- later hook on BaseBagSlotButtonMixin does not reach those buttons.
@@ -2945,7 +3037,8 @@ local function prepare_tooltip_frames()
             end)
     end
     for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
-        "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
+        "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
+        "ItemRefShoppingTooltip2", "EmbeddedItemTooltip",
         "BuffFrameTooltip" }) do
         local tooltip = _G[name]
         if tooltip then
@@ -2991,6 +3084,12 @@ local function prepare_tooltip_frames()
                     -- Comparison frames are rebuilt by RefreshItems. A delayed
                     -- pass can resize them after the native layout is visible.
                     translate_shopping_tooltip(self)
+                    local generation = self.uaForeverGeneration
+                    scheduler.request("tooltip-comparison:" .. tostring(self),
+                        generation, function ()
+                            local ok, shown = pcall(self.IsShown, self)
+                            if ok and shown then translate_shopping_tooltip(self) end
+                        end, nil, self)
                 else
                     schedule_tooltip_finalize(self)
                 end
@@ -3003,6 +3102,8 @@ local function prepare_tooltip_frames()
                     end
                 end)
             hooks.region_script(tooltip, "OnHide", reset_tooltip)
+            hooks.region_script(tooltip, "OnUpdate", refresh_item_tooltip_lines,
+                "item-lines")
             -- Setter callbacks ignore their potentially secret aura arguments.
             for _, method in ipairs({ "SetUnitAuraByAuraInstanceID",
                 "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
@@ -3032,6 +3133,24 @@ local function after_game_tooltip_update(tooltip)
     -- Unit tooltips can be rewritten in place as threat and unit details change.
     -- The Unit post-call does not always run for those subsequent name writes.
     refresh_npc_tooltip_name(tooltip)
+    local combat_ok, in_combat = false, false
+    if type(_G.InCombatLockdown) == "function" then
+        combat_ok, in_combat = pcall(_G.InCombatLockdown)
+    end
+    if combat_ok and not is_secret(in_combat) and in_combat == true
+        and (tooltip.uaForeverKind == "npc" or tooltip.uaForeverKind == "player") then
+        refresh_npc_tooltip_subtitle(tooltip)
+        local time_ok, now = pcall(_G.GetTime)
+        now = time_ok and safe_number(now) or nil
+        if now and now >= (tooltip.uaForeverUnitRefreshAt or 0) then
+            tooltip.uaForeverUnitRefreshAt = now + 0.1
+            rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2,
+                false, false)
+            if tooltip.uaForeverKind == "npc" then
+                translate_npc_quest_lines(tooltip)
+            end
+        end
+    end
     -- Minimap tracking blips can rewrite the visible title without calling
     -- SetText or starting a new tooltip session. Check that rendered line too.
     local current_title = tooltip_line(tooltip, "Left", 1)
@@ -3092,8 +3211,13 @@ tooltips.prepare = function ()
         local tooltip = _G.GameTooltip
         if not tooltip then return end
         local ok, shown = pcall(tooltip.IsShown, tooltip)
-        if ok and shown and minimap_tooltip_candidate(tooltip) then
-            translate_minimap_tooltip(tooltip)
+        if ok and shown then
+            if minimap_tooltip_candidate(tooltip) then
+                translate_minimap_tooltip(tooltip)
+            elseif tooltip.uaForeverKind == "object"
+                or world_cursor_owner(tooltip) then
+                schedule_tooltip_finalize(tooltip)
+            end
         end
     end)
     -- Minimap blips are rebuilt by the client after GameTooltip's own update
@@ -3125,7 +3249,12 @@ tooltips.prepare = function ()
     local types = Enum.TooltipDataType
     if types.Item then
         TooltipDataProcessor.AddTooltipPostCall(types.Item, function (tooltip, data)
-            if not is_shopping_tooltip(tooltip) then
+            if is_shopping_tooltip(tooltip) then
+                if not tooltip.uaForeverSessionKey then
+                    begin_tooltip(tooltip, "comparison")
+                end
+                translate_shopping_tooltip(tooltip)
+            else
                 safe_process(tooltip, data, "item")
             end
         end)

@@ -22,6 +22,7 @@ addonTable.forever_ui = {
     ["Off Hand"] = "Друга рука",
     ["Ranged"] = "Дальній бій",
     ["Attack Speed (seconds)"] = "Швидкість атаки (с)",
+    ["Channeling"] = "Підтримування",
     ["Damage:"] = "Шкода:",
     ["DPS:"] = "Шкода/с:",
     ["Instantly removes and grants immunity to all Bleed, Poison, and Disease effects, and reduces all Physical damage taken by 10% for 8 sec."] = "Миттєво знімає всі ефекти кровотечі, отрути та хвороб і дає до них невразливість, а також зменшує всю отримувану фізичну шкоду на 10% протягом 8 с.",
@@ -65,7 +66,9 @@ addonTable.forever_ui = {
     ["Quest Log"] = "Журнал завдань",
     ["Quest Timers"] = "Таймери завдань",
     ["Quests"] = "Завдання",
+    ["Stormwind Auction House"] = "Аукціонний дім Штормовію",
     ["Game Menu"] = "Меню гри",
+    ["Open All"] = "Відкрити все",
     ["Account Collections"] = "Колекції облікового запису",
     ["Spellbook & Professions"] = "Книга заклять і професії",
     ["Talents"] = "Таланти",
@@ -442,6 +445,8 @@ addonTable.forever_ui = {
     ["Gives a chance to block enemy melee and ranged attacks."] = "Надає шанс блокувати ворожі атаки ближнього та дальнього бою.",
     ["Sell Price:"] = "Ціна продажу:",
     ["Press F6 to submit an issue for this Spell"] = "F6: повідомити про помилку",
+    ["You retain up to 10 Rage when you change Stances."] = "Ви зберігаєте до 10 люті при зміні стійки.",
+    ["Slams the opponent, causing weapon damage plus 16."] = "Трощить ворога, завдаючи шкоди зброєю плюс 16.",
     ["Next melee"] = "Наступна атака ближнього бою",
     ["Tools: Mining Pick"] = "Інструменти: шахтарське кайло",
     ["Tools: Blacksmith Hammer"] = "Інструменти: ковальський молот",
@@ -458,6 +463,8 @@ addonTable.forever_ui = {
     ["The warrior shouts, increasing the melee attack power of all party members within 20 yards by 11.  Lasts 3 min."] = "Воїн вигукує бойовий клич, збільшуючи силу атаки ближнього бою всіх учасників групи в межах 20 м на 11. Триває 3 хв.",
     ["You haven't added this to your action bars"] = "Ви ще не додали цю здібність на панелі дій",
     ["You are no longer rested."] = "Ви більше не відпочиваєте.",
+    ["Rested"] = "Відпочинок",
+    ["200% of normal experience gained from monsters."] = "200% звичайного досвіду за вбивство монстрів.",
     ["Press F6 to submit an issue for this Item"] = "F6: повідомити про помилку",
     ["Customer Support"] = "Підтримка користувачів",
     ["Armor Proficiency"] = "Володіння обладунками",
@@ -489,6 +496,9 @@ addonTable.forever_ui = {
     ["Professions"] = "Професії",
     ["Secondary Skills"] = "Другорядні навички",
     ["Group Finder"] = "Пошук групи",
+    ["Search Name, Guilds, Levels"] = "Ім'я, гільдія, рівень",
+    ["Quests & Zones"] = "Завдання та зони",
+    ["Show All Level Ranges"] = "Показувати всі рівні",
     ["Smelting"] = "Переплавлення",
     ["Smelted Bars"] = "Виплавлені злитки",
     ["Everyday Meals"] = "Повсякденні страви",
@@ -500,6 +510,9 @@ addonTable.forever_ui = {
     ["Mail Chestguards"] = "Кольчужні нагрудники",
     ["Mail Bracers"] = "Кольчужні наручі",
     ["Mail Legguards"] = "Кольчужні поножі",
+    ["Mail Gauntlets"] = "Кольчужні рукавиці",
+    ["Mail Belts"] = "Кольчужні пояси",
+    ["Mail Boots"] = "Кольчужні чоботи",
     ["Inert Enchanting Rods"] = "Заготовки чарівних жезлів",
     ["Copper Bar"] = "Мідний злиток",
     ["Copper Ore"] = "Мідна руда",
@@ -520,10 +533,36 @@ addonTable.forever_ui = {
     ["Use: Restores 58 health over 18 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 1 Agility for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 58 здоров'я протягом 18 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +1 до спритності на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
     ["Use: Restores 234 health over 21 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 3 Agility for 15 min. Additionally, experience gained from kills is increased by 5%."] = "Використання: Відновлює 234 здоров'я протягом 21 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +3 до спритності на 15 хв. Крім того, досвід за вбивства збільшиться на 5%.",
     ["Use: Restores 234 health over 21 sec.  Must remain seated while eating. If you spend at least 10 seconds eating you will become well fed and gain 3 Intellect for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] = "Використання: Відновлює 234 здоров'я протягом 21 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +3 до інтелекту на 15 хв. Крім того, досвід за вбивства збільшиться на 5%. (Відновлення: 1 с)",
+    ["Craft a First Aid Kit."] = "Виготовляє аптечку першої допомоги.",
+    ["Creates a Simple Poultice."] = "Виготовляє простий припар.",
+    ["Creates 3 Vials of Anti-Venom."] = "Виготовляє 3 флакони протиотрути.",
+    ["Use: Heals 161 damage over 7 sec."] = "Використання: відновлює 161 здоров'я протягом 7 с.",
+    ["Use: Heals 114 damage over 6 sec."] = "Використання: відновлює 114 здоров'я протягом 6 с.",
+    ["Use: Restores 70 to 90 health."] = "Використання: відновлює 70–90 здоров'я.",
+    ["Use: Restores 140 to 180 health."] = "Використання: відновлює 140–180 здоров'я.",
+    ["Use: Target is cured of poisons up to level 25. (1 Min Cooldown)"] = "Використання: зцілює ціль від отрут до 25-го рівня. (Перезарядка: 1 хв.)",
+    ["Equip: Increases healing done by up to 9 and damage done by up to 3 for all magical spells and effects."] = "Екіпірування: збільшує зцілення на 9 і шкоду від усіх магічних заклять та ефектів на 3.",
+    ["<Shift click to buy a different amount>"] = "<Shift + клацання: змінити кількість покупки>",
+    ["Dagger"] = "Кинджал",
     ["Track Recipe"] = "Відстежувати рецепт",
     ["Create All"] = "Створити все",
     ["Create"] = "Створити",
     ["Allows the miner to smelt a chunk of copper ore into a copper bar. Smelting copper requires a forge."] = "Дозволяє гірникові переплавити шматок мідної руди на мідний злиток. Для виплавки міді потрібна кузня.",
+    ["Mining: Thorium Bar"] = "Гірництво: торієвий злиток",
+    ["Корюшка Truesilver"] = "Виплавити істинне срібло",
+    ["Корюшка Міфрилу"] = "Виплавити мітрил",
+    ["Allows the miner to smelt a chunk of thorium ore into a thorium bar.  Smelting thorium requires a forge."] = "Дозволяє гірникові виплавити шматок торієвої руди в торієвий злиток. Для виплавлення торію потрібна кузня.",
+    ["Allows the miner to smelt a tin bar and a copper bar together into two bronze bars.  Smelting bronze requires a forge."] = "Дозволяє гірникові виплавити з олов'яного й мідного злитків два бронзові злитки. Для виплавлення бронзи потрібна кузня.",
+    ["Allows the miner to smelt a chunk of iron ore and a lump of coal together into a steel bar.  Smelting steel requires a forge."] = "Дозволяє гірникові виплавити із залізної руди й вугілля сталевий злиток. Для виплавлення сталі потрібна кузня.",
+    ["Allows the miner to smelt a chunk of iron ore into an iron bar.  Smelting iron requires a forge."] = "Дозволяє гірникові виплавити шматок залізної руди в залізний злиток. Для виплавлення заліза потрібна кузня.",
+    ["Allows the miner to smelt a chunk of gold ore into a gold bar.  Smelting gold requires a forge."] = "Дозволяє гірникові виплавити шматок золотої руди в золотий злиток. Для виплавлення золота потрібна кузня.",
+    ["Allows the miner to smelt a chunk of silver ore into a silver bar.  Smelting silver requires a forge."] = "Дозволяє гірникові виплавити шматок срібної руди в срібний злиток. Для виплавлення срібла потрібна кузня.",
+    ["Allows the miner to smelt a chunk of truesilver ore into a truesilver bar.  Smelting truesilver requires a forge."] = "Дозволяє гірникові виплавити шматок руди істинного срібла в злиток істинного срібла. Для цього потрібна кузня.",
+    ["Allows the miner to smelt a chunk of mithril ore into a mithril bar.  Smelting mithril requires a forge."] = "Дозволяє гірникові виплавити шматок мітрилової руди в мітриловий злиток. Для виплавлення мітрилу потрібна кузня.",
+    ["Allows the miner to smelt a chunk of tin ore into a tin bar.  Smelting tin requires a forge."] = "Дозволяє гірникові виплавити шматок олов'яної руди в олов'яний злиток. Для виплавлення олова потрібна кузня.",
+    ["Equip: Increases damage and healing done by magical spells and effects by up to 5."] = "Екіпірування: збільшує шкоду та зцілення від магічних заклять і ефектів на 5.",
+    ["Use: Increase the damage of a blunt weapon by 3 for 30 minutes. (1 Sec Cooldown)"] = "Використання: збільшує шкоду дробильної зброї на 3 протягом 30 хв. (Перезарядка: 1 с)",
+    ["Use: Increase sharp weapon damage by 3 for 30 minutes. (1 Sec Cooldown)"] = "Використання: збільшує шкоду гострої зброї на 3 протягом 30 хв. (Перезарядка: 1 с)",
     ["Goodbye"] = "До побачення",
     ["Attack"] = "Атака",
     ["Coldridge Valley"] = "Морозна долина",
@@ -672,6 +711,12 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
+        pattern = "^(%d+) Health$",
+        replace = function (amount)
+            return amount .. " здоров'я"
+        end,
+    },
+    {
         pattern = "^Create All %[(%d+)%]$",
         replace = function (count)
             return "Створити все [" .. count .. "]"
@@ -688,6 +733,18 @@ addonTable.forever_ui_patterns = {
         pattern = "^([%+%-]?%d+) Armor$",
         replace = function (value)
             return value .. " броні"
+        end,
+    },
+    {
+        pattern = "^Requires Level (%d+)$",
+        replace = function (level)
+            return "Необхідний рівень " .. level
+        end,
+    },
+    {
+        pattern = "^<Made by (.+)>$",
+        replace = function (name)
+            return "<Виготовлено: " .. name .. ">"
         end,
     },
     {
@@ -732,7 +789,7 @@ addonTable.forever_ui_patterns = {
         pattern = "^(.-)Press (.-) to submit an issue for this ([A-Za-z]+)(.-)$",
         replace = function (prefix, shortcut, issue_type, suffix)
             if issue_type ~= "Item" and issue_type ~= "Quest"
-                and issue_type ~= "Spell" then
+                and issue_type ~= "Spell" and issue_type ~= "Creature" then
                 return prefix .. "Press " .. shortcut .. " to submit an issue for this "
                     .. issue_type .. suffix
             end
@@ -911,6 +968,49 @@ addonTable.forever_ui_patterns = {
         replace = function (amount)
             return "Екіпірування: Ваші заклинання долають " .. amount
                 .. " од. магічного опору."
+        end,
+    },
+    {
+        pattern = "^Classes: (.+)$",
+        replace = function (classes)
+            local names = {
+                Druid = "друїд", Hunter = "мисливець", Mage = "маг",
+                Paladin = "паладин", Priest = "жрець", Rogue = "розбійник",
+                Shaman = "шаман", Warlock = "чаклун", Warrior = "воїн",
+            }
+            local translated = {}
+            for class in classes:gmatch("[^,]+") do
+                class = class:match("^%s*(.-)%s*$")
+                local name = names[class]
+                if not name then return nil end
+                translated[#translated + 1] = name
+            end
+            local label = #translated == 1 and "Клас: " or "Класи: "
+            return label .. table.concat(translated, ", ")
+        end,
+    },
+    {
+        pattern = "^(Непрочитані листи від: )(.+)$",
+        replace = function (prefix, location)
+            local translated = addonTable.forever_ui[location]
+            return translated and (prefix .. translated) or nil
+        end,
+    },
+    {
+        pattern = "^%+(%d+) (.+)$",
+        replace = function (amount, stat)
+            local names = {
+                Strength = "сили", Stamina = "витривалості",
+                Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
+            }
+            local name = names[stat]
+            return name and ("+" .. amount .. " до " .. name) or nil
+        end,
+    },
+    {
+        pattern = "^Level (%d+)$",
+        replace = function (level)
+            return "Рівень " .. level
         end,
     },
 }

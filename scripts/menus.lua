@@ -10,6 +10,7 @@ local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
 local translation = addon_table.use("translation")
 local utils = addon_table.use("utils")
+local walker = addon_table.use("translation_walker")
 local hooks = addon_table.use("translation_hooks").bind("menus")
 
 local function translate_game_menu(frame)
@@ -54,6 +55,80 @@ local function translate_game_menu(frame)
     end
 end
 
+local original_mail_widths = setmetatable({}, { __mode = "k" })
+
+local function widen_mail_region(region, extra_width)
+    if not region or type(region.GetWidth) ~= "function"
+        or type(region.SetWidth) ~= "function" then return end
+    local width = original_mail_widths[region]
+    if not width then
+        local ok, measured = pcall(region.GetWidth, region)
+        if not ok or type(measured) ~= "number" or measured <= 0 then return end
+        width = measured
+        original_mail_widths[region] = width
+    end
+    pcall(region.SetWidth, region, width + extra_width)
+end
+
+local function widen_mail_frame()
+    local mail = _G.MailFrame
+    if not mail or type(mail.GetWidth) ~= "function"
+        or type(mail.SetWidth) ~= "function" then return end
+    if not original_mail_widths[mail] then
+        local ok, width = pcall(mail.GetWidth, mail)
+        if not ok or type(width) ~= "number" or width <= 0 then return end
+        original_mail_widths[mail] = width
+    end
+    local original_width = original_mail_widths[mail]
+    local extra_width = math.floor(original_width * 1.1 + 0.5) - original_width
+    widen_mail_region(mail, extra_width)
+    for _, name in ipairs({
+        "SendMailScrollFrame", "SendMailScrollChildFrame",
+        "SendMailBodyEditBox", "SendStationeryBackgroundLeft",
+        "SendMailSubjectEditBox", "SendMailHorizontalBarLeft",
+        "SendMailHorizontalBarLeft2", "InboxFrameBg",
+    }) do
+        widen_mail_region(_G[name], extra_width)
+    end
+    for index = 1, 7 do
+        local row = _G["MailItem" .. index]
+        widen_mail_region(row, extra_width)
+        if row and type(row.GetRegions) == "function" then
+            local ok, _, background, divider = pcall(row.GetRegions, row)
+            if ok then
+                widen_mail_region(background, extra_width)
+                widen_mail_region(divider, extra_width)
+            end
+        end
+        widen_mail_region(_G["MailItem" .. index .. "Subject"], extra_width)
+    end
+end
+
+local function translate_mail_region(region)
+    if region and not runtime.is_applying(region) then
+        strings.translate_region(region)
+    end
+end
+
+local function translate_mail_tab()
+    local tab = _G.MailFrameTab2
+    local label = tab and tab.Text
+    translate_mail_region(label)
+    if not label or type(label.GetUnboundedStringWidth) ~= "function"
+        or type(label.SetWidth) ~= "function" then return end
+    local ok, width = pcall(label.GetUnboundedStringWidth, label)
+    if not ok or type(width) ~= "number" or width <= 0 then return end
+    label:SetWidth(math.ceil(width + 4))
+end
+
+local function update_inbox_controls()
+    widen_mail_frame()
+    strings.translate_region(_G.OpenAllMailText)
+    translate_mail_region(_G.MailFrameTitleText)
+    translate_mail_region(_G.SendMailMoneyText)
+    translate_mail_tab()
+end
+
 local function translate_micro_button_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip.GetOwner or tooltip:GetOwner() ~= button then return end
@@ -76,7 +151,16 @@ local function translate_legacy_dropdown(_, level)
     level = tonumber(level) or tonumber(_G.UIDROPDOWNMENU_MENU_LEVEL) or 1
     local function translate()
         local frame = _G["DropDownList" .. level]
-        if frame then strings.translate_frame(frame) end
+        if not frame then return end
+        strings.translate_frame(frame)
+        local owner = _G.UIDROPDOWNMENU_OPEN_MENU
+        local name_ok, name = owner and pcall(owner.GetDebugName, owner)
+        if name_ok and type(name) == "string"
+            and name:find("LFGWhoListFrame.FilterDropdown", 1, true) then
+            walker.walk(frame, function (region)
+                strings.translate_region(region)
+            end, nil, { frames = 0 })
+        end
     end
 
     scheduler.request("legacy-dropdown:" .. level, nil, translate)
@@ -114,7 +198,8 @@ local function translate_lfg_activity_button(button)
             local text_ok, source = pcall(font_string.GetText, font_string)
             if text_ok and type(source) == "string" then
                 runtime.clear(font_string)
-                local translated, _, kind = resolver.find_ui(source, font_string)
+                local translated, _, kind, _, _, option =
+                    resolver.find_ui(source, font_string)
                 if translated then
                     local id_ok, activity_id = pcall(function ()
                         return button.activityID or (button.info and button.info.activityID)
@@ -128,12 +213,144 @@ local function translate_lfg_activity_button(button)
                         and "activity:" .. activity_id or "activity.name"
                     runtime.apply(font_string, { owner = "lfg", slot = slot,
                         source = source, translated = translated,
+                        option = option,
                         priority = kind == "domain" and runtime.PRIORITY.DOMAIN
                             or runtime.PRIORITY.CONTEXT })
                 end
             end
         end
     end
+end
+
+local function translate_lfg_listing_zone(region)
+    if not region or runtime.is_applying(region) then return end
+    local name_ok, name = pcall(region.GetDebugName, region)
+    if not name_ok or type(name) ~= "string"
+        or not name:find("LFGListingFrameActivityViewScrollBoxNameButtonName", 1, true) then
+        return
+    end
+    local text_ok, source = pcall(region.GetText, region)
+    if not text_ok or type(source) ~= "string" or source == "" then return end
+    if type(_G.issecretvalue) == "function" then
+        local secret_ok, secret = pcall(_G.issecretvalue, source)
+        if not secret_ok or secret then return end
+    end
+    local translated = entries.get_glossary_text(source, source, "zone")
+    local is_zone = translated ~= source
+    if not is_zone then translated = resolver.find_ui(source, region) end
+    if type(translated) ~= "string" or translated == source then return end
+    runtime.apply(region, {
+        owner = "lfg-listing", slot = is_zone and "zone.name" or "ui.text",
+        source = source, translated = translated,
+        option = is_zone and "translate_zone" or "translate_string",
+        priority = is_zone and runtime.PRIORITY.DOMAIN or runtime.PRIORITY.CONTEXT,
+    })
+end
+
+local function translate_lfg_listing_rows()
+    local listing_view = _G.LFGListingFrameActivityView
+    if not listing_view then return end
+    walker.walk(listing_view, function (region)
+        local name_ok, name = pcall(region.GetDebugName, region)
+        if not name_ok or type(name) ~= "string" then return end
+        if name:find("LFGListingFrameActivityViewScrollBoxNameButtonName", 1, true) then
+            hooks.region(region, "SetText", translate_lfg_listing_zone)
+            translate_lfg_listing_zone(region)
+        elseif name == "LFGListingFrameActivityView.LevelRangesCheckbox.Text" then
+            hooks.region(region, "SetText", function (self)
+                if not runtime.is_applying(self) then strings.translate_region(self) end
+            end)
+            strings.translate_region(region)
+        end
+    end, nil, { frames = 0 })
+end
+
+local function schedule_lfg_listing_rows()
+    scheduler.request("lfg-listing-rows", nil, translate_lfg_listing_rows)
+end
+
+local function translate_lfg_category_label(region)
+    if not region or runtime.is_applying(region) then return end
+    local text_ok, source = pcall(region.GetText, region)
+    if not text_ok or type(source) ~= "string" or source == "" then return end
+    local translated, _, kind = resolver.find_ui(source, region)
+    if type(translated) ~= "string" or translated == source then return end
+    runtime.apply(region, {
+        owner = "lfg-category", slot = "ui.text",
+        source = source, translated = translated, option = "translate_string",
+        priority = runtime.priority_for_source(kind),
+    })
+end
+
+local function translate_lfg_categories()
+    local category_view = _G.LFGListingFrameCategoryView
+    if not category_view then return end
+    walker.walk(category_view, function (region)
+        local name_ok, name = pcall(region.GetDebugName, region)
+        if name_ok and type(name) == "string"
+            and name:find("LFGListingFrameCategoryView.", 1, true)
+            and name:sub(-6) == ".Label" then
+            hooks.region(region, "SetText", translate_lfg_category_label)
+            translate_lfg_category_label(region)
+        end
+    end, nil, { frames = 0 })
+end
+
+local function schedule_lfg_categories()
+    scheduler.request("lfg-categories", nil, translate_lfg_categories)
+end
+
+local lfg_browse_labels = {
+    ["LFGBrowseFrameCategoryDropdown.Text"] = true,
+    ["LFGBrowseFrameActivityDropdown.Text"] = true,
+    ["LFGBrowseFrame.NoResultsFound"] = true,
+    ["LFGBrowseFrameGroupInviteButtonText"] = true,
+}
+
+local function translate_lfg_browse_label(region)
+    if not runtime.is_applying(region) then strings.translate_region(region) end
+end
+
+local function translate_lfg_browse()
+    local frame = _G.LFGBrowseFrame
+    if not frame then return end
+    walker.walk(frame, function (region)
+        local name_ok, name = pcall(region.GetDebugName, region)
+        if name_ok and lfg_browse_labels[name] then
+            hooks.region(region, "SetText", translate_lfg_browse_label)
+            translate_lfg_browse_label(region)
+        end
+    end, nil, { frames = 0 })
+end
+
+local function schedule_lfg_browse()
+    scheduler.request("lfg-browse", nil, translate_lfg_browse)
+end
+
+local lfg_who_labels = {
+    ["LFGWhoListFrameTitleText"] = true,
+    ["WhoFrameEditBox.Instructions"] = true,
+    ["LFGWhoListFrame.FilterDropdown.Text"] = true,
+}
+
+local function translate_lfg_who_label(region)
+    if not runtime.is_applying(region) then strings.translate_region(region) end
+end
+
+local function translate_lfg_who()
+    local frame = _G.LFGWhoListFrame
+    if not frame then return end
+    walker.walk(frame, function (region)
+        local name_ok, name = pcall(region.GetDebugName, region)
+        if name_ok and lfg_who_labels[name] then
+            hooks.region(region, "SetText", translate_lfg_who_label)
+            translate_lfg_who_label(region)
+        end
+    end, nil, { frames = 0 })
+end
+
+local function schedule_lfg_who()
+    scheduler.request("lfg-who", nil, translate_lfg_who)
 end
 
 local function translate_lfg_quest_description(entry)
@@ -301,6 +518,21 @@ local function after_static_popup_update(dialog)
 end
 
 menus_ui.prepare = function ()
+    hooks.region_script(_G.MailFrame, "OnShow", update_inbox_controls,
+        "inbox-controls")
+    hooks.region_script(_G.InboxFrame, "OnShow", update_inbox_controls,
+        "inbox-controls")
+    hooks.region_script(_G.SendMailFrame, "OnShow", widen_mail_frame,
+        "mail-width")
+    hooks.global("InboxFrame_Update", update_inbox_controls)
+    hooks.region(_G.OpenAllMailText, "SetText", function (region)
+        if not runtime.is_applying(region) then strings.translate_region(region) end
+    end)
+    hooks.region(_G.MailFrameTitleText, "SetText", translate_mail_region)
+    hooks.region(_G.SendMailMoneyText, "SetText", translate_mail_region)
+    hooks.region(_G.MailFrameTab2 and _G.MailFrameTab2.Text,
+        "SetText", translate_mail_tab)
+    update_inbox_controls()
     local game_menu = registry.get("game-menu")
     if game_menu then
         game_menu.static = function ()
@@ -348,12 +580,30 @@ menus_ui.prepare = function ()
     hooks.global("LFGListEntryCreation_Show", translate_lfg_frame)
     hooks.global("LFGListEntryCreation_Select", translate_lfg_frame)
 
+    -- The Forever listing view uses a separate ScrollBox from EntryCreation.
+    -- Its pooled zone labels are rewritten when rows are built or recycled.
+    local listing_view = _G.LFGListingFrameActivityView
+    local listing_scroll_box = _G.LFGListingFrameActivityViewScrollBox
+    hooks.region_script(listing_view, "OnShow", schedule_lfg_listing_rows)
+    hooks.region_script(listing_scroll_box, "OnShow", schedule_lfg_listing_rows)
+    hooks.region_script(listing_scroll_box, "OnMouseWheel", schedule_lfg_listing_rows)
+    hooks.region(listing_scroll_box, "Update", schedule_lfg_listing_rows)
+    hooks.region(listing_scroll_box, "SetDataProvider", schedule_lfg_listing_rows)
+    schedule_lfg_listing_rows()
+    hooks.region_script(_G.LFGListingFrameCategoryView, "OnShow", schedule_lfg_categories)
+    schedule_lfg_categories()
+    hooks.region_script(_G.LFGBrowseFrame, "OnShow", schedule_lfg_browse)
+    schedule_lfg_browse()
+    hooks.region_script(_G.LFGWhoListFrame, "OnShow", schedule_lfg_who)
+    schedule_lfg_who()
+
     -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
     -- public manager and translate only the completed menu returned as open.
     local menu_manager = _G.Menu and type(_G.Menu.GetManager) == "function"
         and _G.Menu.GetManager() or nil
     hooks.region(menu_manager, "OpenMenu", translate_open_menu)
     hooks.region(menu_manager, "OpenContextMenu", translate_open_menu)
+    hooks.region(menu_manager, "OpenSubmenu", translate_open_menu)
 
     hooks.global("UIDropDownMenu_AddButton", translate_legacy_dropdown)
     hooks.global("StaticPopup_Show", after_static_popup_show)

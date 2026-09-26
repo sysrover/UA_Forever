@@ -167,6 +167,98 @@ local function hook_reward_region(button)
     end)
 end
 
+local function refresh_required_item(button, index)
+    if not button or not options.can_lookup("translate_item", "translate_quest_item") then
+        return
+    end
+    local shown_ok, shown = pcall(button.IsShown, button)
+    if not shown_ok or not shown then return end
+    local region = button.Name or _G["QuestProgressItem" .. index .. "Name"]
+    if not region or type(region.GetText) ~= "function" then return end
+    local text_ok, current = pcall(region.GetText, region)
+    current = text_ok and safe_string(current) or nil
+    if not current then return end
+
+    local link_ok, link = pcall(_G.GetQuestItemLink or function () end,
+        "required", index)
+    local id = link_ok and safe_string(link)
+        and safe_id(utils.item_id_from_link(link)) or nil
+    local entry = id and entries.get_entry("item", id)
+    local translated = entry and entry.en == current and item_name(id)
+        or entries.lookup_name("item", current)
+    if id then dev_log.record_id("items", id, current, entry ~= nil) end
+    if not translated then return end
+    runtime.apply(region, {
+        owner = "quest-required", slot = "item:" .. tostring(id or current) .. ".name",
+        source = current, translated = utils.cap(translated), category = "item",
+        options = { "translate_item", "translate_quest_item" },
+        priority = runtime.PRIORITY.DOMAIN,
+    })
+end
+
+local function refresh_required_items()
+    local panel = _G.QuestFrameProgressPanel
+    if not panel or type(panel.IsShown) ~= "function" then return end
+    local shown_ok, shown = pcall(panel.IsShown, panel)
+    if not shown_ok or not shown then return end
+    local count_ok, count = pcall(_G.GetNumQuestItems or function () end)
+    count = count_ok and safe_id(count) or nil
+    if not count then return end
+    local maximum = type(_G.MAX_REQUIRED_ITEMS) == "number"
+        and _G.MAX_REQUIRED_ITEMS or 6
+    for index = 1, math.min(count, maximum) do
+        local item_index = index
+        local button = _G["QuestProgressItem" .. item_index]
+        local region = button and (button.Name
+            or _G["QuestProgressItem" .. item_index .. "Name"])
+        if region then
+            hooks.region(region, "SetText", function (self)
+                if not runtime.is_applying(self) then
+                    refresh_required_item(button, item_index)
+                end
+            end)
+            refresh_required_item(button, item_index)
+        end
+    end
+end
+
+local function refresh_reward_spell(frame)
+    local region = frame and frame.Name
+    if not region then return end
+    local shown_ok, shown = pcall(function () return frame:IsShown() end)
+    if not shown_ok or not shown then return end
+    local text_ok, current = pcall(function () return region:GetText() end)
+    current = text_ok and safe_string(current) or nil
+    if not current then return end
+    local claim = runtime.get(region)
+    if claim and claim.owner == "quest-reward" and claim.category == "spell"
+        and current == claim.translated then return end
+    runtime.clear(region)
+    if not options.can_lookup("translate_spell") then return end
+    local id = safe_id(frame.rewardSpellID)
+    local entry = id and entries.get_entry("spell", id)
+    local translated
+    if entry and entry.en == current then
+        translated = safe_string(entry[1])
+    end
+    translated = translated or entries.lookup_name("spell", current)
+    if not translated then return end
+    runtime.apply(region, {
+        owner = "quest-reward", slot = "spell:" .. tostring(id or current) .. ".name",
+        source = current, translated = utils.cap(translated),
+        category = "spell", option = "translate_spell",
+        priority = runtime.PRIORITY.DOMAIN,
+    })
+end
+
+local function hook_reward_spell(frame)
+    local region = frame and frame.Name
+    if not region then return end
+    hooks.region(region, "SetText", function (self)
+        if not runtime.is_applying(self) then refresh_reward_spell(frame) end
+    end)
+end
+
 items.refresh_quest_rewards = function ()
     local rewards = _G.QuestInfoFrame and _G.QuestInfoFrame.rewardsFrame
     local buttons = rewards and rewards.RewardButtons
@@ -179,6 +271,13 @@ items.refresh_quest_rewards = function ()
     for _, button in ipairs(buttons) do
         hook_reward_region(button)
         refresh_reward_button(button)
+    end
+    local spell_pool = rewards.spellRewardPool
+    if spell_pool and type(spell_pool.EnumerateActive) == "function" then
+        for frame in spell_pool:EnumerateActive() do
+            hook_reward_spell(frame)
+            refresh_reward_spell(frame)
+        end
     end
 end
 
@@ -196,10 +295,14 @@ items.prepare = function ()
     hooks.global("MerchantFrame_UpdateMerchantInfo", merchant_rows)
     hooks.global("MerchantFrame_UpdateBuybackInfo", buyback_rows)
     hooks.global("QuestInfo_ShowRewards", items.refresh_quest_rewards)
+    hooks.global("QuestFrameProgressItems_Update", refresh_required_items)
+    hooks.region_script(_G.QuestFrameProgressPanel, "OnShow",
+        refresh_required_items, "required-items")
     -- QuestInfo templates retain the original reward writer as a function
     -- reference, bypassing a hook on its global name. Display always runs
     -- after the selected template has populated its reward frame.
     hooks.global("QuestInfo_Display", items.refresh_quest_rewards)
+    refresh_required_items()
     hooks.global("LootFrame_Update", function () registry.refresh("items") end)
     hooks.once("loot-events", function ()
         if type(_G.CreateFrame) ~= "function" then return false end

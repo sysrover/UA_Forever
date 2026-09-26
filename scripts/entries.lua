@@ -741,6 +741,9 @@ entries.translate_quest_objective_task = function (text, quest_id)
     -- Camelot's quest tracker gets its visible objective strings from the
     -- legacy GetQuestLogLeaderBoard API. Keep the live C_QuestLog objective
     -- table pristine and translate only the text after its dynamic N/N prefix.
+    local status_prefix = text:match("^(%-%s*)Ready for turn%-in$")
+    if status_prefix then return status_prefix .. "Можна здати" end
+    if text == "Ready for turn-in" then return "Можна здати" end
     local progress_prefix, objective_text = text:match("^(%d+%s*/%s*%d+%s+)(.+)$")
     if progress_prefix and objective_text then
         return progress_prefix .. entries.translate_quest_objective_task(objective_text, quest_id)

@@ -1041,11 +1041,13 @@ addonTable.object = { -- [key] = text
 ["Crusaders' Square"] = "площа Лицарів",
 ["Duncan's Textiles"] = "Текстиль Дункана",
 ["Elders' Square"] = "площа Старійшин",
+["Fizzlespinner's General Goods"] = "Різні товари Шиповерта",
 ["Elevator to Mulgore"] = "підйомник до Мулґора",
 ["Menethil"] = "Менетіли",
 ["Service Entrance Gate"] = "ворота службового входу",
 ["Stormwind Counting House"] = "Рахункова палата Штормовію",
 ["Stormwind Visitor's Center"] = "Центр пригодників Штормовію",
+["Timberline Arms"] = "Зброярня «Тімберлайн»",
 ["The Gilded Rose"] = "Позолочена троянда",
 ["The Protective Hide"] = "Міцна шкура",
 
