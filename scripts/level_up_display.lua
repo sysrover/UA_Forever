@@ -3,6 +3,7 @@ local _, addon_table = ...
 local level_up_display = addon_table.use("level_up_display")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
+local strings = addon_table.use("strings")
 local hooks = addon_table.use("translation_hooks").bind("level-up-display")
 
 local function visible_text(region)
@@ -17,8 +18,15 @@ local function visible_text(region)
 end
 
 local function after_start_display(frame)
-    if not frame or frame.type ~= _G.LEVEL_UP_TYPE_CHARACTER
-        or not options.can_lookup("translate_string") then return end
+    if not frame then return end
+    if frame.type ~= _G.LEVEL_UP_TYPE_CHARACTER
+        or not options.can_lookup("translate_string") then
+        if options.account and options.account.auto_scan_content
+            and type(strings.capture_frame) == "function" then
+            strings.capture_frame(frame)
+        end
+        return
+    end
     local level_frame = frame.levelFrame
     local translations = addon_table.forever_ui
     if not level_frame or not translations then return end
@@ -47,6 +55,10 @@ local function after_start_display(frame)
                 option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
             })
         end
+    end
+    if options.account and options.account.auto_scan_content
+        and type(strings.capture_frame) == "function" then
+        strings.capture_frame(frame)
     end
 end
 

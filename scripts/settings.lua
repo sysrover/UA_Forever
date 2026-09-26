@@ -67,7 +67,9 @@ local function show_export_window()
     if not export_window then
         local window = CreateFrame("Frame", "UA_ForeverExportWindow", UIParent,
             "BasicFrameTemplateWithInset")
-        window:SetSize(690, 510)
+        local full_width, full_height = 690, 510
+        local collapsed_width, collapsed_height = 330, 34
+        window:SetSize(full_width, full_height)
         window:SetPoint("CENTER")
         window:SetFrameStrata("DIALOG")
         window:EnableMouse(true)
@@ -79,20 +81,24 @@ local function show_export_window()
             runtime.set_fallback_text(window.TitleText, "UA Forever: дані автоскана")
         end
 
-        local help = window:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        local content_frame = CreateFrame("Frame", nil, window)
+        content_frame:SetAllPoints(window)
+
+        local help = content_frame:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         help:SetPoint("TOPLEFT", 18, -38)
         help:SetWidth(475)
         help:SetJustifyH("LEFT")
         runtime.set_fallback_text(help,
             "Виділіть дані, натисніть Ctrl+C і вставте текст у форму.")
 
-        local form_button = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        local form_button = CreateFrame("Button", nil, content_frame,
+            "UIPanelButtonTemplate")
         form_button:SetSize(135, 24)
         form_button:SetPoint("TOPRIGHT", -28, -37)
         runtime.set_fallback_text(form_button, "Адреса форми")
         form_button:SetScript("OnClick", show_form_link)
 
-        local scroll = CreateFrame("ScrollFrame", nil, window,
+        local scroll = CreateFrame("ScrollFrame", nil, content_frame,
             "UIPanelScrollFrameTemplate")
         scroll:SetPoint("TOPLEFT", 20, -75)
         scroll:SetPoint("BOTTOMRIGHT", -42, 48)
@@ -106,12 +112,14 @@ local function show_export_window()
         edit:SetScript("OnEscapePressed", function () window:Hide() end)
         scroll:SetScrollChild(edit)
 
-        local clear = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        local clear = CreateFrame("Button", nil, content_frame,
+            "UIPanelButtonTemplate")
         clear:SetSize(135, 24)
         clear:SetPoint("BOTTOMLEFT", 20, 14)
         runtime.set_fallback_text(clear, "Очистити дані")
 
-        local copy = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        local copy = CreateFrame("Button", nil, content_frame,
+            "UIPanelButtonTemplate")
         copy:SetSize(190, 24)
         copy:SetPoint("BOTTOMRIGHT", -20, 14)
         runtime.set_fallback_text(copy, "Виділити для Ctrl+C")
@@ -146,6 +154,39 @@ local function show_export_window()
             edit:SetFocus()
             edit:HighlightText()
         end)
+
+        local collapse = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
+        collapse:SetSize(24, 20)
+        collapse:SetPoint("TOPRIGHT", -30, -4)
+
+        local function set_collapsed(collapsed)
+            local left, top = window:GetLeft(), window:GetTop()
+            if left and top then
+                window:ClearAllPoints()
+                window:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+            end
+            window.collapsed = collapsed == true
+            if window.collapsed then
+                content_frame:Hide()
+                window:SetSize(collapsed_width, collapsed_height)
+                runtime.set_fallback_text(collapse, "+")
+            else
+                window:SetSize(full_width, full_height)
+                content_frame:Show()
+                runtime.set_fallback_text(collapse, "-")
+            end
+        end
+        collapse:SetScript("OnClick", function ()
+            set_collapsed(not window.collapsed)
+        end)
+        collapse:SetScript("OnEnter", function (self)
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(window.collapsed and "Розгорнути" or "Згорнути")
+            GameTooltip:Show()
+        end)
+        collapse:SetScript("OnLeave", function () GameTooltip:Hide() end)
+        set_collapsed(false)
+
         window.refresh = refresh
         export_window = window
     end
@@ -153,8 +194,13 @@ local function show_export_window()
     export_window:Show()
 end
 
+settings_ui.show_export_window = show_export_window
+
 local function refresh_open_text()
     runtime.refresh_policy()
+    if strings.refresh_combat_text_globals then
+        strings.refresh_combat_text_globals()
+    end
     if items.refresh_quest_rewards then items.refresh_quest_rewards() end
     registry.refresh_open()
     if tooltips.refresh_active then tooltips.refresh_active() end
@@ -173,7 +219,7 @@ local function refresh_tooltip_mode_controls()
     end
     if shift_button then
         shift_button:ClearAllPoints()
-        local anchor = scope == "custom" and name_buttons.translate_zone
+        local anchor = scope == "custom" and name_buttons.translate_combat_text
             or scope_buttons.custom
         shift_button:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT",
             scope == "custom" and -20 or 0, -24)
@@ -257,6 +303,7 @@ local function register_addon_settings()
         { "translate_spell_names", "Назви заклять" },
         { "translate_skill_names", "Назви навичок" },
         { "translate_zone", "Назви локацій" },
+        { "translate_combat_text", "Бойові написи" },
     }) do
         local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
         button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT",
@@ -269,6 +316,10 @@ local function register_addon_settings()
             refresh_open_text()
             if key == "translate_zone" and map_labels.refresh then
                 map_labels.refresh()
+            end
+            if key == "translate_combat_text"
+                and strings.refresh_combat_text_globals then
+                strings.refresh_combat_text_globals()
             end
         end)
         name_buttons[key] = button

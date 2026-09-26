@@ -3,6 +3,22 @@ local _, addonTable = ...
 -- Codes copied from the in-game NPC dialogue scan. These codes take
 -- precedence over the older numeric hashes in the generated catalog.
 local manual = {
+    [49808] = {
+        ["gttamtya"] = [===[Рада зустрічі.]===],
+    },
+    [1343] = {
+        ["wlifititygbgwrnodtdnhebytkofmyesinfsofbenotefrssnwfrteaegtitdsttnddgsoifyelgfrgytnlkssonyuty"] = [===[О, та це ж молодий, завзятий воїн, якого, без сумніву, привели сюди розповіді про мої подвиги на полях битв!
+
+Зараз не час для історій — на нас чекають великі й важливі справи! Тож якщо ти шукаєш слави, сьогодні удача тобі усміхається...]===],
+    },
+    [1572] = {
+        ["mkmywsyuwtfdfrgsaeinteenkstnteosrtheintr"] = [===[Запам'ятай мої слова! У всьому Східному Королівстві не знайти грифонів швидших за тих, що тут, у Телсамарі!]===],
+    },
+    [1340] = {
+        ["wetotryrheayfmheinlhmntrisnepebtisntalbradsdmtfrtewoartecltodyifyewgtofedrinteneofteaetnrdteproetetrbhofteesle"] = [===[Ласкаво просимо до Телсамара — твого другого дому в Лох-Модані!
+
+Телсамар — гарне місце, та для тих, хто відгукується на поклик обов'язку, життя тут не обмежується пивом і солоним м'ясом! Якщо готовий зустріти небезпеку в ім'я Альянсу, прочитай оголошення біля телсамарського відділення Ліги дослідників.]===],
+    },
     [10276] = {
         ["aewdletathyetgortoatsggbananadhradlssewtwecnahslwe"] = [===[Авжеж, я залюбки навчу тебе ковальської справи. Бери фартух і молот, та подивімося, чого ми зможемо досягти!]===],
     },

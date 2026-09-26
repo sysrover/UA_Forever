@@ -35,6 +35,7 @@ end
 
 local function begin_tooltip(tooltip, key)
     if tooltip.uaForeverSessionKey == key then return end
+    layout.restore_tooltip_width(tooltip)
     for region in pairs(tooltip.uaForeverClaims or {}) do
         -- Blizzard may have already reused this FontString for the next
         -- tooltip. Restoring the old claim would overwrite the new item text.
@@ -71,6 +72,21 @@ local function first_template_part(text)
     return text:match("^(.-)#") or text
 end
 
+local function resolve_item_placeholders(text)
+    if type(text) ~= "string" or not text:find("{bindLocation}", 1, true) then
+        return text
+    end
+    if type(_G.GetBindLocation) ~= "function" then return text end
+
+    local ok, bind_location = pcall(_G.GetBindLocation)
+    if not ok or type(bind_location) ~= "string" or bind_location == ""
+        or is_secret(bind_location) then return text end
+
+    local translated_location = addon_table.zone
+        and addon_table.zone[bind_location] or bind_location
+    return text:gsub("{bindLocation}", function () return translated_location end)
+end
+
 local function make_text(text, tooltip, source_line)
     if type(text) ~= "string" then
         return nil
@@ -78,6 +94,7 @@ local function make_text(text, tooltip, source_line)
 
     local ok, result = pcall(entries.make_entry_text, text, tooltip, nil, source_line)
     result = ok and result or first_template_part(text)
+    result = resolve_item_placeholders(result)
     if type(result) ~= "string" or result:find("{%d+}") then
         return nil
     end
@@ -191,6 +208,18 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             previous_tooltip_height = previous_height
                 and layout.safe_dimension(tooltip, "GetHeight") or nil
         end
+        local visibility_callback = after_visibility
+        if type(source) == "string" and not is_secret(source)
+            and source == "<Click to view Quest Details>" then
+            visibility_callback = function (visible_region)
+                if tooltip.uaForeverShowOriginal then
+                    layout.restore_tooltip_width(tooltip)
+                else
+                    layout.fit_tooltip_width_to_region(tooltip, visible_region, source)
+                end
+                if after_visibility then pcall(after_visibility, visible_region) end
+            end
+        end
         local ok = runtime.apply(region, {
             owner = owner or "tooltip", slot = slot, source = source,
             translated = translated, priority = priority, category = category,
@@ -200,13 +229,13 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             combat_tooltip_text = combat_tooltip_text,
             after_apply = function (applied)
                 if adjust_layout ~= false and not combat_tooltip_text then
-                    layout.fit_tooltip_width_to_region(tooltip, applied)
+                    layout.fit_tooltip_width_to_region(tooltip, applied, source)
                     layout.fit_tooltip_height_to_region(tooltip, applied,
                         previous_height, previous_tooltip_height)
                     layout.fit_bag_tooltip_width(tooltip, applied, source)
                 end
             end,
-            after_visibility = after_visibility,
+            after_visibility = visibility_callback,
         })
         if ok then
             tooltip.uaForeverClaims[region] = true
@@ -862,9 +891,9 @@ end
 
 local function translate_npc_quest_lines(tooltip)
     if not options.can_translate("translate_quest") or tooltip.uaForeverShowOriginal
-        or type(entries.lookup_id) ~= "function" then return false end
+        or type(entries.lookup_quest_id_for_task) ~= "function" then return false end
     local count_ok, count = pcall(tooltip.NumLines, tooltip)
-    if not count_ok or not safe_number(count) then return false end
+    count = count_ok and safe_number(count) or MAX_TOOLTIP_LINES
 
     local applied = false
     local quest_id
@@ -874,10 +903,23 @@ local function translate_npc_quest_lines(tooltip)
         local source = claim and claim.owner == "quest-tooltip"
             and claim.source or visible
         local normalized = normalized_tooltip_text(source)
-        local id = normalized and entries.lookup_id("quest", normalized)
-        local next_text = index < count and tooltip_line(tooltip, "Left", index + 1)
-        if id and region and type(next_text) == "string" and not is_secret(next_text)
-            and next_text:match("^%s*%-?%s*%d+%s*/%s*%d+%s+") then
+        local id
+        if normalized and entries.quest_title_ids
+            and entries.quest_title_ids[normalized] then
+            -- Party tooltips insert player names between the quest title and
+            -- each objective. Find the first matching task within that block.
+            for next_index = index + 1, math.min(index + 4, count) do
+                local next_text = tooltip_line(tooltip, "Left", next_index)
+                local next_line = normalized_tooltip_text(next_text)
+                local next_task = next_line and next_line:match(
+                    "^%-?%s*%d+%s*/%s*%d+%s+(.+)$")
+                if next_task then
+                    id = entries.lookup_quest_id_for_task(normalized, next_task)
+                    if id then break end
+                end
+            end
+        end
+        if id and region then
             local entry = entries.get_entry("quest", id)
             local title = entry and make_text(entry[1], tooltip)
             quest_id = entry and id or nil
@@ -892,19 +934,20 @@ local function translate_npc_quest_lines(tooltip)
                 dash, objective = source:match("^(%s*)(%d+%s*/%s*%d+%s+.+)$")
             end
             if objective then
+                local normalized_objective = normalized_tooltip_text(objective)
                 local ok, translated = pcall(entries.translate_quest_objective_task,
-                    objective, quest_id)
-                if ok and type(translated) == "string" and translated ~= objective
+                    normalized_objective, quest_id)
+                if ok and type(translated) == "string"
+                    and translated ~= normalized_objective
                     and not (claim and visible == claim.translated) then
                     applied = set_tooltip_translation(tooltip, region, source,
                         dash .. translated, "npc.quest.objective:" .. index,
                         nil, "quest-tooltip") or applied
                 end
-            else
+            elseif normalized and entries.quest_title_ids
+                and entries.quest_title_ids[normalized] then
                 quest_id = nil
             end
-        else
-            quest_id = nil
         end
     end
     return applied
@@ -996,6 +1039,94 @@ local function tooltip_key(kind, id)
     return kind .. ":" .. tostring(id)
 end
 
+local player_race_keys = {
+    Human = "human", Dwarf = "dwarf", NightElf = "nightelf",
+    Gnome = "gnome", Orc = "orc", Troll = "troll",
+    Scourge = "scourge", Undead = "undead", Tauren = "tauren",
+}
+
+local function translate_player_tooltip_identity(tooltip)
+    if not tooltip or tooltip.uaForeverShowOriginal then return false end
+    local source, region, level, native_race, line_index
+    for index = 2, 6 do
+        local visible, candidate = tooltip_line(tooltip, "Left", index)
+        if candidate and type(visible) == "string" and not is_secret(visible) then
+            local claim = runtime.get(candidate)
+            local candidate_source = claim and claim.source or visible
+            local normalized = normalized_tooltip_text(candidate_source)
+            local found_level, found_race
+            if normalized then
+                found_level, found_race = normalized:match(
+                    "^Level ([^ ]+) (.-) %(Player%)$")
+            end
+            if found_level and found_race then
+                source, region = candidate_source, candidate
+                level, native_race, line_index = found_level, found_race, index
+                break
+            end
+        end
+    end
+    if not level or not native_race then return false end
+    tooltip.uaForeverReservedFirst = line_index
+
+    local unit
+    if type(tooltip.GetUnit) == "function" then
+        local unit_ok, _, value = pcall(tooltip.GetUnit, tooltip)
+        if unit_ok and type(value) == "string" and not is_secret(value) then
+            unit = value
+        end
+    end
+
+    local race_key
+    if unit and type(_G.UnitRace) == "function" then
+        local race_ok, _, race_file = pcall(_G.UnitRace, unit)
+        if race_ok and type(race_file) == "string" and not is_secret(race_file) then
+            race_key = player_race_keys[race_file]
+                or race_file:lower():gsub(" ", "")
+        end
+    end
+    if not race_key then
+        race_key = player_race_keys[native_race]
+            or native_race:lower():gsub(" ", "")
+    end
+
+    local sex = 1
+    if unit and type(_G.UnitSex) == "function" then
+        local sex_ok, value = pcall(_G.UnitSex, unit)
+        if sex_ok and not is_secret(value) and value == 3 then sex = 2 end
+    end
+    local forms = addon_table.race and addon_table.race[race_key]
+    local nominative = forms and forms["н"]
+    local translated_race = nominative
+        and (nominative.neutral_singular or nominative[sex] or nominative[1])
+    if type(translated_race) ~= "string" then return false, line_index end
+
+    return set_tooltip_translation(tooltip, region, source,
+        "Рівень " .. level .. ": " .. utils.cap(translated_race)
+            .. " (Гравець)",
+        "player.identity:" .. line_index, nil, "player-tooltip", nil, false), line_index
+end
+
+local function translate_player_unit_tooltip(tooltip)
+    if not tooltip or type(tooltip.GetUnit) ~= "function"
+        or type(_G.UnitIsPlayer) ~= "function" then return false end
+    local unit_ok, unit_name, unit = pcall(tooltip.GetUnit, tooltip)
+    if not unit_ok or type(unit) ~= "string" or is_secret(unit) then return false end
+    local player_ok, is_player = pcall(_G.UnitIsPlayer, unit)
+    if not player_ok or is_secret(is_player) or is_player ~= true then return false end
+
+    local session_name = type(unit_name) == "string" and not is_secret(unit_name)
+        and unit_name or unit
+    local key = "player-unit:" .. unit .. ":" .. session_name
+    begin_tooltip(tooltip, key)
+    tooltip.uaForeverKind = "player"
+    local translated, identity_line = translate_player_tooltip_identity(tooltip)
+    translated = rewrite_generic_lines(tooltip, nil, identity_line or 2) > 0
+        or translated
+    if translated then tooltip.uaForeverKey = key end
+    return translated
+end
+
 local function process(tooltip, data, kind)
     if not tooltip or not data then return end
 
@@ -1030,7 +1161,11 @@ local function process(tooltip, data, kind)
         and not is_secret(data.guid) and data.guid:match("^Player%-") then
         begin_tooltip(tooltip, "player:" .. data.guid)
         tooltip.uaForeverKind = "player"
-        return rewrite_generic_lines(tooltip) > 0
+        local translated, identity_line = translate_player_tooltip_identity(tooltip)
+        translated = rewrite_generic_lines(tooltip, nil, identity_line or 2) > 0
+            or translated
+        if translated then tooltip.uaForeverKey = "player:" .. data.guid end
+        return translated
     end
     if not id then
         if kind == "object" then
@@ -1438,7 +1573,8 @@ translate_object_tooltip_title = function (tooltip)
     local source, region = tooltip_line(tooltip, "Left", 1)
     if not region or type(source) ~= "string" or is_secret(source) then return false end
     local prefix, title = tooltip_title_parts(source)
-    local translated = addon_table.object and addon_table.object[title]
+    local translated = addon_table.translate_object_name
+        and addon_table.translate_object_name(title)
     local slot, owner = "object.name", "object-tooltip"
     if translated then
         if not options.can_translate("translate_other_tooltips") then return false end
@@ -1751,6 +1887,7 @@ local function reset_tooltip(self)
         character_stat_line_heights[region] = nil
     end
     runtime.clear_surface(self)
+    layout.restore_tooltip_width(self)
     self.uaForeverGeneration = runtime.generation(self)
     active_tooltips[self] = nil
     self.uaForeverSessionKey = nil
@@ -1899,6 +2036,14 @@ local function translate_shopping_tooltip(tooltip)
     local source = claim and claim.owner == "item-tooltip" and claim.source or visible
     if type(source) == "string" and not is_secret(source) then
         local translated = entries.lookup_name("item", source)
+        if not translated then
+            local base, suffix = source:match("^(.-) (of .-)$")
+            local translated_base = base and entries.lookup_name("item", base)
+            local translated_suffix = suffix and entries.get_item_suffix(source)
+            if translated_base and translated_suffix then
+                translated = translated_base .. " " .. translated_suffix
+            end
+        end
         if translated and visible ~= utils.cap(translated) then
             set_tooltip_translation(tooltip, region, source, utils.cap(translated),
                 "item.name", "item", "item-tooltip", nil, false, false)
@@ -1966,7 +2111,8 @@ local function minimap_tooltip_candidate(tooltip)
     -- cursor focus changes. Their composite text still identifies the shape.
     if first:find("\n", 1, true) then return true end
     local _, title = tooltip_title_parts(first)
-    return addon_table.object and addon_table.object[title] ~= nil or false
+    return addon_table.translate_object_name
+        and addon_table.translate_object_name(title) ~= nil or false
 end
 
 local function translate_minimap_line(core, quest_id, tooltip, region)
@@ -1986,7 +2132,8 @@ local function translate_minimap_line(core, quest_id, tooltip, region)
             return dash .. translated, quest_id
         end
     end
-    local object = addon_table.object and addon_table.object[core]
+    local object = addon_table.translate_object_name
+        and addon_table.translate_object_name(core)
     if object then
         return options.can_translate("translate_other_tooltips")
             and utils.cap(object) or nil, quest_id
@@ -2075,9 +2222,10 @@ local function translate_cursor_tooltip_title(tooltip, native)
         if not options.can_translate("translate_zone") then return false end
         translated = addon_table.zone[title]
         slot, owner = "zone.name", "zone-tooltip"
-    elseif addon_table.object and addon_table.object[title] then
+    elseif addon_table.translate_object_name
+        and addon_table.translate_object_name(title) then
         if not options.can_translate("translate_other_tooltips") then return false end
-        translated = addon_table.object[title]
+        translated = addon_table.translate_object_name(title)
         slot, owner = "object.name", "object-tooltip"
     else
         for _, kind in ipairs({ "item", "spell", "quest" }) do
@@ -2144,7 +2292,9 @@ local function translate_generic_tooltip(tooltip)
         return
     end
     if tooltip.uaForeverKind == "player" then
-        rewrite_generic_lines(tooltip)
+        local _, identity_line = translate_player_tooltip_identity(tooltip)
+        rewrite_generic_lines(tooltip, nil, identity_line
+            or tooltip.uaForeverReservedFirst or 2)
         return
     end
 
@@ -2227,6 +2377,48 @@ local function translate_generic_tooltip(tooltip)
 end
 
 tooltips.finalize = translate_generic_tooltip
+
+local function translate_unit_aura_tooltip(tooltip, data)
+    if not tooltip then return false end
+    local spell_id = type(data) == "table"
+        and (safe_number(data.spellID) or safe_number(data.id)) or nil
+    if type(tooltip.GetSpell) == "function" then
+        local spell_ok, _, value = pcall(tooltip.GetSpell, tooltip)
+        spell_id = spell_id or spell_ok and safe_number(value) or nil
+    end
+    if not spell_id or not entries.get_entry("spell", spell_id) then
+        spell_id = aura_spell_id_from_title(tooltip_line(tooltip, "Left", 1))
+            or spell_id
+    end
+    if not spell_id or not entries.get_entry("spell", spell_id) then
+        translate_generic_tooltip(tooltip)
+        return false
+    end
+
+    local aura_key = tooltip_key("aura", spell_id)
+    if tooltip.uaForeverKind == "spell" and tooltip.uaForeverID == spell_id then
+        -- Unit-aura tooltips also emit TooltipDataType.Spell before the
+        -- SetUnitBuff/SetUnitDebuff post-hook. Promote that same session to an
+        -- aura without discarding its English-source claims.
+        tooltip.uaForeverSessionKey = aura_key
+        tooltip.uaForeverKind = "aura"
+    end
+    return safe_process(tooltip, { spellID = spell_id }, "aura")
+end
+
+local function capture_generic_tooltip_ui(tooltip)
+    if not tooltip or not options.account or not options.account.auto_scan_content then return end
+    local kind = tooltip.uaForeverKind
+    if kind == "item" or kind == "spell" or kind == "aura"
+        or kind == "trainer" or kind == "npc" or kind == "quest"
+        or kind == "object" or kind == "player" then return end
+    local count_ok, count = pcall(tooltip.NumLines, tooltip)
+    if tooltip == _G.GameTooltip and count_ok and count == 1
+        and (world_cursor_owner(tooltip) or minimap_tooltip_owner(tooltip)) then return end
+    if type(strings.capture_frame) == "function" then
+        strings.capture_frame(tooltip, true)
+    end
+end
 
 local stat_tooltip_formats
 local function character_stat_format_text(value)
@@ -2969,6 +3161,7 @@ local function schedule_tooltip_finalize(tooltip)
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
             translate_generic_tooltip(tooltip)
+            capture_generic_tooltip_ui(tooltip)
         end
     end
     scheduler.request("tooltip:" .. tostring(tooltip), generation,
@@ -3043,6 +3236,10 @@ local function prepare_tooltip_frames()
         local tooltip = _G[name]
         if tooltip then
             if tooltip == _G.GameTooltip then
+                hooks.region(tooltip, "SetUnit", function (self)
+                    note_tooltip_event(self, "unitMethod")
+                    translate_player_unit_tooltip(self)
+                end)
                 hooks.region(tooltip, "SetTrainerService", function (self, index)
                     if is_secret(index) then return end
                     begin_tooltip(self, "trainer:" .. tostring(index))
@@ -3104,6 +3301,21 @@ local function prepare_tooltip_frames()
             hooks.region_script(tooltip, "OnHide", reset_tooltip)
             hooks.region_script(tooltip, "OnUpdate", refresh_item_tooltip_lines,
                 "item-lines")
+            -- Camelot target-frame aura buttons use ShowAuraTooltip and hide
+            -- their owner from GetOwner(). Ignore its potentially secret
+            -- arguments and translate only the tooltip that Blizzard rendered.
+            hooks.region(tooltip, "ShowAuraTooltip", function (self)
+                note_tooltip_event(self, "auraMethod")
+                translate_unit_aura_tooltip(self)
+                if options.account and options.account.auto_scan_content
+                    and not self.uaForeverID then
+                    auto_scan.capture_tooltip(self, "aura")
+                end
+                if self.uaForeverKind == "aura" and self.uaForeverKey then
+                    scheduler.cancel("tooltip:" .. tostring(self))
+                    scheduler.cancel("tooltip-late:" .. tostring(self))
+                end
+            end)
             -- Setter callbacks ignore their potentially secret aura arguments.
             for _, method in ipairs({ "SetUnitAuraByAuraInstanceID",
                 "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
@@ -3112,7 +3324,7 @@ local function prepare_tooltip_frames()
                     note_tooltip_event(self, "auraMethod")
                     local shown_ok, shown = pcall(self.IsShown, self)
                     if shown_ok and shown then
-                        translate_generic_tooltip(self)
+                        translate_unit_aura_tooltip(self)
                         if options.account and options.account.auto_scan_content
                             and not self.uaForeverID then
                             auto_scan.capture_tooltip(self, "aura")
@@ -3133,6 +3345,9 @@ local function after_game_tooltip_update(tooltip)
     -- Unit tooltips can be rewritten in place as threat and unit details change.
     -- The Unit post-call does not always run for those subsequent name writes.
     refresh_npc_tooltip_name(tooltip)
+    if tooltip.uaForeverKind == "player" then
+        translate_player_tooltip_identity(tooltip)
+    end
     local combat_ok, in_combat = false, false
     if type(_G.InCombatLockdown) == "function" then
         combat_ok, in_combat = pcall(_G.InCombatLockdown)

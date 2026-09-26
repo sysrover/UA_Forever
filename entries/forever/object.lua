@@ -5,11 +5,17 @@ addonTable.object = { -- [key] = text
 ["Alchemy Lab"] = "алхімічна лабораторія",
 ["Anvil"] = "ковадло",
 ["Bonfire"] = "багаття",
+["Raging Bonfire"] = "буйне багаття",
 ["Brazier"] = "жаровня",
 ["Chest"] = "скриня",
+["Dwarven Fire"] = "дворфійський вогонь",
 ["Fierce Blaze"] = "жорстоке полум'я",
 ["Forge"] = "кузня",
 ["Inn"] = "таверна",
+["Hot Coals"] = "гаряче вугілля",
+["Ironforge Main Gate"] = "головна брама Залізогарта",
+["The Great Forge"] = "Велика кузня",
+["Tinker Town"] = "містечко механіків",
 ["Mailbox"] = "поштова скринька",
 ["Medium Brazier"] = "середня жаровня",
 ["Meeting Stone"] = "камінь зустрічі",
@@ -1050,6 +1056,7 @@ addonTable.object = { -- [key] = text
 ["Timberline Arms"] = "Зброярня «Тімберлайн»",
 ["The Gilded Rose"] = "Позолочена троянда",
 ["The Protective Hide"] = "Міцна шкура",
+["The Stonefire Tavern"] = "Таверна «Кам'яний вогонь»",
 
 -- Skills
 ["Lightwell"] = "колодязь світла",
@@ -1063,6 +1070,9 @@ addonTable.object = { -- [key] = text
 
 -- Miscellaneous
 ["Alliance Banner"] = "стяг Альянсу",
+["Corpse of Balkor"] = "тіло Балкора",
+["Corpse of Sgtx"] = "тіло Sgtx",
+["Corpse of That"] = "тіло That",
 ["Blacksmith's Anvil"] = "ковальське ковадло",
 ["Catapult"] = "катапульта",
 ["Circle of Calling"] = "коло виклику",
@@ -1097,6 +1107,19 @@ addonTable.object = { -- [key] = text
 ["Service Entrance Gate"] = "ворота службового входу",
 ["Shredder"] = "подрібнювач",
 ["The Great Anvil"] = "Велике Ковадло",
+["Roaring Fire"] = "ревуче полум'я",
 ["Viewing Room Door"] = "двері оглядової кімнати",
 
 }
+
+addonTable.translate_object_name = function (name)
+    if type(name) ~= "string" then return nil end
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, name)
+        if not ok or secret then return nil end
+    end
+    local exact = addonTable.object and addonTable.object[name]
+    if exact then return exact end
+    local owner = name:match("^Corpse of (.+)$")
+    if owner then return "тіло " .. owner end
+end

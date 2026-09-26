@@ -1,10 +1,12 @@
 local _, addon_table = ...
 
 local entries = addon_table.use("entries")
+local auto_scan = addon_table.use("auto_scan")
 local map_labels = addon_table.use("map_labels")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
+local strings = addon_table.use("strings")
 local translation = addon_table.use("translation")
 local walker = addon_table.use("translation_walker")
 local hooks = addon_table.use("translation_hooks").bind("map-labels")
@@ -12,6 +14,7 @@ local hooks = addon_table.use("translation_hooks").bind("map-labels")
 local ironforge_map_tile_ids = { [271410] = true, [8061347] = true }
 local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge1.png"
 local original_map_tiles = setmetatable({}, { __mode = "k" })
+local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 
 local function replace_ironforge_map_tile(pin)
     if not pin or not pin.overlayTexturePool then return end
@@ -112,6 +115,14 @@ local function translated_zone_name(source)
     return translated .. suffix
 end
 
+local function translated_zone_discovery_message(message)
+    local zone = message:match("^Discovered:? (.+)$")
+    if not zone then return nil end
+    local translated = translated_zone_name(zone)
+    if not translated then return nil end
+    return "Відкрито нову територію: " .. translated
+end
+
 local function after_evaluate(label)
     local region = label and label.Name
     local current = visible_text(region)
@@ -143,6 +154,7 @@ local function after_evaluate(label)
                 option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
             })
         end
+        auto_scan.record_zone_name(current, visible_text(region))
     end
 end
 
@@ -168,6 +180,7 @@ local function after_minimap_update()
             option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
         })
     end
+    auto_scan.record_zone_name(current, visible_text(region))
 end
 
 local function native_zone_text(getter_name)
@@ -189,6 +202,7 @@ local function apply_native_zone_region(region, native, owner)
             priority = runtime.PRIORITY.CONTEXT,
         })
     end
+    auto_scan.record_zone_name(native, visible_text(region))
 end
 
 local function after_zone_text_event()
@@ -222,6 +236,12 @@ local function ui_message_region(frame, message, message_id)
     end
 end
 
+local function translate_quest_progress_message(message)
+    if not message:match("^.-:%s*%d+%s*/%s*%d+%s*$") then return nil end
+    local translated = entries.translate_quest_objective_task(message)
+    return translated ~= message and translated or nil
+end
+
 local function translate_ui_message(self, message, message_id)
     message = safe_string(message)
     if not message then return end
@@ -236,26 +256,33 @@ local function translate_ui_message(self, message, message_id)
         })
         return
     end
-    local task, progress = message:match("^(.-)(:%s*%d+%s*/%s*%d+)$")
-    if task and options.can_lookup("translate_quest") then
-        local translated = entries.get_glossary_text(task, task)
-        if translated ~= task then
-            runtime.apply(region, {
-                owner = "quest-progress-message", slot = "quest.progress",
-                source = message, translated = translated .. progress,
-                option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
-            })
-        end
+    local translated, _, source_kind, category, slot, option =
+        strings.find_ui_translation(message, region)
+    if translated and translated ~= message then
+        option = option or "translate_string"
+        if not options.can_lookup(option) or not options.can_translate(option) then return end
+        runtime.apply(region, {
+            owner = "ui-message", slot = slot or "ui.message",
+            source = message, translated = translated, category = category,
+            option = option, priority = runtime.priority_for_source(source_kind),
+        })
+        return
+    end
+    local translated_progress = translate_quest_progress_message(message)
+    if translated_progress and options.can_lookup("translate_quest") then
+        runtime.apply(region, {
+            owner = "quest-progress-message", slot = "quest.progress",
+            source = message, translated = translated_progress,
+            option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+        })
         return
     end
     if not options.can_lookup("translate_zone") then return end
-    local zone = message:match("^Discovered:? (.+)$")
-    if not zone then return end
-    local translated = translated_zone_name(zone)
+    local translated = translated_zone_discovery_message(message)
     if not translated then return end
     runtime.apply(region, {
         owner = "zone-discovery", slot = "zone.name", source = message,
-        translated = "Відкрито нову територію: " .. translated,
+        translated = translated,
         option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
     })
 end
@@ -268,6 +295,36 @@ end
 
 local function after_ui_add_message(self, message, _, _, _, _, message_id)
     translate_ui_message(self, message, message_id)
+end
+
+local function wrap_ui_error_add_message(frame)
+    if not frame or wrapped_ui_error_frames[frame]
+        or type(frame.AddMessage) ~= "function" then return end
+    local original_add_message = frame.AddMessage
+    local ok = pcall(function ()
+        frame.AddMessage = function (self, message, ...)
+            local source = safe_string(message)
+            if source and options.can_translate("translate_zone") then
+                local translated = translated_zone_discovery_message(source)
+                if translated then message = translated end
+            end
+            if source and message == source and options.can_translate("translate_quest") then
+                local translated = translate_quest_progress_message(source)
+                if translated then message = translated end
+            end
+            if source and message == source and options.can_translate("translate_string") then
+                local translated = strings.find_ui_translation(source)
+                if type(translated) == "string" and translated ~= source then
+                    message = translated
+                end
+            end
+            if source and type(auto_scan.record_ui) == "function" then
+                auto_scan.record_ui(source, message ~= source, "UIErrorsFrame")
+            end
+            return original_add_message(self, message, ...)
+        end
+    end)
+    if ok then wrapped_ui_error_frames[frame] = true end
 end
 
 local function after_scenario_layout(self)
@@ -396,6 +453,7 @@ local function after_zone_label_evaluation(self)
             option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
         })
     end
+    auto_scan.record_zone_name(source, visible_text(region))
 end
 
 local function after_adventure_zone_refresh(self)
@@ -655,9 +713,15 @@ map_labels.prepare = function ()
         "zone-announcement")
     hooks.region_script(_G.SubZoneTextFrame, "OnShow", after_zone_text_event,
         "subzone-announcement")
+    wrap_ui_error_add_message(_G.UIErrorsFrame)
     hooks.region_script(_G.UIErrorsFrame, "OnEvent", after_ui_message,
         "ui-message")
     hooks.region(_G.UIErrorsFrame, "AddMessage", after_ui_add_message)
+    hooks.region(_G.UIErrorsFrame, "AddExternalErrorMessage", function (_, message)
+        if type(auto_scan.record_ui) == "function" then
+            auto_scan.record_ui(message, false, "UIErrorsFrame")
+        end
+    end)
     hooks.region(_G.ScenarioObjectiveTrackerMixin, "LayoutContents",
         after_scenario_layout)
     local widget = _G.UIWidgetObjectiveTrackerMixin

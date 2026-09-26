@@ -10,6 +10,23 @@ local options   = addon_table.use("options") ---@class options_class
 local allowed_font_flags = { OUTLINE = true, THICKOUTLINE = true, MONOCHROME = true, SLUG = true }
 local compositor_fonts = {}
 local compositor_font_count = 0
+local original_damage_text_font
+local combat_text_font_names = {
+    "CombatTextFont",
+    "CombatTextFontOutline",
+}
+
+fonts.refresh_damage_text_font = function ()
+    local current = _G.DAMAGE_TEXT_FONT
+    if original_damage_text_font == nil and type(current) == "string"
+        and current ~= "" then
+        original_damage_text_font = current
+    end
+    if original_damage_text_font then
+        _G.DAMAGE_TEXT_FONT = options.can_translate("override_system_fonts")
+            and assets.font_frizqt or original_damage_text_font
+    end
+end
 
 local function sanitize_font_flags(font_flags)
     if not font_flags or font_flags == "" then
@@ -22,6 +39,23 @@ local function sanitize_font_flags(font_flags)
         end
     end
     return table.concat(result, ", ")
+end
+
+local function apply_combat_text_font_objects()
+    if not options.can_translate("override_system_fonts") then return end
+    for _, name in ipairs(combat_text_font_names) do
+        local font = _G[name]
+        if font then
+            local get_ok, _, height, flags = pcall(font.GetFont, font)
+            if get_ok then
+                if type(height) ~= "number" or height <= 0 or height > 120 then
+                    height = 25
+                end
+                pcall(font.SetFont, font, assets.font_frizqt, height,
+                    sanitize_font_flags(flags))
+            end
+        end
+    end
 end
 
 local function compositor_managed(font_string)
@@ -116,6 +150,12 @@ fonts.apply_to_font_string = function (font_string)
 end
 
 fonts.prepare = function ()
+    -- World-space damage and combat-result text is rendered by the engine and
+    -- has no FontString that an addon can safely update afterward.
+    fonts.refresh_damage_text_font()
+    -- CombatText1..N inherit these two FontObjects. They are safe to update
+    -- independently of the protected unit/nameplate fonts skipped below.
+    apply_combat_text_font_objects()
     if not options.can_translate("override_system_fonts") then
         return
     end
@@ -128,8 +168,6 @@ fonts.prepare = function ()
     end
 
     local font_overrides = {
-        { name="CombatTextFont",                    file=assets.font_frizqt, height=25 },
-        { name="CombatTextFontOutline",             file=assets.font_frizqt, height=25 },
         { name="GameFontNormal",                    file=assets.font_frizqt },
         { name="GameFontNormalSmall",               file=assets.font_frizqt },
         { name="GameFontNormalLarge",               file=assets.font_frizqt },

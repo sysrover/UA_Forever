@@ -178,8 +178,11 @@ registry.register_defaults = function (translate_frame)
     })
     registry.register_surface({ id = "npc-world", roots = { "TargetFrame" },
         unit_roots = { "target", "nameplate%d+" }, name_category = "none",
-        domains = { "npc" }, slots = { "npc.name" },
-        dynamic_hooks = { "PLAYER_TARGET_CHANGED", "CompactUnitFrame_UpdateName" },
+        domains = { "npc", "spell", "ui" },
+        slots = { "npc.name", "player.identity", "spell.name",
+            "spell.description", "generic.left", "generic.right" },
+        dynamic_hooks = { "PLAYER_TARGET_CHANGED", "CompactUnitFrame_UpdateName",
+            "GameTooltip.SetUnit", "GameTooltip.ShowAuraTooltip" },
         protected = true, clear_on_reuse = true })
     registry.register_surface({ id = "chat-bubble", roots = {},
         domains = { "npc", "chat" }, slots = { "chat.text" },

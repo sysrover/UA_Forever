@@ -3,6 +3,7 @@ local _, addonTable = ...
 -- Server IDs observed in the in-game scan. Keep these overrides separate
 -- from generated item and NPC catalogs.
 local npc = {
+    [49808] = { "Ґренгільда Темнокіготь", en="Grenhild Darktalon" },
     [10956] = { "нага-сирена", en="Naga Siren" },
     [266025] = { "щур-фамільяр", en="Rat Familiar" },
     [264936] = { "землепровидець Фарсен", en="Earthseer Farsen" },
@@ -33,6 +34,15 @@ for id, entry in pairs(npc) do addonTable.npc[id] = entry end
 
 addonTable.item = addonTable.item or {}
 addonTable.item[286737] = { "перстень Авали", en="Avala's Binding" }
+if addonTable.item[2516] then
+    addonTable.item[2516].tooltip_lines = {
+        ["Projectile"] = "Снаряд",
+        ["Bullet"] = "Куля",
+    }
+end
+if addonTable.item[7108] then
+    addonTable.item[7108].equip = 21499
+end
 if addonTable.item[2889] then
     addonTable.item[2889].tooltip_lines = {
         ["Beer Basted Boar Ribs"] = "Реберця кнура в пиві",

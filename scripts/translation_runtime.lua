@@ -3,6 +3,7 @@ local _, addon_table = ...
 local fonts = addon_table.use("fonts")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
+local auto_scan = addon_table.use("auto_scan")
 
 runtime.PRIORITY = { GENERATED = 10, STATIC_UI = 20, CONTEXT = 30, DOMAIN = 40 }
 
@@ -40,6 +41,15 @@ local function safe_text(region)
     if not method_ok or type(get_text) ~= "function" then return nil end
     local ok, value = pcall(get_text, region)
     if ok then return safe_string(value) end
+end
+
+local function record_runtime_result(region, spec, source, translated, reason)
+    if type(auto_scan.record_runtime_result) ~= "function"
+        or not options.account or not options.account.auto_scan_content then return end
+    auto_scan.record_runtime_result({
+        owner = spec.owner, slot = spec.slot,
+        source = source, translated = translated,
+    }, safe_text(region), reason)
 end
 
 local function display_translation(claim)
@@ -115,22 +125,33 @@ end
 
 runtime.apply = function (region, spec)
     if not region or not spec then return false end
+    local translated = safe_string(spec.translated)
+    if not translated then return false end
+    local source = safe_string(spec.source) or safe_text(region)
+    local allowed = runtime.allowed(spec)
     local method_ok, set_text = pcall(function () return region.SetText end)
-    if not method_ok or type(set_text) ~= "function" then return false end
+    if not method_ok or type(set_text) ~= "function" then
+        if allowed then
+            record_runtime_result(region, spec, source, translated, "SetText недоступний")
+        end
+        return false
+    end
     local combat_protected = protected_in_combat(region)
     -- A unit tooltip's rendered FontStrings may still accept SetText while
     -- their protected parent cannot be resized or have its font changed.
     -- Limit this attempt to known tooltip and cast-bar text paths; pcall
     -- below handles clients that also reject SetText on the region itself.
     if combat_protected and not (spec.combat_tooltip_text
-        or spec.combat_cast_bar_text) then return false end
-    local translated = safe_string(spec.translated)
-    if not translated then return false end
+        or spec.combat_cast_bar_text) then
+        if allowed then
+            record_runtime_result(region, spec, source, translated, "захищений елемент")
+        end
+        return false
+    end
     local name_original = safe_string(spec.name_original)
     local display = name_original and spec.category
         and not options.translate_name(spec.category)
         and name_original or translated
-    local source = safe_string(spec.source) or safe_text(region)
     local previous = claims[region]
     local generation = spec.generation or (spec.surface and runtime.generation(spec.surface)) or 0
     local priority = spec.priority or runtime.PRIORITY.STATIC_UI
@@ -156,9 +177,11 @@ runtime.apply = function (region, spec)
             or (previous.generation == generation
                 and previous.owner == spec.owner and previous.slot ~= spec.slot)
             or (previous.priority == priority and previous.owner ~= spec.owner)) then
+        record_runtime_result(region, spec, source, translated,
+            "інший обробник утримує цей елемент")
         return false
     end
-    if not runtime.allowed(spec) then
+    if not allowed then
         if previous then
             runtime.show_original(region, true)
         elseif spec.category and spec.slot and spec.slot:match("%.name$")
@@ -172,6 +195,7 @@ runtime.apply = function (region, spec)
         and previous.source == source and previous.translated == translated
         and previous.name_original == name_original
         and not previous.visible_original and safe_text(region) == display then
+        record_runtime_result(region, spec, source, translated)
         return true
     end
 
@@ -186,12 +210,18 @@ runtime.apply = function (region, spec)
 
     if options.can_translate("override_system_fonts") and not combat_protected then
         local font_ok = runtime.ensure_font(region)
-        if not font_ok and display:find("[\208\209]") then return false end
+        if not font_ok and display:find("[\208\209]") then
+            record_runtime_result(region, spec, source, translated, "шрифт не застосувався")
+            return false
+        end
     end
     writing[region] = true
     local ok = pcall(set_text, region, display)
     writing[region] = nil
-    if not ok then return false end
+    if not ok then
+        record_runtime_result(region, spec, source, translated, "SetText завершився помилкою")
+        return false
+    end
     claims[region] = {
         owner = spec.owner or "ui", slot = spec.slot or "ui.text",
         priority = priority, source = source, translated = translated,
@@ -204,6 +234,7 @@ runtime.apply = function (region, spec)
     }
     if spec.after_apply then pcall(spec.after_apply, region, source) end
     if spec.after_visibility then pcall(spec.after_visibility, region) end
+    record_runtime_result(region, spec, source, translated)
     return true
 end
 
