@@ -9,6 +9,7 @@ local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local tooltips = addon_table.use("tooltips")
+local map_labels = addon_table.use("map_labels")
 local hooks = addon_table.use("translation_hooks").bind("settings")
 
 local tooltip_mode_buttons = {}
@@ -172,7 +173,7 @@ local function refresh_tooltip_mode_controls()
     end
     if shift_button then
         shift_button:ClearAllPoints()
-        local anchor = scope == "custom" and name_buttons.translate_skill_names
+        local anchor = scope == "custom" and name_buttons.translate_zone
             or scope_buttons.custom
         shift_button:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT",
             scope == "custom" and -20 or 0, -24)
@@ -249,22 +250,29 @@ local function register_addon_settings()
     local custom = scope_button("custom", "Налаштовуваний", full, -12)
 
     local previous = custom
+    local first_name_button
     for _, item in ipairs({
         { "translate_item_names", "Назви предметів" },
         { "translate_quest_names", "Назви завдань" },
         { "translate_spell_names", "Назви заклять" },
         { "translate_skill_names", "Назви навичок" },
+        { "translate_zone", "Назви локацій" },
     }) do
         local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-        button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 20, -8)
+        button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT",
+            first_name_button and 0 or 20, -8)
         button.text:SetFontObject("GameFontHighlight")
         runtime.set_fallback_text(button.text, item[2])
         local key = item[1]
         button:SetScript("OnClick", function (self)
             options.account[key] = self:GetChecked() == true
             refresh_open_text()
+            if key == "translate_zone" and map_labels.refresh then
+                map_labels.refresh()
+            end
         end)
         name_buttons[key] = button
+        first_name_button = first_name_button or button
         previous = button
     end
 
@@ -335,6 +343,33 @@ local function translate_static_region(region)
     end
 end
 
+local function translate_dropdown(frame, dropdown)
+    if not dropdown then return end
+    local setting_ok, setting = pcall(function () return frame:GetSetting() end)
+    local variable_ok, variable = setting_ok and setting and pcall(function ()
+        return setting:GetVariable()
+    end)
+    local source_ok, source = pcall(function () return dropdown.text end)
+    if variable_ok and type(variable) == "string"
+        and variable:find("UNIT_NAMEPLATES_", 1, true) == 1
+        and source_ok and type(source) == "string"
+        and source:find(", ", 1, true) then
+        local count = 1
+        for _ in source:gmatch(", ") do count = count + 1 end
+        local region = dropdown.Text
+        if region then
+            runtime.apply(region, {
+                owner = "settings-nameplates", slot = "nameplate.selection",
+                source = source, translated = "Вибрано: " .. count,
+                priority = runtime.PRIORITY.CONTEXT,
+            })
+        end
+        pcall(dropdown.SetWidth, dropdown, 220)
+        return
+    end
+    translate_region(dropdown.Text)
+end
+
 local function translate_row(frame)
     if not frame then return end
     translate_region(frame.Text)
@@ -342,10 +377,15 @@ local function translate_row(frame)
     local control = frame.Control
     translate_region(control and control.Label)
     local dropdown = control and control.Dropdown
-    translate_region(dropdown and dropdown.Text)
+    translate_dropdown(frame, dropdown)
     if dropdown and type(dropdown.GetFontString) == "function" then
         local ok, region = pcall(dropdown.GetFontString, dropdown)
-        if ok then translate_region(region) end
+        if ok and region ~= dropdown.Text then translate_region(region) end
+    end
+    if dropdown then
+        hooks.region(dropdown, "UpdateText", function (self)
+            translate_dropdown(frame, self)
+        end)
     end
     local button = frame.Button
     if button and type(button.GetFontString) == "function" then
@@ -495,6 +535,7 @@ settings_ui.prepare = function ()
     }) do
         hooks.mixin(name, "Init", translate_row)
     end
+    hooks.mixin("SettingsDropdownControlMixin", "InitDropdown", translate_row)
 
     hooks.mixin("SettingsPanelMixin", "OnShow", translate_panel_chrome)
     hooks.mixin("SettingsPanelMixin", "DisplayCategory", displayed_category)

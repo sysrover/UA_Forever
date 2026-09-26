@@ -2,6 +2,30 @@ local _, addonTable = ...
 
 -- Codes are taken from the in-game NPC speech scan and override generated hashes.
 local manual = {
+    ["Jarven Thunderbrew"] = {
+        [1] = "Ярвен Громовар",
+        ["hytebmgememgoftraeadoefrmygdfdsw"] = [===[Привіт, Бельме! Налий мені кухоль громузвару, і ще один — моєму доброму другу Соу.]===],
+    },
+    ["Muren Stormpike"] = {
+        [1] = "Мурен Бурешпиль",
+        ["fldnadrrwrnrsshsbktohsfe"] = [===[Бувай, {ім'я:к}. І пам'ятай: воїн ніколи не повертається спиною до ворога!#Farewell, <name>.]===],
+    },
+    ["Ol' Emma"] = {
+        [1] = "Стара Емма",
+        ["tkimsgtowrrtintepgss"] = [===[Здається, я вже протоптала доріжку в бруківці.]===],
+    },
+    ["Topper McNabb"] = {
+        [1] = "Топпер Мак-Набб",
+        ["asfrtepr"] = [===[Милостиню бідному?]===],
+        ["cdyesesecn"] = [===[Не знайдеться монетки?]===],
+        ["seyrarfrcr"] = [===[Почищу обладунок за мідяк.]===],
+    },
+    ["Tormus Deepforge"] = {
+        [1] = "Тормус Глибококузень",
+        ["kgimfd"] = [===[Кеглеґу! Я закінчив!]===],
+        ["brimfd"] = [===[Ще більше! Я закінчив!]===],
+        ["bstowk"] = [===[%s береться до роботи...]===],
+    },
     ["Miner Grumnal"] = {
         [1] = "шахтар Ґрумнал",
         ["iltewryagtcnadtwinbetowhitdn"] = [===[Візьму все, що наготуєш! І пляшку чогось, щоб запити!]===],
@@ -31,6 +55,7 @@ local manual = {
     },
     ["John Turner"] = {
         [1] = "Джон Тернер",
+        ["hptecnofsdvsoftewradpe"] = [===[Допоможіть дітям Штормовію... жертвам війни та чуми!]===],
         ["geofyrhsadyrpsgetotecnofsdwohelttrps"] = [===[Не шкодуйте ні сердець, ні гаманців! Допоможіть дітям Штормовію, які втратили батьків.]===],
     },
     ["Rifleman Middlecamp"] = {

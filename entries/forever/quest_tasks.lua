@@ -17964,8 +17964,8 @@ local questTasks = {
         ["Glittering Sunstone"] = "Блискучий сонячний камінь",
     },
     [86585] = {
-        ["Banner of Ironforge"] = "Прапор Айронгорна",
-        ["Banner of Ironforge (Provided)"] = "Прапор Айронгорна (видано)",
+        ["Banner of Ironforge"] = "Прапор Залізогарта",
+        ["Banner of Ironforge (Provided)"] = "Прапор Залізогарта (видано)",
         ["Headsplitter slain"] = "Роздільник голов: убито",
     },
     [86613] = {

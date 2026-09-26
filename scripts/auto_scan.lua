@@ -12,6 +12,7 @@ local groups = {
     { "npcs", "Імена NPC" }, { "quests", "Квести" },
     { "skills", "Навички" }, { "spells", "Закляття та вміння" },
     { "auras", "Аури" }, { "chats", "Вислови NPC" },
+    { "objects", "Вказівники й об'єкти" },
 }
 
 local function safe_text(value)
@@ -38,8 +39,9 @@ local domains = { items = "item", npcs = "npc", quests = "quest", spells = "spel
 local function translated_name(group, id, name)
     local domain = domains[group]
     local entry = domain and entries.get_entry and entries.get_entry(domain, id)
+    local source = entry and type(entry.en) == "string" and entry.en or name
     return entry and type(entry[1]) == "string" and entry[1] ~= ""
-        and (not name or entry[1] ~= name)
+        and (not source or entry[1] ~= source)
 end
 
 local function english_source(text)
@@ -52,7 +54,9 @@ local function visible_english_tooltip_text(text)
     if not text then return false end
     text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
         :gsub("|n", "")
-    return text:find("[A-Za-z]") ~= nil
+    -- Shortcut letters such as F6 in an otherwise Ukrainian line are not
+    -- untranslated English. Keep mixed lines with actual English words.
+    return text:find("[A-Za-z][A-Za-z]+") ~= nil
 end
 
 local function has_ui_translation(text)
@@ -141,7 +145,25 @@ auto_scan.record_chat = function (name, code, source, language)
     }
 end
 
+auto_scan.record_world_tooltip = function (source, visible)
+    local records = bucket("objects")
+    source = safe_text(source)
+    visible = safe_text(visible)
+    if not records or not source then return end
+    local translated = addon_table.object and addon_table.object[source]
+        or addon_table.zone and addon_table.zone[source]
+    local unapplied = translated and visible == source
+    if not english_source(source) or translated and not unapplied then
+        records[source] = nil
+        return
+    end
+    records[source] = { name = source, unapplied = unapplied or nil }
+end
+
 auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
+    -- Shift intentionally displays the original tooltip. Do not report that
+    -- view as a failed translation.
+    if tooltip and tooltip.uaForeverShowOriginal then return end
     local group = kind == "item" and "items"
         or ((kind == "spell" or kind == "trainer") and "spells")
         or (kind == "aura" and "auras") or nil
@@ -172,9 +194,10 @@ auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
             and visible_english_tooltip_text(source) then
             lines[#lines + 1] = {
                 index = row.index, side = row.side, text = source,
-                unapplied = has_ui_translation(source)
-                    or (row.index == 1 and row.side == "Left"
-                        and translated_name(group, key, source)) or nil,
+                unapplied = (row.visible == source
+                    and (has_ui_translation(source)
+                        or (row.index == 1 and row.side == "Left"
+                            and translated_name(group, key, source)))) or nil,
             }
         end
     end
@@ -213,6 +236,11 @@ auto_scan.export_text = function ()
                     local ok, _, translated = pcall(entries.get_chat_text,
                         record.npc, record.text)
                     keep = english_source(record.text) and not (ok and translated)
+                elseif group == "objects" then
+                    local translated = addon_table.object and addon_table.object[record.name]
+                        or addon_table.zone and addon_table.zone[record.name]
+                    keep = english_source(record.name)
+                        and (not translated or record.unapplied == true)
                 elseif group == "quests" then
                     local entry = entries.get_entry and entries.get_entry("quest", key)
                     local fields = {}
@@ -268,6 +296,9 @@ auto_scan.export_text = function ()
                     if record[field] ~= nil then
                         add(field .. " = " .. field_text(record[field]))
                     end
+                end
+                if group == "objects" and record.unapplied then
+                    add("[переклад є, але не застосувався]")
                 end
                 if type(record.fields) == "table" then
                     local fields = {}

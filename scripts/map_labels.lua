@@ -9,6 +9,57 @@ local translation = addon_table.use("translation")
 local walker = addon_table.use("translation_walker")
 local hooks = addon_table.use("translation_hooks").bind("map-labels")
 
+local ironforge_map_tile_ids = { [271410] = true, [8061347] = true }
+local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge1.png"
+local original_map_tiles = setmetatable({}, { __mode = "k" })
+
+local function replace_ironforge_map_tile(pin)
+    if not pin or not pin.overlayTexturePool then return end
+    local enabled = options.can_translate("translate_zone")
+    local probe
+    if options.account.auto_scan_content and _G.UA_ForeverDB then
+        local ok, map_id = pcall(function () return pin:GetMap():GetMapID() end)
+        probe = { mapID = ok and map_id or nil, textures = {}, replaced = 0 }
+    end
+    for tile in pin.overlayTexturePool:EnumerateActive() do
+        local texture = tile:GetTexture()
+        if not enabled and original_map_tiles[tile] then
+            tile:SetTexture(original_map_tiles[tile], nil, nil, "TRILINEAR")
+            original_map_tiles[tile] = nil
+            texture = tile:GetTexture()
+        end
+        if probe and (type(texture) == "number" or type(texture) == "string") then
+            probe.textures[#probe.textures + 1] = texture
+        end
+        local path = type(texture) == "string"
+            and texture:lower():gsub("\\", "/"):gsub("%.blp$", "")
+        if enabled and (ironforge_map_tile_ids[texture]
+            or path == "interface/worldmap/dunmorogh/ironforge1"
+            or path == "interface/worldmap/dunmorogh_c60/ironforge1") then
+            original_map_tiles[tile] = texture
+            tile:SetTexture(ironforge_map_tile, nil, nil, "TRILINEAR")
+            if probe then probe.replaced = probe.replaced + 1 end
+        end
+    end
+    if probe then
+        _G.UA_ForeverDB.scan = _G.UA_ForeverDB.scan or {}
+        _G.UA_ForeverDB.scan.mapTextureProbe = probe
+    end
+end
+
+local function prepare_ironforge_map_pins(world_map)
+    if not world_map or type(world_map.EnumeratePinsByTemplate) ~= "function" then return end
+    for pin in world_map:EnumeratePinsByTemplate("MapExplorationPinTemplate") do
+        -- Existing pins copy mixin methods when they are created.
+        hooks.region(pin, "RefreshOverlays", replace_ironforge_map_tile)
+        replace_ironforge_map_tile(pin)
+    end
+end
+
+map_labels.refresh = function ()
+    prepare_ironforge_map_pins(_G.WorldMapFrame)
+end
+
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
         local ok, secret = pcall(_G.issecretvalue, value)
@@ -155,8 +206,14 @@ local function after_subzone_load()
         native_zone_text("GetSubZoneText"), "subzone-announce")
 end
 
-local function ui_message_region(frame, message)
-    if not frame or type(frame.GetRegions) ~= "function" then return nil end
+local function ui_message_region(frame, message, message_id)
+    if not frame then return nil end
+    if type(message_id) == "number"
+        and type(frame.GetFontStringByID) == "function" then
+        local ok, region = pcall(frame.GetFontStringByID, frame, message_id)
+        if ok and visible_text(region) == message then return region end
+    end
+    if type(frame.GetRegions) ~= "function" then return nil end
     local ok, regions = pcall(function () return { frame:GetRegions() } end)
     if not ok then return nil end
     for index = 1, math.min(#regions, 80) do
@@ -165,9 +222,10 @@ local function ui_message_region(frame, message)
     end
 end
 
-local function translate_ui_message(self, message)
-    if type(message) ~= "string" then return end
-    local region = ui_message_region(self, message)
+local function translate_ui_message(self, message, message_id)
+    message = safe_string(message)
+    if not message then return end
+    local region = ui_message_region(self, message, message_id)
     if not region then return end
     if message == "You are no longer rested." then
         if not options.can_lookup("translate_string") then return end
@@ -176,6 +234,18 @@ local function translate_ui_message(self, message)
             translated = addon_table.forever_ui[message],
             option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
         })
+        return
+    end
+    local task, progress = message:match("^(.-)(:%s*%d+%s*/%s*%d+)$")
+    if task and options.can_lookup("translate_quest") then
+        local translated = entries.get_glossary_text(task, task)
+        if translated ~= task then
+            runtime.apply(region, {
+                owner = "quest-progress-message", slot = "quest.progress",
+                source = message, translated = translated .. progress,
+                option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+            })
+        end
         return
     end
     if not options.can_lookup("translate_zone") then return end
@@ -190,14 +260,14 @@ local function translate_ui_message(self, message)
     })
 end
 
-local function after_ui_message(self, event, _, message)
+local function after_ui_message(self, event, message_id, message)
     if event == "UI_INFO_MESSAGE" or event == "UI_ERROR_MESSAGE" then
-        translate_ui_message(self, message)
+        translate_ui_message(self, message, message_id)
     end
 end
 
-local function after_ui_add_message(self, message)
-    translate_ui_message(self, message)
+local function after_ui_add_message(self, message, _, _, _, _, message_id)
+    translate_ui_message(self, message, message_id)
 end
 
 local function after_scenario_layout(self)
@@ -566,6 +636,12 @@ local function after_worldmap_menu(owner)
 end
 
 map_labels.prepare = function ()
+    hooks.region(_G.MapExplorationPinMixin, "RefreshOverlays",
+        replace_ironforge_map_tile)
+    local world_map = _G.WorldMapFrame
+    hooks.region_script(world_map, "OnShow", prepare_ironforge_map_pins,
+        "map-art")
+    prepare_ironforge_map_pins(world_map)
     hooks.global("Minimap_Update", after_minimap_update)
     hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
     after_minimap_update()

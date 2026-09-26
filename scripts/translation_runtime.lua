@@ -117,7 +117,13 @@ runtime.apply = function (region, spec)
     if not region or not spec then return false end
     local method_ok, set_text = pcall(function () return region.SetText end)
     if not method_ok or type(set_text) ~= "function" then return false end
-    if protected_in_combat(region) then return false end
+    local combat_protected = protected_in_combat(region)
+    -- A unit tooltip's rendered FontStrings may still accept SetText while
+    -- their protected parent cannot be resized or have its font changed.
+    -- Limit this attempt to known tooltip and cast-bar text paths; pcall
+    -- below handles clients that also reject SetText on the region itself.
+    if combat_protected and not (spec.combat_tooltip_text
+        or spec.combat_cast_bar_text) then return false end
     local translated = safe_string(spec.translated)
     if not translated then return false end
     local name_original = safe_string(spec.name_original)
@@ -178,7 +184,7 @@ runtime.apply = function (region, spec)
     if source == display then return false end
     if spec.tooltip and spec.tooltip.uaForeverShowOriginal then return false end
 
-    if options.can_translate("override_system_fonts") then
+    if options.can_translate("override_system_fonts") and not combat_protected then
         local font_ok = runtime.ensure_font(region)
         if not font_ok and display:find("[\208\209]") then return false end
     end

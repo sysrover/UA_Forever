@@ -184,10 +184,12 @@ end
 
 local function fit_button_to_text(button, region)
     if not is_button(button) or type(button.SetWidth) ~= "function" then return end
-    -- Merchant page labels sit outside their arrow buttons. Resizing the
-    -- buttons to fit "Назад" or "Далі" stretches the arrow artwork.
+    -- Page labels sit outside these arrow buttons. Widening the buttons to
+    -- fit translated labels stretches the arrow artwork.
     if button == _G.MerchantPrevPageButton
-        or button == _G.MerchantNextPageButton then return end
+        or button == _G.MerchantNextPageButton
+        or button == (_G.InboxFrame and _G.InboxFrame.PrevPageButton)
+        or button == (_G.InboxFrame and _G.InboxFrame.NextPageButton) then return end
     if fit_quest_map_button_group(button) then return end
     if type(_G.InCombatLockdown) == "function" and _G.InCombatLockdown()
         and is_protected_frame(button) then return end

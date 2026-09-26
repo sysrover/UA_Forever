@@ -501,19 +501,48 @@ local function translate_character_element(frame)
     translate_element(frame, nil, 1)
 end
 
+local armor_category_types = {
+    Cloth = "Тканинні", Leather = "Шкіряні",
+    Mail = "Кольчужні", Plate = "Латні",
+}
+local armor_category_slots = {
+    Armor = "обладунки", Belts = "пояси", Boots = "чоботи",
+    Bracers = "наручі", Chestguards = "нагрудники",
+    Cloaks = "плащі", Gauntlets = "рукавиці",
+    Gloves = "рукавички", Helms = "шоломи",
+    Helmets = "шоломи", Legguards = "поножі",
+    Pants = "штани", Robes = "мантії",
+    Shoulders = "наплічники", Vests = "жилети",
+}
+
+local function translate_recipe_category(title)
+    local source = text_from(title)
+    if not source then return end
+    local translated = strings.find_ui_translation(source, title)
+    if not translated then
+        local armor_type, slot = source:match("^(%a+) (.+)$")
+        local prefix = armor_category_types[armor_type]
+        local noun = armor_category_slots[slot]
+        if prefix and noun then translated = prefix .. " " .. noun end
+    end
+    if translated and translated ~= source then
+        runtime.apply(title, { owner = "skills", slot = "recipe.category",
+            source = source, translated = translated,
+            priority = runtime.PRIORITY.CONTEXT })
+    end
+end
+
 local function translate_crafting_row(row)
     if not row then return end
     if type(row.GetTitleRegion) == "function" then
         local ok, title = pcall(row.GetTitleRegion, row)
-        if ok and title and type(title.GetText) == "function" then
-            local text_ok, source = pcall(title.GetText, title)
-            local translated = text_ok and type(source) == "string"
-                and strings.find_ui_translation(source, title)
-            if translated then
-                runtime.apply(title, { owner = "skills", slot = "recipe.category",
-                    source = source, translated = translated,
-                    priority = runtime.PRIORITY.CONTEXT })
-            end
+        if ok and title then
+            hooks.region(title, "SetText", function (self)
+                if not runtime.is_applying(self) then
+                    translate_recipe_category(self)
+                end
+            end)
+            translate_recipe_category(title)
         end
     end
     if options.translate_name("skill") then
@@ -853,12 +882,16 @@ local function translate_player_cast_bar(frame)
     local region = frame.Text
     local source = text_from(region)
     if not source then return end
-    local translated = entries.lookup_name("spell", source)
+    local cast_status = source == "Channeling"
+    local translated = cast_status and addon_table.forever_ui[source]
+        or entries.lookup_name("spell", source)
     if not translated or translated == source then return end
     runtime.apply(region, {
-        owner = "player-cast-bar", slot = "spell.name", source = source,
-        translated = utils.cap(translated), category = "spell",
+        owner = "player-cast-bar", slot = cast_status and "cast.status" or "spell.name",
+        source = source, translated = utils.cap(translated),
+        category = not cast_status and "spell" or nil,
         option = "translate_spell", priority = runtime.PRIORITY.DOMAIN,
+        combat_cast_bar_text = true,
     })
 end
 

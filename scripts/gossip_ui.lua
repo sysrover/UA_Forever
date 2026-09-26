@@ -120,6 +120,7 @@ end
 
 gossip_ui.prepare = function ()
     hooks.region(_G.GossipFrameSharedMixin, "SetGossipTitle", gossip_title)
+    hooks.region(_G.GossipFrame, "SetGossipTitle", gossip_title)
     hooks.region(_G.GossipGreetingTextMixin, "Setup", greeting)
     hooks.region(_G.GossipOptionButtonMixin, "Setup", option)
     hooks.region(_G.GossipSharedAvailableQuestButtonMixin, "Setup", quest_title)
