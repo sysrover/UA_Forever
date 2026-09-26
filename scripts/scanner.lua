@@ -3,6 +3,7 @@ local _, addon_table = ...
 local dev_log = addon_table.use("dev_log")
 local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
+local options = addon_table.use("options")
 local scanner = addon_table.use("scanner")
 local strings = addon_table.use("strings")
 local scheduler = addon_table.use("translation_scheduler")
@@ -293,6 +294,225 @@ end
 
 scanner.capture_quest_log = collect_quest_log_ids
 
+local current_book_id
+local current_book_name
+
+scanner.note_book = function (...)
+    for index = 1, select("#", ...) do
+        local value = select(index, ...)
+        if type(value) == "number" and value > 0 and not is_secret(value) then
+            current_book_id = value
+            break
+        end
+    end
+    if type(_G.ItemTextGetItem) == "function" then
+        local ok, name, id = pcall(_G.ItemTextGetItem)
+        if ok then
+            if type(name) == "string" and name ~= "" and not is_secret(name) then
+                current_book_name = name
+            end
+            if type(id) == "number" and id > 0 and not is_secret(id) then
+                current_book_id = id
+            end
+        end
+    end
+    if not current_book_id and current_book_name and entries.lookup_id then
+        current_book_id = entries.lookup_id("item", current_book_name)
+    end
+    local legacy_id = utils.get_currently_viewed_book_id
+        and utils.get_currently_viewed_book_id() or 0
+    if type(legacy_id) == "number" and legacy_id > 0 then
+        current_book_id = legacy_id
+    end
+end
+
+scanner.begin_book = function (...)
+    current_book_id = nil
+    current_book_name = nil
+    scanner.note_book(...)
+end
+
+scanner.capture_book_page = function ()
+    scanner.note_book()
+    if type(_G.ItemTextGetText) ~= "function" then return end
+    local text_ok, source = pcall(_G.ItemTextGetText)
+    if not text_ok or type(source) ~= "string" or source == ""
+        or is_secret(source) then return end
+    local page = 1
+    if type(_G.ItemTextGetPage) == "function" then
+        local page_ok, value = pcall(_G.ItemTextGetPage)
+        if page_ok and type(value) == "number" and value > 0
+            and not is_secret(value) then page = value end
+    end
+    local identity = current_book_id or current_book_name
+        or (type(utils.get_text_hash) == "function" and utils.get_text_hash(source))
+    if not identity then return end
+    local translated
+    local book = current_book_id and addon_table.book
+        and addon_table.book[current_book_id]
+    if type(book) == "table" and type(book[page]) == "string" then
+        translated = book[page]
+    end
+    local visible
+    local region = _G.ItemTextPageText
+    local visible_ok, value = region and pcall(region.GetText, region)
+    if visible_ok and type(value) == "string" and not is_secret(value) then
+        visible = value
+    end
+    if type(auto_scan.record_book) == "function" then
+        auto_scan.record_book(identity, page, source, visible or source,
+            translated, current_book_name)
+    end
+end
+
+local function greeting_region_text(region)
+    if not region then return nil end
+    local ok, value = pcall(region.GetText, region)
+    if ok and type(value) == "string" and value ~= "" and not is_secret(value) then
+        return value
+    end
+end
+
+local function valid_quest_id(value)
+    return type(value) == "number" and value > 0 and not is_secret(value)
+        and value or nil
+end
+
+local function quest_id_from_data(value)
+    if type(value) ~= "table" then return nil end
+    local ok, id = pcall(function () return value.questID or value.questId end)
+    return ok and valid_quest_id(id) or nil
+end
+
+local function greeting_quest_id(button)
+    if not button then return nil end
+    local ok, id = pcall(function () return button.questID or button.questId end)
+    id = ok and valid_quest_id(id) or nil
+    if id then return id end
+
+    for _, field in ipairs({ "info", "data", "questInfo", "elementData" }) do
+        local field_ok, value = pcall(function () return button[field] end)
+        id = field_ok and quest_id_from_data(value) or nil
+        if id then return id end
+    end
+    for _, method_name in ipairs({ "GetElementData", "GetData" }) do
+        local method_ok, method = pcall(function () return button[method_name] end)
+        if method_ok and type(method) == "function" then
+            local data_ok, value = pcall(method, button)
+            id = data_ok and quest_id_from_data(value) or nil
+            if id then return id end
+        end
+    end
+
+    local method_ok, method = pcall(function () return button.GetID end)
+    if not method_ok or type(method) ~= "function" then return nil end
+    local index_ok, index = pcall(method, button)
+    if not index_ok or not valid_quest_id(index) then return nil end
+    local active_ok, active = pcall(function () return button.isActive end)
+    active = active_ok and active or nil
+    if (active == 1 or active == true or active == nil)
+        and type(_G.GetActiveQuestID) == "function" then
+        local found, value = pcall(_G.GetActiveQuestID, index)
+        id = found and valid_quest_id(value) or nil
+        if id then return id end
+    end
+    if (active == 0 or active == false or active == nil)
+        and type(_G.GetAvailableQuestInfo) == "function" then
+        local found, _, _, _, _, value = pcall(_G.GetAvailableQuestInfo, index)
+        id = found and valid_quest_id(value) or nil
+        if id then return id end
+    end
+end
+
+local function quest_greeting_snapshot()
+    local panel = _G.QuestFrameGreetingPanel
+    if not panel then return nil end
+    local snapshot = {
+        greeting_region = _G.GreetingText,
+        greeting_source = greeting_region_text(_G.GreetingText),
+        npc_id = utils.npc_id_from_unit_id("npc")
+            or utils.npc_id_from_unit_id("questnpc"),
+        quests = {},
+    }
+    if type(_G.GetGreetingText) == "function" then
+        local ok, value = pcall(_G.GetGreetingText)
+        if ok and type(value) == "string" and value ~= ""
+            and not is_secret(value) then snapshot.greeting_source = value end
+    end
+    local pool = panel.titleButtonPool
+    if pool and type(pool.EnumerateActive) == "function" then
+        for button in pool:EnumerateActive() do
+            local region_ok, region = pcall(button.GetFontString, button)
+            region = region_ok and region or nil
+            local title = greeting_region_text(region)
+            if title then
+                snapshot.quests[#snapshot.quests + 1] = {
+                    button = button, region = region,
+                    id = greeting_quest_id(button), source = title,
+                }
+            end
+        end
+    end
+    return snapshot
+end
+
+scanner.capture_quest_greeting = function (snapshot, verify)
+    snapshot = type(snapshot) == "table" and snapshot or quest_greeting_snapshot()
+    if not snapshot then return end
+
+    local visible = greeting_region_text(snapshot.greeting_region)
+    local source = snapshot.greeting_source
+    local npc_id = snapshot.npc_id or utils.npc_id_from_unit_id("npc")
+        or utils.npc_id_from_unit_id("questnpc")
+    if npc_id and source and visible then
+        local translated = entries.get_gossip_text_for_npc_talk(npc_id, source)
+        auto_scan.record_visible_gossip(npc_id, source, visible,
+            options.can_translate("translate_gossip"))
+        if verify then
+            auto_scan.verify_surface({
+                surface = "quest-greeting", owner = "quest-greeting",
+                slot = "GreetingText", source = source,
+                translation = translated, visible = visible,
+                expected = options.can_translate("translate_gossip"),
+            })
+        end
+    end
+
+    for _, quest in ipairs(snapshot.quests or {}) do
+        local title = greeting_region_text(quest.region)
+        local id = quest.id or greeting_quest_id(quest.button)
+        if id and quest.source and title then
+            local entry = entries.get_entry("quest", id)
+            local source_title = entry and entry.en or quest.source
+            local translated = entry and entry[1]
+            local expected = options.can_translate("translate_gossip", "translate_quest")
+                and options.translate_name("quest")
+            auto_scan.record_visible_quest_title(id, source_title, title, expected)
+            if verify then
+                auto_scan.verify_surface({
+                    surface = "quest-greeting", owner = "quest-greeting",
+                    slot = "quest:" .. id .. ".name", source = source_title,
+                    translation = translated, visible = title, expected = expected,
+                })
+            end
+        end
+    end
+end
+
+scanner.schedule_quest_greeting_capture = function ()
+    local snapshot = quest_greeting_snapshot()
+    if not snapshot then return end
+    scheduler.request("quest-greeting-capture", nil, function ()
+        scanner.capture_quest_greeting(snapshot)
+    end)
+    scheduler.request("quest-greeting-capture-retry", nil, function ()
+        scanner.capture_quest_greeting(snapshot)
+    end, 0.2)
+    scheduler.request("quest-greeting-capture-late", nil, function ()
+        scanner.capture_quest_greeting(snapshot, true)
+    end, 0.5)
+end
+
 local current_quest_fields = {
     { key = "title",       index = 1, getter = "GetTitleText" },
     { key = "description", index = 2, getter = "GetQuestText" },
@@ -305,6 +525,17 @@ local visible_quest_fields = {
     QUEST_DETAIL = { title = true, description = true, objective = true },
     QUEST_PROGRESS = { title = true, progress = true },
     QUEST_COMPLETE = { title = true, reward = true },
+}
+
+local visible_quest_regions = {
+    title = function (event)
+        return event == "QUEST_PROGRESS" and _G.QuestProgressTitleText
+            or _G.QuestInfoTitleHeader
+    end,
+    description = function () return _G.QuestInfoDescriptionText end,
+    objective = function () return _G.QuestInfoObjectivesText end,
+    progress = function () return _G.QuestProgressText end,
+    reward = function () return _G.QuestInfoRewardText end,
 }
 
 local function original_quest_text(getter_name)
@@ -369,6 +600,19 @@ scanner.capture_current_quest = function (event)
 
     dev_log.record_id("quests", id, title, not visible_translation_missing)
     dev_log.record_quest_text(id, captured, missing_fields)
+    for _, field in ipairs(current_quest_fields) do
+        if visible[field.key] then
+            local region = visible_quest_regions[field.key]
+                and visible_quest_regions[field.key](event)
+            local shown = greeting_region_text(region)
+            local source = original_quest_text(field.getter)
+            if shown and source then
+                auto_scan.record_visible_quest_field(id, field.key, source, shown,
+                    options.can_translate("translate_quest")
+                        and (field.key ~= "title" or options.translate_name("quest")))
+            end
+        end
+    end
     return visible_translation_missing
 end
 

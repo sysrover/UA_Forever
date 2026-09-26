@@ -2,6 +2,10 @@ local _, addonTable = ...
 
 -- Codes are taken from the in-game NPC speech scan and override generated hashes.
 local manual = {
+    ["Greishan Ironstove"] = {
+        [1] = "Ґрейшан Сталежар",
+        ["gmwetyaeneadfhlsofbdhe"] = [===[Налітайте, поки свіжі! Свіжі буханці хліба!]===],
+    },
     ["Jarven Thunderbrew"] = {
         [1] = "Ярвен Громовар",
         ["hytebmgememgoftraeadoefrmygdfdsw"] = [===[Привіт, Бельме! Налий мені кухоль громузвару, і ще один — моєму доброму другу Соу.]===],
@@ -24,6 +28,8 @@ local manual = {
         [1] = "Тормус Глибококузень",
         ["kgimfd"] = [===[Кеглеґу! Я закінчив!]===],
         ["brimfd"] = [===[Ще більше! Я закінчив!]===],
+        ["dnimfd"] = [===[Darrin! Я закінчив!]===],
+        ["ofimfd"] = [===[Olof! Я закінчив!]===],
         ["bstowk"] = [===[%s береться до роботи...]===],
     },
     ["Miner Grumnal"] = {

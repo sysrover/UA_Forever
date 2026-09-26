@@ -1,12 +1,69 @@
 local _, addon_table = ...
 
 local options = addon_table.use("options")
+local auto_scan = addon_table.use("auto_scan")
+local fonts = addon_table.use("fonts")
 local strings = addon_table.use("strings")
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
 local walker = addon_table.use("translation_walker")
 local layout = addon_table.use("translation_layout")
+local scheduler = addon_table.use("translation_scheduler")
+local hooks = addon_table.use("translation_hooks").bind("combat-text")
 local debug_name
+
+local combat_text_globals = {
+    COMBAT_TEXT_MISS = "Промах",
+    COMBAT_TEXT_DODGE = "Ухилення",
+    COMBAT_TEXT_PARRY = "Парирування",
+    COMBAT_TEXT_BLOCK = "Блокування",
+    COMBAT_TEXT_EVADE = "Уникнення",
+    COMBAT_TEXT_IMMUNE = "Несприйнятливість",
+    COMBAT_TEXT_RESIST = "Опір",
+    COMBAT_TEXT_ABSORB = "Поглинання",
+    COMBAT_TEXT_DEFLECT = "Відбиття",
+    COMBAT_TEXT_REFLECT = "Віддзеркалення",
+}
+local combat_text_event_globals = {
+    MISS = "COMBAT_TEXT_MISS",
+    DODGE = "COMBAT_TEXT_DODGE",
+    PARRY = "COMBAT_TEXT_PARRY",
+    BLOCK = "COMBAT_TEXT_BLOCK",
+    EVADE = "COMBAT_TEXT_EVADE",
+    IMMUNE = "COMBAT_TEXT_IMMUNE",
+    RESIST = "COMBAT_TEXT_RESIST",
+    ABSORB = "COMBAT_TEXT_ABSORB",
+    DEFLECT = "COMBAT_TEXT_DEFLECT",
+    REFLECT = "COMBAT_TEXT_REFLECT",
+}
+local combat_text_originals = {}
+
+strings.refresh_combat_text_globals = function ()
+    local translated = options.can_translate("translate_string")
+        and options.translate_combat_text()
+    for global_name, ukrainian in pairs(combat_text_globals) do
+        local current = rawget(_G, global_name)
+        if combat_text_originals[global_name] == nil and type(current) == "string" then
+            combat_text_originals[global_name] = current
+        end
+        local original = combat_text_originals[global_name]
+        if original then
+            _G[global_name] = translated and ukrainian or original
+        end
+    end
+end
+
+strings.capture_combat_text_event = function (kind)
+    if not options.account or not options.account.auto_scan_content
+        or type(auto_scan.record_combat_text) ~= "function"
+        or type(kind) ~= "string" then return end
+    local global_name = combat_text_event_globals[kind]
+    if not global_name then return end
+    local current = rawget(_G, global_name)
+    local source = combat_text_originals[global_name] or current
+    auto_scan.record_combat_text(kind, source, combat_text_globals[global_name],
+        global_name, current)
+end
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -180,21 +237,47 @@ local function is_capture_noise(normalized, frame_name)
         or frame_name:find("CharacterFrameTitleText", 1, true)
         or frame_name:find("MainStatusTrackingBar", 1, true)
         or frame_name:find("CharacterLevelText", 1, true)
+        or frame_name:find("ItemTextPageText", 1, true)
         or frame_name:find(".FontStringContainer", 1, true)
         or frame_name:find("EditBox", 1, true)
 end
 
 local function capture_font_string(region, stats)
     if not region or not region.GetText then return end
+    local visible_ok, is_visible = pcall(function () return region.IsVisible end)
+    if visible_ok and type(is_visible) == "function" then
+        local ok, visible = pcall(is_visible, region)
+        if not ok or is_secret(visible) or visible ~= true then return end
+    else
+        local shown_ok, is_shown = pcall(function () return region.IsShown end)
+        if shown_ok and type(is_shown) == "function" then
+            local ok, shown = pcall(is_shown, region)
+            if not ok or is_secret(shown) or shown ~= true then return end
+        end
+    end
     local ok, text = pcall(region.GetText, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return end
 
     local translated, normalized = resolver.find_ui(text, region)
-    if translated or normalized == "" or normalized == "EN" or normalized == "UA"
+    local frame_name = debug_name(region)
+    if translated and translated ~= text then
+        if type(auto_scan.record_ui) == "function" then
+            auto_scan.record_ui(text, true, frame_name)
+        end
+        auto_scan.record_runtime_result({
+            owner = "ui-scan", slot = frame_name or "ui.text",
+            source = text, translated = translated,
+        }, text, "видимий UI-текст")
+        return
+    end
+    if normalized == "" or normalized == "EN" or normalized == "UA"
         or not normalized:find("[A-Za-z]") then return end
 
-    local frame_name = debug_name(region)
     if is_capture_noise(normalized, frame_name) then return end
+
+    if type(auto_scan.record_ui) == "function" then
+        auto_scan.record_ui(normalized, nil, frame_name)
+    end
 
     if #normalized > 1000 then normalized = normalized:sub(1, 1000) end
     local scan = UA_ForeverDB and UA_ForeverDB.scan
@@ -233,12 +316,90 @@ local function scan_frame(frame, seen, stats, allow_protected, surface)
     end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
+local function after_combat_text_add_message(message)
+    auto_scan.surface_hook("combat-text", "CombatText_AddMessage", true, true)
+    if type(message) ~= "string" or is_secret(message) then return end
+    local translated = resolver.find_ui(message)
+    if options.account and options.account.auto_scan_content
+        and type(auto_scan.record_ui) == "function" then
+        auto_scan.record_ui(message, translated, "CombatText")
+    end
+    if not options.can_translate("translate_string")
+        or not options.translate_combat_text() then return end
+    if not translated or translated == message then return end
+
+    local line_count = tonumber(_G.NUM_COMBAT_TEXT_LINES) or 20
+    for index = 1, math.min(line_count, 100) do
+        local region = _G["CombatText" .. index]
+        if region then
+            local shown_ok, shown = pcall(region.IsShown, region)
+            if shown_ok and shown and not is_secret(shown) then
+                local text_ok, current = pcall(region.GetText, region)
+                if text_ok and not is_secret(current) and current == message then
+                    runtime.apply(region, {
+                        owner = "combat-text", slot = "line:" .. index,
+                        source = message, translated = translated,
+                        option = "translate_string",
+                        priority = runtime.PRIORITY.STATIC_UI,
+                    })
+                end
+            end
+        end
+    end
+end
+
+local function refresh_combat_text()
+    auto_scan.surface_attempt("combat-text", "refresh_combat_text")
+    local line_count = tonumber(_G.NUM_COMBAT_TEXT_LINES) or 20
+    for index = 1, math.min(line_count, 100) do
+        local region = _G["CombatText" .. index]
+        if region then
+            local shown_ok, shown = pcall(region.IsShown, region)
+            local text_ok, source = pcall(region.GetText, region)
+            if shown_ok and shown and not is_secret(shown)
+                and text_ok and type(source) == "string" and source ~= ""
+                and not is_secret(source) then
+                -- The Forever client can retain the old Latin-only font on
+                -- pooled combat lines even after their shared FontObject was
+                -- updated. Repair the concrete visible line as well.
+                fonts.apply_to_font_string(region)
+                local translated = resolver.find_ui(source, region)
+                if options.account and options.account.auto_scan_content
+                    and type(auto_scan.record_ui) == "function" then
+                    auto_scan.record_ui(source, translated, "CombatText" .. index)
+                end
+                if options.can_translate("translate_string")
+                    and options.translate_combat_text()
+                    and translated and translated ~= source then
+                    runtime.apply(region, {
+                        owner = "combat-text", slot = "line:" .. index,
+                        source = source, translated = translated,
+                        option = "translate_string",
+                        priority = runtime.PRIORITY.STATIC_UI,
+                    })
+                end
+            end
+        end
+    end
+end
+
+strings.refresh_combat_text = function ()
+    refresh_combat_text()
+    scheduler.request("combat-text-event", nil, refresh_combat_text)
+    scheduler.request("combat-text-event-late", nil, refresh_combat_text, 0.05)
+end
+
 strings.prepare = function ()
     -- ClassicUA can replace selected _G strings early on Era clients, but
     -- Camelot reuses localized labels as semantic keys in several protected
     -- systems (character stats and Settings category ordering among them).
-    -- Writing any Blizzard display global also taints the modern micro menu.
-    -- Keep globals pristine and translate only concrete FontString regions.
+    -- Writing general Blizzard display globals also taints the modern micro menu.
+    -- Keep those pristine; only the dedicated COMBAT_TEXT_* display globals are
+    -- replaced because the engine consumes them before a FontString is exposed.
+    strings.refresh_combat_text_globals()
+    local hook_name = "CombatText_AddMessage"
+    local available = hooks.global(hook_name, after_combat_text_add_message)
+    auto_scan.surface_hook("combat-text", hook_name, available, false)
 end
 
 local function visible_safe_roots()
@@ -303,6 +464,9 @@ end
 strings.capture_visible_ui = function ()
     local stats = { frames = 0, captured = 0, new = 0, unique = 0 }
     if not UA_ForeverDB or not UA_ForeverDB.scan then return stats end
+    if type(auto_scan.clear_runtime_owner) == "function" then
+        auto_scan.clear_runtime_owner("ui-scan")
+    end
     local seen = {}
     for _, frame in ipairs(visible_safe_roots()) do
         capture_frame(frame, seen, 1, stats, allows_protected_children(frame))

@@ -9,7 +9,9 @@ local BAG_TOOLTIP_TEXT_PADDING = 24
 local BAG_TOOLTIP_MAX_WIDTH = 420
 local TOOLTIP_TEXT_PADDING = 24
 local TOOLTIP_MAX_WIDTH = 300
+local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
+local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -71,20 +73,49 @@ local function fit_tooltip_height_to_region(tooltip, region, previous_region_hei
     end
 end
 
-local function fit_tooltip_width_to_region(tooltip, region)
+local function restore_tooltip_width(tooltip)
+    local width = tooltip and tooltip.uaForeverOriginalWidth
+    if not width or type(tooltip.SetWidth) ~= "function" then return end
+    local translated_width = tooltip.uaForeverTranslatedWidth
+    local current_width = safe_dimension(tooltip, "GetWidth")
+    if translated_width and current_width
+        and math.abs(current_width - translated_width) >= 0.5 then
+        -- The client already laid out different tooltip content. Forget the
+        -- stale snapshot instead of forcing the previous tooltip's width.
+        tooltip.uaForeverOriginalWidth = nil
+        tooltip.uaForeverTranslatedWidth = nil
+        return
+    end
+    local ok = pcall(tooltip.SetWidth, tooltip, width)
+    if ok then
+        tooltip.uaForeverOriginalWidth = nil
+        tooltip.uaForeverTranslatedWidth = nil
+    end
+end
+
+local function fit_tooltip_width_to_region(tooltip, region, source)
     if not is_tooltip(tooltip) then return end
     local text_width = unbounded_text_width(region)
     local tooltip_width = safe_dimension(tooltip, "GetWidth")
     if not text_width or not tooltip_width or type(tooltip.SetWidth) ~= "function" then return end
 
     -- Long aura descriptions are meant to wrap at the client's chosen width.
-    -- Only compact one-line tooltips need more room for a longer translation.
-    if tooltip_width >= TOOLTIP_COMPACT_WIDTH then return end
+    -- Compact one-line tooltips and the quest-log details hint need more room
+    -- for a longer translation.
+    local quest_details_hint = source == QUEST_DETAILS_HINT
+    if tooltip_width >= TOOLTIP_COMPACT_WIDTH and not quest_details_hint then return end
 
-    local required_width = math.min(TOOLTIP_MAX_WIDTH,
+    local max_width = quest_details_hint and TOOLTIP_HINT_MAX_WIDTH or TOOLTIP_MAX_WIDTH
+    local required_width = math.min(max_width,
         math.ceil(text_width + TOOLTIP_TEXT_PADDING))
     if required_width > tooltip_width then
-        pcall(tooltip.SetWidth, tooltip, required_width)
+        if quest_details_hint and not tooltip.uaForeverOriginalWidth then
+            tooltip.uaForeverOriginalWidth = tooltip_width
+        end
+        local ok = pcall(tooltip.SetWidth, tooltip, required_width)
+        if ok and quest_details_hint then
+            tooltip.uaForeverTranslatedWidth = required_width
+        end
     end
 end
 
@@ -216,6 +247,7 @@ layout.is_button = is_button
 layout.is_tooltip = is_tooltip
 layout.fit_tooltip_height_to_region = fit_tooltip_height_to_region
 layout.fit_tooltip_width_to_region = fit_tooltip_width_to_region
+layout.restore_tooltip_width = restore_tooltip_width
 layout.fit_aura_header_width = fit_aura_header_width
 layout.fit_bag_tooltip_width = fit_bag_tooltip_width
 layout.fit_button_to_text = fit_button_to_text

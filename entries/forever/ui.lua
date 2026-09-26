@@ -21,6 +21,8 @@ addonTable.forever_ui = {
     ["Main Hand"] = "Основна рука",
     ["Off Hand"] = "Друга рука",
     ["Ranged"] = "Дальній бій",
+    ["Ranged:"] = "Дальній бій:",
+    ["Honor Points"] = "очки честі",
     ["Attack Speed (seconds)"] = "Швидкість атаки (с)",
     ["Channeling"] = "Підтримування",
     ["Damage:"] = "Шкода:",
@@ -45,6 +47,7 @@ addonTable.forever_ui = {
     ["Accept quests by talking to characters with a ! above their head."] = "Приймайте завдання у персонажів зі знаком ! над головою.",
     ["Quest Objectives"] = "Доручення",
     ["QUEST OBJECTIVES"] = "ДОРУЧЕННЯ",
+    ["<Click to view Quest Details>"] = "<Натисніть, щоб переглянути деталі завдання>",
     ["Rewards"] = "Винагороди",
     ["REWARDS"] = "ВИНАГОРОДИ",
     ["You will be able to choose one of these rewards:"] = "Ви зможете обрати одну з цих винагород:",
@@ -307,7 +310,7 @@ addonTable.forever_ui = {
     ["Edwin Vancleef Kills (Deadmines)"] = "Убивств Едвіна ван Кліфа (Мертві копальні)",
     ["Rath'mael Kills (Ruins of Lordaeron)"] = "Убивств Рат'маеля (Руїни Лордерона)",
     ["Shade of the Archmage Kills (City of Dalaran)"] = "Убивств тіні архімага (місто Даларан)",
-    ["Durgen Dirgehammer Kills (Hall of Thanes)"] = "Убивств Дурґена Жалобомолота (Зала танів)",
+    ["Durgen Dirgehammer Kills (Hall of Thanes)"] = "Убивств Дурґена Жалобомолота (Зала Танів)",
     ["Nanaya Kills (Shaper's Terrace)"] = "Убивств Нанаї (Тераса Творця)",
     ["Blazeroar Kills (Alcaz Prison)"] = "Убивств Полум'яного Ревуна (В'язниця Алькац)",
     ["The Wild King kills (Hyjal Summit)"] = "Убивств Дикого Короля (Вершина Гіджалу)",
@@ -356,6 +359,7 @@ addonTable.forever_ui = {
     ["Defense:"] = "Захист:",
     ["Dodge:"] = "Ухилення:",
     ["Parry:"] = "Парирування:",
+    ["Parry"] = "Парирування",
     ["Block:"] = "Блокування:",
     ["Armor:"] = "Броня:",
     ["Resistances"] = "Опори",
@@ -382,8 +386,30 @@ addonTable.forever_ui = {
     ["Dead"] = "Мертвий",
     ["Unconscious"] = "Непритомний",
     ["Join or Create Community"] = "Приєднатися до спільноти або створити її",
+    -- Add Community is a separate secure dialog with text outside CommunitiesFrame.
+    ["Add Community"] = "Додати спільноту",
+    ["Create World of Warcraft Community (Alliance or Cross-Faction)"] =
+        "Створити спільноту World of Warcraft (Альянс або міжфракційну)",
+    ["Create World of Warcraft Community (Horde or Cross-Faction)"] =
+        "Створити спільноту World of Warcraft (Орда або міжфракційну)",
+    ["Create World of Warcraft Community"] = "Створити спільноту World of Warcraft",
+    ["- Great for in-game friends|n- Invite characters from any realm|n- Calendar and Quick Join support"] =
+        "- Для друзів у грі|n- Запрошуйте персонажів із будь-якого ігрового світу|n- Підтримка календаря та швидкого приєднання",
+    ["- Great for in-game friends\n- Invite characters from any realm\n- Calendar and Quick Join support"] =
+        "- Для друзів у грі\n- Запрошуйте персонажів із будь-якого ігрового світу\n- Підтримка календаря та швидкого приєднання",
+    ["Create Blizzard Group"] = "Створити групу Blizzard",
+    ["- Great for cross-game friends|n- Invite any player (members join as their BattleTag)"] =
+        "- Для друзів із різних ігор|n- Запрошуйте будь-яких гравців (учасники приєднуються за BattleTag)",
+    ["- Great for cross-game friends\n- Invite any player (members join as their BattleTag)"] =
+        "- Для друзів із різних ігор\n- Запрошуйте будь-яких гравців (учасники приєднуються за BattleTag)",
+    ["Join Community"] = "Приєднатися до спільноти",
+    ["Enter a community's invitation link or code:"] =
+        "Введіть посилання або код запрошення до спільноти:",
+    ["Join"] = "Приєднатися",
     ["Fishing"] = "Рибальство",
     ["First Aid"] = "Перша допомога",
+    ["Bandages"] = "Бинти",
+    ["Healing Potions"] = "Лікувальні зілля",
     ["Magic"] = "Магія",
     ["Cooking"] = "Кулінарія",
     ["New Recipe Learned!"] = "Вивчено новий рецепт!",
@@ -438,6 +464,13 @@ addonTable.forever_ui = {
     ["Target and Focus"] = "Ціль і фокус",
     ["Mace Specialization"] = "Спеціалізація на булавах",
     ["Dodge"] = "Ухилення",
+    ["Miss"] = "Промах",
+    ["Evade"] = "Уникнення",
+    ["Immune"] = "Несприйнятливість",
+    ["Resist"] = "Опір",
+    ["Absorb"] = "Поглинання",
+    ["Deflect"] = "Відбиття",
+    ["Reflect"] = "Віддзеркалення",
     ["Requires Reload"] = "Потрібне перезавантаження",
     ["Racial Passive"] = "Расова пасивна здібність",
     ["Big Game Hunter"] = "Мисливець на велику дичину",
@@ -591,6 +624,10 @@ addonTable.forever_ui = {
     ["Visit a profession trainer in a major city to learn a new profession. You may have two professions. You may have any combination of gathering and production professions."] = "Відвідайте вчителя професій у великому місті, щоб опанувати нову професію. Можна мати дві професії в будь-якому поєднанні збиральних і виробничих професій.",
     ["A guild is a tight-knit group of players who want to enjoy the game together. By joining a guild, you'll gain access to many benefits, including a shared guild bank and a guild chat channel.|n|nConsider forming a guild of your own if you have friends who also play World of Warcraft. To create a guild, talk to a Guild Master in a major city."] = "Гільдія — це згуртована спільнота гравців, які хочуть насолоджуватися грою разом. Приєднавшись до гільдії, ви отримаєте доступ до спільного банку гільдії, каналу гільдійного чату та інших переваг.|n|nЯкщо у вас є друзі, які також грають у World of Warcraft, можете створити власну гільдію. Для цього поговоріть із розпорядником гільдій у великому місті.",
     ["No quests available|n|nAccept quests by talking to characters with a |TInterface\\GossipFrame\\AvailableQuestIcon:16:16|t above their head."] = "Немає доступних завдань|n|nПриймайте завдання у персонажів зі знаком |TInterface\\GossipFrame\\AvailableQuestIcon:16:16|t над головою.",
+    ["Can't attack while incapacitated."] = "Не можна атакувати, поки ви недієздатні.",
+    ["Can't do that while incapacitated"] = "Не можна це зробити, поки ви недієздатні.",
+    ["Fill yer tankard and pull up a chair. We've stories to tell and kegs to empty."] =
+        "Наповнюй кухоль і влаштовуйся зручніше. Маємо історії до розповіді й барила до спорожнення.",
 }
 
 local warrior_stances = {
@@ -622,6 +659,39 @@ local function translate_requirement(requirement)
 end
 
 addonTable.forever_ui_patterns = {
+    {
+        pattern = "^Pass on Loot: (.+)$",
+        replace = function (value)
+            local translated = ({ Yes = "Так", No = "Ні" })[value] or value
+            return "Відмова від здобичі: " .. translated
+        end,
+    },
+    {
+        pattern = "^(.+) slain: (%d+)/(%d+)$",
+        replace = function (name, current, total)
+            local entries = addonTable.use("entries")
+            local translated = entries.lookup_name("npc", name) or name
+            return translated .. ": " .. current .. "/" .. total .. " вбито"
+        end,
+    },
+    {
+        pattern = "^(.+) invites you to a group%.$",
+        replace = function (name)
+            return name .. " запрошує вас до групи."
+        end,
+    },
+    {
+        pattern = "^Do you want to destroy (.+)%?$",
+        replace = function (name)
+            local entries = addonTable.use("entries")
+            local translated = entries.lookup_name("item", name) or name
+            return "Ви хочете знищити " .. translated .. "?"
+        end,
+    },
+    {
+        pattern = "^(%d+)%% Threat$",
+        replace = function (percent) return "Загроза: " .. percent .. "%" end,
+    },
     {
         pattern = "^Requires (.- Stance), (.- Stance)$",
         replace = function (first, second)

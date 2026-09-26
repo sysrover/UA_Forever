@@ -344,25 +344,63 @@ local function quest_log_titles(scroll)
     return changed
 end
 
+local function valid_greeting_quest_id(value)
+    return type(value) == "number" and value > 0 and value or nil
+end
+
+local function greeting_data_quest_id(value)
+    if type(value) ~= "table" then return nil end
+    local ok, id = pcall(function () return value.questID or value.questId end)
+    return ok and valid_greeting_quest_id(id) or nil
+end
+
 local function greeting_quest_id(button)
-    local id_ok, index = pcall(button.GetID, button)
-    if not id_ok or type(index) ~= "number" then return nil end
-    if button.isActive == 1 and type(_G.GetActiveQuestID) == "function" then
-        local ok, id = pcall(_G.GetActiveQuestID, index)
-        return ok and type(id) == "number" and id or nil
+    if not button then return nil end
+    local ok, id = pcall(function () return button.questID or button.questId end)
+    id = ok and valid_greeting_quest_id(id) or nil
+    if id then return id end
+    for _, field in ipairs({ "info", "data", "questInfo", "elementData" }) do
+        local field_ok, value = pcall(function () return button[field] end)
+        id = field_ok and greeting_data_quest_id(value) or nil
+        if id then return id end
     end
-    if button.isActive == 0 and type(_G.GetAvailableQuestInfo) == "function" then
-        local ok, _, _, _, _, id = pcall(_G.GetAvailableQuestInfo, index)
-        return ok and type(id) == "number" and id or nil
+    for _, method_name in ipairs({ "GetElementData", "GetData" }) do
+        local method_ok, method = pcall(function () return button[method_name] end)
+        if method_ok and type(method) == "function" then
+            local data_ok, value = pcall(method, button)
+            id = data_ok and greeting_data_quest_id(value) or nil
+            if id then return id end
+        end
+    end
+    local method_ok, method = pcall(function () return button.GetID end)
+    if not method_ok or type(method) ~= "function" then return nil end
+    local index_ok, index = pcall(method, button)
+    if not index_ok or not valid_greeting_quest_id(index) then return nil end
+    local active_ok, active = pcall(function () return button.isActive end)
+    active = active_ok and active or nil
+    if (active == 1 or active == true or active == nil)
+        and type(_G.GetActiveQuestID) == "function" then
+        local found, value = pcall(_G.GetActiveQuestID, index)
+        id = found and valid_greeting_quest_id(value) or nil
+        if id then return id end
+    end
+    if (active == 0 or active == false or active == nil)
+        and type(_G.GetAvailableQuestInfo) == "function" then
+        local found, _, _, _, _, value = pcall(_G.GetAvailableQuestInfo, index)
+        id = found and valid_greeting_quest_id(value) or nil
+        if id then return id end
     end
 end
 
 local function translate_quest_greeting()
     local greeting = _G.GreetingText
-    local source = safe_text(greeting)
+    local source = original_value("GetGreetingText") or safe_text(greeting)
     if greeting then runtime.clear(greeting) end
     if source and options.can_lookup("translate_gossip") then
         local id_ok, npc_id = pcall(utils.npc_id_from_unit_id, "npc")
+        if not id_ok or type(npc_id) ~= "number" then
+            id_ok, npc_id = pcall(utils.npc_id_from_unit_id, "questnpc")
+        end
         if id_ok and type(npc_id) == "number" then
             local translated = entries.get_gossip_text_for_npc_talk(npc_id, source)
             if safe_string(translated) then
@@ -388,10 +426,11 @@ local function translate_quest_greeting()
             local entry = entries.get_entry("quest", id)
             local translated = entry and safe_string(entry[1])
                 or entries.get_glossary_text(name)
+            local source_name = english_title(id) or name
             if safe_string(translated) then
                 runtime.apply(region, {
                     owner = "quest-greeting", slot = "quest:" .. id .. ".name",
-                    source = name, translated = translated, category = "quest",
+                    source = source_name, translated = translated, category = "quest",
                     options = { "translate_gossip", "translate_quest" },
                     priority = runtime.PRIORITY.DOMAIN,
                     after_apply = function ()
@@ -458,6 +497,10 @@ local function translate_info_objectives()
         end
     end
 end
+
+-- The greeting panel may receive its text one frame after OnShow. Expose the
+-- same translation pass so the event layer can retry after the native write.
+quest_ui.refresh_greeting = translate_quest_greeting
 
 local quest_map_labels = {
     Back = true, Abandon = true, Share = true, Track = true, Untrack = true,
@@ -745,6 +788,22 @@ local function translate_quest_timer(frame)
             end
         end
     end
+end
+
+-- Camelot can populate the quest regions one frame after QuestInfo_Display.
+-- Re-run the domain translation after the native writer has finished so the
+-- visible text does not remain in English even though the quest entry exists.
+quest_ui.refresh_current_dialog = function ()
+    if not options.can_lookup("translate_quest") then return end
+    translate_dialog_title()
+    quest_info_field(_G.QuestInfoDescriptionText, 2,
+        "GetQuestText", "GetQuestLogQuestText", 1)
+    quest_info_field(_G.QuestInfoObjectivesText, 3,
+        "GetObjectiveText", "GetQuestLogQuestText", 2)
+    dialog_field(_G.QuestProgressTitleText, dialog_quest_id(), 1, "GetTitleText")
+    dialog_field(_G.QuestProgressText, dialog_quest_id(), 4, "GetProgressText")
+    dialog_field(_G.QuestInfoRewardText, dialog_quest_id(), 5, "GetRewardText")
+    translate_info_objectives()
 end
 
 quest_ui.prepare = function ()

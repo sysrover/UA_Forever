@@ -8,7 +8,7 @@ local items = {
 --     [equip]  = text or number (spell id) for "Equip: ..." (green color) (optional)
 --     [hit]    = text or number (spell id) for "Chance on hit: ..." (green color) (optional)
 --     [use]    = text or number (spell id) for "Use: ..." (green color) (optional)
---                supports code "{домівка}" for Hearthstone bind location
+--                supports code "{bindLocation}" for Hearthstone bind location
 --     [recipe_result_item] = number (item id) to show the item after the spell-recipe (optional)
 --     [flavor] = quoted text (golden color) (optional)
 --     --------
@@ -4554,7 +4554,7 @@ local items = {
 [6930] = { "жезл виклику", en="Rod of Channeling" },
 [6931] = { "запліснявілий фоліант", use="Викликати скверногончу в колі виклику.", flavor="На обкладинці видніється тьмяний напис: 'Фоліант Змови'.", en="Moldy Tome" },
 [6947] = { "миттєва отрута", use=8679, en="Instant Poison" },
-[6948] = { "камінь повернення", use="Повертає вас додому ({домівка}). Поговоріть з корчмарем в іншому місці, щоб змінити домівку.", en="Hearthstone" },
+[6948] = { "камінь повернення", use="Повертає вас додому ({bindLocation}). Поговоріть з корчмарем в іншому місці, щоб змінити домівку.", en="Hearthstone" },
 [6949] = { "миттєва отрута II", use=8686, en="Instant Poison II" },
 [6950] = { "миттєва отрута III", use=8688, en="Instant Poison III" },
 [6951] = { "задурлива отрута II", use=8693, en="Mind-numbing Poison II" },

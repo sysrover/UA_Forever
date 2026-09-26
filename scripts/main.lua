@@ -1,6 +1,7 @@
 local addon_name, addon_table = ...
 
 local assets = addon_table.use("assets")
+local auto_scan = addon_table.use("auto_scan")
 local chats = addon_table.use("chats")
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
@@ -125,6 +126,7 @@ local function refresh_open_panels()
     items.refresh_quest_rewards()
     registry.refresh_open()
     quest_switcher.refresh()
+    if options.account.auto_scan_content then strings.capture_visible_ui() end
 end
 
 local function schedule_panel_refresh()
@@ -152,7 +154,11 @@ local function schedule_current_quest_capture(event)
     -- The first pass normally sees the data immediately. The short retry
     -- covers Camelot panels whose text getters are filled one frame later.
     scheduler.request("quest-capture:" .. event .. ":initial", nil, capture)
-    scheduler.request("quest-capture:" .. event .. ":retry", nil, capture, 0.2)
+    if type(quest_ui.refresh_current_dialog) == "function" then
+        scheduler.request("quest-refresh:" .. event .. ":retry", nil,
+            quest_ui.refresh_current_dialog, 0.2)
+    end
+    scheduler.request("quest-capture:" .. event .. ":retry", nil, capture, 0.3)
 end
 
 local function opened_panel(frame)
@@ -164,6 +170,7 @@ local function opened_panel(frame)
         -- refresh handles static labels; pooled rows have domain post-hooks.
         local surface = registry.find_frame(frame)
         if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
+        if options.account.auto_scan_content then strings.capture_frame(frame) end
     end
 end
 
@@ -171,11 +178,58 @@ local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
     if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
+    if options.account.auto_scan_content then strings.capture_frame(frame) end
 end
 
 local function translate_character_subframe(_, subframe_name)
     local subframe = type(subframe_name) == "string" and _G[subframe_name] or nil
     if subframe then strings.translate_frame(subframe) end
+end
+
+local function translate_communities_add_dialog()
+    local dialog = _G.CommunitiesAddDialog
+    if not dialog then return end
+    local shown_ok, shown = pcall(dialog.IsShown, dialog)
+    if not shown_ok or not shown or is_secret(shown) then return end
+    for _, key in ipairs({
+        "DialogLabel", "CreateWoWCommunityLabel", "CreateWoWCommunityDescription",
+        "CreateBattleNetGroupLabel", "CreateBattleNetGroupDescription",
+        "InviteLinkLabel", "InviteLinkDescription",
+    }) do
+        local ok, region = pcall(function () return dialog[key] end)
+        if ok and region then strings.translate_region(region) end
+    end
+    local description_ok, description = pcall(function ()
+        return dialog.CreateBattleNetGroupDescription
+    end)
+    if description_ok and description then
+        local function translate_instructions(container)
+            if not container then return end
+            local ok, instructions = pcall(function () return container.Instructions end)
+            if ok and instructions then strings.translate_region(instructions) end
+        end
+        translate_instructions(description)
+        local edit_ok, edit_box = pcall(function () return description.EditBox end)
+        if edit_ok and edit_box then translate_instructions(edit_box) end
+        local nested_ok, nested_description = pcall(function ()
+            return description.Description
+        end)
+        if nested_ok and nested_description then
+            translate_instructions(nested_description)
+            local nested_edit_ok, nested_edit = pcall(function ()
+                return nested_description.EditBox
+            end)
+            if nested_edit_ok and nested_edit then translate_instructions(nested_edit) end
+        end
+    end
+    local ok, label = pcall(function ()
+        return dialog.JoinButton and dialog.JoinButton:GetFontString()
+    end)
+    if ok and label then strings.translate_region(label) end
+end
+
+local function schedule_communities_add_dialog()
+    scheduler.request("communities-add-dialog", nil, translate_communities_add_dialog)
 end
 
 local function translate_character_title(frame)
@@ -203,13 +257,54 @@ local function translate_character_level(region)
         priority = runtime.PRIORITY.CONTEXT })
 end
 
+local function quest_greeting_shown()
+    update_quest_npc_name()
+    if type(quest_ui.refresh_greeting) == "function" then
+        local function refresh()
+            auto_scan.surface_attempt("quest-greeting", "refresh_greeting")
+            quest_ui.refresh_greeting()
+        end
+        scheduler.request("quest-greeting-refresh-immediate", nil,
+            refresh)
+        scheduler.request("quest-greeting-refresh", nil,
+            refresh, 0.1)
+        scheduler.request("quest-greeting-refresh-late", nil,
+            refresh, 0.35)
+    end
+    if options.account.auto_scan_content
+        and type(scanner.schedule_quest_greeting_capture) == "function" then
+        scanner.schedule_quest_greeting_capture()
+    end
+end
+
+local function schedule_transient_capture(frame)
+    if not frame or not options.account.auto_scan_content then return end
+    scheduler.request("auto-alert:" .. tostring(frame), nil, function ()
+        local shown_ok, shown = pcall(frame.IsShown, frame)
+        if shown_ok and shown then
+            strings.translate_frame(frame)
+            strings.capture_frame(frame)
+        end
+    end)
+end
+
 local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
     hooks.global("PanelTemplates_SetTab", selected_tab)
     hooks.global("ClassTrainerFrame_Update", schedule_trainer_refresh)
     hooks.global("QuestFrame_SetPortrait", update_quest_npc_name)
-    hooks.global("QuestFrameGreetingPanel_OnShow", update_quest_npc_name)
+    local greeting_hook = "QuestFrameGreetingPanel_OnShow"
+    local greeting_hook_available = hooks.global(greeting_hook, function ()
+        auto_scan.surface_hook("quest-greeting", greeting_hook, true, true)
+        quest_greeting_shown()
+    end)
+    auto_scan.surface_hook("quest-greeting", greeting_hook,
+        greeting_hook_available, false)
+    hooks.global("AlertFrame_ShowNewAlert", schedule_transient_capture)
+    hooks.region(_G.AlertContainerMixin, "AddAlertFrame", function (_, frame)
+        schedule_transient_capture(frame)
+    end)
     -- QuestInfo_Display and ShowRewards have domain post-hooks in quest_ui and
     -- items; refreshing every open surface here would rescan the entire map
     -- for a single quest text update.
@@ -220,6 +315,10 @@ local function prepare_panel_hooks()
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
     hooks.region_script(_G.MacroFrame, "OnShow", opened_panel)
+    hooks.region_script(_G.CommunitiesAddDialog, "OnShow",
+        schedule_communities_add_dialog)
+    hooks.global("AddCommunitiesFlow_Toggle", schedule_communities_add_dialog)
+    schedule_communities_add_dialog()
 
     -- Camelot's character tabs and the equipment manager are not opened with
     -- ShowUIPanel. Hook their real owners after Blizzard has populated text.
@@ -307,12 +406,20 @@ local function register_slash_command()
         if command == "on" then
             options.account.enabled = true
             runtime.refresh_policy()
+            if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
+            if strings.refresh_combat_text_globals then
+                strings.refresh_combat_text_globals()
+            end
             registry.refresh_open()
             if tooltips.refresh_active then tooltips.refresh_active() end
             message("переклад увімкнено")
         elseif command == "off" then
             options.account.enabled = false
             runtime.refresh_policy()
+            if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
+            if strings.refresh_combat_text_globals then
+                strings.refresh_combat_text_globals()
+            end
             if tooltips.refresh_active then tooltips.refresh_active() end
             message("переклад вимкнено")
         elseif command == "dev" and (value == "on" or value == "off") then
@@ -509,6 +616,8 @@ local function register_slash_command()
             else
                 run_capture()
             end
+        elseif command == "export" then
+            settings_ui.show_export_window()
         elseif command == "scan" then
             message("починаю перевірку API та вибіркове зіставлення даних...")
             local report = scanner.run()
@@ -518,7 +627,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
         end
     end
 end
@@ -536,6 +645,9 @@ event_frame:RegisterEvent("QUEST_PROGRESS")
 event_frame:RegisterEvent("QUEST_COMPLETE")
 event_frame:RegisterEvent("QUEST_GREETING")
 event_frame:RegisterEvent("QUEST_LOG_UPDATE")
+event_frame:RegisterEvent("ITEM_TEXT_BEGIN")
+event_frame:RegisterEvent("ITEM_TEXT_READY")
+event_frame:RegisterEvent("COMBAT_TEXT_UPDATE")
 
 event_frame:SetScript("OnEvent", function (self, event, ...)
     if event == "ADDON_LOADED" then
@@ -543,6 +655,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         if loaded_addon ~= addon_name then
             if self.uaForeverLoginReady and type(loaded_addon) == "string"
                 and loaded_addon:find("^Blizzard_") then
+                strings.prepare()
                 quest_switcher.prepare()
                 quest_ui.prepare()
                 gossip_ui.prepare()
@@ -628,12 +741,28 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
     elseif event == "PLAYER_TARGET_CHANGED" then
         update_target_name()
+    elseif event == "ITEM_TEXT_BEGIN" then
+        scanner.begin_book(...)
+    elseif event == "ITEM_TEXT_READY" then
+        scanner.note_book(...)
+        scheduler.request("book-page-capture", nil, scanner.capture_book_page)
+    elseif event == "COMBAT_TEXT_UPDATE" then
+        auto_scan.surface_event("combat-text", event)
+        if type(strings.capture_combat_text_event) == "function" then
+            strings.capture_combat_text_event(...)
+        end
+        if type(strings.refresh_combat_text) == "function" then
+            strings.refresh_combat_text()
+        end
     elseif event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" then
         schedule_trainer_refresh()
     elseif event == "GOSSIP_SHOW" or event == "QUEST_DETAIL" or event == "QUEST_PROGRESS"
         or event == "QUEST_COMPLETE" or event == "QUEST_GREETING" then
         if event ~= "GOSSIP_SHOW" and event ~= "QUEST_GREETING" then
             schedule_current_quest_capture(event)
+        elseif event == "QUEST_GREETING" then
+            auto_scan.surface_event("quest-greeting", event)
+            quest_greeting_shown()
         end
         schedule_panel_refresh()
     elseif event == "QUEST_LOG_UPDATE" then

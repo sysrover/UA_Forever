@@ -4,6 +4,8 @@ local _, addonTable = ...
 -- GlobalStrings subset. Keep these as display-only translations: the actual
 -- Blizzard globals must remain English because Camelot uses some as data keys.
 local settings = {
+    ["Automatically exit Away mode upon moving or talking."] =
+        "Автоматично виходити з режиму «Відійшов» після руху або початку розмови.",
     -- Game menu and Settings navigation
     ["Game Menu"] = "Меню гри",
     ["Return to Game"] = "Повернутися до гри",

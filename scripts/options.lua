@@ -33,6 +33,7 @@ local default_account = {
     translate_skill_names = true,
     shift_original_tooltip = true,
     translate_string = true,
+    translate_combat_text = true,
     translate_zone = true,
 }
 
@@ -87,4 +88,10 @@ options.translate_name = function (category)
     if not account or account.translation_scope ~= "custom" then return true end
     local flag = name_flags[category]
     return not flag or account[flag] == true
+end
+
+options.translate_combat_text = function ()
+    local account = options.account
+    if not account or account.translation_scope ~= "custom" then return true end
+    return account.translate_combat_text ~= false
 end
