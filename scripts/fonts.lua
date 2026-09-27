@@ -10,6 +10,8 @@ local options   = addon_table.use("options") ---@class options_class
 local allowed_font_flags = { OUTLINE = true, THICKOUTLINE = true, MONOCHROME = true, SLUG = true }
 local compositor_fonts = {}
 local compositor_font_count = 0
+local item_text_fonts = {}
+local item_text_font_count = 0
 local original_damage_text_font
 local combat_text_font_names = {
     "CombatTextFont",
@@ -104,9 +106,83 @@ local function apply_compositor_font(font_string, height, flags)
     return true
 end
 
+-- ItemTextPageText is a SimpleHTML region rather than a FontString. Its font
+-- is assigned separately for every supported HTML tag, so GetFont/SetFont are
+-- unavailable on the region itself. Clone Blizzard's current tag fonts with
+-- the addon's Cyrillic-capable face and assign those clones to the tags.
+local function item_text_font(source_font)
+    local cached = item_text_fonts[source_font]
+    if cached then return cached end
+    if not source_font or type(_G.CreateFont) ~= "function" then return nil end
+
+    local method_ok, get_font = pcall(function () return source_font.GetFont end)
+    if not method_ok or type(get_font) ~= "function" then return nil end
+    local font_ok, _, height, flags = pcall(get_font, source_font)
+    if not font_ok or type(height) ~= "number" or height <= 0 or height > 120 then
+        return nil
+    end
+
+    item_text_font_count = item_text_font_count + 1
+    local created, font = pcall(_G.CreateFont,
+        "UAForeverItemTextFont" .. item_text_font_count)
+    if not created or not font then return nil end
+    local set_ok, set_font = pcall(function () return font.SetFont end)
+    if not set_ok or type(set_font) ~= "function" then return nil end
+    local applied_ok, applied = pcall(set_font, font, assets.font_frizqt,
+        height, sanitize_font_flags(flags))
+    if not applied_ok or applied == false then return nil end
+
+    item_text_fonts[source_font] = font
+    return font
+end
+
+local function apply_item_text_html_fonts(region)
+    local marker_ok, is_overlay = pcall(function ()
+        return region.uaForeverItemTextOverlay == true
+    end)
+    if region ~= _G.ItemTextPageText
+        and (not marker_ok or not is_overlay) then return false end
+    local method_ok, set_font_object = pcall(function ()
+        return region.SetFontObject
+    end)
+    if not method_ok or type(set_font_object) ~= "function" then return false end
+
+    local material = "Parchment"
+    if type(_G.ItemTextGetMaterial) == "function" then
+        local material_ok, value = pcall(_G.ItemTextGetMaterial)
+        if material_ok and type(value) == "string" and value ~= "" then
+            material = value
+        end
+    end
+    local catalog = _G.ITEM_TEXT_FONTS
+    if type(catalog) ~= "table" then return false end
+    local font_table = catalog[material] or catalog.default
+    if type(font_table) ~= "table" then return false end
+
+    local paragraph_applied = false
+    for _, tag in ipairs({ "P", "H1", "H2", "H3" }) do
+        local font = item_text_font(font_table[tag])
+        if font then
+            local assigned = pcall(set_font_object, region, tag, font)
+            if tag == "P" and assigned then
+                paragraph_applied = true
+            end
+        end
+    end
+    return paragraph_applied
+end
+
 fonts.apply_to_font_string = function (font_string)
     if not options.can_translate("override_system_fonts") or not font_string then
         return false
+    end
+
+    local marker_ok, is_item_text_overlay = pcall(function ()
+        return font_string.uaForeverItemTextOverlay == true
+    end)
+    if font_string == _G.ItemTextPageText
+        or marker_ok and is_item_text_overlay then
+        return apply_item_text_html_fonts(font_string)
     end
 
     -- Blizzard_Menu's compositor forbids even indexing SetFont, and assertsafe

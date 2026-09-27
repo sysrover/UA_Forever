@@ -64,6 +64,19 @@ local function record_runtime_result(region, spec, source, translated, reason)
     if type(instance) ~= "string" and type(instance) ~= "number" then
         instance = nil
     end
+    local visible = safe_text(region)
+    if reason == nil or reason == "RETAINED_AFTER_APPLY" then
+        local expected = translated
+        local name_original = safe_string(spec.name_original)
+        if name_original and spec.category
+            and not options.translate_name(spec.category) then
+            expected = name_original
+        end
+        if visible ~= expected and type(spec.visible_matches) == "function" then
+            local match_ok, matches = pcall(spec.visible_matches, visible, expected)
+            if match_ok and matches == true then visible = expected end
+        end
+    end
     auto_scan.record_runtime_result({
         owner = spec.owner, slot = spec.slot,
         source = source, translated = translated,
@@ -74,7 +87,14 @@ local function record_runtime_result(region, spec, source, translated, reason)
         lookupTier = spec.lookup_tier or spec.source_kind
             or (spec.category and "domain") or "adapter",
         catalogSource = spec.catalog_source,
-    }, safe_text(region), reason)
+    }, visible, reason)
+end
+
+local function visible_matches(claim, visible, display)
+    if visible == display then return true end
+    if type(claim.visible_matches) ~= "function" then return false end
+    local ok, matches = pcall(claim.visible_matches, visible, display)
+    return ok and matches == true
 end
 
 local function schedule_post_apply_verification(region, claim, spec, display)
@@ -88,7 +108,7 @@ local function schedule_post_apply_verification(region, claim, spec, display)
         callback = function ()
             if claims[region] ~= claim then return end
             local visible = safe_text(region)
-            if visible ~= display then
+            if not visible_matches(claim, visible, display) then
                 claims[region] = nil
                 record_runtime_result(region, spec, claim.source,
                     claim.translated, "OVERWRITTEN_AFTER_APPLY")
@@ -337,7 +357,8 @@ runtime.apply = function (region, spec)
         and previous.owner == spec.owner and previous.slot == spec.slot
         and previous.source == source and previous.translated == translated
         and previous.name_original == name_original
-        and not previous.visible_original and safe_text(region) == display then
+        and not previous.visible_original
+        and visible_matches(previous, safe_text(region), display) then
         record_runtime_result(region, spec, source, translated)
         return true
     end
@@ -365,7 +386,7 @@ runtime.apply = function (region, spec)
         record_runtime_result(region, spec, source, translated, "SetText завершився помилкою")
         return false
     end
-    if safe_text(region) ~= display then
+    if not visible_matches(spec, safe_text(region), display) then
         record_runtime_result(region, spec, source, translated, "APPLY_FAILED")
         return false
     end
@@ -381,6 +402,7 @@ runtime.apply = function (region, spec)
         lookup_tier = spec.lookup_tier,
         catalog_source = spec.catalog_source,
         after_visibility = spec.after_visibility,
+        visible_matches = spec.visible_matches,
     }
     claims[region] = claim
     if spec.after_apply then pcall(spec.after_apply, region, source) end

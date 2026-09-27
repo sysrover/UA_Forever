@@ -1,5 +1,6 @@
 local _, addon_table = ...
 
+local auto_scan = addon_table.use("auto_scan")
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
@@ -589,7 +590,19 @@ local function translate_trainer_row(row)
     end
 end
 
+local function translate_trainer_static_region(region)
+    if not region then return end
+    hook_owner(region, "SetText", function (current)
+        if runtime.is_applying(current) then return end
+        auto_scan.surface_attempt("trainer", "trainer-region.SetText")
+        strings.translate_region(current)
+    end)
+    if not runtime.is_applying(region) then strings.translate_region(region) end
+end
+
 local function translate_trainer_rows()
+    translate_trainer_static_region(_G.ClassTrainerFrameSubText)
+    translate_trainer_static_region(_G.ClassTrainerFrameSkillStepButtonName)
     local frame = _G.ClassTrainerFrame
     local scroll_box = frame and frame.ScrollBox
     if not scroll_box or type(scroll_box.ForEachFrame) ~= "function" then return end

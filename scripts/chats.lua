@@ -259,6 +259,13 @@ local function translate_direct_chat_text(message)
     if appearance then
         return chat_format.appearance(translate_item_links(appearance))
     end
+    local tipsy_name, tipsy_item = message:match(
+        "^(.+) seems a little tipsy from the (.+)%.$")
+    if tipsy_name then
+        return chat_format.tipsy(tipsy_name, translate_item_links(tipsy_item))
+    end
+    local sobering_name = message:match("^(.+) seems to be sobering up%.$")
+    if sobering_name then return chat_format.sobering(sobering_name) end
     local gained = message:match("^You gained: (.+)$")
     if gained then return chat_format.gained(translate_money_amount(gained)) end
     local currency = message:match("^You receive currency: (.+)$")

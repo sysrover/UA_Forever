@@ -101,6 +101,61 @@ English mismatch має потрапити до `[INVALID_CANDIDATES]`, а не 
 4. Відкрийте **Показати зібрані дані**, скопіюйте всі частини експорту й лише
    після цього очищуйте scan data.
 
+Збережіть експорт у текстовий файл і побудуйте перевірені worklist-файли:
+
+```powershell
+python -m pip install -r automation/requirements.txt
+python automation/catalog_scan.py build/log.txt
+```
+
+Рядки, які свідомо треба залишити без перекладу, додавайте до
+`automation/ignored_sources.json` із точними `section`, `source` і поясненням
+у `reason`. Після сканування вони потрапляють до `results/ignored.json`, а не
+до `needs_translation.json`.
+
+Експорт автоскану містить лише невирішені записи. Якщо текст зі звіту вже має
+переклад у поточному репозиторії, автоматизація відносить його до
+`not_applied.json`, а не до `existing.json`. Поля `surface`, `owner` і `slot`
+показують екран та елемент, на якому виникла проблема; UI-звіти в
+`results/ui/` додатково мають статус `needs_translation`, `not_applied` або
+`review`.
+
+Конвеєр завантажує фактичні каталоги в порядку `entries/index.xml` та
+`entries/forever/index.xml`, тому відокремлює вже наявні переклади від справді
+нових. Результати знаходяться в `automation/results/`:
+
+- `needs_translation.json` і `translate/*.json` — рядки, які треба перекласти;
+- `not_applied.json` — переклад є, але runtime його не втримав;
+- `review.json` — динамічні або неоднозначні записи;
+- `ignored.json` — технічний шум;
+- `ui/menus.json`, `ui/widgets.json`, `ui/other.json` — поділ нових UI-знахідок.
+
+Заповнюйте лише поле `translation`. Для машинної чернетки за явно запитаним
+workflow встановіть `GOOGLE_TRANSLATE_API_KEY` і запустіть:
+
+```powershell
+python automation/catalog_translate_google.py
+```
+
+Скрипт заповнює лише порожні поля у `needs_translation.json`, не змінює
+каталоги й не замінює вже перевірені переклади. Усі машинні результати треба
+переглянути. Потім згенеруйте Lua-фрагменти для перевірки без зміни каталогів:
+
+```powershell
+python automation/catalog_apply.py automation/results/needs_translation.json
+```
+
+Після review внесіть ті самі записи безпосередньо в канонічні каталоги:
+
+```powershell
+python automation/catalog_apply.py automation/results/needs_translation.json --apply
+```
+
+Скрипт не створює `*_manual.lua`, не перегенеровує великі каталоги й не
+перезаписує наявні переклади без явного `--update-existing`. Нові записи
+вставляються всередину наявних Lua-таблиць канонічного каталогу, а не окремими
+присвоєннями наприкінці файла.
+
 У report перевіряйте не тільки missing text, а й hook lifecycle, catalog
 conflicts, technical literals та invalid candidates. Секція `[RUNTIME]` показує
 `lookupTier`/`catalogSource`, semantic owner/slot, `applied`, `retained` і фінальний

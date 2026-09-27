@@ -1,1 +1,4 @@
 package-as: UA_Forever
+
+ignore:
+  - automation

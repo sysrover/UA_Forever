@@ -320,7 +320,8 @@ adapter.add = function (tooltip, id)
             and entries.get_item_suffix(native_title) or nil
         if suffix then title = title .. " " .. suffix end
         title_applied = contract.set_translation(tooltip, title_region,
-            native_title, title, "item.name", "item", "item-tooltip")
+            native_title, title, "item.name", "item", "item-tooltip",
+            nil, nil, nil, nil, contract.item_name_visible_matches)
     end
     local use_applied = translate_use(tooltip, entry, line_count)
     local description_count = translate_lines(tooltip, entry, line_count)

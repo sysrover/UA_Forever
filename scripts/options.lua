@@ -9,6 +9,7 @@ local default_account = {
     dev_mode_notify_activity = false,
     auto_scan_menus = false,
     auto_scan_content = false,
+    auto_scan_diagnostics = false,
     override_system_fonts = true,
     disable_all_translation = false,
     translate_quest = true,

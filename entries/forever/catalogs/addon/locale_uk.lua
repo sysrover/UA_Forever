@@ -36,6 +36,7 @@ addonTable.addon_locale_uk = {
         shift_original = "Показувати оригінал підказки під час утримання Shift",
         scan_heading = "Збір неперекладених даних",
         auto_scan = "Автоскан",
+        auto_scan_diagnostics = "Додавати технічну діагностику",
         scan_help = "Предмети, діалоги та імена NPC, квести, навички, закляття, аури й вислови NPC.",
         show_export = "Показати зібрані дані",
         submit_form = "Форма для надсилання",

@@ -156,7 +156,9 @@ local function after_evaluate(label)
                 option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
             })
         end
-        auto_scan.record_zone_name(current, visible_text(region))
+        auto_scan.record_zone_name(current, visible_text(region), {
+            owner = "zone-map", slot = "zone.name", surface = "WorldMapFrame",
+        })
     end
 end
 
@@ -182,7 +184,9 @@ local function after_minimap_update()
             option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
         })
     end
-    auto_scan.record_zone_name(current, visible_text(region))
+    auto_scan.record_zone_name(current, visible_text(region), {
+        owner = "zone-minimap", slot = "zone.name", surface = "Minimap",
+    })
 end
 
 local function native_zone_text(getter_name)
@@ -204,7 +208,9 @@ local function apply_native_zone_region(region, native, owner)
             priority = runtime.PRIORITY.CONTEXT,
         })
     end
-    auto_scan.record_zone_name(native, visible_text(region))
+    auto_scan.record_zone_name(native, visible_text(region), {
+        owner = owner, slot = "zone.name", surface = owner,
+    })
 end
 
 local function after_zone_text_event()
@@ -457,7 +463,9 @@ local function after_zone_label_evaluation(self)
             option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
         })
     end
-    auto_scan.record_zone_name(source, visible_text(region))
+    auto_scan.record_zone_name(source, visible_text(region), {
+        owner = "zone-label", slot = "zone.name", surface = "AdventureMap",
+    })
 end
 
 local function after_adventure_zone_refresh(self)

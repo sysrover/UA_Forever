@@ -447,6 +447,94 @@ utils.get_text_code = function (text)
     return table_concat(result)
 end
 
+local function readable_unit_value(api_name, unit)
+    local api = _G[api_name]
+    if type(api) ~= "function" then return nil end
+    local ok, value = pcall(api, unit)
+    if not ok or type(value) ~= "string" or value == "" then return nil end
+    if type(_G.issecretvalue) == "function" then
+        local secret_ok, secret = pcall(_G.issecretvalue, value)
+        if not secret_ok or secret then return nil end
+    end
+    return value
+end
+
+local function replace_ascii_phrase(text, phrase, replacement)
+    if type(text) ~= "string" or type(phrase) ~= "string" or phrase == "" then
+        return text, false
+    end
+    local lower_text = text:lower()
+    local lower_phrase = phrase:lower()
+    local parts = {}
+    local cursor = 1
+    local replaced = false
+    while cursor <= #text do
+        local first, last = lower_text:find(lower_phrase, cursor, true)
+        if not first then break end
+        local before = first > 1 and lower_text:sub(first - 1, first - 1) or ""
+        local after = last < #lower_text and lower_text:sub(last + 1, last + 1) or ""
+        if not before:match("[%w_]") and not after:match("[%w_]") then
+            parts[#parts + 1] = text:sub(cursor, first - 1)
+            parts[#parts + 1] = replacement
+            cursor = last + 1
+            replaced = true
+        else
+            parts[#parts + 1] = text:sub(cursor, last)
+            cursor = last + 1
+        end
+    end
+    if not replaced then return text, false end
+    parts[#parts + 1] = text:sub(cursor)
+    return table_concat(parts), true
+end
+
+-- Gossip APIs expose player substitutions as rendered text (for example the
+-- current character name or "Warrior"), not as the original $n/$c tokens.
+-- Keep the rendered source for evidence, but derive a stable lookup template.
+utils.get_personalized_gossip = function (text)
+    if type(text) ~= "string" or text == "" then return text end
+
+    local template = text
+    local kinds = {}
+    local hints = {}
+    local player_name = readable_unit_value("UnitName", "player")
+    local player_class = readable_unit_value("UnitClass", "player")
+
+    local changed
+    if player_name then
+        template, changed = replace_ascii_phrase(template, player_name, "<name>")
+        if changed then
+            kinds[#kinds + 1] = "name"
+            hints[#hints + 1] = "{ім'я:<відмінок>}"
+        end
+    end
+    if player_class then
+        template, changed = replace_ascii_phrase(template, player_class, "<class>")
+        if changed then
+            kinds[#kinds + 1] = "class"
+            hints[#hints + 1] = "{клас:<відмінок>}"
+        end
+    end
+
+    if #kinds == 0 then return text end
+    return template, table_concat(kinds, ","), table_concat(hints, ", ")
+end
+
+utils.get_gossip_lookup_codes = function (text)
+    local exact_code = utils.get_text_code(text)
+    local template, personalized, translation_hint = utils.get_personalized_gossip(text)
+    local template_code
+    if personalized and template ~= text then
+        template_code = utils.get_text_code(template)
+    end
+    local codes = {}
+    if exact_code and exact_code ~= "" then codes[#codes + 1] = exact_code end
+    if template_code and template_code ~= "" and template_code ~= exact_code then
+        codes[#codes + 1] = template_code
+    end
+    return codes, template, personalized, translation_hint, template_code
+end
+
 utils.match_text_code = function (code, candidates)
     for _, candidate in ipairs(candidates) do
         -- If #code == MAX_TEXT_CODE_LENGTH - we do prefix match, as code may have been stripped

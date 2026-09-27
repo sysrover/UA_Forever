@@ -674,17 +674,23 @@ local warrior_stances = {
     ["Berserker Stance"] = "стійка берсерка",
 }
 
-local function translate_requirement(requirement)
+local function translate_requirement_part(requirement)
+    requirement = requirement:match("^%s*(.-)%s*$")
     local skill, color, rank, reset = requirement:match(
         "^(.-) %((|c%x%x%x%x%x%x%x%x)(%d+)(|r)%)$")
+    local explicit_rank = false
     if not skill then
         skill, rank = requirement:match("^(.-) %((%d+)%)$")
     end
+    if not skill then
+        skill, rank = requirement:match("^(.-) %(Rank (%d+)%)$")
+        explicit_rank = skill ~= nil
+    end
     local name = skill or requirement
     local level = name:match("^Level (%d+)$")
-    if level then return "Необхідний рівень " .. level end
+    if level then return "рівень " .. level, true end
 
-    local translated = ui[name]
+    local translated = warrior_stances[name] or ui[name]
         or addonTable.string and addonTable.string[name]
     if not translated then
         local entries = addonTable.use("entries")
@@ -692,8 +698,26 @@ local function translate_requirement(requirement)
             or entries.lookup_name("item", name)
     end
     if not translated then return nil end
-    return "Потрібно: " .. translated
-        .. (rank and " (" .. (color or "") .. rank .. (reset or "") .. ")" or "")
+    if rank then
+        translated = translated .. " (" .. (explicit_rank and "ранг " or "")
+            .. (color or "") .. rank .. (reset or "") .. ")"
+    end
+    return translated, false
+end
+
+local function translate_requirement(requirement)
+    local parts, only_level = {}, true
+    for part in requirement:gmatch("[^,]+") do
+        local translated, is_level = translate_requirement_part(part)
+        if not translated then return nil end
+        parts[#parts + 1] = translated
+        only_level = only_level and is_level == true
+    end
+    if #parts == 0 then return nil end
+    if #parts == 1 and only_level then
+        return "Необхідний " .. parts[1]
+    end
+    return "Потрібно: " .. table.concat(parts, ", ")
 end
 
 addonTable.forever_ui_patterns = {

@@ -254,15 +254,9 @@ local function objective_region(region, slot, after_apply, quest_id)
     end
     runtime.invalidate(region)
     if not options.can_lookup("translate_quest") then return false end
+    local native = native_quest_objective(quest_id)
     local ok, translated = pcall(entries.translate_quest_objective_task,
-        source, quest_id)
-    if ok and translated == source then
-        local native = native_quest_objective(quest_id)
-        if native and source:lower() == native:lower() then
-            local entry = entries.get_entry("quest", quest_id)
-            translated = entry and entry[3]
-        end
-    end
+        source, quest_id, native)
     if not ok or not safe_string(translated) or translated == source then return false end
     return runtime.apply(region, {
         owner = "quest-objective", slot = slot, source = source,

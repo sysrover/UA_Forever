@@ -2,6 +2,7 @@ local addon_name, addon_table = ...
 
 local assets = addon_table.use("assets")
 local auto_scan = addon_table.use("auto_scan")
+local book_ui = addon_table.use("book_ui")
 local chats = addon_table.use("chats")
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
@@ -134,11 +135,15 @@ local function schedule_panel_refresh()
 end
 
 local function refresh_trainer()
+    auto_scan.surface_attempt("trainer", "registry.refresh")
     registry.refresh("trainer")
 end
 
-local function schedule_trainer_refresh()
+local function schedule_trainer_refresh(event)
+    if event then auto_scan.surface_event("trainer", event) end
     scheduler.request("trainer-content", nil, refresh_trainer)
+    scheduler.request("trainer-content-retry", nil, refresh_trainer, 0.1)
+    scheduler.request("trainer-content-late", nil, refresh_trainer, 0.35)
 end
 
 local function schedule_current_quest_capture(event)
@@ -297,7 +302,13 @@ local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
     hooks.global("PanelTemplates_SetTab", selected_tab)
-    hooks.global("ClassTrainerFrame_Update", schedule_trainer_refresh)
+    local trainer_hook = "ClassTrainerFrame_Update"
+    local trainer_hook_available = hooks.global(trainer_hook, function ()
+        auto_scan.surface_hook("trainer", trainer_hook, true, true)
+        schedule_trainer_refresh(trainer_hook)
+    end)
+    auto_scan.surface_hook("trainer", trainer_hook,
+        trainer_hook_available, false)
     hooks.global("QuestFrame_SetPortrait", update_quest_npc_name)
     local greeting_hook = "QuestFrameGreetingPanel_OnShow"
     local greeting_hook_available = hooks.global(greeting_hook, function ()
@@ -456,6 +467,39 @@ local function register_slash_command()
                 message("для елемента під курсором немає translation claim")
             end
         elseif command == "tooltip" then
+            local all_value = value:match("^all%s*(.-)$")
+            if all_value ~= nil then
+                local function capture_all_tooltips()
+                    local ok, report = pcall(tooltips.capture_visible_tooltips)
+                    if not ok then
+                        UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+                        UA_ForeverDB.scan.tooltipProbe = {
+                            version = 1, status = "error",
+                            error = tostring(report),
+                        }
+                        message("захоплення tooltip-ів завершилося помилкою; стан збережено")
+                        return
+                    end
+                    message(string.format("tooltip-звіт: %s; знайдено %d",
+                        tostring(report.status), report.count or 0))
+                    message("зробіть /reload; результат: UA_ForeverDB.scan.tooltipProbe у SavedVariables/UA_Forever.lua")
+                end
+                local delay = tonumber(all_value)
+                if delay and delay > 0 then
+                    delay = math.min(delay, 30)
+                    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+                    UA_ForeverDB.scan.tooltipProbe = {
+                        version = 1, status = "waiting", delay = delay,
+                    }
+                    message(string.format("захоплю всі tooltip-и через %.1f с — наведіть курсор на предмет", delay))
+                    scheduler.cancel("manual-tooltip-capture")
+                    scheduler.request("manual-tooltip-capture", nil,
+                        capture_all_tooltips, delay)
+                else
+                    capture_all_tooltips()
+                end
+                return
+            end
             local tooltip
             for _, name in ipairs({ "GameTooltip", "ItemRefTooltip",
                 "ShoppingTooltip1", "ShoppingTooltip2", "EmbeddedItemTooltip",
@@ -632,7 +676,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
         end
     end
 end
@@ -752,7 +796,10 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         scanner.begin_book(...)
     elseif event == "ITEM_TEXT_READY" then
         scanner.note_book(...)
-        scheduler.request("book-page-capture", nil, scanner.capture_book_page)
+        scheduler.request("book-page-refresh", nil, function ()
+            book_ui.refresh()
+            scanner.capture_book_page()
+        end)
     elseif event == "COMBAT_TEXT_UPDATE" then
         auto_scan.surface_event("combat-text", event)
         if type(strings.capture_combat_text_event) == "function" then
@@ -762,7 +809,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             strings.refresh_combat_text()
         end
     elseif event == "TRAINER_SHOW" or event == "TRAINER_UPDATE" then
-        schedule_trainer_refresh()
+        schedule_trainer_refresh(event)
     elseif event == "GOSSIP_SHOW" or event == "QUEST_DETAIL" or event == "QUEST_PROGRESS"
         or event == "QUEST_COMPLETE" or event == "QUEST_GREETING" then
         if event ~= "GOSSIP_SHOW" and event ~= "QUEST_GREETING" then
