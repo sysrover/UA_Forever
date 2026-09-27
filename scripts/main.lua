@@ -169,7 +169,7 @@ local function opened_panel(frame)
         -- ShowUIPanel runs after the native initial text writes. The surface
         -- refresh handles static labels; pooled rows have domain post-hooks.
         local surface = registry.find_frame(frame)
-        if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
+        if surface then registry.refresh(surface.id) end
         if options.account.auto_scan_content then strings.capture_frame(frame) end
     end
 end
@@ -177,13 +177,15 @@ end
 local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
-    if surface then registry.refresh(surface.id) else strings.translate_frame(frame) end
+    if surface then registry.refresh(surface.id) end
     if options.account.auto_scan_content then strings.capture_frame(frame) end
 end
 
 local function translate_character_subframe(_, subframe_name)
     local subframe = type(subframe_name) == "string" and _G[subframe_name] or nil
-    if subframe then strings.translate_frame(subframe) end
+    if subframe then
+        strings.translate_frame(subframe, registry.get("character"))
+    end
 end
 
 local function translate_communities_add_dialog()
@@ -282,7 +284,10 @@ local function schedule_transient_capture(frame)
     scheduler.request("auto-alert:" .. tostring(frame), nil, function ()
         local shown_ok, shown = pcall(frame.IsShown, frame)
         if shown_ok and shown then
-            strings.translate_frame(frame)
+            strings.translate_frame(frame, nil, {
+                id = "developer-alert-capture", surface = "alert",
+                owner = "main", reason = "DEVELOPER_CAPTURE",
+            })
             strings.capture_frame(frame)
         end
     end)
@@ -671,6 +676,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 prepare_nameplates()
                 prepare_target_frame()
                 registry.prepare_root_hooks()
+                registry.install_hooks(loaded_addon)
                 schedule_panel_refresh()
             end
             return
@@ -714,6 +720,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         map_labels.prepare()
         level_up_display.prepare()
         skills.prepare()
+        registry.install_hooks()
         update_target_name()
         scheduler.request("compatibility-scan", nil, function ()
             local ok, report = pcall(scanner.run, false)

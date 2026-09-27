@@ -1,6 +1,8 @@
 local _, addon_table = ...
 
 local menus_ui = addon_table.use("menus_ui")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").menus
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local strings = addon_table.use("strings")
@@ -14,6 +16,15 @@ local utils = addon_table.use("utils")
 local walker = addon_table.use("translation_walker")
 local hooks = addon_table.use("translation_hooks").bind("menus")
 
+local menu_walks = {
+    popup = { id = "rendered-static-popup", surface = "popup",
+        owner = "menus", reason = "ANONYMOUS_POPUP_LAYOUT" },
+    modern = { id = "modern-open-menu", surface = "menus",
+        owner = "menus", reason = "POOLED_MENU_DISCOVERY" },
+    legacy = { id = "legacy-dropdown", surface = "menus",
+        owner = "menus", reason = "POOLED_MENU_DISCOVERY" },
+}
+
 local function capture_auto_frame(frame)
     if frame and options.account and options.account.auto_scan_content
         and type(strings.capture_frame) == "function" then
@@ -23,12 +34,18 @@ end
 
 local function translate_and_capture_frame(frame)
     if not frame then return end
-    if type(strings.translate_frame) == "function" then strings.translate_frame(frame) end
+    if type(strings.translate_frame) == "function" then
+        strings.translate_frame(frame, nil, menu_walks.popup)
+    end
     capture_auto_frame(frame)
 end
 
 local function translate_game_menu(frame)
     if not frame then return end
+    local surface = registry.get("game-menu")
+    if not surface then return end
+    local instance = "game-menu:" .. tostring(frame)
+    runtime.begin_generation(surface, instance)
 
     -- GameMenuFrame is protected in Camelot, so the generic recursive walker
     -- intentionally refuses it. Its public display surface is small and
@@ -36,8 +53,8 @@ local function translate_game_menu(frame)
     -- Touch only those completed display regions and leave button data,
     -- callbacks, ordering, and secure descendants unchanged.
     local header = frame.Header
-    strings.translate_region(header and header.Text, nil, nil,
-        registry.get("game-menu"), "static")
+    strings.translate_region(header and header.Text, nil, "ui.title",
+        surface, "dynamic", instance)
     if header and type(header.UpdateWidth) == "function" then
         pcall(header.UpdateWidth, header)
     end
@@ -48,8 +65,8 @@ local function translate_game_menu(frame)
             if button and type(button.GetFontString) == "function" then
                 local ok, font_string = pcall(button.GetFontString, button)
                 if ok then
-                    strings.translate_region(font_string, nil, nil,
-                        registry.get("game-menu"), "static")
+                    strings.translate_region(font_string, nil, "ui.action",
+                        surface, "dynamic", instance)
                     strings.fit_button_to_text(button, font_string)
                     local width_ok, width = pcall(button.GetWidth, button)
                     if width_ok and type(width) == "number" then
@@ -143,6 +160,37 @@ local function update_inbox_controls()
     translate_mail_tab()
 end
 
+local function declare_inbox_hook()
+    if type(registry.declare_hook) ~= "function" then return end
+    registry.declare_hook({
+        id = "mail.inbox.update",
+        surface = "mail",
+        kind = "mixin",
+        target = "InboxMixin",
+        method = "Update",
+        blizzardAddon = "Blizzard_MailFrame",
+        required = true,
+        fallbackEvent = "MAIL_INBOX_UPDATE",
+        verifiedBuild = 70009,
+        callback = update_inbox_controls,
+    })
+end
+
+local function declare_game_menu_hook()
+    if type(registry.declare_hook) ~= "function" then return end
+    registry.declare_hook({
+        id = "game-menu.buttons.init",
+        surface = "game-menu",
+        kind = "frame",
+        target = "GameMenuFrame",
+        method = "InitButtons",
+        required = true,
+        fallbackEvent = "GameMenuFrame.OnShow",
+        verifiedBuild = 70009,
+        callback = translate_game_menu,
+    })
+end
+
 local function translate_micro_button_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip.GetOwner or tooltip:GetOwner() ~= button then return end
@@ -156,7 +204,7 @@ local function translate_open_menu()
         local menu = manager and type(manager.GetOpenMenu) == "function"
             and manager:GetOpenMenu() or nil
         if menu then
-            strings.translate_frame(menu)
+            strings.translate_frame(menu, nil, menu_walks.modern)
             capture_auto_frame(menu)
         end
     end
@@ -169,13 +217,15 @@ local function translate_legacy_dropdown(_, level)
     local function translate()
         local frame = _G["DropDownList" .. level]
         if not frame then return end
-        strings.translate_frame(frame)
+        strings.translate_frame(frame, nil, menu_walks.legacy)
         capture_auto_frame(frame)
         local owner = _G.UIDROPDOWNMENU_OPEN_MENU
         local name_ok, name = owner and pcall(owner.GetDebugName, owner)
         if name_ok and type(name) == "string"
             and name:find("LFGWhoListFrame.FilterDropdown", 1, true) then
-            walker.walk(frame, function (region)
+            walker.walk({ id = "legacy-dropdown-lfg-filter",
+                surface = "group-finder", owner = "menus",
+                reason = "POOLED_MENU_DISCOVERY" }, frame, function (region)
                 strings.translate_region(region)
             end, nil, { frames = 0 })
         end
@@ -189,6 +239,9 @@ local function translate_lfg_frame(frame)
     local entry = root and root.EntryCreation or frame
     if not entry then return end
     local surface = registry.get("lfg")
+    if surface and runtime.generation(surface) == 0 then
+        runtime.begin_generation(surface, "entry-creation")
+    end
     local function translate_static(region)
         if region then strings.translate_region(region, nil, nil, surface, "static") end
     end
@@ -205,7 +258,8 @@ local function translate_lfg_frame(frame)
     -- Edit mode replaces this placeholder with a quest-specific description.
     -- Keep it dynamic so the quest owner can claim the reused region.
     strings.translate_region(entry.Description and entry.Description.EditBox
-        and entry.Description.EditBox.Instructions, nil, nil, surface, "dynamic")
+        and entry.Description.EditBox.Instructions, nil, nil, surface, "dynamic",
+        "entry-description")
 end
 
 local function translate_lfg_activity_button(button)
@@ -215,7 +269,7 @@ local function translate_lfg_activity_button(button)
         if ok and font_string and font_string.GetText then
             local text_ok, source = pcall(font_string.GetText, font_string)
             if text_ok and type(source) == "string" then
-                runtime.clear(font_string)
+                runtime.invalidate(font_string)
                 local translated, _, kind, _, _, option =
                     resolver.find_ui(source, font_string)
                 if translated then
@@ -229,9 +283,13 @@ local function translate_lfg_activity_button(button)
                     end
                     local slot = id_ok and not secret and type(activity_id) == "number"
                         and "activity:" .. activity_id or "activity.name"
+                    local instance = id_ok and not secret and activity_id or source
+                    local generation = runtime.begin_generation(font_string, instance)
                     runtime.apply(font_string, { owner = "lfg", slot = slot,
                         source = source, translated = translated,
                         option = option,
+                        surface = font_string, generation = generation,
+                        instance = instance, phase = "dynamic",
                         priority = kind == "domain" and runtime.PRIORITY.DOMAIN
                             or runtime.PRIORITY.CONTEXT })
                 end
@@ -255,7 +313,11 @@ local function translate_lfg_listing_zone(region)
     end
     local translated = entries.get_glossary_text(source, source, "zone")
     local is_zone = translated ~= source
-    if not is_zone then translated = resolver.find_ui(source, region) end
+    if not is_zone then
+        translated = resolver.find_ui(source, region, {
+            category = "zone", slot = "zone.name", option = "translate_zone",
+        })
+    end
     if type(translated) ~= "string" or translated == source then return end
     runtime.apply(region, {
         owner = "lfg-listing", slot = is_zone and "zone.name" or "ui.text",
@@ -268,7 +330,9 @@ end
 local function translate_lfg_listing_rows()
     local listing_view = _G.LFGListingFrameActivityView
     if not listing_view then return end
-    walker.walk(listing_view, function (region)
+    walker.walk({ id = "lfg-listing-labels", surface = "group-finder",
+        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
+        listing_view, function (region)
         local name_ok, name = pcall(region.GetDebugName, region)
         if not name_ok or type(name) ~= "string" then return end
         if name:find("LFGListingFrameActivityViewScrollBoxNameButtonName", 1, true) then
@@ -303,7 +367,9 @@ end
 local function translate_lfg_categories()
     local category_view = _G.LFGListingFrameCategoryView
     if not category_view then return end
-    walker.walk(category_view, function (region)
+    walker.walk({ id = "lfg-category-labels", surface = "group-finder",
+        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
+        category_view, function (region)
         local name_ok, name = pcall(region.GetDebugName, region)
         if name_ok and type(name) == "string"
             and name:find("LFGListingFrameCategoryView.", 1, true)
@@ -332,7 +398,9 @@ end
 local function translate_lfg_browse()
     local frame = _G.LFGBrowseFrame
     if not frame then return end
-    walker.walk(frame, function (region)
+    walker.walk({ id = "lfg-browse-labels", surface = "group-finder",
+        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
+        frame, function (region)
         local name_ok, name = pcall(region.GetDebugName, region)
         if name_ok and lfg_browse_labels[name] then
             hooks.region(region, "SetText", translate_lfg_browse_label)
@@ -358,7 +426,9 @@ end
 local function translate_lfg_who()
     local frame = _G.LFGWhoListFrame
     if not frame then return end
-    walker.walk(frame, function (region)
+    walker.walk({ id = "lfg-who-labels", surface = "group-finder",
+        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
+        frame, function (region)
         local name_ok, name = pcall(region.GetDebugName, region)
         if name_ok and lfg_who_labels[name] then
             hooks.region(region, "SetText", translate_lfg_who_label)
@@ -403,7 +473,7 @@ local function translate_lfg_quest_description(entry)
     if not source_ok or not native_uk_ok or not ua_ok or not mixed_ok then return end
     local text_ok, current = pcall(region.GetText, region)
     if not text_ok or (current ~= source and current ~= native_uk) then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     runtime.apply(region, {
         owner = "lfg-quest", slot = "quest:" .. id .. ".description",
         source = source, translated = translated, name_original = name_original,
@@ -440,7 +510,7 @@ local function translate_quit_countdown(dialog)
     if not count then return end
     local applied = runtime.apply(region, {
         owner = "popup", slot = "quit.countdown", source = source,
-        translated = "До виходу залишилося " .. count .. " с",
+        translated = surface_text.quit_countdown(count),
         priority = runtime.PRIORITY.CONTEXT,
     })
     if applied and type(dialog.Resize) == "function" then
@@ -516,10 +586,7 @@ local function translate_resurrection_popup(dialog)
         end
     end
     if not name then return false end
-    local translated = name .. " хоче воскресити вас"
-    if seconds then translated = translated .. " і зможе це зробити через " .. seconds .. " с" end
-    if sickness then translated = translated .. ". Після воскресіння ви матимете слабкість воскресіння" end
-    translated = translated .. "."
+    local translated = surface_text.resurrection(name, seconds, sickness)
     local applied = runtime.apply(region, {
         owner = "popup", slot = "resurrection.message", source = source,
         translated = translated, priority = runtime.PRIORITY.CONTEXT,
@@ -603,13 +670,12 @@ local function after_static_popup_update(dialog)
 end
 
 menus_ui.prepare = function ()
-    hooks.region_script(_G.MailFrame, "OnShow", update_inbox_controls,
-        "inbox-controls")
+    declare_inbox_hook()
+    declare_game_menu_hook()
     hooks.region_script(_G.InboxFrame, "OnShow", update_inbox_controls,
         "inbox-controls")
     hooks.region_script(_G.SendMailFrame, "OnShow", widen_mail_frame,
         "mail-width")
-    hooks.global("InboxFrame_Update", update_inbox_controls)
     hooks.region(_G.OpenAllMailText, "SetText", function (region)
         if not runtime.is_applying(region) then strings.translate_region(region) end
     end)
@@ -618,6 +684,12 @@ menus_ui.prepare = function ()
     hooks.region(_G.MailFrameTab2 and _G.MailFrameTab2.Text,
         "SetText", translate_mail_tab)
     update_inbox_controls()
+    local mail = registry.get("mail")
+    if mail then
+        mail.static = function ()
+            update_inbox_controls()
+        end
+    end
     local game_menu = registry.get("game-menu")
     if game_menu then
         game_menu.static = function ()
@@ -649,11 +721,9 @@ menus_ui.prepare = function ()
     -- Forever 1.60.1 creates the escape menu in GameMenuFrameMixin:InitButtons and
     -- micro-button titles in EvaluateTooltipVisibility. Post-hooks translate
     -- only completed FontStrings; button data and tooltipText stay English.
-    -- XML mixins are copied onto frames when the frame is created. By the
-    -- time UA_Forever loads, GameMenuFrame already owns its original method,
-    -- so hooking only GameMenuFrameMixin would not observe real calls.
-    hooks.region(_G.GameMenuFrame, "InitButtons", translate_game_menu)
-    hooks.mixin("GameMenuFrameMixin", "InitButtons", translate_game_menu)
+    -- XML mixins are copied onto frames when the frame is created. The
+    -- executable frame-kind declaration therefore hooks the already-created
+    -- GameMenuFrame instance; the mixin table is not a second owner.
     hooks.mixin("MainMenuBarMicroButtonMixin", "EvaluateTooltipVisibility", translate_micro_button_tooltip)
 
     -- The LFG entry-creation page fills pooled activity rows and resets its

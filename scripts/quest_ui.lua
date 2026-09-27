@@ -3,6 +3,8 @@ local _, addon_table = ...
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local quest_ui = addon_table.use("quest_ui")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").quest
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local strings = addon_table.use("strings")
@@ -59,7 +61,7 @@ end
 
 local function quest_name_region(region, id, owner)
     local current = safe_text(region)
-    if region then runtime.clear(region) end
+    if region then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
     local english = type(id) == "number" and english_title(id)
     local entry = english and entries.get_entry("quest", id)
@@ -128,7 +130,7 @@ local function dialog_field(region, id, field, getter, result_index)
         source, translated = english, ukrainian
     end
     if not translated then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     local applied = runtime.apply(region, {
         owner = "quest-dialog", slot = slot,
         source = source, translated = translated,
@@ -194,7 +196,7 @@ local function prepare_extra_tracker_hooks()
             local menu = active_menu()
             if not menu then return end
             local id = block.id
-            local generation = runtime.next_generation(menu)
+            local generation = runtime.begin_generation(menu)
             scheduler.request("quest-tracker-menu:" .. tostring(menu), generation,
                 function ()
                     if active_menu() ~= menu then return end
@@ -205,7 +207,9 @@ local function prepare_extra_tracker_hooks()
                     local native = english_title(id)
                     if not native then return end
                     local matched = false
-                    walker.walk(menu, function (region)
+                    walker.walk({ id = "quest-tracker-context-menu",
+                        surface = "quest", owner = "quest-ui",
+                        reason = "POOLED_MENU_DISCOVERY" }, menu, function (region)
                         if matched or safe_text(region) ~= native then return end
                         matched = true
                         quest_name_region(region, id, "quest-tracker-menu")
@@ -248,7 +252,7 @@ local function objective_region(region, slot, after_apply, quest_id)
     if previous and previous.slot == slot and source == previous.translated then
         return true
     end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not options.can_lookup("translate_quest") then return false end
     local ok, translated = pcall(entries.translate_quest_objective_task,
         source, quest_id)
@@ -296,7 +300,7 @@ local function quest_log_titles(scroll)
             if translated then
                 local height_ok, old_height = pcall(region.GetStringHeight, region)
                 old_height = height_ok and safe_number(old_height)
-                runtime.clear(region)
+                runtime.invalidate(region)
                 changed = runtime.apply(region, {
                     owner = "quest-log", slot = "quest:" .. id .. ".name",
                     source = source, translated = translated, category = "quest",
@@ -316,7 +320,7 @@ local function quest_log_titles(scroll)
                 }) or changed
             end
         elseif region then
-            runtime.clear(region)
+            runtime.invalidate(region)
         end
     end
     local header_pool = scroll.headerFramePool
@@ -331,7 +335,7 @@ local function quest_log_titles(scroll)
             if translated == source and class_forms and class_forms["н"] then
                 translated = utils.cap(class_forms["н"][1])
             end
-            if region then runtime.clear(region) end
+            if region then runtime.invalidate(region) end
             if source and safe_string(translated) and translated ~= source then
                 changed = runtime.apply(region, {
                     owner = "quest-log", slot = "quest-header:" .. tostring(button.questLogIndex) .. ".name",
@@ -395,7 +399,7 @@ end
 local function translate_quest_greeting()
     local greeting = _G.GreetingText
     local source = original_value("GetGreetingText") or safe_text(greeting)
-    if greeting then runtime.clear(greeting) end
+    if greeting then runtime.invalidate(greeting) end
     if source and options.can_lookup("translate_gossip") then
         local id_ok, npc_id = pcall(utils.npc_id_from_unit_id, "npc")
         if not id_ok or type(npc_id) ~= "number" then
@@ -420,7 +424,7 @@ local function translate_quest_greeting()
         local region_ok, region = pcall(button.GetFontString, button)
         region = region_ok and region or nil
         local name = safe_text(region)
-        if region then runtime.clear(region) end
+        if region then runtime.invalidate(region) end
         local id = greeting_quest_id(button)
         if id and name and options.can_lookup("translate_gossip", "translate_quest") then
             local entry = entries.get_entry("quest", id)
@@ -475,7 +479,7 @@ local function translate_dialog_title()
     local source = replace_once(current, ukrainian, english) or current
     local translated = replace_once(source, english, ukrainian)
     if not translated then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     local applied = runtime.apply(region, {
         owner = "quest-dialog", slot = slot,
         source = source, translated = translated, category = "quest",
@@ -520,7 +524,9 @@ local function translate_quest_map_labels()
             strings.translate_region(region)
         end
     end
-    walker.walk(details, function (region)
+    walker.walk({ id = "quest-map-detail-labels", surface = "quest",
+        owner = "quest-ui", reason = "LEGACY_REGION_DISCOVERY" },
+        details, function (region)
         if quest_map_labels[safe_text(region)] then
             strings.translate_region(region)
         end
@@ -720,7 +726,7 @@ quest_ui.refresh_tracker_progress = function ()
                         and old_progress ~= new_progress then
                         local translated = current:sub(1, start_at - 1)
                             .. new_progress .. current:sub(end_at + 1)
-                        runtime.clear(region)
+                        runtime.invalidate(region)
                         runtime.apply(region, {
                             owner = "quest-objective",
                             slot = "quest:" .. id .. ":" .. key .. ".description",
@@ -740,7 +746,9 @@ local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
 local function translate_tracker_labels()
     local tracker = _G.ObjectiveTrackerFrame
     if not tracker or not options.can_translate("translate_string") then return end
-    walker.walk(tracker, function (region)
+    walker.walk({ id = "objective-tracker-static-labels", surface = "quest",
+        owner = "quest-ui", reason = "LEGACY_REGION_DISCOVERY" },
+        tracker, function (region)
         if tracker_labels[safe_text(region)] then
             strings.translate_region(region)
         end
@@ -774,10 +782,12 @@ local function translate_quest_timer(frame)
         local region = button and button.Name
         local source = safe_text(region)
         if source then
-            local translated = source:gsub("(%d+)%s+Day%f[%A]", "%1 дн")
-                :gsub("(%d+)%s+Hr%f[%A]", "%1 год")
-                :gsub("(%d+)%s+Min%f[%A]", "%1 хв")
-                :gsub("(%d+)%s+Sec%f[%A]", "%1 с")
+            local translated = source
+            for _, unit in ipairs(surface_text.timer_units) do
+                translated = translated:gsub(
+                    "(%d+)%s+" .. unit.source .. "%f[%A]",
+                    "%1 " .. unit.translated)
+            end
             if translated ~= source then
                 runtime.apply(region, {
                     owner = "quest-timer", slot = "timer.remaining",

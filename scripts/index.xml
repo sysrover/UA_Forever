@@ -14,6 +14,13 @@
     <Script file="translation_resolver.lua"/>
     <Script file="translation_walker.lua"/>
     <Script file="translation_layout.lua"/>
+    <Script file="tooltip_session.lua"/>
+    <Script file="tooltip_item_adapter.lua"/>
+    <Script file="tooltip_npc_adapter.lua"/>
+    <Script file="tooltip_quest_adapter.lua"/>
+    <Script file="tooltip_map_adapter.lua"/>
+    <Script file="tooltip_spell_adapter.lua"/>
+    <Script file="tooltip_talent_adapter.lua"/>
     <Script file="strings.lua"/>
     <Script file="settings.lua"/>
     <Script file="menus.lua"/>

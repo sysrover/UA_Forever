@@ -1,7 +1,7 @@
 local _, addonTable = ...
 
 -- Codes copied from the in-game NPC dialogue scan. These codes take
--- precedence over the older numeric hashes in the generated catalog.
+-- precedence over the older numeric hashes in the maintained catalog.
 local manual = {
     [49808] = {
         ["gttamtya"] = [===[Рада зустрічі.]===],
@@ -54,6 +54,18 @@ local manual = {
     },
     [7937] = {
         ["hotewramhhtrmeofteesofgn"] = [===[Вітаю, {стать:воїне:воїтелько}. Я — Верховний штукар Меккакруть, вигнанець із Гномреґану.]===],
+    },
+    [6569] = {
+        ["wetsadlrgsrmssorhegnorfsltorhsddsdohhwlgfrtedsofcegnlebttedsaenomewemtmeorsdwemtsegn"] = [===[Там, де тепер блукають троги й лепрогноми, стоїть наш дім — Гномреґан.
+
+Ми втратили родини, нас вигнали з домівок. Розпорошили по світу.
+
+Ох, як же я тужу за днями безтурботного життя у Гномреґані, та ті часи минули. Ми мусимо дати відсіч! Ми мусимо врятувати Гномреґан!]===],
+    },
+    [7944] = {
+        ["amtrokadamtecfatfrmnghegpsintewdtyitismyjbtoeettteprofincstosebtfmoratsstnaeeeaoifyuhntokwgdscfrrnenwejtsohntobeintemtfroertatnw"] = [===[Я — мехмайстер Надспалах, головний архітектор сучасних засад гномської інженерії в усьому світі! Моє завдання — стежити, щоб сила винахідництва й надалі сяяла в наших дугових гайковертах яскравіше, ніж будь-де інде!
+
+До речі, якщо тобі відоме добре креслення для усунення радіації, ми саме зараз шукаємо щось подібне...]===],
     },
     [8879] = {
         ["gsdnheyucetolnoftehyofie"] = [===[Вітаю, {ім'я:к}. Ти {стать:прийшов:прийшла} дізнатися про історію Залізогарта?]===],

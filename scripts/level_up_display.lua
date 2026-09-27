@@ -2,66 +2,80 @@ local _, addon_table = ...
 
 local level_up_display = addon_table.use("level_up_display")
 local options = addon_table.use("options")
-local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
-local hooks = addon_table.use("translation_hooks").bind("level-up-display")
+local registry = addon_table.use("translation_registry")
+local runtime = addon_table.use("translation_runtime")
 
-local function visible_text(region)
-    if not region or type(region.GetText) ~= "function" then return nil end
-    local ok, value = pcall(region.GetText, region)
-    if not ok or type(value) ~= "string" then return nil end
-    if type(_G.issecretvalue) == "function" then
-        local secret_ok, secret = pcall(_G.issecretvalue, value)
-        if not secret_ok or secret then return nil end
+local toast_region_slots = {
+    Title = "ui.title",
+    SubTitle = "ui.subtitle",
+    Description = "ui.description",
+    InstructionalText = "ui.instruction",
+}
+
+local function translate_toast_regions(container, surface, instance)
+    if not container then return end
+    for key, slot in pairs(toast_region_slots) do
+        strings.translate_region(container[key], nil, slot, surface,
+            "dynamic", instance)
     end
-    return value
 end
 
-local function after_start_display(frame)
-    if not frame then return end
-    if frame.type ~= _G.LEVEL_UP_TYPE_CHARACTER
-        or not options.can_lookup("translate_string") then
-        if options.account and options.account.auto_scan_content
-            and type(strings.capture_frame) == "function" then
-            strings.capture_frame(frame)
-        end
-        return
-    end
-    local level_frame = frame.levelFrame
-    local translations = addon_table.forever_ui
-    if not level_frame or not translations then return end
-
-    local reached = level_frame.reachedText
-    local reached_source = visible_text(reached)
-    local reached_translation = translations[reached_source]
-    if reached_source == "You've Reached" and reached_translation then
-        runtime.apply(reached, {
-            owner = "level-up-display", slot = "ui.text",
-            source = reached_source, translated = reached_translation,
-            option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
-        })
-    end
-
-    local level_text = level_frame.levelText
-    local source = visible_text(level_text)
-    local level = source and source:match("^Level (%d+)$")
-    local template = translations["Level %d"]
-    if level and template and tonumber(level) == frame.level then
-        local ok, translated = pcall(string.format, template, tonumber(level))
-        if ok then
-            runtime.apply(level_text, {
-                owner = "level-up-display", slot = "ui.text",
-                source = source, translated = translated,
-                option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
-            })
-        end
-    end
+local function translate_toast(toast)
+    if not toast then return end
+    local surface = registry.get("level-up")
+    if not surface then return end
+    local instance = tostring(toast)
+    runtime.begin_generation(surface, instance)
+    translate_toast_regions(toast, surface, instance)
+    translate_toast_regions(toast.Contents, surface, instance)
     if options.account and options.account.auto_scan_content
         and type(strings.capture_frame) == "function" then
-        strings.capture_frame(frame)
+        strings.capture_frame(toast)
     end
+end
+
+local function after_main_toast(manager)
+    translate_toast(manager and manager.currentDisplayingToast)
+end
+
+local function after_side_toast(manager)
+    translate_toast(manager and manager.lastToastFrame)
+end
+
+local function declare_toast_hooks()
+    if type(registry.declare_hook) ~= "function" then return end
+    registry.declare_hook({
+        id = "level-up.toast.display",
+        surface = "level-up",
+        kind = "mixin",
+        target = "EventToastManagerFrameMixin",
+        method = "DisplayToast",
+        required = true,
+        fallbackEvent = "DISPLAY_EVENT_TOASTS",
+        verifiedBuild = 70009,
+        callback = after_main_toast,
+    })
+    registry.declare_hook({
+        id = "level-up.side-display.toast",
+        surface = "level-up",
+        kind = "mixin",
+        target = "EventToastManagerSideDisplayMixin",
+        method = "DisplayToastAtIndex",
+        required = true,
+        fallbackEvent = "levelup hyperlink",
+        verifiedBuild = 70009,
+        callback = after_side_toast,
+    })
 end
 
 level_up_display.prepare = function ()
-    hooks.global("LevelUpDisplay_StartDisplay", after_start_display)
+    local surface = registry.get("level-up")
+    if surface then
+        surface.static = function ()
+            after_main_toast(_G.EventToastManagerFrame)
+            after_side_toast(_G.EventToastManagerSideDisplay)
+        end
+    end
+    declare_toast_hooks()
 end

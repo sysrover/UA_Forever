@@ -5,14 +5,38 @@ local compiled
 
 resolver.prepare = function ()
     if compiled then return end
-    compiled = {
-        curated = addon_table.forever_ui_curated or {},
-        classic = addon_table.string or {},
-        reviewed = addon_table.forever_ui_generated_reviewed or {},
-        generated = addon_table.forever_ui or {},
-        context = addon_table.forever_ui_context or {},
-        patterns = addon_table.forever_ui_patterns or {},
-    }
+    local catalog = addon_table.forever_catalog
+    if catalog and catalog.ui then
+        compiled = {
+            catalog = catalog,
+            context = addon_table.forever_ui_context or {},
+            patterns = addon_table.forever_ui_patterns or {},
+        }
+    else
+        compiled = {
+            curated = addon_table.forever_ui_curated or {},
+            classic = addon_table.string or {},
+            reviewed = addon_table.forever_ui_generated_reviewed or {},
+            generated = addon_table.forever_ui or {},
+            context = addon_table.forever_ui_context or {},
+            patterns = addon_table.forever_ui_patterns or {},
+        }
+    end
+end
+
+resolver.ui_provenance = function (text)
+    resolver.prepare()
+    return compiled.catalog and compiled.catalog.ui_provenance[text] or nil
+end
+
+resolver.find_source_literal = function (text)
+    if type(text) ~= "string" or text == "" then return nil end
+    resolver.prepare()
+    if not compiled.catalog or type(compiled.catalog.lookup_source_literal) ~= "function" then
+        return nil
+    end
+    local normalized = resolver.normalize(text)
+    return compiled.catalog.lookup_source_literal(text, normalized)
 end
 
 local function safe_name(region)
@@ -25,35 +49,27 @@ local function safe_name(region)
     return ok and type(value) == "string" and value or ""
 end
 
-local function domain_name(text, normalized, frame_name)
-    local categories
-    if frame_name:find("Merchant", 1, true)
-        or frame_name:find("Bank", 1, true)
-        or frame_name:find("Container", 1, true)
-        or frame_name:find("LootFrame", 1, true)
-        or frame_name:find("LootButton", 1, true)
-        or frame_name:find("QuestInfoItem", 1, true)
-        or frame_name:find("QuestInfoRewards", 1, true) then
-        categories = { { "item", "item" } }
-    elseif frame_name:find("PlayerSpells", 1, true)
-        or frame_name:find("SpellBook", 1, true)
-        or frame_name:find("SkillsFrame", 1, true) then
-        categories = { { "spell", "skill" } }
-    elseif frame_name:find("Professions", 1, true)
-        or frame_name:find("TradeSkill", 1, true)
-        or frame_name:find("CraftFrame", 1, true)
-        or frame_name:find("ClassTrainer", 1, true) then
+local function explicit_domain_name(text, normalized, context)
+    if type(context) ~= "table" then return nil end
+    local categories = {}
+    if context.category == "skill" then
         categories = { { "spell", "skill" }, { "item", "item" } }
-    elseif frame_name:find("QuestLog", 1, true)
-        or frame_name:find("QuestMap", 1, true)
-        or frame_name:find("Gossip", 1, true) then
-        categories = { { "quest", "quest" } }
+    elseif context.category == "item" or context.category == "spell"
+        or context.category == "quest" then
+        categories = { { context.category, context.category } }
+    elseif context.category == "zone" then
+        local zones = addon_table.zone or {}
+        local translated = zones[text] or zones[normalized]
+        if translated then
+            return translated, "zone", context.slot or "zone.name", "translate_zone"
+        end
     end
-    for _, pair in ipairs(categories or {}) do
+    for _, pair in ipairs(categories) do
         local translated = entries.lookup_name(pair[1], text)
             or entries.lookup_name(pair[1], normalized)
         if translated then
-            return translated, pair[2], pair[2] .. ".name"
+            return translated, pair[2], context.slot or pair[2] .. ".name",
+                context.option
         end
     end
 end
@@ -100,7 +116,7 @@ local function translate_recipe_output(text)
     return translated and "\n" .. translated or nil
 end
 
-resolver.find_ui = function (text, region)
+resolver.find_ui = function (text, region, context)
     if type(text) ~= "string" or text == "" then return nil end
     if type(_G.issecretvalue) == "function" then
         local ok, secret = pcall(_G.issecretvalue, text)
@@ -109,44 +125,33 @@ resolver.find_ui = function (text, region)
     local normalized = resolver.normalize(text)
     local frame_name = safe_name(region)
     resolver.prepare()
-    local name, category, slot = domain_name(text, normalized, frame_name)
-    if name then return name, normalized, "domain", category, slot end
+    local name, category, slot, domain_option =
+        explicit_domain_name(text, normalized, context)
+    if name then
+        return name, normalized, "domain", category, slot, domain_option
+    end
     for _, rule in ipairs(compiled.context) do
         if rule.text == normalized and frame_name:find(rule.frame, 1, true) then
             return rule.translation, normalized, "context"
         end
     end
-    for _, marker in ipairs({
-        "Merchant", "QuestInfoItem", "QuestInfoRewards", "Professions",
-        "TradeSkill", "CraftFrame", "ClassTrainer", "GroupFinder", "LFGList", "LFGFrame",
-    }) do
-        if frame_name:find(marker, 1, true) then
-            local is_lfg = marker == "GroupFinder" or marker == "LFGList"
-                or marker == "LFGFrame"
-            local translated
-            if is_lfg then
-                local zones = addon_table.zone or {}
-                translated = zones[text] or zones[normalized]
-            else
-                translated = entries.get_glossary_text(normalized, nil)
-            end
-            if translated then
-                if is_lfg then
-                    return translated, normalized, "domain", nil, "zone.name", "translate_zone"
-                end
-                return translated, normalized, "domain"
-            end
-            break
+    local translated
+    if compiled.catalog then
+        local provenance
+        translated, provenance = compiled.catalog.lookup_ui(text, normalized)
+        if translated then
+            return translated, normalized, provenance.tier, nil, nil, nil, provenance
         end
+    else
+        translated = compiled.curated[text] or compiled.curated[normalized]
+        if translated then return translated, normalized, "curated" end
+        translated = compiled.classic[text] or compiled.classic[normalized]
+        if translated then return translated, normalized, "validated_legacy" end
+        translated = compiled.reviewed[text] or compiled.reviewed[normalized]
+        if translated then return translated, normalized, "reviewed_import" end
+        translated = compiled.generated[text] or compiled.generated[normalized]
+        if translated then return translated, normalized, "generated_fallback" end
     end
-    local translated = compiled.curated[text] or compiled.curated[normalized]
-    if translated then return translated, normalized, "curated" end
-    translated = compiled.classic[text] or compiled.classic[normalized]
-    if translated then return translated, normalized, "curated" end
-    translated = compiled.reviewed[text] or compiled.reviewed[normalized]
-    if translated then return translated, normalized, "reviewed" end
-    translated = compiled.generated[text] or compiled.generated[normalized]
-    if translated then return translated, normalized, "generated" end
     translated = translate_reagents(text)
     if translated then return translated, normalized, "domain" end
     translated = translate_recipe_title(text)

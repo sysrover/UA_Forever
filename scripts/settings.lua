@@ -11,6 +11,10 @@ local scheduler = addon_table.use("translation_scheduler")
 local tooltips = addon_table.use("tooltips")
 local map_labels = addon_table.use("map_labels")
 local hooks = addon_table.use("translation_hooks").bind("settings")
+local addon_locale = assert(addon_table.addon_locale_uk,
+    "UA Forever addon locale is not loaded").settings
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").settings
 
 local tooltip_mode_buttons = {}
 local scope_buttons = {}
@@ -29,15 +33,14 @@ local function show_form_link()
         window:SetPoint("CENTER")
         window:SetFrameStrata("FULLSCREEN_DIALOG")
         if window.TitleText then
-            runtime.set_fallback_text(window.TitleText, "Форма для надсилання даних")
+            runtime.set_fallback_text(window.TitleText, addon_locale.form_title)
         end
 
         local help = window:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         help:SetPoint("TOPLEFT", 20, -42)
         help:SetWidth(480)
         help:SetJustifyH("LEFT")
-        runtime.set_fallback_text(help,
-            "Скопіюйте адресу, відкрийте її в браузері та вставте зібрані дані у форму.")
+        runtime.set_fallback_text(help, addon_locale.form_help)
 
         local edit = CreateFrame("EditBox", nil, window, "InputBoxTemplate")
         edit:SetSize(475, 28)
@@ -49,7 +52,7 @@ local function show_form_link()
         local select_button = CreateFrame("Button", nil, window, "UIPanelButtonTemplate")
         select_button:SetSize(215, 25)
         select_button:SetPoint("BOTTOM", 0, 17)
-        runtime.set_fallback_text(select_button, "Виділити для Ctrl+C")
+        runtime.set_fallback_text(select_button, addon_locale.select_for_copy)
         select_button:SetScript("OnClick", function ()
             edit:SetFocus()
             edit:HighlightText()
@@ -78,7 +81,7 @@ local function show_export_window()
         window:SetScript("OnDragStart", window.StartMoving)
         window:SetScript("OnDragStop", window.StopMovingOrSizing)
         if window.TitleText then
-            runtime.set_fallback_text(window.TitleText, "UA Forever: дані автоскана")
+            runtime.set_fallback_text(window.TitleText, addon_locale.scan_data_title)
         end
 
         local content_frame = CreateFrame("Frame", nil, window)
@@ -88,14 +91,13 @@ local function show_export_window()
         help:SetPoint("TOPLEFT", 18, -38)
         help:SetWidth(475)
         help:SetJustifyH("LEFT")
-        runtime.set_fallback_text(help,
-            "Виділіть дані, натисніть Ctrl+C і вставте текст у форму.")
+        runtime.set_fallback_text(help, addon_locale.export_help)
 
         local form_button = CreateFrame("Button", nil, content_frame,
             "UIPanelButtonTemplate")
         form_button:SetSize(135, 24)
         form_button:SetPoint("TOPRIGHT", -28, -37)
-        runtime.set_fallback_text(form_button, "Адреса форми")
+        runtime.set_fallback_text(form_button, addon_locale.form_address)
         form_button:SetScript("OnClick", show_form_link)
 
         local scroll = CreateFrame("ScrollFrame", nil, content_frame,
@@ -116,18 +118,18 @@ local function show_export_window()
             "UIPanelButtonTemplate")
         clear:SetSize(135, 24)
         clear:SetPoint("BOTTOMLEFT", 20, 14)
-        runtime.set_fallback_text(clear, "Очистити дані")
+        runtime.set_fallback_text(clear, addon_locale.clear_data)
 
         local copy = CreateFrame("Button", nil, content_frame,
             "UIPanelButtonTemplate")
         copy:SetSize(190, 24)
         copy:SetPoint("BOTTOMRIGHT", -20, 14)
-        runtime.set_fallback_text(copy, "Виділити для Ctrl+C")
+        runtime.set_fallback_text(copy, addon_locale.select_for_copy)
 
         local function refresh()
             local content = auto_scan.export_text()
             local has_data = content ~= ""
-            if not has_data then content = "Даних для експорту поки немає." end
+            if not has_data then content = addon_locale.no_export_data end
             edit:SetHeight(math.max(380, math.ceil(#content / 65) * 16))
             edit:SetText(content)
             edit:SetCursorPosition(0)
@@ -137,11 +139,12 @@ local function show_export_window()
         end
         clear:SetScript("OnClick", function ()
             StaticPopupDialogs["UA_FOREVER_CLEAR_AUTO_SCAN"] = {
-                text = "Очистити всі зібрані дані автоскана? Переконайтеся, що ви вже скопіювали їх.",
-                button1 = "Очистити",
-                button2 = "Скасувати",
+                text = addon_locale.clear_confirmation,
+                button1 = addon_locale.clear,
+                button2 = addon_locale.cancel,
                 OnAccept = function ()
                     auto_scan.clear()
+                    edit:SetText("")
                     refresh()
                 end,
                 timeout = 0,
@@ -181,7 +184,8 @@ local function show_export_window()
         end)
         collapse:SetScript("OnEnter", function (self)
             GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-            GameTooltip:SetText(window.collapsed and "Розгорнути" or "Згорнути")
+            GameTooltip:SetText(window.collapsed and addon_locale.expand
+                or addon_locale.collapse)
             GameTooltip:Show()
         end)
         collapse:SetScript("OnLeave", function () GameTooltip:Hide() end)
@@ -264,20 +268,20 @@ local function register_addon_settings()
     description:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -12)
     description:SetWidth(620)
     description:SetJustifyH("LEFT")
-    runtime.set_fallback_text(description, "Налаштуйте переклад назв і формат підказок.")
+    runtime.set_fallback_text(description, addon_locale.description)
 
     local heading = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     heading:SetPoint("TOPLEFT", description, "BOTTOMLEFT", 0, -24)
-    runtime.set_fallback_text(heading, "Формат підказки")
+    runtime.set_fallback_text(heading, addon_locale.tooltip_format)
 
     local ukrainian = create_tooltip_mode_button(page, "ukrainian",
-        "Лише українська", heading, -14)
+        addon_locale.ukrainian_only, heading, -14)
     create_tooltip_mode_button(page, "bilingual",
-        "Англійська + українська", ukrainian, -12)
+        addon_locale.bilingual, ukrainian, -12)
 
     local scope_heading = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     scope_heading:SetPoint("TOPLEFT", ukrainian, "BOTTOMLEFT", -2, -48)
-    runtime.set_fallback_text(scope_heading, "Обсяг перекладу")
+    runtime.set_fallback_text(scope_heading, addon_locale.translation_scope)
 
     local function scope_button(value, label, anchor, offset)
         local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
@@ -292,18 +296,18 @@ local function register_addon_settings()
         scope_buttons[value] = button
         return button
     end
-    local full = scope_button("full", "Повний", scope_heading, -14)
-    local custom = scope_button("custom", "Налаштовуваний", full, -12)
+    local full = scope_button("full", addon_locale.full, scope_heading, -14)
+    local custom = scope_button("custom", addon_locale.custom, full, -12)
 
     local previous = custom
     local first_name_button
     for _, item in ipairs({
-        { "translate_item_names", "Назви предметів" },
-        { "translate_quest_names", "Назви завдань" },
-        { "translate_spell_names", "Назви заклять" },
-        { "translate_skill_names", "Назви навичок" },
-        { "translate_zone", "Назви локацій" },
-        { "translate_combat_text", "Бойові написи" },
+        { "translate_item_names", addon_locale.item_names },
+        { "translate_quest_names", addon_locale.quest_names },
+        { "translate_spell_names", addon_locale.spell_names },
+        { "translate_skill_names", addon_locale.skill_names },
+        { "translate_zone", addon_locale.zone_names },
+        { "translate_combat_text", addon_locale.combat_text },
     }) do
         local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
         button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT",
@@ -330,8 +334,7 @@ local function register_addon_settings()
     shift_button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     shift_button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", -20, -24)
     shift_button.text:SetFontObject("GameFontHighlight")
-    runtime.set_fallback_text(shift_button.text,
-        "Показувати оригінал підказки під час утримання Shift")
+    runtime.set_fallback_text(shift_button.text, addon_locale.shift_original)
     shift_button:SetScript("OnClick", function (self)
         options.account.shift_original_tooltip = self:GetChecked() == true
         refresh_open_text()
@@ -339,12 +342,12 @@ local function register_addon_settings()
 
     local scan_heading = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     scan_heading:SetPoint("TOPLEFT", 365, -112)
-    runtime.set_fallback_text(scan_heading, "Збір неперекладених даних")
+    runtime.set_fallback_text(scan_heading, addon_locale.scan_heading)
 
     auto_scan_button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     auto_scan_button:SetPoint("TOPLEFT", scan_heading, "BOTTOMLEFT", 0, -12)
     auto_scan_button.text:SetFontObject("GameFontHighlight")
-    runtime.set_fallback_text(auto_scan_button.text, "Автоскан")
+    runtime.set_fallback_text(auto_scan_button.text, addon_locale.auto_scan)
     auto_scan_button:SetScript("OnClick", function (self)
         options.account.auto_scan_content = self:GetChecked() == true
         if options.account.auto_scan_content then
@@ -356,19 +359,18 @@ local function register_addon_settings()
     scan_help:SetPoint("TOPLEFT", auto_scan_button, "BOTTOMLEFT", 2, -10)
     scan_help:SetWidth(270)
     scan_help:SetJustifyH("LEFT")
-    runtime.set_fallback_text(scan_help,
-        "Предмети, діалоги та імена NPC, квести, навички, закляття, аури й вислови NPC.")
+    runtime.set_fallback_text(scan_help, addon_locale.scan_help)
 
     local export_button = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
     export_button:SetSize(210, 27)
     export_button:SetPoint("TOPLEFT", scan_help, "BOTTOMLEFT", 0, -15)
-    runtime.set_fallback_text(export_button, "Показати зібрані дані")
+    runtime.set_fallback_text(export_button, addon_locale.show_export)
     export_button:SetScript("OnClick", show_export_window)
 
     local form_button = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
     form_button:SetSize(210, 27)
     form_button:SetPoint("TOPLEFT", export_button, "BOTTOMLEFT", 0, -10)
-    runtime.set_fallback_text(form_button, "Форма для надсилання")
+    runtime.set_fallback_text(form_button, addon_locale.submit_form)
     form_button:SetScript("OnClick", show_form_link)
 
     page.OnRefresh = refresh_tooltip_mode_controls
@@ -383,13 +385,40 @@ local function register_addon_settings()
     refresh_tooltip_mode_controls()
 end
 
-local function translate_region(region)
-    if region then strings.translate_region(region) end
+local settings_generation_sequence = 0
+
+local function settings_surface()
+    return registry.get("settings")
 end
 
-local function translate_static_region(region)
+local function begin_settings_generation(panel)
+    local surface = settings_surface()
+    if not surface then return nil end
+    settings_generation_sequence = settings_generation_sequence + 1
+    runtime.begin_generation(surface,
+        "settings-category:" .. settings_generation_sequence .. ":" .. tostring(panel))
+    return surface
+end
+
+local function ensure_settings_generation()
+    local surface = settings_surface()
+    if surface and runtime.generation(surface) <= 0 then
+        runtime.begin_generation(surface, "settings-initial")
+    end
+    return surface
+end
+
+local function translate_region(region, slot, instance)
+    if not region then return false end
+    local surface = ensure_settings_generation()
+    if not surface then return false end
+    return strings.translate_region(region, nil, slot or "ui.text", surface,
+        "dynamic", tostring(instance or region))
+end
+
+local function translate_static_region(region, slot)
     if region then
-        strings.translate_region(region, nil, nil,
+        strings.translate_region(region, nil, slot or "ui.text",
             registry.get("settings"), "static")
     end
 end
@@ -409,29 +438,35 @@ local function translate_dropdown(frame, dropdown)
         for _ in source:gmatch(", ") do count = count + 1 end
         local region = dropdown.Text
         if region then
+            local surface = ensure_settings_generation()
             runtime.apply(region, {
                 owner = "settings-nameplates", slot = "nameplate.selection",
-                source = source, translated = "Вибрано: " .. count,
+                source = source, translated = surface_text.selected(count),
+                surface = surface, phase = "dynamic",
+                generation = surface and runtime.generation(surface) or nil,
+                instance = tostring(frame),
                 priority = runtime.PRIORITY.CONTEXT,
             })
         end
         pcall(dropdown.SetWidth, dropdown, 220)
         return
     end
-    translate_region(dropdown.Text)
+    translate_region(dropdown.Text, "ui.value", frame)
 end
 
 local function translate_row(frame)
     if not frame then return end
-    translate_region(frame.Text)
-    translate_region(frame.Title)
+    translate_region(frame.Text, "ui.label", frame)
+    translate_region(frame.Title, "ui.title", frame)
     local control = frame.Control
-    translate_region(control and control.Label)
+    translate_region(control and control.Label, "ui.label", frame)
     local dropdown = control and control.Dropdown
     translate_dropdown(frame, dropdown)
     if dropdown and type(dropdown.GetFontString) == "function" then
         local ok, region = pcall(dropdown.GetFontString, dropdown)
-        if ok and region ~= dropdown.Text then translate_region(region) end
+        if ok and region ~= dropdown.Text then
+            translate_region(region, "ui.value", frame)
+        end
     end
     if dropdown then
         hooks.region(dropdown, "UpdateText", function (self)
@@ -441,32 +476,33 @@ local function translate_row(frame)
     local button = frame.Button
     if button and type(button.GetFontString) == "function" then
         local ok, region = pcall(button.GetFontString, button)
-        if ok then translate_region(region) end
+        if ok then translate_region(region, "ui.action", frame) end
     end
 end
 
 local function translate_category_button(frame)
-    translate_region(frame and frame.Label)
+    translate_region(frame and frame.Label, "ui.category", frame)
 end
 
 local function translate_category_header(frame)
-    translate_region(frame and frame.Label)
+    translate_region(frame and frame.Label, "ui.category-header", frame)
 end
 
 local function translate_search_category(frame)
-    translate_region(frame and frame.Title)
+    translate_region(frame and frame.Title, "ui.search-category", frame)
 end
 
 local function translate_section_header(frame)
-    translate_region(frame and frame.Title)
+    translate_region(frame and frame.Title, "ui.section", frame)
 end
 
 local function translate_list_element(frame)
-    translate_region(frame and frame.Text)
+    translate_region(frame and frame.Text, "ui.label", frame)
 end
 
 local function translate_expandable_section(frame)
-    translate_region(frame and frame.Button and frame.Button.Text)
+    translate_region(frame and frame.Button and frame.Button.Text,
+        "ui.section", frame)
 end
 
 local function translate_advanced_quality_section(section)
@@ -475,28 +511,35 @@ local function translate_advanced_quality_section(section)
     -- controls, so the ordinary SettingsListElement hooks never see its labels.
     local regions_ok, regions = pcall(function () return { section:GetRegions() } end)
     if regions_ok then
-        for _, region in ipairs(regions) do translate_region(region) end
+        for _, region in ipairs(regions) do
+            translate_region(region, "ui.label", section)
+        end
     end
     local base_tab = section.BaseTab
     local raid_tab = section.RaidTab
     local base_label = base_tab and base_tab.Text
     if base_label then
+        local surface = ensure_settings_generation()
         runtime.apply(base_label, { owner = "settings-graphics",
-            slot = "graphics.base-tab", source = "Base", translated = "Основні",
+            slot = "graphics.base-tab", source = "Base",
+            translated = surface_text.base_tab,
+            surface = surface, phase = "dynamic",
+            generation = surface and runtime.generation(surface) or nil,
+            instance = tostring(section),
             priority = runtime.PRIORITY.CONTEXT })
     end
-    translate_region(raid_tab and raid_tab.Text)
+    translate_region(raid_tab and raid_tab.Text, "graphics.raid-tab", section)
 
     for _, controls in ipairs({ section.BaseQualityControls,
         section.RaidQualityControls }) do
         if controls then
             for _, control in ipairs(controls.Controls or {}) do
-                translate_region(control and control.Text)
+                translate_region(control and control.Text, "ui.label", control)
                 local dropdown = control and control.Control and control.Control.Dropdown
                 if dropdown then
-                    translate_region(dropdown.Text)
+                    translate_region(dropdown.Text, "ui.value", control)
                     hooks.region(dropdown, "UpdateText", function (self)
-                        translate_region(self.Text)
+                        translate_region(self.Text, "ui.value", control)
                     end)
                 end
             end
@@ -506,15 +549,16 @@ end
 
 local function translate_panel_chrome(panel)
     if not panel then return end
-    translate_static_region(panel.NineSlice and panel.NineSlice.Text)
-    translate_static_region(panel.CloseButton and panel.CloseButton.Text)
-    translate_static_region(panel.ApplyButton and panel.ApplyButton.Text)
+    translate_static_region(panel.NineSlice and panel.NineSlice.Text, "ui.title")
+    translate_static_region(panel.CloseButton and panel.CloseButton.Text, "ui.action")
+    translate_static_region(panel.ApplyButton and panel.ApplyButton.Text, "ui.action")
 
     local container = panel.Container
     local list = container and container.SettingsList
     local header = list and list.Header
-    translate_static_region(header and header.Title)
-    translate_static_region(header and header.DefaultsButton and header.DefaultsButton.Text)
+    translate_static_region(header and header.Title, "ui.title")
+    translate_static_region(header and header.DefaultsButton
+        and header.DefaultsButton.Text, "ui.action")
 end
 
 local function translate_visible_settings(panel)
@@ -528,8 +572,6 @@ local function translate_visible_settings(panel)
     if not ok or type(frames) ~= "table" then return end
     for _, frame in ipairs(frames) do
         if frame.BaseQualityControls then
-            hooks.region(frame, "Init", translate_advanced_quality_section)
-            hooks.region(frame, "OnTabSelected", translate_advanced_quality_section)
             translate_advanced_quality_section(frame)
         else
             translate_row(frame)
@@ -546,8 +588,72 @@ local function schedule_visible_settings(panel)
 end
 
 local function displayed_category(panel)
+    begin_settings_generation(panel)
     translate_panel_chrome(panel)
     schedule_visible_settings(panel)
+end
+
+local function declare_settings_hook(id, kind, target, method, callback)
+    if type(registry.declare_hook) ~= "function" then return end
+    registry.declare_hook({
+        id = "settings." .. id,
+        surface = "settings",
+        kind = kind,
+        target = target,
+        method = method,
+        required = true,
+        fallbackEvent = "SettingsPanel.DisplayCategory",
+        verifiedBuild = 70009,
+        callback = callback,
+    })
+end
+
+local function declare_settings_hooks()
+    local init_hooks = {
+        { "category.button", "SettingsCategoryListButtonMixin",
+            translate_category_button },
+        { "category.header", "SettingsCategoryListHeaderMixin",
+            translate_category_header },
+        { "search.category", "SettingsListSearchCategoryMixin",
+            translate_search_category },
+        { "section.header", "SettingsListSectionHeaderMixin",
+            translate_section_header },
+        { "list.element", "SettingsListElementMixin",
+            translate_list_element },
+        { "expandable.section", "SettingsExpandableSectionMixin",
+            translate_expandable_section },
+        { "quality.section", "SettingsAdvancedQualitySectionMixin",
+            translate_advanced_quality_section },
+        { "checkbox.control", "SettingsCheckboxControlMixin", translate_row },
+        { "slider.control", "SettingsSliderControlMixin", translate_row },
+        { "dropdown.control", "SettingsDropdownControlMixin", translate_row },
+        { "button.control", "SettingsButtonControlMixin", translate_row },
+        { "color.control", "SettingsColorSwatchControlMixin", translate_row },
+        { "checkbox.button", "SettingsCheckboxWithButtonControlMixin",
+            translate_row },
+        { "checkbox.slider", "SettingsCheckboxSliderControlMixin",
+            translate_row },
+        { "checkbox.dropdown", "SettingsCheckboxDropdownControlMixin",
+            translate_row },
+        { "checkbox.color", "SettingsCheckboxWithColorSwatchControlMixin",
+            translate_row },
+        { "keybinding", "KeyBindingFrameBindingTemplateMixin", translate_row },
+    }
+    for _, definition in ipairs(init_hooks) do
+        declare_settings_hook(definition[1] .. ".init", "mixin",
+            definition[2], "Init", definition[3])
+    end
+    declare_settings_hook("quality.section.tab", "mixin",
+        "SettingsAdvancedQualitySectionMixin", "OnTabSelected",
+        translate_advanced_quality_section)
+    declare_settings_hook("dropdown.control.init-dropdown", "mixin",
+        "SettingsDropdownControlMixin", "InitDropdown", translate_row)
+    declare_settings_hook("list.display", "mixin", "SettingsListMixin",
+        "Display", function () schedule_visible_settings(_G.SettingsPanel) end)
+    declare_settings_hook("panel.show", "frame", "SettingsPanel", "OnShow",
+        displayed_category)
+    declare_settings_hook("panel.category", "frame", "SettingsPanel",
+        "DisplayCategory", displayed_category)
 end
 
 settings_ui.prepare = function ()
@@ -558,43 +664,9 @@ settings_ui.prepare = function ()
             translate_visible_settings(_G.SettingsPanel)
         end
     end
-    -- These hooks correspond directly to the Camelot 1.60.1 Settings mixins.
-    -- Blizzard keeps its English category/setting data unchanged; translation
-    -- happens only after each recycled row writes its visible FontString.
-    hooks.mixin("SettingsCategoryListButtonMixin", "Init", translate_category_button)
-    hooks.mixin("SettingsCategoryListHeaderMixin", "Init", translate_category_header)
-    hooks.mixin("SettingsListSearchCategoryMixin", "Init", translate_search_category)
-    hooks.mixin("SettingsListSectionHeaderMixin", "Init", translate_section_header)
-    hooks.mixin("SettingsListElementMixin", "Init", translate_list_element)
-    hooks.mixin("SettingsExpandableSectionMixin", "Init", translate_expandable_section)
-    hooks.mixin("SettingsAdvancedQualitySectionMixin", "Init",
-        translate_advanced_quality_section)
-    hooks.mixin("SettingsAdvancedQualitySectionMixin", "OnTabSelected",
-        translate_advanced_quality_section)
-
-    for _, name in ipairs({
-        "SettingsCheckboxControlMixin",
-        "SettingsSliderControlMixin",
-        "SettingsDropdownControlMixin",
-        "SettingsButtonControlMixin",
-        "SettingsColorSwatchControlMixin",
-        "SettingsCheckboxWithButtonControlMixin",
-        "SettingsCheckboxSliderControlMixin",
-        "SettingsCheckboxDropdownControlMixin",
-        "SettingsCheckboxWithColorSwatchControlMixin",
-        "KeyBindingFrameBindingTemplateMixin",
-    }) do
-        hooks.mixin(name, "Init", translate_row)
-    end
-    hooks.mixin("SettingsDropdownControlMixin", "InitDropdown", translate_row)
-
-    hooks.mixin("SettingsPanelMixin", "OnShow", translate_panel_chrome)
-    hooks.mixin("SettingsPanelMixin", "DisplayCategory", displayed_category)
-    hooks.mixin("SettingsListMixin", "Display", function ()
-        schedule_visible_settings(_G.SettingsPanel)
-    end)
-    hooks.region(_G.SettingsPanel, "OnShow", translate_panel_chrome)
-    hooks.region(_G.SettingsPanel, "DisplayCategory", displayed_category)
-    schedule_visible_settings(_G.SettingsPanel)
-    translate_panel_chrome(_G.SettingsPanel)
+    -- These executable declarations correspond directly to the Camelot
+    -- 1.60.1 Settings writers. Unknown addon ownership is handled by the
+    -- manifest's safe unscoped ADDON_LOADED retry.
+    declare_settings_hooks()
+    displayed_category(_G.SettingsPanel)
 end

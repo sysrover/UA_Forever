@@ -7,9 +7,12 @@ local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local items = addon_table.use("items")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").items
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("items")
 local registry = addon_table.use("translation_registry")
+local item_id_from_link
 
 
 local function safe_string(value)
@@ -37,9 +40,9 @@ local function item_name(id)
     return utils.cap(value)
 end
 
-local function apply_row(region, id)
+local function apply_row(region, id, owner)
     if not region then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     id = safe_id(id)
     if not id then return end
     local method_ok, get_text = pcall(function () return region.GetText end)
@@ -54,15 +57,66 @@ local function apply_row(region, id)
     if not options.can_lookup("translate_item") then return end
     local translated = item_name(id)
     if not translated then return end
+    local generation = runtime.begin_generation(region, id)
     runtime.apply(region, {
-        owner = "merchant", slot = "item:" .. id .. ".name",
+        owner = owner or "merchant", slot = "item:" .. id .. ".name",
         source = source, translated = translated, category = "item",
         option = "translate_item",
+        surface = region, generation = generation, instance = id,
+        phase = "dynamic",
         priority = runtime.PRIORITY.DOMAIN,
     })
 end
 
-local function item_id_from_link(getter, index)
+local function refresh_loot_row(frame)
+    if not frame or not frame.Text or type(frame.GetSlotIndex) ~= "function" then
+        return
+    end
+    local ok, slot_index = pcall(frame.GetSlotIndex, frame)
+    if not ok or type(slot_index) ~= "number" then return end
+    local id = item_id_from_link(_G.GetLootSlotLink, slot_index)
+    apply_row(frame.Text, id, "loot")
+end
+
+local function refresh_loot_frame()
+    registry.refresh("items")
+end
+
+local function declare_loot_hooks()
+    if type(registry.declare_hook) ~= "function" then return end
+    registry.declare_hook({
+        id = "loot.frame.open",
+        surface = "items",
+        kind = "mixin",
+        target = "LootFrameMixin",
+        method = "Open",
+        blizzardAddon = "Blizzard_UIPanels_Game",
+        required = true,
+        fallbackEvent = "LOOT_OPENED",
+        verifiedBuild = 70009,
+        callback = refresh_loot_frame,
+    })
+    registry.declare_hook({
+        id = "loot.row.init",
+        surface = "items",
+        kind = "mixin",
+        target = "LootFrameElementMixin",
+        method = "Init",
+        blizzardAddon = "Blizzard_UIPanels_Game",
+        required = true,
+        fallbackEvent = "LOOT_SLOT_CHANGED",
+        verifiedBuild = 70009,
+        callback = refresh_loot_row,
+    })
+end
+
+local function loot_hook_installed(id)
+    if type(registry.hook_state) ~= "function" then return false end
+    local state = registry.hook_state(id)
+    return state and state.installed == true
+end
+
+item_id_from_link = function (getter, index)
     if type(getter) ~= "function" then return nil end
     local ok, link = pcall(getter, index)
     if not ok or not safe_string(link) then return nil end
@@ -80,7 +134,7 @@ local function merchant_rows()
         if current and total then
             runtime.apply(page_region, {
                 owner = "merchant", slot = "page.count", source = source,
-                translated = "Сторінка " .. current .. " з " .. total,
+                translated = surface_text.merchant_page(current, total),
                 priority = runtime.PRIORITY.CONTEXT,
             })
         end
@@ -233,7 +287,7 @@ local function refresh_reward_spell(frame)
     local claim = runtime.get(region)
     if claim and claim.owner == "quest-reward" and claim.category == "spell"
         and current == claim.translated then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not options.can_lookup("translate_spell") then return end
     local id = safe_id(frame.rewardSpellID)
     local entry = id and entries.get_entry("spell", id)
@@ -292,6 +346,7 @@ local function bag_title(frame)
 end
 
 items.prepare = function ()
+    declare_loot_hooks()
     hooks.global("MerchantFrame_UpdateMerchantInfo", merchant_rows)
     hooks.global("MerchantFrame_UpdateBuybackInfo", buyback_rows)
     hooks.global("QuestInfo_ShowRewards", items.refresh_quest_rewards)
@@ -303,14 +358,19 @@ items.prepare = function ()
     -- after the selected template has populated its reward frame.
     hooks.global("QuestInfo_Display", items.refresh_quest_rewards)
     refresh_required_items()
-    hooks.global("LootFrame_Update", function () registry.refresh("items") end)
     hooks.once("loot-events", function ()
         if type(_G.CreateFrame) ~= "function" then return false end
         local frame = _G.CreateFrame("Frame")
         local opened = pcall(frame.RegisterEvent, frame, "LOOT_OPENED")
         pcall(frame.RegisterEvent, frame, "LOOT_SLOT_CHANGED")
         if not opened then return false end
-        frame:SetScript("OnEvent", function () registry.refresh("items") end)
+        frame:SetScript("OnEvent", function (_, event)
+            local hook_id = event == "LOOT_OPENED" and "loot.frame.open"
+                or "loot.row.init"
+            if not loot_hook_installed(hook_id) then
+                registry.refresh("items")
+            end
+        end)
         return true
     end)
     hooks.region(_G.ContainerFrameMixin, "UpdateName", bag_title)

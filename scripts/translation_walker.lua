@@ -1,7 +1,25 @@
 local _, addon_table = ...
 local walker = addon_table.use("translation_walker")
+local auto_scan = addon_table.use("auto_scan")
 
-walker.walk = function (root, visit_region, skip_frame, stats, seen)
+local function valid_metadata(metadata)
+    if type(metadata) ~= "table" then return false end
+    for _, key in ipairs({ "id", "surface", "owner", "reason" }) do
+        if type(metadata[key]) ~= "string" or metadata[key] == "" then
+            return false
+        end
+    end
+    return true
+end
+
+walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
+    if not valid_metadata(metadata) then
+        return nil, "WALKER_METADATA_REQUIRED"
+    end
+    if type(auto_scan.record_compatibility_fallback) == "function" then
+        auto_scan.record_compatibility_fallback(metadata.reason,
+            metadata.surface .. ":" .. metadata.owner .. ":" .. metadata.id)
+    end
     seen = seen or {}
     local function visit(frame, depth)
         if not frame or seen[frame] or depth > 20
@@ -25,4 +43,5 @@ walker.walk = function (root, visit_region, skip_frame, stats, seen)
         end
     end
     visit(root, 1)
+    return stats
 end

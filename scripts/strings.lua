@@ -114,7 +114,7 @@ strings.find_ui_translation = function (text, region)
     return resolver.find_ui(text, region)
 end
 
-local function translate_font_string(region, category, slot, surface, phase)
+local function translate_font_string(region, category, slot, surface, phase, instance)
     if not region then return false end
     local methods_ok, get_text, set_text = pcall(function ()
         return region.GetText, region.SetText
@@ -135,8 +135,15 @@ local function translate_font_string(region, category, slot, surface, phase)
         return runtime.ensure_font(region)
     end
 
-    local translated, _, source_kind, inferred_category, inferred_slot, inferred_option =
-        resolver.find_ui(text, region)
+    local explicit_category = category
+        or type(surface) == "table" and surface.name_category ~= "none"
+            and surface.name_category or nil
+    local translated, _, source_kind, inferred_category, inferred_slot,
+        inferred_option, provenance =
+        resolver.find_ui(text, region, explicit_category and {
+            category = explicit_category,
+            slot = slot,
+        } or nil)
     if not translated or translated == text then return false end
     category = category or inferred_category
     slot = slot or inferred_slot
@@ -157,7 +164,11 @@ local function translate_font_string(region, category, slot, surface, phase)
         owner = "ui", slot = slot or "ui.text", source = text,
         translated = translated, category = category,
         option = inferred_option,
+        lookup_tier = source_kind,
+        catalog_source = provenance and provenance.source,
         surface = surface, phase = phase,
+        generation = phase == "dynamic" and runtime.generation(surface) or nil,
+        instance = instance,
         priority = priority, tooltip = is_tooltip(parent) and parent or nil,
         after_apply = function (applied)
             fit_tooltip_width_to_region(parent, applied)
@@ -303,12 +314,14 @@ local function capture_font_string(region, stats)
 end
 
 local function capture_frame(frame, seen, depth, stats, allow_protected)
-    walker.walk(frame, function (region) capture_font_string(region, stats) end,
+    walker.walk({ id = "ui-developer-capture", surface = "visible-ui",
+        owner = "strings", reason = "DEVELOPER_CAPTURE" },
+        frame, function (region) capture_font_string(region, stats) end,
         not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
-local function scan_frame(frame, seen, stats, allow_protected, surface)
-    walker.walk(frame, function (region)
+local function scan_frame(frame, seen, stats, allow_protected, surface, walk_metadata)
+    walker.walk(walk_metadata, frame, function (region)
         if translate_font_string(region, nil, nil, surface) then
             stats.translated = stats.translated + 1
         end
@@ -448,16 +461,34 @@ strings.translate_visible_ui = function ()
     local seen = {}
     for _, frame in ipairs(visible_safe_roots()) do
         local tooltip = allows_protected_children(frame)
-        scan_frame(frame, seen, stats, tooltip)
+        scan_frame(frame, seen, stats, tooltip, nil, {
+            id = "manual-visible-ui-translate", surface = "visible-ui",
+            owner = "strings", reason = "DEVELOPER_COMMAND",
+        })
     end
     return stats
 end
 
-strings.translate_frame = function (frame, surface)
+local function translation_walk_metadata(surface, fallback)
+    if type(surface) == "table" and type(surface.id) == "string"
+        and surface.id ~= "" then
+        return {
+            id = "surface-static:" .. surface.id,
+            surface = surface.id,
+            owner = "translation-registry",
+            reason = "REGISTERED_STATIC_SCAN",
+        }
+    end
+    if type(fallback) == "table" then return fallback end
+end
+
+strings.translate_frame = function (frame, surface, fallback)
     local stats = { frames = 0, translated = 0 }
     if not options.can_translate("translate_string") or not frame then return stats end
+    local walk_metadata = translation_walk_metadata(surface, fallback)
+    if not walk_metadata then return stats, "TRANSLATE_FRAME_SCOPE_REQUIRED" end
     local tooltip = allows_protected_children(frame)
-    scan_frame(frame, {}, stats, tooltip, surface)
+    scan_frame(frame, {}, stats, tooltip, surface, walk_metadata)
     return stats
 end
 

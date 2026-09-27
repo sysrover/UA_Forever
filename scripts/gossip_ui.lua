@@ -23,7 +23,7 @@ end
 local function apply(region, slot, source, translated, category, option)
     if not region then return end
     -- Setup has just written to a pooled row. Discard the previous row claim.
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not safe_string(source) or not safe_string(translated) then return end
     runtime.apply(region, {
         owner = "gossip", slot = slot, source = source,
@@ -52,7 +52,7 @@ local function quest_title(button, info)
     if not region then return end
     local ok, source = pcall(region.GetText, region)
     source = ok and safe_string(source) or nil
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not source or not safe_string(title) or not options.can_lookup("translate_quest") then return end
     local entry = entries.get_entry("quest", quest_id)
     local translated = entry and safe_string(entry[1])
@@ -71,7 +71,7 @@ end
 local function greeting(frame, source)
     local region = frame and frame.GreetingText
     local id = npc_id()
-    if region then runtime.clear(region) end
+    if region then runtime.invalidate(region) end
     if not region or not id or not safe_string(source)
         or not options.can_lookup("translate_gossip") then return end
     local translated = entries.get_gossip_text_for_npc_talk(id, source)
@@ -88,7 +88,7 @@ local function option(button, info)
     if not region then return end
     local ok, source = pcall(region.GetText, region)
     source = ok and safe_string(source) or nil
-    runtime.clear(region)
+    runtime.invalidate(region)
     local name = info and safe_string(info.name)
     if not id or not source or not name or not options.can_lookup("translate_gossip") then return end
     local translated = entries.get_gossip_text_for_player_reply(id, name)

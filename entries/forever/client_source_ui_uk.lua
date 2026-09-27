@@ -947,9 +947,15 @@ local client_source_ui_uk = {
     ["|n<silence msec=\"500\"/>"] = "|n<silence msec=\"500\"/>",
 }
 
-addonTable.forever_ui = addonTable.forever_ui or {}
-for english, ukrainian in pairs(client_source_ui_uk) do
-    if addonTable.forever_ui[english] == nil then
-        addonTable.forever_ui[english] = ukrainian
+if addonTable.forever_catalog then
+    addonTable.forever_catalog.register_ui_source(
+        "client_source_literals", "generated_fallback", client_source_ui_uk, 100,
+        { player_visible = false })
+else
+    addonTable.forever_ui = addonTable.forever_ui or {}
+    for english, ukrainian in pairs(client_source_ui_uk) do
+        if addonTable.forever_ui[english] == nil then
+            addonTable.forever_ui[english] = ukrainian
+        end
     end
 end

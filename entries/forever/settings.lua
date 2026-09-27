@@ -204,10 +204,15 @@ local settings = {
     ["Enable Mouse Sensitivity"] = "Увімкнути чутливість миші",
 }
 
-addonTable.forever_ui = addonTable.forever_ui or {}
-for english, ukrainian in pairs(settings) do
-    if addonTable.forever_ui[english] == nil then
-        addonTable.forever_ui[english] = ukrainian
+if addonTable.forever_catalog then
+    addonTable.forever_catalog.register_ui_source(
+        "settings", "curated", settings, 200)
+else
+    addonTable.forever_ui = addonTable.forever_ui or {}
+    for english, ukrainian in pairs(settings) do
+        if addonTable.forever_ui[english] == nil then
+            addonTable.forever_ui[english] = ukrainian
+        end
     end
 end
 

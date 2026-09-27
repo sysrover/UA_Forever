@@ -97,16 +97,23 @@ local skills = {
     ["Against Raid Bosses"] = "Проти рейдових босів",
 }
 
-addonTable.forever_ui = addonTable.forever_ui or {}
+local normalized_skills = {}
 for english, ukrainian in pairs(skills) do
-    if addonTable.forever_ui[english] == nil then
-        addonTable.forever_ui[english] = ukrainian
-    end
+    normalized_skills[english] = ukrainian
     -- SkillLine descriptions in DB2 contain inconsistent runs of spaces;
     -- visible FontStrings may expose either the original or normalized form.
     local normalized = english:gsub("%s+", " ")
-    if addonTable.forever_ui[normalized] == nil then
-        addonTable.forever_ui[normalized] = ukrainian
+    if normalized_skills[normalized] == nil then normalized_skills[normalized] = ukrainian end
+end
+if addonTable.forever_catalog then
+    addonTable.forever_catalog.register_ui_source(
+        "skills", "curated", normalized_skills, 100)
+else
+    addonTable.forever_ui = addonTable.forever_ui or {}
+    for english, ukrainian in pairs(normalized_skills) do
+        if addonTable.forever_ui[english] == nil then
+            addonTable.forever_ui[english] = ukrainian
+        end
     end
 end
 
@@ -154,10 +161,4 @@ local patterns = {
 
 for _, pattern in ipairs(patterns) do
     addonTable.forever_ui_patterns[#addonTable.forever_ui_patterns + 1] = pattern
-end
-
--- Everything loaded before the generated client dictionaries is curated.
-addonTable.forever_ui_curated = {}
-for english, ukrainian in pairs(addonTable.forever_ui) do
-    addonTable.forever_ui_curated[english] = ukrainian
 end
