@@ -213,7 +213,10 @@ local function translate_font_string(region, category, slot, surface, phase, ins
             fit_tooltip_width_to_region(parent, applied)
             fit_tooltip_height_to_region(parent, applied,
                 previous_height, previous_tooltip_height)
-            if parent and is_button(parent) then fit_button_to_text(parent, applied) end
+            if not layout.fit_auction_tab(applied, text)
+                and parent and is_button(parent) then
+                fit_button_to_text(parent, applied)
+            end
         end,
     })
     return set_ok

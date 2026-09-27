@@ -989,6 +989,9 @@ local verified_entries = {
         ["aeyustoftemlss"] = "Ви вивчаєте лікарське ремесло?",
         ["retgna"] = "Мені потрібне навчання, Ніссо.",
     },
+    [11145] = {
+        ["gsneammrsykroftegtfe"] = "Вітаю, {ім'я:к}. Я — Міолор Лютолом, хранитель Великої Кузні.",
+    },
 }
 
 addonTable.gossip = addonTable.gossip or {}
