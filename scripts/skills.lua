@@ -203,6 +203,26 @@ local function hook_profession_rank(region, profession)
     translate_profession_rank(region, profession)
 end
 
+local function translate_profession_title(frame)
+    if not frame or type(frame.GetTitleText) ~= "function" then return end
+    local ok, region = pcall(frame.GetTitleText, frame)
+    if not ok or not region then return end
+
+    if strings.translate_region(region) then return end
+    local source = text_from(region)
+    if not source then return end
+
+    -- A profession opened from another player's chat link appends that
+    -- player's title in brackets, so the complete string is not a catalog key.
+    local profession, player_title = source:match("^(.-)( %b[])$")
+    local translated = profession and (entries.lookup_name("spell", profession)
+        or strings.find_ui_translation(profession, region))
+    if translated then
+        apply_skill_text(region, utils.cap(translated) .. player_title,
+            "skill", "skill.name")
+    end
+end
+
 local function translate_updated_profession_bar(bar, profession_info)
     local region = bar and bar.Rank and bar.Rank.Text
     if region then
@@ -215,16 +235,10 @@ local function translate_professions(frame)
     local book = frame
     if professions_frame and (frame == professions_frame or frame == professions_frame.BookPage) then
         book = professions_frame.BookPage
-        if type(professions_frame.GetTitleText) == "function" then
-            local ok, title = pcall(professions_frame.GetTitleText, professions_frame)
-            if ok then strings.translate_region(title) end
-        end
+        translate_profession_title(professions_frame)
     elseif frame == _G.ProfessionsBookFrame then
         book = frame
-        if type(frame.GetTitleText) == "function" then
-            local ok, title = pcall(frame.GetTitleText, frame)
-            if ok then strings.translate_region(title) end
-        end
+        translate_profession_title(frame)
     end
 
     -- ProfessionsFrame is protected in Camelot. Do not recursively walk it;
@@ -512,8 +526,23 @@ end
 local armor_category_types = surface_text.armor_category_types
 local armor_category_slots = surface_text.armor_category_slots
 
-local function translate_recipe_category(title)
-    local source = text_from(title)
+local function recipe_row_data(row)
+    if not row or type(row.GetElementData) ~= "function" then return nil end
+    local ok, element_data = pcall(row.GetElementData, row)
+    if not ok or type(element_data) ~= "table" then return nil end
+    local data = type(element_data.data) == "table"
+        and element_data.data or element_data
+    return data
+end
+
+local function translate_recipe_category(title, row)
+    local data = recipe_row_data(row)
+    local category = data and (data.categoryInfo or data.categoryData
+        or (numeric_field(data, "categoryID") and data))
+    local category_name = category and (category.name or category.categoryName)
+    if is_secret(category_name) then category_name = nil end
+    local source = type(category_name) == "string" and category_name
+        or text_from(title)
     if not source then return end
     local translated = strings.find_ui_translation(source, title)
     if not translated then
@@ -522,9 +551,21 @@ local function translate_recipe_category(title)
         local noun = armor_category_slots[slot]
         if prefix and noun then translated = prefix .. " " .. noun end
     end
+    if not translated then
+        local target = source:match("^(.-) Enchants$")
+        local translated_target = target and (strings.find_ui_translation(target)
+            or entries.lookup_name("item", target)
+            or entries.lookup_name("spell", target))
+        if translated_target then
+            translated = surface_text.enchant_category(
+                utils.cap(translated_target))
+        end
+    end
     if translated and translated ~= source then
+        local visible = text_from(title)
+        if not visible then return end
         runtime.apply(title, { owner = "skills", slot = "recipe.category",
-            source = source, translated = translated,
+            source = visible, translated = translated,
             priority = runtime.PRIORITY.CONTEXT })
     end
 end
@@ -536,10 +577,10 @@ local function translate_crafting_row(row)
         if ok and title then
             hooks.region(title, "SetText", function (self)
                 if not runtime.is_applying(self) then
-                    translate_recipe_category(self)
+                    translate_recipe_category(self, row)
                 end
             end)
-            translate_recipe_category(title)
+            translate_recipe_category(title, row)
         end
     end
     if options.translate_name("skill") then
@@ -548,10 +589,12 @@ local function translate_crafting_row(row)
     end
     strings.translate_region(row.Text)
 
-    local ok, element_data = pcall(function () return row:GetElementData() end)
-    local recipe_info = ok and element_data and element_data.data and element_data.data.recipeInfo
+    local data = recipe_row_data(row)
+    local recipe_info = data and (data.recipeInfo
+        or (numeric_field(data, "recipeID") and data))
     local recipe_id = recipe_info and recipe_info.recipeID
-    local entry = type(recipe_id) == "number" and entries.get_entry("spell", recipe_id)
+    local entry = type(recipe_id) == "number" and not is_secret(recipe_id)
+        and entries.get_entry("spell", recipe_id)
     local text = entry_text(entry, row)
     if text and options.translate_name("skill") then
         apply_skill_text(row.Label or row.Name, text, "skill", "skill.name")
@@ -562,9 +605,10 @@ local function translate_crafting_row(row)
             if not tooltip or type(tooltip.GetOwner) ~= "function" then return end
             local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
             if owner_ok and owner == self.Label then
-                local data_ok, current = pcall(self.GetElementData, self)
-                local info = data_ok and current and current.data
-                    and current.data.recipeInfo
+                local current = recipe_row_data(self)
+                local info = current
+                    and (current.recipeInfo
+                        or (numeric_field(current, "recipeID") and current))
                 if info then
                     tooltips.translate_profession_recipe(tooltip, info.name)
                 end
@@ -647,15 +691,73 @@ local function translate_reagent_slot(slot)
         "item", "item.name")
 end
 
+local function recipe_info_from_form(form)
+    if not form or type(form.GetRecipeInfo) ~= "function" then return nil end
+    local ok, recipe_info = pcall(form.GetRecipeInfo, form)
+    return ok and type(recipe_info) == "table" and recipe_info or nil
+end
+
+local function recipe_schematic(recipe_id)
+    if type(recipe_id) ~= "number" or is_secret(recipe_id) or not C_TradeSkillUI
+        or type(C_TradeSkillUI.GetRecipeSchematic) ~= "function" then return nil end
+    local ok, schematic = pcall(C_TradeSkillUI.GetRecipeSchematic,
+        recipe_id, false)
+    return ok and type(schematic) == "table" and schematic or nil
+end
+
+local function translated_recipe_output(form, recipe_info)
+    local recipe_id = recipe_info and recipe_info.recipeID
+    local schematic = recipe_schematic(recipe_id)
+    local item_id = schematic and schematic.outputItemID
+    if is_secret(item_id) then item_id = nil end
+    local item_entry = type(item_id) == "number"
+        and entries.get_entry("item", item_id)
+    local translated = entry_text(item_entry, form)
+    if translated then return translated, item_id end
+
+    local english = recipe_info and recipe_info.name
+    translated = type(english) == "string" and not is_secret(english)
+        and (entries.lookup_name("item", english)
+            or entries.lookup_name("spell", english)) or nil
+    return translated and utils.cap(translated) or nil, item_id
+end
+
+local function translate_crafting_description(form)
+    local region = form and form.Description
+    if not region then return end
+    if strings.translate_region(region) then return end
+
+    local recipe_info = recipe_info_from_form(form)
+    local recipe_id = recipe_info and recipe_info.recipeID
+    local spell_entry = type(recipe_id) == "number" and not is_secret(recipe_id)
+        and entries.get_entry("spell", recipe_id)
+    local description = entry_text(spell_entry, form, 2)
+    if description then
+        apply_skill_text(region, description, nil, "spell.description")
+        return
+    end
+
+    local source = text_from(region)
+    if not source or not source:match("^Craft an? .+%.$") then return end
+    local output = translated_recipe_output(form, recipe_info)
+    if not output then
+        local english = source:match("^Craft an? (.-)%.$")
+        local translated = english and (entries.lookup_name("item", english)
+            or entries.lookup_name("spell", english))
+        output = translated and utils.cap(translated) or nil
+    end
+    if output then
+        apply_skill_text(region, surface_text.crafted_recipe(output), nil,
+            "spell.description")
+    end
+end
+
 local function translate_crafting_page()
     local root = _G.ProfessionsFrame
     local page = root and root.CraftingPage
     if not page then return end
 
-    if type(root.GetTitleText) == "function" then
-        local ok, title = pcall(root.GetTitleText, root)
-        if ok then strings.translate_region(title) end
-    end
+    translate_profession_title(root)
 
     local rank = page.RankBar and page.RankBar.Rank
     local rank_text = rank and rank.Text
@@ -729,27 +831,13 @@ local function translate_crafting_page()
             end
         end
 
-        local recipe_info
-        if type(form.GetRecipeInfo) == "function" then
-            local ok, value = pcall(form.GetRecipeInfo, form)
-            if ok then recipe_info = value end
-        end
+        local recipe_info = recipe_info_from_form(form)
         local recipe_id = recipe_info and recipe_info.recipeID
-        if type(recipe_id) == "number" then
-            local spell_entry = entries.get_entry("spell", recipe_id)
-            local description = entry_text(spell_entry, form, 2)
-            if description then
-                apply_skill_text(form.Description, description, nil, "spell.description")
-            end
-
-            if C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic then
-                local ok, schematic = pcall(C_TradeSkillUI.GetRecipeSchematic, recipe_id, false)
-                local item_id = ok and schematic and schematic.outputItemID
-                local item_entry = type(item_id) == "number" and entries.get_entry("item", item_id)
-                local output = entry_text(item_entry, form)
-                if output and options.translate_name("item") then
-                    apply_skill_text(form.OutputText, output, "item", "item.name")
-                end
+        if type(recipe_id) == "number" and not is_secret(recipe_id) then
+            translate_crafting_description(form)
+            local output = translated_recipe_output(form, recipe_info)
+            if output and options.translate_name("item") then
+                apply_skill_text(form.OutputText, output, "item", "item.name")
             end
         end
     end
@@ -861,9 +949,11 @@ hook_crafting_description = function (form)
     local region = form and form.Description
     if not region then return end
     hooks.region(region, "SetText", function (self)
-        if not runtime.is_applying(self) then strings.translate_region(self) end
+        if not runtime.is_applying(self) then
+            translate_crafting_description(form)
+        end
     end)
-    strings.translate_region(region)
+    translate_crafting_description(form)
 end
 
 local function translate_new_recipe_alert(frame, recipe_id)
@@ -1058,6 +1148,16 @@ skills.prepare = function ()
 
     local crafting_page = professions_frame and professions_frame.CraftingPage
     local schematic_form = crafting_page and crafting_page.SchematicForm
+    if professions_frame and type(professions_frame.GetTitleText) == "function" then
+        local ok, title = pcall(professions_frame.GetTitleText, professions_frame)
+        if ok and title then
+            hook_owner(title, "SetText", function (self)
+                if not runtime.is_applying(self) then
+                    translate_profession_title(professions_frame)
+                end
+            end)
+        end
+    end
     hook_crafting_requirements(schematic_form)
     hook_crafting_description(schematic_form)
     for _, method in ipairs({ "Refresh", "Update", "ValidateControls", "OnRecipeSelected" }) do

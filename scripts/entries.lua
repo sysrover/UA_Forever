@@ -246,8 +246,13 @@ local function make_text_array(array)
     end
 
     local result = {}
-    for i = 1, #array do
-        result[i] = make_text(array[i])
+    -- Quest records are sparse: progress [4] can be absent while completion
+    -- [5] is present.  The length operator is undefined for tables with holes
+    -- and can therefore truncate the completion text.
+    for key, value in pairs(array) do
+        if type(key) == "number" and type(value) == "string" then
+            result[key] = make_text(value)
+        end
     end
 
     return result

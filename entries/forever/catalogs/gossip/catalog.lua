@@ -976,6 +976,13 @@ local verified_entries = {
     [857] = {
         ["aibnwsoeorheadwlbeanwhyradwlyuhpuscs"] = "Низина Араті колись була нашим домом і з твоєю допомогою знову ним стане! Допоможеш нам, {клас:к}?",
     },
+    [5159] = {
+        ["kpemfdkdypdlrnatyrse"] = "Я годую їх, малий. Ага, Деріл Рікнуссун, до твоїх послуг.",
+        ["retgdl"] = "Мені потрібне навчання, Деріле.",
+    },
+    [2057] = {
+        ["dgtebstoteenseishdwkbtteaesomydgonustogttebtprtewemtdowtwecnattedkis"] = "Доставляти ці бочки до місця розкопок — важка праця, але стільки людей покладаються на нас, щоб ми доправили туди вибуховий порох.\n\nМи мусимо зробити все, що в наших силах, у боротьбі проти Чорного Заліза!",
+    },
 }
 
 addonTable.gossip = addonTable.gossip or {}

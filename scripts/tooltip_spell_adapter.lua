@@ -96,6 +96,26 @@ local function translate_aura_text(entry, source)
     return changed and result or nil
 end
 
+local function translate_tooltip_lines(tooltip, entry, line_count)
+    local contract = deps()
+    if type(entry.tooltip_lines) ~= "table" then return 0 end
+    local applied = 0
+    for index = 2, math.min(line_count or contract.max_lines,
+        contract.max_lines) do
+        local source, region = contract.tooltip_line(tooltip, "Left", index)
+        source = contract.safe_string(source)
+        local translated = source
+            and entry.tooltip_lines[contract.normalized_text(source)] or nil
+        if translated and region and contract.set_translation(
+            tooltip, region, source, translated,
+            "spell.tooltip:" .. index, nil, "spell-tooltip"
+        ) then
+            applied = applied + 1
+        end
+    end
+    return applied
+end
+
 adapter.add = function (tooltip, id, aura)
     local contract = deps()
     if not options.can_lookup("translate_spell") then return false end
@@ -186,5 +206,7 @@ adapter.add = function (tooltip, id, aura)
             end
         end
     end
+    applied = translate_tooltip_lines(tooltip, entry, native_line_count) > 0
+        or applied
     return contract.rewrite_generic(tooltip, native_line_count, 2) > 0 or applied
 end

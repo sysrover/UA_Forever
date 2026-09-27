@@ -541,9 +541,16 @@ local function after_worldmap_nav_refresh(self)
 end
 
 local function after_worldmap_coords_update(self)
+    if not self then return end
+
+    -- These labels are rewritten on every OnUpdate. Translate them from this
+    -- owner callback so the native writer cannot immediately restore English.
+    strings.translate_region(self.CursorCoords and self.CursorCoords.Label)
+    strings.translate_region(self.PlayerCoords and self.PlayerCoords.Label)
+
     local map_api = _G.C_Map
     local get_info = map_api and map_api.GetMapInfo
-    if not self or not map_api or type(map_api.GetBestMapForUnit) ~= "function"
+    if not map_api or type(map_api.GetBestMapForUnit) ~= "function"
         or type(get_info) ~= "function"
         or not options.can_lookup("translate_zone") then return end
     local region = self.PlayerCoords and self.PlayerCoords.Label

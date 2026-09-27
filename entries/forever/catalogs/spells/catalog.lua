@@ -127,6 +127,7 @@ addonTable.spell = {
 --     [1] = title (optional),
 --     [2] = description (optional),
 --     [3] = aura (optional),
+--     tooltip_lines = { [exact source line] = translation } (optional),
 -- }
 
 [25] = { "Приголомшення", en="Stun" },
@@ -3657,6 +3658,12 @@ addonTable.spell = {
     },
 },
 
+[1248805] = {
+    tooltip_lines = {
+        ["Tools: Runed Silver Rod"] = "Інструменти: рунічний срібний жезл",
+        ["Permanently enchant a Melee Weapon to have a chance to trigger Revelation when a non-periodic spell fails to critically strike. Revelation grants 100% increased critical strike chance to the next spell cast. Revelation's chance to trigger is diminished as your critical strike chance increases."] = "Назавжди зачаровує зброю ближнього бою, надаючи шанс активувати Одкровення, коли неперіодичне закляття не завдає критичного удару. Одкровення збільшує шанс критичного удару наступного застосованого закляття на 100%. Шанс активації Одкровення зменшується зі зростанням вашого шансу критичного удару.",
+    },
+},
 }
 
 -- Verified spell additions and corrections.

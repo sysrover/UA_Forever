@@ -47,6 +47,7 @@ local ui = {
     ["Accept quests by talking to characters with a ! above their head."] = "Приймайте завдання у персонажів зі знаком ! над головою.",
     ["Quest Objectives"] = "Доручення",
     ["QUEST OBJECTIVES"] = "ДОРУЧЕННЯ",
+    ["Find Huldar, Miran, and Saean (Complete)"] = "Знайдіть Хульдара, Мірана та Саеана (виконано)",
     ["<Click to view Quest Details>"] = "<Натисніть, щоб переглянути деталі завдання>",
     ["Rewards"] = "Винагороди",
     ["REWARDS"] = "ВИНАГОРОДИ",
@@ -564,6 +565,7 @@ local ui = {
     ["Reagents:\nCrawler Meat, Mild Spices"] = "Реагенти:\nМ'ясо повзуна, лагідні спеції",
     ["\nSpider Sausage"] = "\nПавуча сосиска",
     ["\nSpiced Wolf Meat"] = "\nВовчатина з прянощами",
+    ["Spiced Wolf Meat"] = "Вовчатина з прянощами",
     ["\nCrab Cake"] = "\nКрабовий пиріжок",
     ["Use: Restores 58 health over 18 sec.  Must remain seated while eating. (1 Sec Cooldown)"] = "Використання: Відновлює 58 здоров'я протягом 18 с. Під час їжі потрібно сидіти. (Відновлення: 1 с)",
     ["Use: Restores 530 health over 24 sec.  Must remain seated while eating.  If you spend at least 10 seconds eating you will become well fed and gain 6 Stamina and Spirit for 15 min. (1 Sec Cooldown)"] = "Використання: Відновлює 530 здоров'я протягом 24 с. Під час їжі потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +6 до витривалості та духу на 15 хв. (Відновлення: 1 с)",
@@ -660,6 +662,7 @@ local ui = {
     ["Toggle Sound"] = "Увімкнути або вимкнути звук",
     ["Triple Buffering"] = "Потрійна буферизація",
     ["Voice Chat Volume"] = "Гучність голосового чату",
+    ["Must have a Shield equipped"] = "Потрібно спорядити щит",
 }
 
 if addonTable.forever_catalog then

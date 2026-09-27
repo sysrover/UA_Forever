@@ -4087,6 +4087,12 @@ local verified_entries = {
         [1] = "стрілець Депривал",
         ["ssfmtehpattebs"] = [===[%s стріляє від стегна по пляшках...]===],
     },
+    ["Huldar"] = {
+        ["notttrwlspteprfmggtoid"] = "Жоден жалюгідний зрадник не завадить доставити порох Залізносмугу!",
+    },
+    ["Saean"] = {
+        ["syhrbtitssiemdyu"] = "Пробач, Хульдаре... Але, схоже, я ввів тебе в оману.",
+    },
 }
 
 addonTable.chat = addonTable.chat or {}
