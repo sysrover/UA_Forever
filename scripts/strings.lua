@@ -37,19 +37,58 @@ local combat_text_event_globals = {
     REFLECT = "COMBAT_TEXT_REFLECT",
 }
 local combat_text_originals = {}
+local combat_text_catalog_sources = {
+    ["Changed Target!"] = true,
+}
+local combat_text_catalog_globals = {}
+
+local function discover_combat_text_catalog_globals()
+    local catalog = addon_table.forever_ui
+    if type(catalog) ~= "table" then return end
+
+    -- Some world combat messages are read directly from unnamed client
+    -- globals before a FontString or CombatText_AddMessage callback exists.
+    -- Match only known exact source strings so this does not mutate unrelated
+    -- display globals or rely on a client-version-specific global name.
+    for global_name, source in pairs(_G) do
+        if type(global_name) == "string" and type(source) == "string"
+            and combat_text_catalog_globals[global_name] == nil then
+            local ok, ukrainian = pcall(function ()
+                if not combat_text_catalog_sources[source] then return nil end
+                local value = catalog[source]
+                if type(value) ~= "string" or value == "" or value == source then
+                    return nil
+                end
+                return value
+            end)
+            if ok and ukrainian then
+                combat_text_originals[global_name] = source
+                combat_text_catalog_globals[global_name] = ukrainian
+            end
+        end
+    end
+end
+
+local function refresh_combat_text_global(global_name, ukrainian, translated)
+    local current = rawget(_G, global_name)
+    if combat_text_originals[global_name] == nil and type(current) == "string" then
+        combat_text_originals[global_name] = current
+    end
+    local original = combat_text_originals[global_name]
+    if original then
+        _G[global_name] = translated and ukrainian or original
+    end
+end
 
 strings.refresh_combat_text_globals = function ()
     local translated = options.can_translate("translate_string")
         and options.translate_combat_text()
+    discover_combat_text_catalog_globals()
     for global_name, ukrainian in pairs(combat_text_globals) do
-        local current = rawget(_G, global_name)
-        if combat_text_originals[global_name] == nil and type(current) == "string" then
-            combat_text_originals[global_name] = current
-        end
-        local original = combat_text_originals[global_name]
-        if original then
-            _G[global_name] = translated and ukrainian or original
-        end
+        refresh_combat_text_global(global_name, ukrainian, translated)
+    end
+    for global_name, ukrainian in pairs(combat_text_catalog_globals) do
+        refresh_combat_text_global(global_name, ukrainian, translated)
     end
 end
 
@@ -434,8 +473,9 @@ strings.prepare = function ()
     -- Camelot reuses localized labels as semantic keys in several protected
     -- systems (character stats and Settings category ordering among them).
     -- Writing general Blizzard display globals also taints the modern micro menu.
-    -- Keep those pristine; only the dedicated COMBAT_TEXT_* display globals are
-    -- replaced because the engine consumes them before a FontString is exposed.
+    -- Keep those pristine; only dedicated COMBAT_TEXT_* globals and exact known
+    -- combat display strings are replaced because the engine consumes them
+    -- before a FontString is exposed.
     strings.refresh_combat_text_globals()
     local hook_name = "CombatText_AddMessage"
     local available = hooks.global(hook_name, after_combat_text_add_message)

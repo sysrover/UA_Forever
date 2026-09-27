@@ -24,6 +24,7 @@ local groups = {
     { "observed_ui", "[OBSERVED_UI]" },
     { "runtime", "[RUNTIME]" },
     { "unapplied", "[NOT_APPLIED]" },
+    { "lockdowns", "[LOCKDOWNS]" },
     { "unsafe", "[UNSAFE]" },
     { "hooks", "[HOOKS]" },
     { "catalog_conflicts", "[CATALOG_CONFLICTS]" },
@@ -34,6 +35,7 @@ local groups = {
 
 local diagnostic_groups = {
     observed_ui = true,
+    lockdowns = true,
     unsafe = true,
     hooks = true,
     catalog_conflicts = true,
@@ -307,10 +309,28 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
         -- must not resurrect a record that the user has just deleted.
         return
     end
+    local reason_detail = safe_text(spec.reasonDetail)
+    if reason_detail == "IN_COMBAT_LOCKDOWN" then
+        if type(auto_scan.discard_runtime_result) == "function" then
+            auto_scan.discard_runtime_result(spec, source)
+        end
+        local lockdown_records = bucket("lockdowns")
+        if lockdown_records then
+            lockdown_records[key] = {
+                owner = owner, slot = slot, surface = surface,
+                text = source, translation = translated, visible = visible,
+                lookupTier = safe_text(spec.lookupTier),
+                catalogSource = safe_text(spec.catalogSource),
+                reason = runtime_reason_code(safe_text(reason)),
+                reasonDetail = reason_detail,
+                regionKey = safe_text(spec.regionKey),
+            }
+        end
+        return
+    end
     local records = bucket("unapplied")
     local runtime_records = bucket("runtime")
     if not records and not runtime_records then return end
-    local reason_detail = safe_text(spec.reasonDetail)
     note_surface_runtime_result(surface, slot, source, visible, reason, reason_detail)
     if runtime_records then
         local retained = reason == "RETAINED_AFTER_APPLY"
@@ -371,6 +391,23 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
             end
         end
     end
+end
+
+auto_scan.discard_runtime_result = function (spec, observed_source)
+    if type(spec) ~= "table" then return end
+    local source = safe_text(observed_source) or safe_text(spec.source)
+    if not source then return end
+    local owner = safe_text(spec.owner) or "ui"
+    local slot = safe_text(spec.slot) or "ui.text"
+    local key = untranslated_key(owner, slot, source)
+    local records = bucket("unapplied")
+    if records then records[key] = nil end
+    local runtime_records = bucket("runtime")
+    if runtime_records then runtime_records[key] = nil end
+
+    local surface = safe_text(spec.surface) or owner
+    local state = surface_states[surface]
+    if state and state.results then state.results[key] = nil end
 end
 
 auto_scan.record_ui_observation = function (source, translated, visible, slot)
@@ -884,12 +921,33 @@ local function domain_store_has_text(store, source)
     return false
 end
 
+local function migrate_lockdown_records(store)
+    if type(store) ~= "table" then return end
+    local lockdowns = store.lockdowns or {}
+    for _, group in ipairs({ "runtime", "unapplied" }) do
+        local records = store[group]
+        if type(records) == "table" then
+            for key, record in pairs(records) do
+                if type(record) == "table"
+                    and record.reasonDetail == "IN_COMBAT_LOCKDOWN" then
+                    record.reason = record.reason or record.outcome
+                        or "PROTECTED_REGION"
+                    lockdowns[key] = record
+                    records[key] = nil
+                end
+            end
+        end
+    end
+    if next(lockdowns) then store.lockdowns = lockdowns end
+end
+
 auto_scan.export_text = function ()
     local saved_mouse_probe = UA_ForeverDB and UA_ForeverDB.scan
         and UA_ForeverDB.scan.mouseProbe
     if cleared and type(saved_mouse_probe) ~= "table" then return "" end
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
+    migrate_lockdown_records(store)
     local catalog_records = {}
     local invalid_candidate_records = {}
     local catalog = addon_table.forever_catalog
@@ -1057,6 +1115,10 @@ auto_scan.export_text = function ()
                         "translation", "visible", "event", "handler", "attempts",
                         "hook", "hookAvailable", "hookObserved", "reason",
                         "reasonDetail", "regionKey", "lookupTier", "catalogSource" }
+                elseif group == "lockdowns" then
+                    output_fields = { "owner", "slot", "surface", "text",
+                        "translation", "visible", "reason", "reasonDetail",
+                        "regionKey", "lookupTier", "catalogSource" }
                 elseif group == "runtime" then
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "lookupTier", "catalogSource",
