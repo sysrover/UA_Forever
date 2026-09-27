@@ -1,6 +1,6 @@
 local _, addonTable = ...
 
--- Generated from the installed Forever client's GlobalStrings DB2.
+-- Initially imported from the installed Forever client's GlobalStrings DB2.
 -- Client build: 1.60.1.69913
 local client_ui_uk = {
     ["        Five races comprise the Horde: the brutal orcs, the shadowy undead, the spiritual tauren, the quick-witted trolls, and the driven blood elves. Beset by enemies on all sides, these outcasts have forged a union they hope will ensure their mutual survival."] = "        Орду складають п’ять рас: жорстокі орки, таємничі нежить, духовні таурени, кмітливі тролі та цілеспрямовані кров’яні ельфи. Оточені ворогами з усіх боків, ці ізгої створили союз, який, як вони сподіваються, забезпечить їм спільне виживання.",

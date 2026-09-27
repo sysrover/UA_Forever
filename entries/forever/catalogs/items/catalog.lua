@@ -15059,3 +15059,54 @@ if addonTable.item then
 else
     addonTable.item = items
 end
+
+-- Verified server item IDs and tooltip fields observed in game.
+addonTable.item = addonTable.item or {}
+addonTable.item[286737] = { "перстень Авали", en="Avala's Binding" }
+if addonTable.item[2516] then
+    addonTable.item[2516].tooltip_lines = {
+        ["Projectile"] = "Снаряд",
+        ["Bullet"] = "Куля",
+    }
+end
+if addonTable.item[7108] then
+    addonTable.item[7108].equip = 21499
+end
+if addonTable.item[2889] then
+    addonTable.item[2889].tooltip_lines = {
+        ["Beer Basted Boar Ribs"] = "Реберця кнура в пиві",
+        ["Crag Boar Rib, Rhapsody Malt"] = "ребро скельного кнура, солод Рапсодія",
+    }
+end
+if addonTable.item[961] then
+    addonTable.item[961].tooltip_lines = {
+        ["Use: Restores 58 health over 18 sec. Must remain seated while eating."] =
+            "Використання: відновлює 58 здоров'я протягом 18 с. Під час їжі потрібно сидіти.",
+    }
+end
+if addonTable.item[249879] then
+    addonTable.item[249879].tooltip_lines = {
+        ["Use: Restores 145 mana over 18 sec.  Must remain seated while drinking. If you spend at least 10 seconds eating you will become well fed and gain 2 Healing Power for 15 min. Additionally, experience gained from kills is increased by 5%. (1 Sec Cooldown)"] =
+            "Використання: відновлює 145 мани протягом 18 с. Під час пиття потрібно сидіти. Якщо їсти щонайменше 10 с, ви насититеся й отримаєте +2 до сили зцілення на 15 хв. Крім того, досвід за вбивства збільшується на 5%. (Перезарядка: 1 с)",
+        ["Use: Teaches you how to cook Peace Tea."] =
+            "Використання: навчає готувати чай миру.",
+        ["Refreshing Spring Water, Peacebloom (2)"] =
+            "Освіжаюча джерельна вода, мироцвіт (2)",
+    }
+end
+if addonTable.item[249391] then
+    addonTable.item[249391].tooltip_lines = {
+        ["Scarce"] = "Дефіцитний",
+    }
+end
+if addonTable.item[279380] then
+    addonTable.item[279380].tooltip_lines = {
+        ["Use: Scoop up snow from South Gate Pass into the ceramic jar."] =
+            "Використання: зачерпнути сніг із перевалу Південні Ворота в керамічну банку.",
+    }
+end
+if addonTable.item[856] then
+    addonTable.item[856].tooltip_lines = {
+        ["8 Slot Bag"] = "Сумка на 8 комірок",
+    }
+end

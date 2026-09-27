@@ -1,6 +1,6 @@
 local _, addonTable = ...
 
--- Generated from display-like literals in the installed Forever FrameXML.
+-- Initially imported from display-like literals in the installed Forever FrameXML.
 -- Client build: 1.60.1.69913
 local client_source_ui_uk = {
     ["%s characters copied to clipboard."] = "%s символи, скопійовані в буфер обміну.",
