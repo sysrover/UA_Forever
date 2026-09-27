@@ -25,6 +25,12 @@ addonTable.forever_surface_ui = {
             Pants = "штани", Robes = "мантії",
             Shoulders = "наплічники", Vests = "жилети",
         },
+        enchant_category = function (target)
+            return "Чари: " .. target
+        end,
+        crafted_recipe = function (name)
+            return "Створює «" .. name .. "»."
+        end,
         requirement_names = {
             Forge = "кузня",
         },

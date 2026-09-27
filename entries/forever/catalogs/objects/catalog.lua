@@ -1136,6 +1136,10 @@ addonTable.object = { -- [key] = text
 ["Ironforge Armory"] = "Зброярня Залізогарта",
 ["Steelfury's Weapon Emporium"] = "Збройна крамниця Сталелютого",
 ["Traveling Fisherman"] = "Мандрівний рибалка",
+["Burbik's Supplies"] = "Припаси Бурбіка",
+["Ironforge Physician"] = "Лікар Залізогарта",
+["The Bronze Kettle"] = "Бронзовий казанок",
+["Thistlefuzz Arcanery"] = "Арканерія Будякопуха",
 }
 
 addonTable.translate_object_name = function (name)

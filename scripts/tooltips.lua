@@ -561,6 +561,26 @@ local function safe_process(tooltip, data, kind)
     return result == true
 end
 
+local function visible_spell_id(tooltip)
+    if not tooltip then return nil end
+    if type(tooltip.GetSpell) == "function" then
+        local ok, _, second, third = pcall(tooltip.GetSpell, tooltip)
+        if ok then
+            local id = safe_number(third) or safe_number(second)
+            if id then return id end
+        end
+    end
+    if type(tooltip.GetHyperlink) == "function" then
+        local ok, link = pcall(tooltip.GetHyperlink, tooltip)
+        link = ok and safe_string(link) or nil
+        local id = link and (link:match("^spell:(%d+)")
+            or link:match("^enchant:(%d+)"))
+        id = safe_number(id)
+        if id then return id end
+    end
+    return nil
+end
+
 quest_adapter.configure({
     safe_number = safe_number,
     safe_string = safe_string,
@@ -2917,7 +2937,12 @@ local function schedule_tooltip_finalize(tooltip)
     local function finalize()
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
-            translate_generic_tooltip(tooltip)
+            local spell_id = visible_spell_id(tooltip)
+            if spell_id and entries.get_entry("spell", spell_id) then
+                safe_process(tooltip, { id = spell_id, spellID = spell_id }, "spell")
+            else
+                translate_generic_tooltip(tooltip)
+            end
             capture_generic_tooltip_ui(tooltip)
         end
     end

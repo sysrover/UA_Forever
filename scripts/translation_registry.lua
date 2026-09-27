@@ -311,8 +311,9 @@ registry.register_defaults = function (translate_frame)
         { "trainer", { "ClassTrainerFrame" }, "skill" },
         { "items", { "MerchantFrame", "BankFrame", "ContainerFrameCombinedBags", "LootFrame" }, "item" },
         { "social", { "FriendsFrame", "GuildFrame", "CommunitiesFrame", "GuildInviteFrame" }, "none" },
-        { "collections", { "CollectionsJournal", "EncounterJournal", "AchievementFrame" }, "none" },
-        { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "CalendarFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame" }, "none" },
+        { "collections", { "CollectionsJournal", "WardrobeCollectionFrame",
+            "EncounterJournal", "AchievementFrame" }, "none" },
+        { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "CalendarFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame", "TaxiFrame" }, "none" },
     }
     for _, group in ipairs(groups) do
         local roots = group[2]

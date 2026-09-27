@@ -298,6 +298,12 @@ local function schedule_transient_capture(frame)
     end)
 end
 
+local function translate_wardrobe_page(region)
+    if not region then return end
+    strings.translate_region(region, nil, "ui.text",
+        registry.get("collections"))
+end
+
 local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
@@ -331,6 +337,15 @@ local function prepare_panel_hooks()
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
     hooks.region_script(_G.MacroFrame, "OnShow", opened_panel)
+
+    local wardrobe = _G.WardrobeCollectionFrame
+    local page_text = wardrobe and wardrobe.ItemsCollectionFrame
+        and wardrobe.ItemsCollectionFrame.PagingFrame
+        and wardrobe.ItemsCollectionFrame.PagingFrame.PageText
+    hooks.region(page_text, "SetText", translate_wardrobe_page)
+    hooks.region(page_text, "SetFormattedText", translate_wardrobe_page)
+    translate_wardrobe_page(page_text)
+
     hooks.region_script(_G.CommunitiesAddDialog, "OnShow",
         schedule_communities_add_dialog)
     hooks.global("AddCommunitiesFlow_Toggle", schedule_communities_add_dialog)
@@ -681,6 +696,7 @@ event_frame:RegisterEvent("ADDON_LOADED")
 event_frame:RegisterEvent("PLAYER_LOGIN")
 event_frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 event_frame:RegisterEvent("PLAYER_TARGET_CHANGED")
+event_frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 event_frame:RegisterEvent("GOSSIP_SHOW")
 event_frame:RegisterEvent("TRAINER_SHOW")
 event_frame:RegisterEvent("TRAINER_UPDATE")
@@ -787,6 +803,14 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
     elseif event == "PLAYER_TARGET_CHANGED" then
         update_target_name()
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        -- Writes to protected regions are intentionally skipped in combat.
+        -- Once combat ends, retry only the surfaces that are still visible.
+        scheduler.request("post-combat-surfaces", nil, function ()
+            update_target_name()
+            registry.refresh_open()
+            if tooltips.refresh_active then tooltips.refresh_active() end
+        end)
     elseif event == "ITEM_TEXT_BEGIN" then
         scanner.begin_book(...)
     elseif event == "ITEM_TEXT_READY" then
