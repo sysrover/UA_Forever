@@ -294,17 +294,31 @@ local function is_capture_noise(normalized, frame_name)
         or frame_name:find("EditBox", 1, true)
 end
 
-local function is_current_target_player_name(text)
+local player_name_units = { "player", "target", "focus", "mouseover" }
+for index = 1, 4 do player_name_units[#player_name_units + 1] = "party" .. index end
+for index = 1, 40 do player_name_units[#player_name_units + 1] = "raid" .. index end
+for index = 1, 5 do player_name_units[#player_name_units + 1] = "arena" .. index end
+
+local function is_player_unit_name(text, unit)
     if type(text) ~= "string" or type(_G.UnitIsPlayer) ~= "function"
         or type(_G.UnitName) ~= "function" then return false end
-    local player_ok, is_player = pcall(_G.UnitIsPlayer, "target")
+    local player_ok, is_player = pcall(_G.UnitIsPlayer, unit)
     if not player_ok or is_secret(is_player) or is_player ~= true then return false end
-    local name_ok, name, realm = pcall(_G.UnitName, "target")
+    local name_ok, name, realm = pcall(_G.UnitName, unit)
     if not name_ok or is_secret(name) or type(name) ~= "string" then return false end
     if text == name then return true end
     return type(realm) == "string" and realm ~= "" and not is_secret(realm)
         and text == name .. "-" .. realm
 end
+
+local function is_known_player_name(text)
+    for _, unit in ipairs(player_name_units) do
+        if is_player_unit_name(text, unit) then return true end
+    end
+    return false
+end
+
+strings.is_known_player_name = is_known_player_name
 
 local function capture_font_string(region, stats)
     if not region or not region.GetText then return end
@@ -338,7 +352,7 @@ local function capture_font_string(region, stats)
         or not normalized:find("[A-Za-z]") then return end
 
     if is_capture_noise(normalized, frame_name) then return end
-    if is_current_target_player_name(normalized) then
+    if is_known_player_name(normalized) then
         if type(auto_scan.discard_ui) == "function" then
             auto_scan.discard_ui(normalized)
         end
