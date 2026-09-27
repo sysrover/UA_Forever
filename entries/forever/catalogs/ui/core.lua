@@ -665,6 +665,7 @@ local ui = {
     ["Must have a Shield equipped"] = "Потрібно спорядити щит",
     ["Escort Miran to the excavation site (Complete)"] = "Супроводіть Мірана до місця розкопок (виконано)",
     ["Must be in Defensive Stance"] = "Потрібно перебувати в захисній стійці",
+    ["6 Minutes until release"] = "6 хвилин до звільнення духу",
 }
 
 if addonTable.forever_catalog then

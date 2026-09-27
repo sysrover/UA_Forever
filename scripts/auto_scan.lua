@@ -1048,6 +1048,8 @@ auto_scan.export_text = function ()
                 elseif group == "ui" then
                     keep = english_source(record.text)
                         and not domain_owned_ui_slot(record.slot)
+                        and not (type(strings.is_known_player_name) == "function"
+                            and strings.is_known_player_name(record.text))
                         and not has_ui_translation(record.text)
                         and not domain_store_has_text(store, record.text)
                 elseif group == "quests" then

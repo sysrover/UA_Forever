@@ -1140,6 +1140,7 @@ addonTable.object = { -- [key] = text
 ["Ironforge Physician"] = "Лікар Залізогарта",
 ["The Bronze Kettle"] = "Бронзовий казанок",
 ["Thistlefuzz Arcanery"] = "Арканерія Будякопуха",
+["Corpse of Carne"] = "Тіло Карна",
 }
 
 addonTable.translate_object_name = function (name)
