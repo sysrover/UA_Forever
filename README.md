@@ -4,11 +4,11 @@ UA Forever is a Ukrainian localization addon for World of Warcraft: Forever
 Beta, built for its modern Camelot interface. It translates quests, tooltips,
 menus, character and profession panels, chat, NPC names, and other visible text.
 Hold Shift to see the original tooltip; quest conversations have an EN/UA
-switch. Target client: `wow_forever_beta` build `1.60.1.69977` (Interface
+switch. Target client: `wow_forever_beta` build `1.60.1.70009` (Interface
 `16001`).
 
 UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever Beta, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
-Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: wow_forever_beta, збірка 1.60.1.69977 (інтерфейс 16001).
+Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: wow_forever_beta, збірка 1.60.1.70009 (інтерфейс 16001).
 
 ## ClassicUA translations
 
@@ -22,7 +22,7 @@ ClassicUA: [GitHub](https://github.com/greenya/ClassicUA) ·
 
 Classic translations can be outdated when Forever changes a spell or quest.
 The bundled client catalog is tagged `1.60.1.69913`; `/uaf scan` reports its
-build mismatch until it is regenerated for `1.60.1.69977`.
+build mismatch until it is regenerated for `1.60.1.70009`.
 
 ## Commands
 
@@ -33,8 +33,8 @@ build mismatch until it is regenerated for `1.60.1.69977`.
 
 Scanned IDs, missing translations, menu captures, and diagnostics are saved in
 `UA_ForeverDB` when the client reloads or exits. Run the translation audits in
-`tools/` when changing dictionaries. The pattern overlap audit currently fails
-because its baseline still uses old pattern positions.
+`tools/` when changing dictionaries. Contributor instructions are in
+[`CONTRIBUTING_TRANSLATIONS.md`](CONTRIBUTING_TRANSLATIONS.md).
 
 У **Налаштування → Додатки → UA Forever** можна увімкнути автоскан
 неперекладеного контенту. Він збирає нові предмети з текстом підказок, діалоги
@@ -46,4 +46,5 @@ because its baseline still uses old pattern positions.
 відкриття в браузері. Користувач сам надсилає дані. WoW записує `SavedVariables` на диск під
 час `/reload` або виходу з гри.
 Після надсилання всіх частин натисніть **Очистити дані** у вікні експорту та
-підтвердьте дію. Це видаляє лише записи автоскана з `UA_ForeverDB.scan.auto`.
+підтвердьте дію. Це видаляє `UA_ForeverDB.scan.auto`, локальну runtime/hook
+діагностику поточної сесії та очищує видимий export.

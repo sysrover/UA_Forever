@@ -3,6 +3,8 @@ local _, addon_table = ...
 local entries = addon_table.use("entries")
 local auto_scan = addon_table.use("auto_scan")
 local map_labels = addon_table.use("map_labels")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").map_labels
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
@@ -120,14 +122,14 @@ local function translated_zone_discovery_message(message)
     if not zone then return nil end
     local translated = translated_zone_name(zone)
     if not translated then return nil end
-    return "Відкрито нову територію: " .. translated
+    return surface_text.discovered(translated)
 end
 
 local function after_evaluate(label)
     local region = label and label.Name
     local current = visible_text(region)
     if not current then
-        if region then runtime.clear(region) end
+        if region then runtime.invalidate(region) end
         return
     end
     local claim = runtime.get(region)
@@ -135,7 +137,7 @@ local function after_evaluate(label)
         and current == claim.translated then
         return
     end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if options.can_lookup("translate_gossip") and is_gossip_poi(label, current) then
         local translated = entries.get_glossary_text(current, current)
         if safe_string(translated) and translated ~= current then
@@ -170,7 +172,7 @@ local function after_minimap_update()
     if not current or type(getter) ~= "function" then return end
     local ok, native = pcall(getter)
     if not ok or safe_string(native) ~= current then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not options.can_lookup("translate_zone") then return end
     local translated = translated_zone_name(current)
     if translated then
@@ -192,7 +194,7 @@ end
 
 local function apply_native_zone_region(region, native, owner)
     if not native or visible_text(region) ~= native then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not options.can_lookup("translate_zone") then return end
     local translated = translated_zone_name(native)
     if translated then
@@ -362,7 +364,7 @@ local function after_real_zone_writer(region, owner)
     local translated = translated_zone_name(native)
     if not current or not translated
         or (current ~= native and current ~= translated) then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     runtime.apply(region, {
         owner = owner, slot = "zone.name", source = native,
         translated = translated, option = "translate_zone",
@@ -407,7 +409,9 @@ local function translate_queue_menu(menu)
             _G.LEAVE_ZONE, translated)
         if translation_ok then button_translation = translated_value end
     end
-    walker.walk(menu, function (region)
+    walker.walk({ id = "queue-status-zone-menu", surface = "map",
+        owner = "map-labels", reason = "POOLED_MENU_DISCOVERY" },
+        menu, function (region)
         local current = visible_text(region)
         local previous = region and runtime.get(region)
         local source = current
@@ -431,7 +435,7 @@ local function after_queue_menu()
     local menu = active_menu()
     if not menu then return end
     translate_queue_menu(menu)
-    local generation = runtime.next_generation(menu)
+    local generation = runtime.begin_generation(menu)
     scheduler.request("zone-queue-menu:" .. tostring(menu), generation,
         function ()
             if active_menu() == menu then translate_queue_menu(menu) end
@@ -443,7 +447,7 @@ local function after_zone_label_evaluation(self)
         and safe_string(self.bestAreaTrigger.name)
     local region = self and self.ZoneLabel and self.ZoneLabel.Text
     if not source or visible_text(region) ~= source then return end
-    runtime.clear(region)
+    runtime.invalidate(region)
     if not options.can_lookup("translate_zone") then return end
     local translated = translated_zone_name(source)
     if translated then
@@ -465,7 +469,7 @@ local function after_adventure_zone_refresh(self)
             local source = pin and safe_string(pin.title)
             local region = pin and pin.Text
             if source and visible_text(region) == source then
-                runtime.clear(region)
+                runtime.invalidate(region)
                 local translated = translated_zone_name(source)
                 if translated then
                     runtime.apply(region, {
@@ -664,7 +668,9 @@ local function translate_worldmap_dropdown(menu, nav)
             if translated then names[source] = translated end
         end
     end
-    walker.walk(menu, function (region)
+    walker.walk({ id = "world-map-navigation-menu", surface = "map",
+        owner = "map-labels", reason = "POOLED_MENU_DISCOVERY" },
+        menu, function (region)
         local current = visible_text(region)
         local previous = region and runtime.get(region)
         local source = previous and names[previous.source]

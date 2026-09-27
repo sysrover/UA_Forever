@@ -9,19 +9,30 @@ local options   = addon_table.use("options") ---@class options_class
 local runtime   = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local utils     = addon_table.use("utils") ---@class utils_class
+local hooks     = addon_table.use("translation_hooks").bind("chats")
 
 local math_min          = _G.math.min
 local string_format     = _G.string.format
 local UnitName          = _G.UnitName
+local chat_catalog      = assert(addon_table.forever_chat_system,
+    "UA Forever system chat catalog is not loaded")
+local chat_format       = chat_catalog.format
+local addon_locale      = assert(addon_table.addon_locale_uk,
+    "UA Forever addon locale is not loaded")
 
 local known_chat_msg_events = {
     CHAT_MSG_MONSTER_EMOTE      = { info=ChatTypeInfo.MONSTER_EMOTE,        verb=false },
-    CHAT_MSG_MONSTER_PARTY      = { info=ChatTypeInfo.MONSTER_PARTY,        verb="каже" },
-    CHAT_MSG_MONSTER_SAY        = { info=ChatTypeInfo.MONSTER_SAY,          verb="каже" },
-    CHAT_MSG_MONSTER_WHISPER    = { info=ChatTypeInfo.MONSTER_WHISPER,      verb="шепоче" },
-    CHAT_MSG_MONSTER_YELL       = { info=ChatTypeInfo.MONSTER_YELL,         verb="вигукує" },
+    CHAT_MSG_MONSTER_PARTY      = { info=ChatTypeInfo.MONSTER_PARTY,
+        verb=chat_catalog.event_verbs.CHAT_MSG_MONSTER_PARTY },
+    CHAT_MSG_MONSTER_SAY        = { info=ChatTypeInfo.MONSTER_SAY,
+        verb=chat_catalog.event_verbs.CHAT_MSG_MONSTER_SAY },
+    CHAT_MSG_MONSTER_WHISPER    = { info=ChatTypeInfo.MONSTER_WHISPER,
+        verb=chat_catalog.event_verbs.CHAT_MSG_MONSTER_WHISPER },
+    CHAT_MSG_MONSTER_YELL       = { info=ChatTypeInfo.MONSTER_YELL,
+        verb=chat_catalog.event_verbs.CHAT_MSG_MONSTER_YELL },
     CHAT_MSG_RAID_BOSS_EMOTE    = { info=ChatTypeInfo.RAID_BOSS_EMOTE,      verb=false },
-    CHAT_MSG_RAID_BOSS_WHISPER  = { info=ChatTypeInfo.RAID_BOSS_WHISPER,    verb="шепоче" },
+    CHAT_MSG_RAID_BOSS_WHISPER  = { info=ChatTypeInfo.RAID_BOSS_WHISPER,
+        verb=chat_catalog.event_verbs.CHAT_MSG_RAID_BOSS_WHISPER },
 }
 
 local system_chat_events = {
@@ -36,9 +47,7 @@ local system_chat_events = {
 }
 
 -- Some server items are visible in chat before their IDs reach the client catalog.
-local observed_item_names = {
-    ["Elfire's Shipment"] = "Вантаж Елфайр",
-}
+local observed_item_names = chat_catalog.observed_item_names
 
 local chat_addition_sequence = 0
 local chat_bubble_sequence = 0
@@ -46,8 +55,8 @@ local direct_event_messages = setmetatable({}, { __mode = "k" })
 local wrapped_chat_frames = setmetatable({}, { __mode = "k" })
 
 chats.styles = {
-    { key = "replacement", label = "Заміна" },      -- hand our text to the game and let it print the line as usual
-    { key = "addition",    label = "Доповнення" },  -- let the game print the original, then add ours underneath
+    { key = "replacement", label = addon_locale.chat_style_replacement },
+    { key = "addition", label = addon_locale.chat_style_addition },
 }
 
 local function resolve_npc_name(npc_name, npc_name_uk)
@@ -66,10 +75,8 @@ local function translate_chat_bubble(chat_text, chat_text_uk)
     -- chat bubble is not spawned just yet, so we wait a moment
     chat_bubble_sequence = chat_bubble_sequence + 1
     local key = "chat-bubble:" .. chat_bubble_sequence
-    local attempts = 0
     local function find_bubble()
         if not options.can_translate("translate_chat_bubble") then return end
-        attempts = attempts + 1
         local font_string = utils.chat_bubble_font_string_with_text(chat_text)
         if font_string then
             local MAX_CHAT_BUBBLE_WIDTH = 314 -- value observed from default chat bubbles.
@@ -80,11 +87,10 @@ local function translate_chat_bubble(chat_text, chat_text_uk)
                     region:SetWidth(math_min(region:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
                 end }) then return end
         end
-        if attempts < 3 then
-            scheduler.request(key, nil, find_bubble, attempts == 1 and 0.05 or 0.15)
-        end
+        return false
     end
-    scheduler.request(key, nil, find_bubble, 0.01)
+    scheduler.request({ id=key, surface=chats, instance=key,
+        callback=find_bubble, delay=0.01, retry_delay=0.1, max_retries=2 })
 end
 
 local function resolve_lang_name(chat_frame, lang_name)
@@ -199,11 +205,7 @@ local function translate_skill_name(name)
         or name
 end
 
-local money_unit_forms = {
-    Copper = { "мідна монета", "мідні монети", "мідних монет" },
-    Silver = { "срібна монета", "срібні монети", "срібних монет" },
-    Gold = { "золота монета", "золоті монети", "золотих монет" },
-}
+local money_unit_forms = chat_catalog.money_unit_forms
 
 local function translate_money_amount(amount)
     for english, forms in pairs(money_unit_forms) do
@@ -221,56 +223,44 @@ end
 
 local function translate_direct_chat_text(message)
     if type(message) ~= "string" then return nil end
-    if message == "You have been disconnected from Blizzard services." then
-        return "Вас відключено від сервісів Blizzard."
-    end
-    if message == "You are no longer Away." then return "Ви повернулися." end
-    if message == "You leave the group." then return "Ви полишаєте групу." end
-    if message == "You feel rested." then return "Ви відпочиваєте." end
-    if message == "You are no longer rested." then return "Ви більше не відпочиваєте." end
-    if message == "You are now the group leader." then return "Тепер ви лідер групи." end
-    if message == "Your group has been disbanded." then return "Вашу групу розформовано." end
-    if message == "[You died.]" then return "[Ви загинули.]" end
+    local exact = chat_catalog.exact[message]
+    if exact then return exact end
     local death_link = message:gsub("(|Hdeath:[^|]+|h)%[You died%.%](|h)",
-        function(prefix, suffix) return prefix .. "[Ви загинули.]" .. suffix end)
+        chat_format.death_link)
     if death_link ~= message then return death_link end
     local notice_prefix, notice_link, notice_suffix = message:match(
         "^(Remember to act responsibly, protect your personal information, and report anything offensive%. View our In%-Game Code of Conduct on )(.-)( for more information%.)$")
     if notice_prefix then
-        return "Поводьтеся відповідально, захищайте свої особисті дані та повідомляйте про образливу поведінку. Докладніше — у Правилах поведінки в грі: "
-            .. notice_link .. "."
+        return chat_format.conduct_notice(notice_link)
     end
     local share = message:match("^Your share of the loot is (.+)%.$")
     if share then
-        return "Ваша частка здобичі: " .. translate_money_amount(share) .. "."
+        return chat_format.loot_share(translate_money_amount(share))
     end
     local looted_money = message:match("^You loot (.+)$")
     if looted_money then
-        return "Ваша здобич: " .. translate_money_amount(looted_money)
+        return chat_format.loot_money(translate_money_amount(looted_money))
     end
     local link_prefix, link_level, label_level, link_suffix = message:match(
         "^Congratulations, you have reached (|c%x%x%x%x%x%x%x%x|Hlevelup:(%d+):LEVEL_UP_TYPE_CHARACTER|h)%[Level (%d+)%](|h|r)!$")
     if link_prefix and link_level == label_level then
-        return "Вітаємо! Ви досягли " .. link_prefix .. "[" .. label_level
-            .. "-го рівня]" .. link_suffix .. "!"
+        return chat_format.level_link(link_prefix, label_level, link_suffix)
     end
     local color_prefix, colored_level, color_suffix = message:match(
         "^Congratulations, you have reached (|c%x%x%x%x%x%x%x%x)Level (%d+)!(|r)$")
     if color_prefix then
-        return "Вітаємо! Ви досягли " .. color_prefix .. colored_level
-            .. "-го рівня!" .. color_suffix
+        return chat_format.level_color(color_prefix, colored_level, color_suffix)
     end
     local level = message:match(
         "^Congratulations, you have reached [Ll]evel (%d+)!$")
-    if level then return "Вітаємо! Ви досягли " .. level .. "-го рівня!" end
+    if level then return chat_format.level_plain(level) end
     local appearance = message:match(
         "^(.+) has been added to your appearance collection%.$")
     if appearance then
-        return translate_item_links(appearance) ..
-            " додано до вашої колекції виглядів."
+        return chat_format.appearance(translate_item_links(appearance))
     end
     local gained = message:match("^You gained: (.+)$")
-    if gained then return "Отримано: " .. translate_money_amount(gained) end
+    if gained then return chat_format.gained(translate_money_amount(gained)) end
     local currency = message:match("^You receive currency: (.+)$")
     if currency then
         currency = currency:gsub("%[([^%]]+)%]", function(name)
@@ -280,34 +270,30 @@ local function translate_direct_chat_text(message)
                 or name
             return "[" .. translated .. "]"
         end)
-        return "Ви отримуєте валюту: " .. currency
+        return chat_format.currency(currency)
     end
     local created = message:match("^You create: (.+)$")
-    if created then return "Ви створюєте: " .. translate_item_links(created) end
+    if created then return chat_format.create_links(translate_item_links(created)) end
     created = message:match("^You create (.+)%.$")
-    if created then return "Ви створюєте " .. translate_item_name(created) .. "." end
+    if created then return chat_format.create_name(translate_item_name(created)) end
     local recipe = message:match("^You have learned how to create a new item: (.+)%.$")
     if recipe then
         local name = recipe:find("|Hitem:", 1, true) and translate_item_links(recipe)
             or translate_item_name(recipe)
-        return "Ви навчилися створювати новий предмет: " ..
-            name .. "."
+        return chat_format.learned_recipe(name)
     end
 end
 
-local loot_choice = {
-    Need = "Потреба",
-    Greed = "Жадібність",
-}
+local loot_choice = chat_catalog.loot_choice
 
 local function translate_group_loot(message)
     local prefix, body = message:match("^(|HlootHistory:[^|]+|h)%[Loot%]|h: (.+)$")
     if prefix then
-        prefix = prefix .. "[Здобич]|h: "
+        prefix = chat_format.loot_link_prefix(prefix)
     else
         body = message:match("^%[Loot%]: (.+)$")
         if not body then return nil end
-        prefix = "[Здобич]: "
+        prefix = chat_format.loot_plain_prefix()
     end
 
     local player, choice, item = body:match("^(.+) has selected (Need) for: (.+)$")
@@ -315,33 +301,32 @@ local function translate_group_loot(message)
         player, choice, item = body:match("^(.+) has selected (Greed) for: (.+)$")
     end
     if player then
-        return prefix .. player .. " обирає «" .. loot_choice[choice]
-            .. "» для " .. translate_item_links(item)
+        return chat_format.loot_player_choice(prefix, player, loot_choice[choice],
+            translate_item_links(item))
     end
     choice, item = body:match("^You have selected (Need) for: (.+)$")
     if not choice then
         choice, item = body:match("^You have selected (Greed) for: (.+)$")
     end
     if choice then
-        return prefix .. "Ви обираєте «" .. loot_choice[choice]
-            .. "» для " .. translate_item_links(item)
+        return chat_format.loot_you_choice(prefix, loot_choice[choice],
+            translate_item_links(item))
     end
     player, item = body:match("^(.+) won: (.+)$")
     if player then
-        return prefix .. (player == "You" and "Ви" or player)
-            .. " виграє " .. translate_item_links(item)
+        return chat_format.loot_won(prefix, player, translate_item_links(item))
     end
     player, item = body:match("^(.+) passed on: (.+)$")
     if player then
-        return prefix .. player .. " відмовляється від " .. translate_item_links(item)
+        return chat_format.loot_passed(prefix, player, translate_item_links(item))
     end
     local roll, score, rolled_item, roller = body:match("^(Need) Roll %- (%d+) for (.+) by (.+)$")
     if not roll then
         roll, score, rolled_item, roller = body:match("^(Greed) Roll %- (%d+) for (.+) by (.+)$")
     end
     if roll then
-        return prefix .. "Кидок «" .. loot_choice[roll] .. "» — " .. score
-            .. " для " .. translate_item_links(rolled_item) .. ", " .. roller
+        return chat_format.loot_roll(prefix, loot_choice[roll], score,
+            translate_item_links(rolled_item), roller)
     end
     if body:match("^%[[^%]]+%]$") or body:find("|Hitem:", 1, true) then
         return prefix .. translate_item_links(body)
@@ -361,7 +346,7 @@ local function translate_system_text(event, message)
     if event == "CHAT_MSG_TRADESKILLS" then
         local crafter, item = message:match("^(.+) creates (.+)%.$")
         if crafter and item then
-            return crafter .. " створює " .. translate_item_name(item) .. "."
+            return chat_format.crafter_name(crafter, translate_item_name(item))
         end
     end
 
@@ -371,86 +356,84 @@ local function translate_system_text(event, message)
         if event == "CHAT_MSG_LOOT" then
             local crafter, created = message:match("^(.+) creates: (.+)%.$")
             if crafter and created then
-                return crafter .. " створює: " .. translate_item_links(created) .. "."
+                return chat_format.crafter_links(crafter,
+                    translate_item_links(created))
             end
         end
         local receiver, received = message:match("^(.+) receives loot: (.+)%.$")
         if receiver then
-            return receiver .. " отримує здобич: " .. translate_item_links(received) .. "."
+            return chat_format.receiver_loot(receiver,
+                translate_item_links(received))
         end
         local loot = message:match("^You receive loot: (.+)$")
-        if loot then return "Здобуто: " .. translate_item_links(loot) end
+        if loot then return chat_format.receive_loot(translate_item_links(loot)) end
         local item = message:match("^You receive item: (.+)$")
-        if item then return "Отримано предмет: " .. translate_item_links(item) end
+        if item then return chat_format.receive_item(translate_item_links(item)) end
     end
 
     if event == "CHAT_MSG_SYSTEM" then
         local deserter, opponent = message:match("^(.+) has fled from (.+) in a duel$")
         if deserter then
-            return deserter .. " втікає з двобою проти " .. opponent .. "."
+            return chat_format.duel_fled(deserter, opponent)
         end
         local failed_quest = message:match("^(.+) failed: Inventory is full%.$")
         if failed_quest then
             local quest = entries.lookup_name("quest", failed_quest) or failed_quest
-            return "Провалено завдання «" .. quest .. "»: інвентар заповнений."
+            return chat_format.quest_failed_inventory(quest)
         end
         local group, inviter = message:match(
             "^(.+) suggested that (.+) invite you to their group%.$")
         if group then
-            return group .. " запропонували " .. inviter
-                .. " запросити вас до своєї групи."
+            return chat_format.group_suggested(group, inviter)
         end
         local inviter, guild = message:match("^(.+) invites you to join (.+)%.$")
         if inviter and guild then
-            return inviter .. " запрошує вас приєднатися до гільдії " .. guild .. "."
+            return chat_format.guild_invite(inviter, guild)
         end
         local raid_member = message:match("^(.+) has joined the raid group%.$")
-        if raid_member then return raid_member .. " приєднується до рейду." end
+        if raid_member then return chat_format.raid_joined(raid_member) end
         raid_member = message:match("^(.+) has left the raid group%.$")
-        if raid_member then return raid_member .. " залишає рейд." end
-        if message == "Party converted to Raid" then
-            return "Групу перетворено на рейд."
-        end
+        if raid_member then return chat_format.raid_left(raid_member) end
         local fallen_npc = message:match("^(.+) has died%.$")
         if fallen_npc then
-            return entries.get_glossary_text(fallen_npc, fallen_npc) .. " помер."
+            return chat_format.npc_died(
+                entries.get_glossary_text(fallen_npc, fallen_npc))
         end
         local leader = message:match("^(.+) is now the group leader%.$")
-        if leader then return "Тепер лідер групи — " .. leader .. "." end
+        if leader then return chat_format.group_leader(leader) end
         local joined = message:match("^(.+) joins the party%.$")
-        if joined then return joined .. " приєднується до групи." end
+        if joined then return chat_format.party_joined(joined) end
         local left = message:match("^(.+) leaves the party%.$")
-        if left then return left .. " полишає групу." end
+        if left then return chat_format.party_left(left) end
         local invited_link = message:match(
             "^(|Hplayer:[^|]+|h%[[^%]]+%]|h) has invited you to join a group%.$")
-        if invited_link then return invited_link .. " запрошує вас до групи." end
+        if invited_link then return chat_format.group_invite_link(invited_link) end
         local invited = message:match("^%[(.+)%] has invited you to join a group%.$")
-        if invited then return "[" .. invited .. "] запрошує вас до групи." end
+        if invited then return chat_format.group_invite_name(invited) end
         local threshold = message:match("^Loot threshold set to (.+)%.$")
         if threshold then
-            local quality = ({ Uncommon = "незвичайні" })[threshold] or threshold
-            return "Поріг здобичі: " .. quality .. "."
+            local quality = chat_catalog.loot_quality[threshold] or threshold
+            return chat_format.loot_threshold(quality)
         end
         local looting = message:match("^Looting set to (.+)%.$")
         if looting then
-            local method = ({ ["Group Loot"] = "групова здобич" })[looting] or looting
-            return "Спосіб розподілу здобичі: " .. method .. "."
+            local method = chat_catalog.loot_method[looting] or looting
+            return chat_format.loot_method(method)
         end
         local accepted = message:match("^Quest accepted: (.+)$")
         if accepted then
-            return "Завдання прийнято: " ..
-                (entries.lookup_name("quest", accepted) or accepted)
+            return chat_format.quest_accepted(
+                entries.lookup_name("quest", accepted) or accepted)
         end
         local completed = message:match("^(.+) completed%.$")
         local quest_name = completed and entries.lookup_name("quest", completed)
-        if quest_name then return "Завдання виконано: " .. quest_name .. "." end
+        if quest_name then return chat_format.quest_completed(quest_name) end
         local reward = message:match("^Received (.+)%.$")
-        if reward then return "Отримано " .. translate_money_amount(reward) .. "." end
+        if reward then return chat_format.received(translate_money_amount(reward)) end
         local zone = message:match("^Discovered: (.+)$")
         if zone then
-            return "Відкрито нову територію: " ..
-                (options.can_translate("translate_zone")
-                    and addon_table.zone and addon_table.zone[zone] or zone)
+            return chat_format.discovered(options.can_translate("translate_zone")
+                and addon_table.zone and addon_table.zone[zone] or zone)
         end
     end
 
@@ -458,15 +441,15 @@ local function translate_system_text(event, message)
         local fallen_group, kill_xp_group, bonus = message:match(
             "^(.+) dies, you gain ([%d,]+) experience%. %(%+([%d,]+) group bonus%)$")
         if fallen_group then
-            return entries.get_glossary_text(fallen_group, fallen_group)
-                .. " гине. Ви отримуєте " .. kill_xp_group
-                .. " досвіду. (Бонус групи: +" .. bonus .. ")"
+            return chat_format.kill_xp_group(
+                entries.get_glossary_text(fallen_group, fallen_group),
+                kill_xp_group, bonus)
         end
         local fallen, kill_xp = message:match(
             "^(.+) dies, you gain ([%d,]+) experience%.$")
         if fallen then
-            return entries.get_glossary_text(fallen, fallen) .. " гине. Ви отримуєте "
-                .. kill_xp .. " досвіду."
+            return chat_format.kill_xp(
+                entries.get_glossary_text(fallen, fallen), kill_xp)
         end
         local zone, discovery_xp = message:match(
             "^Discovered (.-): ([%d,]+) experience gained%.?$")
@@ -476,19 +459,17 @@ local function translate_system_text(event, message)
                 translated_zone = addon_table.zone and addon_table.zone[zone]
                     or entries.get_glossary_text(zone, zone, "zone")
             end
-            return "Відкрито нову територію: " .. translated_zone ..
-                ". Досвіду отримано: " .. discovery_xp .. "."
+            return chat_format.discovery_xp(translated_zone, discovery_xp)
         end
         local experience = message:match("^Experience gained: ([%d,]+)%.$")
-        if experience then return "Досвіду отримано: " .. experience .. "." end
+        if experience then return chat_format.experience_gained(experience) end
         local grouped_experience, group_bonus = message:match(
             "^You gain ([%d,]+) experience%. %(%+([%d,]+) group bonus%)$")
         if grouped_experience then
-            return "Ви отримуєте " .. grouped_experience
-                .. " досвіду. (Бонус групи: +" .. group_bonus .. ")"
+            return chat_format.experience_group(grouped_experience, group_bonus)
         end
         experience = message:match("^You gain ([%d,]+) experience%.$")
-        if experience then return "Ви отримуєте " .. experience .. " досвіду." end
+        if experience then return chat_format.experience(experience) end
     end
 
     if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_COMBAT_FACTION_CHANGE" then
@@ -499,7 +480,7 @@ local function translate_system_text(event, message)
         if faction then
             local name = addon_table.forever_ui and addon_table.forever_ui[faction]
                 or entries.get_glossary_text(faction, faction)
-            return "Репутацію фракції «" .. name .. "» підвищено на " .. amount .. "."
+            return chat_format.reputation_increased(name, amount)
         end
         faction, amount = message:match("^Reputation with (.-) decreased by ([%d,]+)%.$")
         if not faction then
@@ -508,25 +489,24 @@ local function translate_system_text(event, message)
         if faction then
             local name = addon_table.forever_ui and addon_table.forever_ui[faction]
                 or entries.get_glossary_text(faction, faction)
-            return "Репутацію фракції «" .. name .. "» знижено на " .. amount .. "."
+            return chat_format.reputation_decreased(name, amount)
         end
     end
 
     if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_SKILL" then
         local learned = message:match("^You have learned a new ability: (.+)%.$")
         if learned then
-            return "Ви вивчили нову здібність: " ..
-                translate_spell_links(learned) .. "."
+            return chat_format.learned_ability(translate_spell_links(learned))
         end
         local skill, rank = message:match("^Your skill in (.-) has increased to (%d+)%.$")
         if skill then
             local name = translate_skill_name(skill)
-            return "Ваше вміння «" .. name .. "» зросло до " .. rank .. "."
+            return chat_format.skill_increased(name, rank)
         end
         skill = message:match("^You have gained the (.-) skill%.$")
         if skill then
             local name = translate_skill_name(skill)
-            return "Ви здобули вміння «" .. name .. "»."
+            return chat_format.skill_gained(name)
         end
     end
 end
@@ -547,20 +527,17 @@ end
 local function translated_channel_label(label)
     local number, channel, zone = label:match("^(%d+%. )([^%-]+) %- (.+)$")
     if number and channel and zone then
-        local channel_name = channel == "General" and "Загальний"
-            or channel == "LocalDefense" and "Місцева оборона"
-            or channel == "Trade" and "Торгівля"
-            or channel == "Trade (Services)" and "Торгівля (послуги)"
+        local channel_name = chat_catalog.channel_names[channel]
         if channel_name and (channel == "Trade" or channel == "Trade (Services)") then
             local language = addon_table.forever_ui_curated
                 and addon_table.forever_ui_curated[zone]
                 or addon_table.forever_ui and addon_table.forever_ui[zone]
                 or entries.get_language_text(zone)
-            return number .. channel_name .. " - " .. language
+            return chat_format.channel(number, channel_name, language)
         end
         local zone_name = addon_table.zone and addon_table.zone[zone]
         if channel_name and zone_name then
-            return number .. channel_name .. " - " .. zone_name
+            return chat_format.channel(number, channel_name, zone_name)
         end
     end
     return addon_table.forever_ui_curated
@@ -692,13 +669,7 @@ chats.prepare = function()
     for event_name in pairs(system_chat_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_system_msg)
     end
-    if _G.ChatFrameMixin and type(_G.ChatFrameMixin.AddMessage) == "function"
-        and type(_G.hooksecurefunc) == "function" then
-        _G.hooksecurefunc(_G.ChatFrameMixin, "AddMessage", after_chat_add_message)
-    end
+    hooks.region(_G.ChatFrameMixin, "AddMessage", after_chat_add_message)
     wrap_chat_frames()
-    if type(_G.FCF_OpenNewWindow) == "function"
-        and type(_G.hooksecurefunc) == "function" then
-        _G.hooksecurefunc("FCF_OpenNewWindow", wrap_chat_frames)
-    end
+    hooks.global("FCF_OpenNewWindow", wrap_chat_frames)
 end

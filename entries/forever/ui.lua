@@ -3,7 +3,7 @@ local _, addonTable = ...
 -- Forever/Camelot UI strings that are not present in the Classic Era table.
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
-addonTable.forever_ui = {
+local ui = {
     -- Chat channels use WoW group and guild terminology, not the literal
     -- meanings of "party", "officer", or "say" from the generated catalog.
     ["Say"] = "Сказати",
@@ -630,6 +630,12 @@ addonTable.forever_ui = {
         "Наповнюй кухоль і влаштовуйся зручніше. Маємо історії до розповіді й барила до спорожнення.",
 }
 
+if addonTable.forever_catalog then
+    addonTable.forever_catalog.register_ui_source("ui", "curated", ui, 300)
+else
+    addonTable.forever_ui = ui
+end
+
 local warrior_stances = {
     ["Battle Stance"] = "бойова стійка",
     ["Defensive Stance"] = "захисна стійка",
@@ -646,7 +652,7 @@ local function translate_requirement(requirement)
     local level = name:match("^Level (%d+)$")
     if level then return "Необхідний рівень " .. level end
 
-    local translated = addonTable.forever_ui and addonTable.forever_ui[name]
+    local translated = ui[name]
         or addonTable.string and addonTable.string[name]
     if not translated then
         local entries = addonTable.use("entries")
@@ -904,7 +910,7 @@ addonTable.forever_ui_patterns = {
         -- string "Level %d %s" can never match the visible value.
         pattern = "^Level (%d+) (.+)$",
         replace = function (level, class)
-            local translated_class = addonTable.forever_ui[class] or class
+            local translated_class = ui[class] or class
             return "Рівень " .. level .. ": " .. translated_class
         end,
     },
@@ -1029,7 +1035,7 @@ addonTable.forever_ui_patterns = {
         pattern = "^(.-) %((.-)%)$",
         replace = function (label, binding)
             local translated = addonTable.string and addonTable.string[label]
-                or addonTable.forever_ui and addonTable.forever_ui[label]
+                or ui[label]
             if translated then return translated .. " (" .. binding .. ")" end
         end,
     },
@@ -1062,7 +1068,7 @@ addonTable.forever_ui_patterns = {
     {
         pattern = "^(Непрочитані листи від: )(.+)$",
         replace = function (prefix, location)
-            local translated = addonTable.forever_ui[location]
+            local translated = ui[location]
             return translated and (prefix .. translated) or nil
         end,
     },

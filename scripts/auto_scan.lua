@@ -6,6 +6,10 @@ local entries = addon_table.use("entries")
 local tooltips = addon_table.use("tooltips")
 local strings = addon_table.use("strings")
 local utils = addon_table.use("utils")
+local runtime = addon_table.use("translation_runtime")
+local cleared = false
+local static_diagnostics_visible = true
+local suppress_developer_capture = false
 
 local groups = {
     { "items", "[ITEMS]" }, { "gossips", "[GOSSIPS]" },
@@ -18,21 +22,24 @@ local groups = {
     { "zones", "[ZONES]" },
     { "objects", "[OBJECTS]" },
     { "ui", "[UI]" },
+    { "runtime", "[RUNTIME]" },
     { "unapplied", "[NOT_APPLIED]" },
+    { "unsafe", "[UNSAFE]" },
+    { "hooks", "[HOOKS]" },
+    { "catalog_conflicts", "[CATALOG_CONFLICTS]" },
+    { "compatibility", "[COMPATIBILITY]" },
+    { "invalid_candidates", "[INVALID_CANDIDATES]" },
+    { "technical_literals", "[TECHNICAL_LITERALS]" },
 }
 
 local function safe_text(value)
-    if type(value) ~= "string" or value == "" then return nil end
-    if type(_G.issecretvalue) == "function" then
-        local ok, secret = pcall(_G.issecretvalue, value)
-        if not ok or secret then return nil end
-    end
-    return value
+    return runtime.safe_string_or_nil(value)
 end
 
 local function bucket(group)
     if not options.account or not options.account.auto_scan_content
         or not UA_ForeverDB then return nil end
+    cleared = false
     UA_ForeverDB.scan = UA_ForeverDB.scan or {}
     UA_ForeverDB.scan.auto = UA_ForeverDB.scan.auto or {}
     local store = UA_ForeverDB.scan.auto
@@ -63,6 +70,16 @@ local function has_english_words(text)
     return text:find("[A-Za-z][A-Za-z]+") ~= nil
 end
 
+local function domain_owned_ui_slot(slot)
+    slot = safe_text(slot)
+    if not slot then return false end
+    -- Gossip/quest greeting text is owned by the gossip domain adapters and
+    -- is reported through [GOSSIPS]. Pooled greeting FontStrings can retain
+    -- an English source snapshot even while the active row is translated;
+    -- treating those snapshots as generic UI creates false [UI] candidates.
+    return slot == "GreetingText" or slot:match("%.GreetingText$") ~= nil
+end
+
 local function untranslated_key(owner, slot, source)
     local hash = type(utils.get_text_hash) == "function"
         and utils.get_text_hash(source) or source
@@ -71,6 +88,52 @@ local function untranslated_key(owner, slot, source)
 end
 
 local surface_states = {}
+local hook_states = {}
+
+auto_scan.record_unsafe_source = function (context)
+    local records = bucket("unsafe")
+    context = safe_text(context) or "unknown"
+    if not records then return end
+    local record = records[context] or { reason = "SOURCE_UNSAFE", count = 0 }
+    record.count = record.count + 1
+    records[context] = record
+end
+
+auto_scan.record_compatibility_fallback = function (reason, context)
+    reason = safe_text(reason)
+    context = safe_text(context)
+    if suppress_developer_capture and reason == "DEVELOPER_CAPTURE" then return end
+    local records = bucket("compatibility")
+    if not records or not reason or not context then return end
+    local key = reason .. ":" .. context
+    local record = records[key] or { reason = reason, context = context, count = 0 }
+    record.count = record.count + 1
+    records[key] = record
+end
+
+auto_scan.record_hook_status = function (state)
+    if type(state) ~= "table" then return end
+    local id = safe_text(state.id)
+    if not id then return end
+    cleared = false
+    hook_states[id] = {
+        surface = safe_text(state.surface),
+        kind = safe_text(state.kind),
+        target = safe_text(state.target),
+        method = safe_text(state.method),
+        blizzardAddon = safe_text(state.blizzardAddon),
+        required = state.required == true,
+        fallbackEvent = safe_text(state.fallbackEvent),
+        verifiedBuild = type(state.verifiedBuild) == "number"
+            and state.verifiedBuild or nil,
+        available = state.available == true,
+        installed = state.installed == true,
+        observed = state.observed == true,
+        observedCalls = type(state.observedCalls) == "number"
+            and state.observedCalls or 0,
+        lastError = safe_text(state.lastError),
+    }
+end
 
 local function get_surface_state(surface)
     surface = safe_text(surface)
@@ -132,6 +195,12 @@ local function surface_diagnostic(state)
 end
 
 local function runtime_reason_code(reason)
+    if reason == "PROTECTED_REGION" then return reason end
+    if reason == "DYNAMIC_CONTRACT_MISSING" then return reason end
+    if reason == "APPLY_FAILED" or reason == "OVERWRITTEN_AFTER_APPLY" then
+        return reason
+    end
+    if reason == "CLAIM_CONFLICT" then return reason end
     if reason == "захищений елемент" then return "PROTECTED_REGION" end
     if reason == "інший обробник утримує цей елемент" then
         return "CLAIM_CONFLICT"
@@ -189,8 +258,7 @@ auto_scan.verify_surface = function (spec)
 end
 
 auto_scan.record_runtime_result = function (spec, visible, reason)
-    local records = bucket("unapplied")
-    if not records or type(spec) ~= "table" then return end
+    if type(spec) ~= "table" then return end
     local source = safe_text(spec.source)
     local translated = safe_text(spec.translated)
     visible = safe_text(visible)
@@ -199,11 +267,49 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
     local owner = safe_text(spec.owner) or "ui"
     local slot = safe_text(spec.slot) or "ui.text"
     local key = untranslated_key(owner, slot, source)
-    note_surface_runtime_result(owner, slot, source, visible, reason)
-    if visible == source then
+    local surface = safe_text(spec.surface) or owner
+    local deferred_outcome = reason == "RETAINED_AFTER_APPLY"
+        or reason == "OVERWRITTEN_AFTER_APPLY"
+    local current_store = UA_ForeverDB and UA_ForeverDB.scan
+        and UA_ForeverDB.scan.auto
+    local current_runtime = current_store and current_store.runtime
+    if deferred_outcome and (not current_runtime or not current_runtime[key]) then
+        -- Clear may run while an old post-apply verification is still queued.
+        -- A deferred result may update an existing lifecycle record, but it
+        -- must not resurrect a record that the user has just deleted.
+        return
+    end
+    local records = bucket("unapplied")
+    local runtime_records = bucket("runtime")
+    if not records and not runtime_records then return end
+    note_surface_runtime_result(surface, slot, source, visible, reason)
+    if runtime_records then
+        local retained = reason == "RETAINED_AFTER_APPLY"
+        local applied = visible ~= nil and visible ~= source
+            and reason ~= "APPLY_FAILED" and reason ~= "OVERWRITTEN_AFTER_APPLY"
+        runtime_records[key] = {
+            owner = owner, slot = slot, surface = surface,
+            text = source, translation = translated, visible = visible,
+            lookupTier = safe_text(spec.lookupTier),
+            catalogSource = safe_text(spec.catalogSource),
+            phase = safe_text(spec.phase),
+            generation = type(spec.generation) == "number"
+                and spec.generation or nil,
+            instance = (type(spec.instance) == "string"
+                or type(spec.instance) == "number") and spec.instance or nil,
+            applied = applied,
+            retained = retained,
+            outcome = safe_text(reason)
+                or (applied and "APPLIED" or "NOT_APPLIED"),
+        }
+    end
+    if not records then return end
+    if visible == source or reason == "OVERWRITTEN_AFTER_APPLY" then
         records[key] = {
-            owner = owner, slot = slot, text = source,
-            translation = translated,
+            owner = owner, slot = slot, surface = surface, text = source,
+            translation = translated, visible = visible,
+            lookupTier = safe_text(spec.lookupTier),
+            catalogSource = safe_text(spec.catalogSource),
             reason = runtime_reason_code(safe_text(reason)),
             reasonDetail = safe_text(reason),
         }
@@ -224,6 +330,14 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
                 records[candidate_key] = nil
             end
         end
+        if runtime_records then
+            for candidate_key, candidate in pairs(runtime_records) do
+                if type(candidate) == "table" and candidate.owner == "ui-scan"
+                    and candidate.text == source then
+                    runtime_records[candidate_key] = nil
+                end
+            end
+        end
     end
 end
 
@@ -238,11 +352,32 @@ auto_scan.clear_runtime_owner = function (owner)
 end
 
 auto_scan.record_ui = function (source, translated, slot)
-    local records = bucket("ui")
     source = safe_text(source)
-    if not records or not source or not has_english_words(source) then return end
+    slot = safe_text(slot)
+    if not source or not has_english_words(source)
+        or domain_owned_ui_slot(slot) then return end
+    local records = bucket("ui")
+    if not records then return end
     local key = type(utils.get_text_hash) == "function"
         and utils.get_text_hash(source) or source
+    local catalog = addon_table.forever_catalog
+    if catalog and type(catalog.lookup_source_literal) == "function" then
+        local translation, provenance = catalog.lookup_source_literal(source, source)
+        if translation then
+            records[key] = nil
+            local technical = bucket("technical_literals")
+            if technical then
+                technical[key] = {
+                    text = source,
+                    translation = translation,
+                    source = provenance and provenance.source,
+                    slot = slot,
+                    reason = "NON_PLAYER_SOURCE_LITERAL",
+                }
+            end
+            return
+        end
+    end
     local ui_translation
     if strings.find_ui_translation then
         local ok, value = pcall(strings.find_ui_translation, source)
@@ -256,13 +391,13 @@ auto_scan.record_ui = function (source, translated, slot)
         records[key] = nil
         if type(ui_translation) == "string" and ui_translation ~= source then
             auto_scan.record_runtime_result({
-                owner = "ui-scan", slot = safe_text(slot) or "ui.text",
+                owner = "ui-scan", slot = slot or "ui.text",
                 source = source, translated = ui_translation,
             }, translated_success and ui_translation or source, "видимий UI-текст")
         end
         return
     end
-    records[key] = { text = source, slot = safe_text(slot) }
+    records[key] = { text = source, slot = slot }
 end
 
 auto_scan.record_book = function (identity, page, source, visible, translated, name)
@@ -566,20 +701,32 @@ local function redundant_export_field(group, key, record, field)
     return false
 end
 
+local function normalized_export_text(value)
+    value = safe_text(value)
+    if not value then return nil end
+    return value:gsub("%s+", " "):match("^%s*(.-)%s*$")
+end
+
 local function domain_store_has_text(store, source)
+    local normalized_source = normalized_export_text(source)
+    local function matches(value)
+        return normalized_source ~= nil
+            and normalized_export_text(value) == normalized_source
+    end
     for group, records in pairs(store) do
-        if group ~= "ui" and group ~= "unapplied" and type(records) == "table" then
+        if group ~= "ui" and group ~= "runtime" and group ~= "unapplied"
+            and type(records) == "table" then
             for _, record in pairs(records) do
                 if type(record) == "table" then
-                    if record.name == source or record.text == source then return true end
+                    if matches(record.name) or matches(record.text) then return true end
                     if type(record.fields) == "table" then
                         for _, value in pairs(record.fields) do
-                            if value == source then return true end
+                            if matches(value) then return true end
                         end
                     end
                     if type(record.lines) == "table" then
                         for _, row in ipairs(record.lines) do
-                            if type(row) == "table" and row.text == source then return true end
+                            if type(row) == "table" and matches(row.text) then return true end
                         end
                     end
                 end
@@ -590,11 +737,41 @@ local function domain_store_has_text(store, source)
 end
 
 auto_scan.export_text = function ()
+    if cleared then return "" end
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
+    local catalog_records = {}
+    local invalid_candidate_records = {}
+    local catalog = addon_table.forever_catalog
+    if static_diagnostics_visible and catalog
+        and type(catalog.get_ui_conflicts) == "function" then
+        for _, conflict in ipairs(catalog.get_ui_conflicts(true)) do
+            local sources = {}
+            for _, candidate in ipairs(conflict.candidates or {}) do
+                sources[#sources + 1] = tostring(candidate.source)
+                    .. ":" .. tostring(candidate.value)
+            end
+            catalog_records[conflict.key] = {
+                reason = conflict.reason,
+                winner = conflict.winner,
+                winnerSource = conflict.winnerSource,
+                winnerTier = conflict.winnerTier,
+                candidates = table.concat(sources, " | "),
+            }
+        end
+    end
+    if static_diagnostics_visible then
+        for _, candidate in ipairs(addon_table.forever_catalog_invalid_candidates or {}) do
+            local key = tostring(candidate.domain) .. ":" .. tostring(candidate.id)
+            invalid_candidate_records[key] = candidate
+        end
+    end
     for _, descriptor in ipairs(groups) do
         local group, label = descriptor[1], descriptor[2]
-        local records = store[group] or {}
+        local records = group == "hooks" and hook_states
+            or group == "catalog_conflicts" and catalog_records
+            or group == "invalid_candidates" and invalid_candidate_records
+            or store[group] or {}
         local keys = {}
         for key, record in pairs(records) do
             if type(record) == "table" then
@@ -635,6 +812,15 @@ auto_scan.export_text = function ()
                     keep = english_source(record.text)
                         and type(record.translation) == "string"
                         and record.translation ~= "" and record.translation ~= record.text
+                elseif group == "compatibility" then
+                    keep = record.reason ~= "DEVELOPER_CAPTURE"
+                        and record.reason ~= "REGISTERED_STATIC_SCAN"
+                elseif group == "hooks" then
+                    keep = true
+                elseif group == "runtime" then
+                    keep = record.applied ~= true
+                        or record.outcome ~= "APPLIED"
+                        and record.outcome ~= "RETAINED_AFTER_APPLY"
                 elseif group == "books" then
                     local book = record.bookID and addon_table.book
                         and addon_table.book[record.bookID]
@@ -644,6 +830,7 @@ auto_scan.export_text = function ()
                             and translated ~= record.text)
                 elseif group == "ui" then
                     keep = english_source(record.text)
+                        and not domain_owned_ui_slot(record.slot)
                         and not has_ui_translation(record.text)
                         and not domain_store_has_text(store, record.text)
                 elseif group == "quests" then
@@ -709,7 +896,30 @@ auto_scan.export_text = function ()
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "event", "handler", "attempts",
                         "hook", "hookAvailable", "hookObserved", "reason",
-                        "reasonDetail" }
+                        "reasonDetail", "lookupTier", "catalogSource" }
+                elseif group == "runtime" then
+                    output_fields = { "owner", "slot", "surface", "text",
+                        "translation", "visible", "lookupTier", "catalogSource",
+                        "phase", "generation", "instance", "applied", "retained",
+                        "outcome" }
+                elseif group == "hooks" then
+                    output_fields = { "surface", "kind", "target", "method",
+                        "blizzardAddon", "required", "fallbackEvent",
+                        "verifiedBuild", "available", "installed", "observed",
+                        "observedCalls", "lastError" }
+                elseif group == "catalog_conflicts" then
+                    output_fields = { "reason", "winner", "winnerSource",
+                        "winnerTier", "candidates" }
+                elseif group == "compatibility" then
+                    output_fields = { "reason", "context", "count" }
+                elseif group == "invalid_candidates" then
+                    output_fields = { "domain", "id", "source", "english",
+                        "reason", "action" }
+                elseif group == "technical_literals" then
+                    output_fields = { "text", "translation", "source", "slot",
+                        "reason" }
+                elseif group == "unsafe" then
+                    output_fields = { "reason", "count" }
                 elseif record_unapplied or fields_unapplied then
                     output_fields = { "spellID", "npcID", "bookID", "page" }
                 else
@@ -756,4 +966,9 @@ auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
         UA_ForeverDB.scan.auto = {}
     end
+    surface_states = {}
+    hook_states = {}
+    cleared = true
+    static_diagnostics_visible = false
+    suppress_developer_capture = true
 end

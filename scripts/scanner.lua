@@ -9,18 +9,30 @@ local strings = addon_table.use("strings")
 local scheduler = addon_table.use("translation_scheduler")
 local translation = addon_table.use("translation")
 local utils = addon_table.use("utils")
+local runtime = addon_table.use("translation_runtime")
 
-local function is_secret(value)
-    if type(_G.issecretvalue) ~= "function" then return false end
-    local ok, result = pcall(_G.issecretvalue, value)
-    return ok and result or false
+local is_secret = runtime.is_secret_value
+local safe_string = runtime.safe_string_or_nil
+
+local function safe_number(value)
+    if is_secret(value) then return nil end
+    return type(value) == "number" and value or nil
 end
 
 local pending_menus = {}
 
+local function note_unsafe(context, value)
+    if not is_secret(value) then return false end
+    if type(auto_scan.record_unsafe_source) == "function" then
+        auto_scan.record_unsafe_source("scanner:" .. context)
+    end
+    return true
+end
+
 local function scalar_key_part(value)
+    if note_unsafe("menu-key", value) then return nil end
     local value_type = type(value)
-    if (value_type == "string" or value_type == "number") and not is_secret(value) then
+    if value_type == "string" or value_type == "number" then
         local text = tostring(value)
         return text ~= "" and text or nil
     end
@@ -63,13 +75,17 @@ scanner.frame_key = function (frame)
     if ok_method and type(getter) == "function" then
         ok, name = pcall(getter, frame)
     end
-    if not ok or type(name) ~= "string" or is_secret(name) or name == "" then
+    if ok and note_unsafe("frame-name", name) then name = nil end
+    name = ok and safe_string(name) or nil
+    if not name then
         ok_method, getter = pcall(function () return frame.GetName end)
         if ok_method and type(getter) == "function" then
             ok, name = pcall(getter, frame)
         end
     end
-    if not ok or type(name) ~= "string" or is_secret(name) or name == "" then return nil end
+    if ok and note_unsafe("frame-name", name) then name = nil end
+    name = ok and safe_string(name) or nil
+    if not name then return nil end
     return "frame:" .. name
 end
 
@@ -85,7 +101,11 @@ local function collect_visible_text(frame, seen, depth, values)
                 local text_ok, get_text = pcall(function () return region.GetText end)
                 if text_ok and type(get_text) == "function" then
                     local value_ok, value = pcall(get_text, region)
-                    if value_ok and type(value) == "string" and not is_secret(value) then
+                    if value_ok and note_unsafe("frame-text", value) then
+                        value = nil
+                    end
+                    value = value_ok and safe_string(value) or nil
+                    if value then
                         value = value:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
                             :gsub("|T.-|t", ""):gsub("|A.-|a", "")
                             :gsub("%s+", " "):match("^%s*(.-)%s*$")
@@ -186,7 +206,8 @@ local function available(path)
 end
 
 local function normalize(text)
-    if type(text) ~= "string" or is_secret(text) then return nil end
+    text = safe_string(text)
+    if not text then return nil end
     return text:lower():gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
@@ -207,8 +228,10 @@ local function sample_table(report, kind, source, get_name, limit)
         if result.checked >= limit then break end
         if type(id) == "number" and type(entry) == "table" and type(entry.en) == "string" then
             local ok, actual = pcall(get_name, id)
+            if ok and note_unsafe("catalog-sample", actual) then actual = nil end
+            actual = ok and safe_string(actual) or nil
             result.checked = result.checked + 1
-            if not ok or type(actual) ~= "string" or is_secret(actual) or actual == "" then
+            if not actual then
                 result.unavailable = result.unavailable + 1
             elseif normalize(actual) == normalize(entry.en) then
                 result.matched = result.matched + 1
@@ -226,7 +249,10 @@ local function collect_unit_id(unit)
     local id = utils.npc_id_from_unit_id(unit)
     if not id then return end
     local entry = entries.get_entry("npc", id)
-    dev_log.record_id("npcs", id, UnitName(unit), entry ~= nil)
+    local name_ok, name = pcall(_G.UnitName, unit)
+    if name_ok and note_unsafe("unit-name", name) then name = nil end
+    dev_log.record_id("npcs", id, name_ok and safe_string(name) or nil,
+        entry ~= nil)
 end
 
 local function collect_quest_log_ids()
@@ -239,38 +265,66 @@ local function collect_quest_log_ids()
     if type(get_count) ~= "function" or type(get_info) ~= "function" then return 0 end
 
     local ok, count = pcall(get_count)
-    if not ok or type(count) ~= "number" then return 0 end
+    count = ok and safe_number(count) or nil
+    if not count then return 0 end
 
     local found = 0
     for index = 1, count do
         local info_ok, info = pcall(get_info, index)
-        if info_ok and info and info.questID and not info.isHeader then
-            local entry = entries.get_entry("quest", info.questID)
-            dev_log.record_id("quests", info.questID, info.title, entry ~= nil)
+        local fields_ok, quest_id, is_header, title = false
+        if info_ok and info and not note_unsafe("quest-log-info", info) then
+            fields_ok, quest_id, is_header, title = pcall(function ()
+                return info.questID, info.isHeader, info.title
+            end)
+        end
+        quest_id = fields_ok and safe_number(quest_id) or nil
+        if fields_ok and note_unsafe("quest-log-header", is_header) then
+            is_header = true
+        end
+        if fields_ok and note_unsafe("quest-log-title", title) then title = nil end
+        title = fields_ok and safe_string(title) or nil
+        if quest_id and quest_id > 0 and not is_header then
+            local entry = entries.get_entry("quest", quest_id)
+            dev_log.record_id("quests", quest_id, title, entry ~= nil)
             local fields = {}
             if type(get_text) == "function" then
                 local text_ok, description, objective = pcall(get_text, index)
                 if text_ok then
-                    fields.description = description
-                    fields.objective = objective
+                    if note_unsafe("quest-description", description) then
+                        description = nil
+                    end
+                    if note_unsafe("quest-objective", objective) then
+                        objective = nil
+                    end
+                    fields.description = safe_string(description)
+                    fields.objective = safe_string(objective)
                 end
             end
             if type(get_objectives) == "function" then
-                local objectives_ok, objectives = pcall(get_objectives, info.questID)
-                if objectives_ok and type(objectives) == "table" then
+                local objectives_ok, objectives = pcall(get_objectives, quest_id)
+                if objectives_ok and not is_secret(objectives)
+                    and type(objectives) == "table" then
                     fields.tasks = {}
                     for _, objective in ipairs(objectives) do
-                        if type(objective) == "table" then
-                            fields.tasks[#fields.tasks + 1] = objective.text
+                        if not note_unsafe("quest-task", objective)
+                            and type(objective) == "table" then
+                            local task_ok, task = pcall(function ()
+                                return objective.text
+                            end)
+                            if task_ok and note_unsafe("quest-task", task) then
+                                task = nil
+                            end
+                            task = task_ok and safe_string(task) or nil
+                            if task then fields.tasks[#fields.tasks + 1] = task end
                         end
                     end
                 end
             end
-            dev_log.record_quest_text(info.questID, fields)
+            dev_log.record_quest_text(quest_id, fields)
             local missing_fields = {}
-            local scan_fields = { title = info.title }
+            local scan_fields = { title = title }
             missing_fields.title = not entry or type(entry[1]) ~= "string"
-                or entry[1] == "" or entry[1] == info.title
+                or entry[1] == "" or entry[1] == title
             for _, field in ipairs({ { "description", 2 }, { "objective", 3 } }) do
                 local key, index = field[1], field[2]
                 scan_fields[key] = fields[key]
@@ -281,10 +335,10 @@ local function collect_quest_log_ids()
                 local key = "task" .. task_index
                 scan_fields[key] = task
                 local ok_task, translated_task = pcall(
-                    entries.translate_quest_objective_task, task, info.questID)
+                    entries.translate_quest_objective_task, task, quest_id)
                 missing_fields[key] = not ok_task or translated_task == task
             end
-            auto_scan.record_quest(info.questID, scan_fields, missing_fields)
+            auto_scan.record_quest(quest_id, scan_fields, missing_fields)
             found = found + 1
         end
     end
@@ -300,7 +354,8 @@ local current_book_name
 scanner.note_book = function (...)
     for index = 1, select("#", ...) do
         local value = select(index, ...)
-        if type(value) == "number" and value > 0 and not is_secret(value) then
+        if not note_unsafe("book-id", value)
+            and type(value) == "number" and value > 0 then
             current_book_id = value
             break
         end
@@ -308,10 +363,10 @@ scanner.note_book = function (...)
     if type(_G.ItemTextGetItem) == "function" then
         local ok, name, id = pcall(_G.ItemTextGetItem)
         if ok then
-            if type(name) == "string" and name ~= "" and not is_secret(name) then
-                current_book_name = name
-            end
-            if type(id) == "number" and id > 0 and not is_secret(id) then
+            if note_unsafe("book-name", name) then name = nil end
+            current_book_name = safe_string(name) or current_book_name
+            if not note_unsafe("book-id", id)
+                and type(id) == "number" and id > 0 then
                 current_book_id = id
             end
         end
@@ -336,13 +391,14 @@ scanner.capture_book_page = function ()
     scanner.note_book()
     if type(_G.ItemTextGetText) ~= "function" then return end
     local text_ok, source = pcall(_G.ItemTextGetText)
-    if not text_ok or type(source) ~= "string" or source == ""
-        or is_secret(source) then return end
+    if text_ok and note_unsafe("book-page", source) then source = nil end
+    source = text_ok and safe_string(source) or nil
+    if not source then return end
     local page = 1
     if type(_G.ItemTextGetPage) == "function" then
         local page_ok, value = pcall(_G.ItemTextGetPage)
-        if page_ok and type(value) == "number" and value > 0
-            and not is_secret(value) then page = value end
+        if page_ok and note_unsafe("book-page-number", value) then value = nil end
+        if page_ok and type(value) == "number" and value > 0 then page = value end
     end
     local identity = current_book_id or current_book_name
         or (type(utils.get_text_hash) == "function" and utils.get_text_hash(source))
@@ -356,9 +412,8 @@ scanner.capture_book_page = function ()
     local visible
     local region = _G.ItemTextPageText
     local visible_ok, value = region and pcall(region.GetText, region)
-    if visible_ok and type(value) == "string" and not is_secret(value) then
-        visible = value
-    end
+    if visible_ok and note_unsafe("book-visible", value) then value = nil end
+    visible = visible_ok and safe_string(value) or nil
     if type(auto_scan.record_book) == "function" then
         auto_scan.record_book(identity, page, source, visible or source,
             translated, current_book_name)
@@ -368,13 +423,13 @@ end
 local function greeting_region_text(region)
     if not region then return nil end
     local ok, value = pcall(region.GetText, region)
-    if ok and type(value) == "string" and value ~= "" and not is_secret(value) then
-        return value
-    end
+    if ok and note_unsafe("quest-greeting", value) then return nil end
+    return ok and safe_string(value) or nil
 end
 
 local function valid_quest_id(value)
-    return type(value) == "number" and value > 0 and not is_secret(value)
+    return not note_unsafe("quest-id", value)
+        and type(value) == "number" and value > 0
         and value or nil
 end
 
@@ -409,6 +464,7 @@ local function greeting_quest_id(button)
     local index_ok, index = pcall(method, button)
     if not index_ok or not valid_quest_id(index) then return nil end
     local active_ok, active = pcall(function () return button.isActive end)
+    if active_ok and note_unsafe("quest-active", active) then active = nil end
     active = active_ok and active or nil
     if (active == 1 or active == true or active == nil)
         and type(_G.GetActiveQuestID) == "function" then
@@ -436,8 +492,9 @@ local function quest_greeting_snapshot()
     }
     if type(_G.GetGreetingText) == "function" then
         local ok, value = pcall(_G.GetGreetingText)
-        if ok and type(value) == "string" and value ~= ""
-            and not is_secret(value) then snapshot.greeting_source = value end
+        if ok and note_unsafe("quest-greeting", value) then value = nil end
+        value = ok and safe_string(value) or nil
+        if value then snapshot.greeting_source = value end
     end
     local pool = panel.titleButtonPool
     if pool and type(pool.EnumerateActive) == "function" then
@@ -542,9 +599,8 @@ local function original_quest_text(getter_name)
     local getter = translation.original[getter_name] or _G[getter_name]
     if type(getter) ~= "function" then return nil end
     local ok, value = pcall(getter)
-    if not ok or type(value) ~= "string" or is_secret(value) then return nil end
-    if value == "" then return nil end
-    return value
+    if ok and note_unsafe("quest-text", value) then return nil end
+    return ok and safe_string(value) or nil
 end
 
 -- Quest detail/progress/reward getters are only populated while the matching
@@ -565,9 +621,8 @@ scanner.capture_current_quest = function (event)
 
     for _, field in ipairs(current_quest_fields) do
         local source = original_quest_text(field.getter)
-        local translated = entry and type(entry[field.index]) == "string"
-            and not is_secret(entry[field.index]) and entry[field.index] ~= ""
-            and entry[field.index] ~= source
+        local translated_value = entry and safe_string(entry[field.index])
+        local translated = translated_value and translated_value ~= source
 
         if field.key == "title" then
             title = source
@@ -588,7 +643,9 @@ scanner.capture_current_quest = function (event)
             or (C_QuestLog and C_QuestLog.GetTitleForQuestID)
         if type(title_getter) == "function" then
             local ok, value = pcall(title_getter, id)
-            if ok and type(value) == "string" and not is_secret(value) and value ~= "" then
+            if ok and note_unsafe("quest-title", value) then value = nil end
+            value = ok and safe_string(value) or nil
+            if value then
                 title = value
                 if not entry or type(entry[1]) ~= "string" or entry[1] == ""
                     or entry[1] == value then
@@ -622,7 +679,9 @@ local function collect_current_quest_rewards()
     for _, reward_type in ipairs({ "choice", "reward", "required" }) do
         for index = 1, 20 do
             local ok, link = pcall(GetQuestItemLink, reward_type, index)
-            if not ok or type(link) ~= "string" or is_secret(link) then break end
+            if ok and note_unsafe("quest-item-link", link) then link = nil end
+            link = ok and safe_string(link) or nil
+            if not link then break end
             local id = utils.item_id_from_link(link)
             if id then
                 local entry = entries.get_entry("item", id)

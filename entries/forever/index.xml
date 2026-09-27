@@ -1,4 +1,9 @@
 <Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+    <Script file="catalog_sources.lua"/>
+    <Script file="addon_locale_uk.lua"/>
+    <Script file="chat_system.lua"/>
+    <Script file="tooltip_ui.lua"/>
+    <Script file="surface_ui.lua"/>
     <Script file="book.lua"/>
     <Script file="chat.lua"/>
     <Script file="chat_manual.lua"/>
@@ -30,7 +35,8 @@
     <Script file="ui.lua"/>
     <Script file="settings.lua"/>
     <Script file="skills.lua"/>
-    <Script file="deepl_ui.lua"/>
+    <Script file="reviewed_ui.lua"/>
+    <Script file="manual_ui.lua"/>
     <Script file="client_import.lua"/>
     <Script file="client_domains_uk.lua"/>
     <Script file="entities_manual.lua"/>
@@ -38,4 +44,5 @@
     <Script file="aura_overrides.lua"/>
     <Script file="client_ui_uk.lua"/>
     <Script file="client_source_ui_uk.lua"/>
+    <Script file="catalog_compile.lua"/>
 </Ui>

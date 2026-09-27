@@ -7,8 +7,11 @@ local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
+local registry = addon_table.use("translation_registry")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("skills")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").skills
 local hook_mixin = hooks.mixin
 local hook_owner = hooks.region
 
@@ -138,7 +141,11 @@ skills.refresh = function (only_frame)
     local roots = only_frame and { only_frame } or skill_roots()
     for _, frame in ipairs(roots) do
         if shown(frame) then
-            local stats = strings.translate_frame(frame)
+            local stats = strings.translate_frame(frame, registry.get
+                and registry.get("skills") or nil, {
+                    id = "skills-refresh", surface = "skills",
+                    owner = "skills", reason = "REGISTERED_STATIC_SCAN",
+                })
             total.frames = total.frames + (stats.frames or 0)
             total.translated = total.translated + (stats.translated or 0)
             record_frame_ids(frame, {}, {}, 1)
@@ -323,7 +330,7 @@ local function translate_element(frame, seen, depth, category, max_depth, labels
     end
 end
 
-local talent_labels = { Primary = "Основна", Secondary = "Додаткова" }
+local talent_labels = surface_text.talent_labels
 
 local function translate_named_talent_tab(button, english)
     local region = button and button.Text
@@ -501,19 +508,8 @@ local function translate_character_element(frame)
     translate_element(frame, nil, 1)
 end
 
-local armor_category_types = {
-    Cloth = "Тканинні", Leather = "Шкіряні",
-    Mail = "Кольчужні", Plate = "Латні",
-}
-local armor_category_slots = {
-    Armor = "обладунки", Belts = "пояси", Boots = "чоботи",
-    Bracers = "наручі", Chestguards = "нагрудники",
-    Cloaks = "плащі", Gauntlets = "рукавиці",
-    Gloves = "рукавички", Helms = "шоломи",
-    Helmets = "шоломи", Legguards = "поножі",
-    Pants = "штани", Robes = "мантії",
-    Shoulders = "наплічники", Vests = "жилети",
-}
+local armor_category_types = surface_text.armor_category_types
+local armor_category_slots = surface_text.armor_category_slots
 
 local function translate_recipe_category(title)
     local source = text_from(title)
@@ -751,7 +747,9 @@ end
 
 local function requirement_name(name)
     if type(name) ~= "string" or is_secret(name) then return nil end
-    if name == "Forge" then return "кузня" end
+    if surface_text.requirement_names[name] then
+        return surface_text.requirement_names[name]
+    end
     return entries.lookup_name("item", name)
         or entries.lookup_name("spell", name)
         or strings.find_ui_translation(name)
@@ -791,7 +789,7 @@ local function requirement_text_from_recipe(form)
         parts[#parts + 1] = part
     end
     if #parts == 0 then return nil end
-    return "Потрібно: " .. table.concat(parts, ", ")
+    return surface_text.requirements(table.concat(parts, ", "))
 end
 
 local function translate_crafting_requirement_region(form, region)
@@ -806,13 +804,14 @@ local function translate_crafting_requirement_region(form, region)
         local plain_name = plain and not plain:find("|", 1, true)
             and requirement_name(plain)
         if plain_name then
-            translated = "Потрібно: " .. plain_name
+            translated = surface_text.requirements(plain_name)
         else
             translated = source:gsub("|H([^|]+)|h([^|]+)|h", function (link, name)
                 local replacement = requirement_name(name)
                 return "|H" .. link .. "|h" .. (replacement or name) .. "|h"
             end)
-            translated = translated:gsub("Requires:", "Потрібно:", 1)
+            translated = translated:gsub("Requires:",
+                surface_text.required_prefix, 1)
         end
         if translated == source then return end
     else
