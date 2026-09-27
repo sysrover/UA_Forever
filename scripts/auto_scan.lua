@@ -21,6 +21,7 @@ local groups = {
     { "zones", "[ZONES]" },
     { "objects", "[OBJECTS]" },
     { "ui", "[UI]" },
+    { "observed_ui", "[OBSERVED_UI]" },
     { "runtime", "[RUNTIME]" },
     { "unapplied", "[NOT_APPLIED]" },
     { "unsafe", "[UNSAFE]" },
@@ -32,6 +33,7 @@ local groups = {
 }
 
 local diagnostic_groups = {
+    observed_ui = true,
     unsafe = true,
     hooks = true,
     catalog_conflicts = true,
@@ -199,13 +201,14 @@ auto_scan.surface_attempt = function (surface, handler)
     state.attempts = (state.attempts or 0) + 1
 end
 
-local function note_surface_runtime_result(owner, slot, source, visible, reason)
+local function note_surface_runtime_result(owner, slot, source, visible, reason, reason_detail)
     local state = surface_states[owner]
     if not state then return end
     local key = untranslated_key(owner, slot, source)
     state.results[key] = {
         success = visible ~= source,
         reason = safe_text(reason),
+        reasonDetail = safe_text(reason_detail),
     }
 end
 
@@ -278,7 +281,7 @@ auto_scan.verify_surface = function (spec)
         hook = hook_name, hookAvailable = hook_name and hook_available or nil,
         hookObserved = hook_name and hook_observed or nil,
         reason = reason,
-        reasonDetail = result and result.reason or nil,
+        reasonDetail = result and (result.reasonDetail or result.reason) or nil,
     }
 end
 
@@ -307,7 +310,8 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
     local records = bucket("unapplied")
     local runtime_records = bucket("runtime")
     if not records and not runtime_records then return end
-    note_surface_runtime_result(surface, slot, source, visible, reason)
+    local reason_detail = safe_text(spec.reasonDetail)
+    note_surface_runtime_result(surface, slot, source, visible, reason, reason_detail)
     if runtime_records then
         local retained = reason == "RETAINED_AFTER_APPLY"
         local applied = visible ~= nil and visible ~= source
@@ -317,6 +321,8 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
             text = source, translation = translated, visible = visible,
             lookupTier = safe_text(spec.lookupTier),
             catalogSource = safe_text(spec.catalogSource),
+            reasonDetail = reason_detail,
+            regionKey = safe_text(spec.regionKey),
             phase = safe_text(spec.phase),
             generation = type(spec.generation) == "number"
                 and spec.generation or nil,
@@ -336,7 +342,8 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
             lookupTier = safe_text(spec.lookupTier),
             catalogSource = safe_text(spec.catalogSource),
             reason = runtime_reason_code(safe_text(reason)),
-            reasonDetail = safe_text(reason),
+            reasonDetail = reason_detail or safe_text(reason),
+            regionKey = safe_text(spec.regionKey),
         }
     else
         records[key] = nil
@@ -364,6 +371,22 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
             end
         end
     end
+end
+
+auto_scan.record_ui_observation = function (source, translated, visible, slot)
+    local records = bucket("observed_ui")
+    source = safe_text(source)
+    translated = safe_text(translated)
+    visible = safe_text(visible)
+    slot = safe_text(slot) or "ui.text"
+    if not records or not source or not translated or translated == source then return end
+    local key = untranslated_key("ui-scan", slot, source)
+    records[key] = {
+        owner = "ui-scan", slot = slot, surface = "ui-scan",
+        text = source, translation = translated, visible = visible or source,
+        optionEnabled = options.can_translate("translate_string") == true,
+        outcome = "OBSERVED_ENGLISH_WITH_TRANSLATION",
+    }
 end
 
 auto_scan.clear_runtime_owner = function (owner)
@@ -955,6 +978,8 @@ auto_scan.export_text = function ()
                     keep = record.applied ~= true
                         or record.outcome ~= "APPLIED"
                         and record.outcome ~= "RETAINED_AFTER_APPLY"
+                elseif group == "observed_ui" then
+                    keep = english_source(record.text)
                 elseif group == "books" then
                     local book = record.bookID and addon_table.book
                         and addon_table.book[record.bookID]
@@ -1031,12 +1056,15 @@ auto_scan.export_text = function ()
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "event", "handler", "attempts",
                         "hook", "hookAvailable", "hookObserved", "reason",
-                        "reasonDetail", "lookupTier", "catalogSource" }
+                        "reasonDetail", "regionKey", "lookupTier", "catalogSource" }
                 elseif group == "runtime" then
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "lookupTier", "catalogSource",
                         "phase", "generation", "instance", "applied", "retained",
-                        "outcome" }
+                        "outcome", "reasonDetail", "regionKey" }
+                elseif group == "observed_ui" then
+                    output_fields = { "owner", "slot", "surface", "text",
+                        "translation", "visible", "optionEnabled", "outcome" }
                 elseif group == "hooks" then
                     output_fields = { "surface", "kind", "target", "method",
                         "blizzardAddon", "required", "fallbackEvent",

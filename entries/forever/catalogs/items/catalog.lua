@@ -3303,7 +3303,12 @@ local items = {
 [5238] = { "смоляний жезл", en="Pitchwood Wand" },
 [5239] = { "чорнокістяний жезл", en="Blackbone Wand" },
 [5240] = { "смолоскипний жезл", en="Torchlight Wand" },
-[5241] = { "дворфійська вогняна паличка", en="Dwarven Flamestick" },
+[5241] = { "дворфійська вогняна паличка", en="Dwarven Flamestick",
+    tooltip_lines = {
+        ["Wand"] = "Жезл",
+        ["17 - 32 Fire Damage"] = "17 - 32 шкоди від вогню",
+    },
+},
 [5242] = { "тліючий жезл", en="Cinder Wand" },
 [5243] = { "вогнеплюй", en="Firebelcher" },
 [5244] = { "освячена паличка", en="Consecrated Wand" },
@@ -15052,6 +15057,11 @@ local items = {
     en="Lodestone" },
 [280413] = { "вантаж Кресала", en="Flintfire's Shipment" },
 [286355] = { "ящик свічок", en="Crate of Candles" },
+[253664] = {
+    tooltip_lines = {
+        ["6 Slot Reagent Bag"] = "Сумка для реагентів на 6 комірок",
+    },
+},
 }
 
 if addonTable.item then

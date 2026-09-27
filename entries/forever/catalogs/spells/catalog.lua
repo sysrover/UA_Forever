@@ -3664,6 +3664,14 @@ addonTable.spell = {
         ["Permanently enchant a Melee Weapon to have a chance to trigger Revelation when a non-periodic spell fails to critically strike. Revelation grants 100% increased critical strike chance to the next spell cast. Revelation's chance to trigger is diminished as your critical strike chance increases."] = "Назавжди зачаровує зброю ближнього бою, надаючи шанс активувати Одкровення, коли неперіодичне закляття не завдає критичного удару. Одкровення збільшує шанс критичного удару наступного застосованого закляття на 100%. Шанс активації Одкровення зменшується зі зростанням вашого шансу критичного удару.",
     },
 },
+[2565] = {
+    tooltip_lines = {
+        ["Requires Shields"] = "Потрібен щит",
+        ["Increases chance to block by 75% for 7 sec, but will only block 2 attacks."] = "Збільшує шанс блокування на 75% на 7 с, але дає змогу заблокувати лише 2 атаки.",
+        ["Requires Shields"] = "Потрібен щит",
+        ["Increases chance to block by 75% for 7 sec, but will only block 2 attacks."] = "Збільшує шанс блокування на 75% на 7 с, але дає змогу заблокувати лише 2 атаки.",
+    },
+},
 }
 
 -- Verified spell additions and corrections.

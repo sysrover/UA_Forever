@@ -542,11 +542,32 @@ end
 
 local function after_worldmap_coords_update(self)
     if not self then return end
+    auto_scan.surface_hook("worldmap-coords", "WorldMapCoordsPanel.OnUpdate",
+        true, true)
+    auto_scan.surface_attempt("worldmap-coords", "after_worldmap_coords_update")
 
     -- These labels are rewritten on every OnUpdate. Translate them from this
     -- owner callback so the native writer cannot immediately restore English.
-    strings.translate_region(self.CursorCoords and self.CursorCoords.Label)
-    strings.translate_region(self.PlayerCoords and self.PlayerCoords.Label)
+    local function translate_coordinate(region, slot)
+        local source = visible_text(region)
+        if not source then return false end
+        local translated, _, source_kind, category, inferred_slot, option,
+            provenance = strings.find_ui_translation(source, region)
+        if not translated or translated == source then return false end
+        runtime.invalidate(region)
+        return runtime.apply(region, {
+            owner = "worldmap-coords", slot = slot or inferred_slot or "ui.text",
+            source = source, translated = translated, category = category,
+            option = option or "translate_string",
+            lookup_tier = source_kind,
+            catalog_source = provenance and provenance.source,
+            surface = "worldmap-coords", priority = runtime.PRIORITY.CONTEXT,
+        })
+    end
+    translate_coordinate(self.CursorCoords and self.CursorCoords.Label,
+        "coords.cursor")
+    translate_coordinate(self.PlayerCoords and self.PlayerCoords.Label,
+        "coords.player")
 
     local map_api = _G.C_Map
     local get_info = map_api and map_api.GetMapInfo
@@ -577,6 +598,39 @@ local function after_worldmap_coords_update(self)
         source = source, translated = translated_line,
         option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
     })
+end
+
+local function find_worldmap_coords_panel(root)
+    local seen, inspected = {}, 0
+    local function visit(frame, depth)
+        if not frame or seen[frame] or depth > 12 or inspected >= 250 then return nil end
+        seen[frame] = true
+        inspected = inspected + 1
+        local fields_ok, cursor, player = pcall(function ()
+            return frame.CursorCoords, frame.PlayerCoords
+        end)
+        if fields_ok and cursor and player then return frame end
+        local method_ok, get_children = pcall(function () return frame.GetChildren end)
+        if not method_ok or type(get_children) ~= "function" then return nil end
+        local children_ok, children = pcall(function () return { frame:GetChildren() } end)
+        if not children_ok then return nil end
+        for _, child in ipairs(children) do
+            local found = visit(child, depth + 1)
+            if found then return found end
+        end
+    end
+    return visit(root, 1)
+end
+
+local function hook_worldmap_coords_panel()
+    local panel = find_worldmap_coords_panel(_G.WorldMapFrame)
+    if not panel then return false end
+    local installed = hooks.region_script(panel, "OnUpdate",
+        after_worldmap_coords_update, "worldmap-coords-instance")
+    auto_scan.surface_hook("worldmap-coords", "WorldMapCoordsPanel.OnUpdate",
+        installed, false)
+    if installed then after_worldmap_coords_update(panel) end
+    return installed
 end
 
 local function story_map_name()
@@ -714,13 +768,26 @@ local function after_worldmap_menu(owner)
     end)
 end
 
+map_labels.refresh_active = function ()
+    prepare_ironforge_map_pins(_G.WorldMapFrame)
+    after_minimap_update()
+    after_zone_text_event()
+    hook_worldmap_coords_panel()
+end
+
 map_labels.prepare = function ()
     hooks.region(_G.MapExplorationPinMixin, "RefreshOverlays",
         replace_ironforge_map_tile)
     local world_map = _G.WorldMapFrame
     hooks.region_script(world_map, "OnShow", prepare_ironforge_map_pins,
         "map-art")
+    hooks.region_script(world_map, "OnShow", function ()
+        auto_scan.surface_event("worldmap-coords", "WorldMapFrame.OnShow")
+        scheduler.request("worldmap-coords-instance", nil,
+            hook_worldmap_coords_panel)
+    end, "worldmap-coords-instance")
     prepare_ironforge_map_pins(world_map)
+    hook_worldmap_coords_panel()
     hooks.global("Minimap_Update", after_minimap_update)
     hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
     after_minimap_update()

@@ -21,6 +21,7 @@ local claims = setmetatable({}, { __mode = "k" })
 local generations = setmetatable({}, { __mode = "k" })
 local generation_instances = setmetatable({}, { __mode = "k" })
 local writing = setmetatable({}, { __mode = "k" })
+local deferred_writes = setmetatable({}, { __mode = "k" })
 
 runtime.is_secret_value = function (value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -50,7 +51,7 @@ local function safe_text(region)
     if ok then return safe_string(value) end
 end
 
-local function record_runtime_result(region, spec, source, translated, reason)
+local function record_runtime_result(region, spec, source, translated, reason, reason_detail)
     if type(auto_scan.record_runtime_result) ~= "function"
         or not options.account or not options.account.auto_scan_content then return end
     local surface_id
@@ -77,6 +78,9 @@ local function record_runtime_result(region, spec, source, translated, reason)
             if match_ok and matches == true then visible = expected end
         end
     end
+    local region_key
+    local key_ok, key = pcall(tostring, region)
+    if key_ok then region_key = safe_string(key) end
     auto_scan.record_runtime_result({
         owner = spec.owner, slot = spec.slot,
         source = source, translated = translated,
@@ -87,6 +91,8 @@ local function record_runtime_result(region, spec, source, translated, reason)
         lookupTier = spec.lookup_tier or spec.source_kind
             or (spec.category and "domain") or "adapter",
         catalogSource = spec.catalog_source,
+        reasonDetail = reason_detail,
+        regionKey = region_key,
     }, visible, reason)
 end
 
@@ -129,8 +135,9 @@ local function display_translation(claim)
 end
 
 local function protected_frame_state(region)
-    if not region or is_secret_value(region) then
-        return nil, "PROTECTED_REGION"
+    if not region then return nil, "REGION_MISSING" end
+    if is_secret_value(region) then
+        return nil, "SECRET_REGION"
     end
     local protected = false
     local frame = region
@@ -139,16 +146,18 @@ local function protected_frame_state(region)
         for _, method in ipairs({ "IsForbidden", "IsProtected" }) do
             local method_ok, callback = pcall(function () return frame[method] end)
             if not method_ok or is_secret_value(callback) then
-                return nil, "PROTECTED_REGION"
+                return nil, method == "IsForbidden"
+                    and "FORBIDDEN_STATE_UNREADABLE" or "PROTECTED_STATE_UNREADABLE"
             end
             if type(callback) == "function" then
                 local ok, value = pcall(callback, frame)
                 if not ok or is_secret_value(value) then
-                    return nil, "PROTECTED_REGION"
+                    return nil, method == "IsForbidden"
+                        and "FORBIDDEN_STATE_UNREADABLE" or "PROTECTED_STATE_UNREADABLE"
                 end
                 if value == true then
                     if method == "IsForbidden" then
-                        return nil, "PROTECTED_REGION"
+                        return nil, "IS_FORBIDDEN"
                     end
                     protected = true
                 end
@@ -156,12 +165,12 @@ local function protected_frame_state(region)
         end
         local method_ok, get_parent = pcall(function () return frame.GetParent end)
         if not method_ok or is_secret_value(get_parent) then
-            return nil, "PROTECTED_REGION"
+            return nil, "PARENT_STATE_UNREADABLE"
         end
         if type(get_parent) ~= "function" then break end
         local parent_ok, parent = pcall(get_parent, frame)
         if not parent_ok or is_secret_value(parent) then
-            return nil, "PROTECTED_REGION"
+            return nil, "PARENT_STATE_UNREADABLE"
         end
         if parent == frame then break end
         frame = parent
@@ -170,15 +179,20 @@ local function protected_frame_state(region)
 end
 
 runtime.can_write_text = function (region)
-    local protected, reason = protected_frame_state(region)
-    if protected == nil then return false, reason end
+    local protected, detail = protected_frame_state(region)
+    if protected == nil then return false, "PROTECTED_REGION", detail end
     if not protected then return true end
     if type(_G.InCombatLockdown) ~= "function" then return true end
     local combat_ok, in_combat = pcall(_G.InCombatLockdown)
-    if not combat_ok or is_secret_value(in_combat) then
-        return false, "PROTECTED_REGION"
+    if not combat_ok then
+        return false, "PROTECTED_REGION", "COMBAT_STATE_UNREADABLE"
     end
-    if in_combat == true then return false, "PROTECTED_REGION" end
+    if is_secret_value(in_combat) then
+        return false, "PROTECTED_REGION", "SECRET_COMBAT_STATE"
+    end
+    if in_combat == true then
+        return false, "PROTECTED_REGION", "IN_COMBAT_LOCKDOWN"
+    end
     return true
 end
 
@@ -228,22 +242,34 @@ runtime.begin_generation = function (surface, instance)
     for region, claim in pairs(claims) do
         if claim.surface == surface then claims[region] = nil end
     end
+    for region, spec in pairs(deferred_writes) do
+        if spec.surface == surface then deferred_writes[region] = nil end
+    end
     return generation
 end
 
 runtime.release = function (region, owner, slot)
     local claim = region and claims[region]
-    if not claim then return false end
+    if not claim then
+        if region and not owner and not slot and deferred_writes[region] then
+            deferred_writes[region] = nil
+            return true
+        end
+        return false
+    end
     if owner and claim.owner ~= owner then return false end
     if slot and claim.slot ~= slot then return false end
     claims[region] = nil
+    deferred_writes[region] = nil
     return true
 end
 
 runtime.invalidate = function (region)
-    if not region or not claims[region] then return false end
+    if not region then return false end
+    local existed = claims[region] ~= nil or deferred_writes[region] ~= nil
     claims[region] = nil
-    return true
+    deferred_writes[region] = nil
+    return existed
 end
 
 -- Compatibility names for adapters migrated in later stages.
@@ -287,13 +313,24 @@ runtime.apply = function (region, spec)
         end
         return false
     end
-    local write_allowed, write_reason = runtime.can_write_text(region)
+    local write_allowed, write_reason, write_detail = runtime.can_write_text(region)
     if not write_allowed then
         if allowed then
-            record_runtime_result(region, spec, source, translated, write_reason)
+            record_runtime_result(region, spec, source, translated,
+                write_reason, write_detail)
+            if write_detail == "IN_COMBAT_LOCKDOWN"
+                and spec.defer_if_protected ~= false and source then
+                local deferred_spec = {}
+                for key, value in pairs(spec) do deferred_spec[key] = value end
+                deferred_spec.source = source
+                deferred_writes[region] = deferred_spec
+            else
+                deferred_writes[region] = nil
+            end
         end
         return false
     end
+    deferred_writes[region] = nil
     local name_original = safe_string(spec.name_original)
     local display = name_original and spec.category
         and not options.translate_name(spec.category)
@@ -410,6 +447,26 @@ runtime.apply = function (region, spec)
     record_runtime_result(region, spec, source, translated)
     schedule_post_apply_verification(region, claim, spec, display)
     return true
+end
+
+runtime.retry_deferred = function ()
+    local pending = {}
+    for region, spec in pairs(deferred_writes) do
+        pending[#pending + 1] = { region = region, spec = spec }
+    end
+    local applied = 0
+    for _, entry in ipairs(pending) do
+        local region, spec = entry.region, entry.spec
+        if deferred_writes[region] == spec then
+            deferred_writes[region] = nil
+            local current = safe_text(region)
+            if current and current == safe_string(spec.source)
+                and runtime.apply(region, spec) then
+                applied = applied + 1
+            end
+        end
+    end
+    return applied
 end
 
 runtime.show_original = function (region, show)
