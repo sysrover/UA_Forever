@@ -125,6 +125,23 @@ resolver.find_ui = function (text, region, context)
     local normalized = resolver.normalize(text)
     local frame_name = safe_name(region)
     resolver.prepare()
+    if frame_name:find("LFGBrowseFrame", 1, true)
+        and frame_name:find(".ActivityName", 1, true) then
+        local translated_zone = addon_table.zone
+            and (addon_table.zone[text] or addon_table.zone[normalized])
+        if translated_zone then
+            return translated_zone, normalized, "domain", "zone", "zone.name",
+                "translate_zone"
+        end
+    end
+    if frame_name:find("AuctionHouseFrame", 1, true) then
+        local translated_item = entries.lookup_name("item", text)
+            or entries.lookup_name("item", normalized)
+        if translated_item then
+            return translated_item, normalized, "domain", "item", "item.name",
+                "translate_item"
+        end
+    end
     local name, category, slot, domain_option =
         explicit_domain_name(text, normalized, context)
     if name then

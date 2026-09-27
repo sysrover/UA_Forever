@@ -2,6 +2,18 @@ local _, addonTable = ...
 
 -- Codes are taken from the in-game NPC speech scan and override generated hashes.
 local manual = {
+    ["Durgen Dirgehammer"] = {
+        [1] = "Дурген Жалобний Молот",
+        ["nygtaywhit"] = [===[Мені майже... вдалося... уникнути кари.]===],
+    },
+    ["Faldrim Anvilmar"] = {
+        [1] = "Фалдрім Анвілмар",
+        ["rntomyrt"] = [===[Я повертаюся... до свого... спочинку.]===],
+    },
+    ["Miran"] = {
+        [1] = "Міран",
+        ["hpwebgaddkis"] = [===[Допоможіть! На нас напали! Дворфи Темного Заліза!]===],
+    },
     ["Greishan Ironstove"] = {
         [1] = "Ґрейшан Сталежар",
         ["gmwetyaeneadfhlsofbdhe"] = [===[Налітайте, поки свіжі! Свіжі буханці хліба!]===],
@@ -26,6 +38,7 @@ local manual = {
     },
     ["Tormus Deepforge"] = {
         [1] = "Тормус Глибококузень",
+        ["buimfd"] = [===[{ім'я:к}! Я закінчив!]===],
         ["kgimfd"] = [===[Кеглеґу! Я закінчив!]===],
         ["brimfd"] = [===[Ще більше! Я закінчив!]===],
         ["dnimfd"] = [===[Darrin! Я закінчив!]===],

@@ -3,6 +3,28 @@ local _, addonTable = ...
 -- Codes copied from the in-game NPC dialogue scan. These codes take
 -- precedence over the older numeric hashes in the maintained catalog.
 local manual = {
+    [1092] = {
+        ["ateedftsisnotefrfswhteaefsuraktepnoftedntsbsenmeclterttgugpsdltttoteksld"] = [===[Спокійно, дворфе. Зараз не час для формальностей. Поки сили Альянсу перебувають під атакою, захист дворфійських територій стає ще важливішим. Нещодавнє повстання трогів становить жахливу загрозу землям короля.]===],
+    },
+    [167] = {
+        ["gs"] = [===[Вітаю.]===],
+        ["wdletoseyrws"] = [===[Я хочу оглянути ваші товари.]===],
+    },
+    [1681] = {
+        ["tebtmrhsfmgponhspksthtinhsctadtkbkdtinhshr"] = [===[Найкращий гірник міцно тримає кирку, має відважне серце в грудях і густий чорний пил у волоссі.]===],
+    },
+    [258043] = {
+        ["yecefrtnmydnrtteesadyeadyeslfefrgrtnmt"] = [===[Ти зайшов далі, ніж багато хто, {ім'я:к}. Поважай стихії довкола себе — і матимеш значно більший успіх, ніж більшість.]===],
+    },
+    [269153] = {
+        ["temrcyftbybemghredattewsoftets"] = [===[<Горянинка, вочевидь, хоробро билася, перш ніж загинути від зброї трогів.>]===],
+    },
+    [11029] = {
+        ["tepsfrmytttltybraenycenwalndistttlty"] = [===[Креслення моєї двадцятифутової піпетки для поливання індички майже готове! Тепер потрібна лише двадцятифутова індичка...]===],
+    },
+    [5174] = {
+        ["ifmycsaecttewlwlsnbeoe"] = [===[Якщо мої розрахунки правильні, колесо скоро застаріє!]===],
+    },
     [49808] = {
         ["gttamtya"] = [===[Рада зустрічі.]===],
     },

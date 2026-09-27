@@ -70,6 +70,12 @@ local ui = {
     ["Quest Timers"] = "Таймери завдань",
     ["Quests"] = "Завдання",
     ["Stormwind Auction House"] = "Аукціонний дім Штормовію",
+    ["Alliance Auction House"] = "Аукціонний дім Альянсу",
+    ["Soul Bag"] = "Сумка душ",
+    ["(Elite)"] = "(Еліта)",
+    ["Craft a Reagent Bot."] = "Створює реагентного бота.",
+    ["Use: Summons a Reagent Bot that allows you and others nearby to purchase reagents. Requires a Campfire nearby. All camping features share a cooldown of 1 hour."] =
+        "Використання: викликає реагентного бота, у якого ви та інші гравці поблизу можете придбати реагенти. Потрібне багаття поруч. Усі можливості таборування мають спільну перезарядку тривалістю 1 год.",
     ["Game Menu"] = "Меню гри",
     ["Open All"] = "Відкрити все",
     ["Account Collections"] = "Колекції облікового запису",
@@ -994,8 +1000,56 @@ addonTable.forever_ui_patterns = {
         replace = function (suffix) return "Згорнути параметри " .. suffix end,
     },
     {
+        pattern = "^Cursor: ([%d%.]+), ([%d%.]+)$",
+        replace = function (x, y) return "Курсор: " .. x .. ", " .. y end,
+    },
+    {
         pattern = "^Player: ([%d%.]+), ([%d%.]+)$",
         replace = function (x, y) return "Гравець: " .. x .. ", " .. y end,
+    },
+    {
+        pattern = "^Player: ([%d%.]+), ([%d%.]+) %((.+)%)$",
+        replace = function (x, y, zone)
+            local translated = addonTable.zone and addonTable.zone[zone] or zone
+            return "Гравець: " .. x .. ", " .. y .. " (" .. translated .. ")"
+        end,
+    },
+    {
+        pattern = "^Lvl (%d+)$",
+        replace = function (level) return "Рів. " .. level end,
+    },
+    {
+        pattern = "^%((Rank %d+)%)$",
+        replace = function (rank)
+            return "(" .. rank:gsub("Rank", "Ранг") .. ")"
+        end,
+    },
+    {
+        pattern = "^Item Purchased: (.+)$",
+        replace = function (item)
+            local entries = addonTable.use("entries")
+            return "Придбано: " .. (entries.lookup_name("item", item) or item)
+        end,
+    },
+    {
+        pattern = "^Auction won: (.+)$",
+        replace = function (item)
+            local entries = addonTable.use("entries")
+            return "Виграно на аукціоні: "
+                .. (entries.lookup_name("item", item) or item)
+        end,
+    },
+    {
+        pattern = "^Sold By: (.+)$",
+        replace = function (seller) return "Продавець: " .. seller end,
+    },
+    {
+        pattern = "^Requires Body of (.+)$",
+        replace = function (name)
+            local entries = addonTable.use("entries")
+            return "Потрібне тіло: "
+                .. (entries.lookup_name("npc", name) or name)
+        end,
     },
     {
         pattern = "^Backpack %((.-)%)$",
