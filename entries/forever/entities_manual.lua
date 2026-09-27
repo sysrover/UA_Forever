@@ -27,6 +27,11 @@ local npc = {
     [265003] = { "Том Філч", en="Thom Filch" },
     [274781] = { "залізний королівський вартовий", en="Iron Kingsguard" },
     [258548] = { "Еллі Камнебров", en="Ellie Stonebrow" },
+    [258043] = { "Норрік Лохтан", en="Norric Lochthane" },
+    [259842] = { "музичний Гастджампер", en="Musical Gustjumper" },
+    [269153] = { "горянинка Ільва", en="Mountaineer Ylva" },
+    [269185] = { "Головокол", en="Headsplitter" },
+    [273127] = { "Фінайда Землебур", en="Finaida Earthbore" },
 }
 
 addonTable.npc = addonTable.npc or {}
@@ -63,5 +68,21 @@ if addonTable.item[249879] then
             "Використання: навчає готувати чай миру.",
         ["Refreshing Spring Water, Peacebloom (2)"] =
             "Освіжаюча джерельна вода, мироцвіт (2)",
+    }
+end
+if addonTable.item[249391] then
+    addonTable.item[249391].tooltip_lines = {
+        ["Scarce"] = "Дефіцитний",
+    }
+end
+if addonTable.item[279380] then
+    addonTable.item[279380].tooltip_lines = {
+        ["Use: Scoop up snow from South Gate Pass into the ceramic jar."] =
+            "Використання: зачерпнути сніг із перевалу Південні Ворота в керамічну банку.",
+    }
+end
+if addonTable.item[856] then
+    addonTable.item[856].tooltip_lines = {
+        ["8 Slot Bag"] = "Сумка на 8 комірок",
     }
 end

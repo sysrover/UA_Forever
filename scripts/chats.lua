@@ -282,6 +282,11 @@ local function translate_direct_chat_text(message)
             or translate_item_name(recipe)
         return chat_format.learned_recipe(name)
     end
+    local auction_item = message:match("^You won an auction for (.+)%.$")
+        or message:match("^You won an auction for (.+)$")
+    if auction_item then
+        return chat_format.auction_won(translate_item_name(auction_item))
+    end
 end
 
 local loot_choice = chat_catalog.loot_choice
@@ -372,6 +377,27 @@ local function translate_system_text(event, message)
     end
 
     if event == "CHAT_MSG_SYSTEM" then
+        local away = message:match("^You are now Away: (.+)$")
+        if away then return chat_format.away(away) end
+        local sharer, shared_quest = message:match(
+            "^(.-)'s attempt to share quest \"(.+)\" failed%. You are already on that quest%.$")
+        if sharer then
+            local quest = entries.lookup_name("quest", shared_quest) or shared_quest
+            return chat_format.quest_share_already(sharer, quest)
+        end
+        local busy_inviter = message:match(
+            "^%[(.+)%] invited you to a group, but you could not accept because you are already in a group%.$")
+        if busy_inviter then return chat_format.group_invite_busy(busy_inviter) end
+        local standing, standing_faction = message:match(
+            "^You are now (.+) with (.+)%.$")
+        if standing and chat_catalog.reputation_standings[standing] then
+            local faction = addon_table.forever_ui_curated
+                and addon_table.forever_ui_curated[standing_faction]
+                or addon_table.forever_ui and addon_table.forever_ui[standing_faction]
+                or entries.get_glossary_text(standing_faction, standing_faction)
+            return chat_format.reputation_standing(
+                chat_catalog.reputation_standings[standing], faction)
+        end
         local deserter, opponent = message:match("^(.+) has fled from (.+) in a duel$")
         if deserter then
             return chat_format.duel_fled(deserter, opponent)
@@ -494,6 +520,10 @@ local function translate_system_text(event, message)
     end
 
     if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_SKILL" then
+        local passive = message:match("^You have learned a new passive effect: (.+)%.$")
+        if passive then
+            return chat_format.learned_passive(translate_spell_links(passive))
+        end
         local learned = message:match("^You have learned a new ability: (.+)%.$")
         if learned then
             return chat_format.learned_ability(translate_spell_links(learned))

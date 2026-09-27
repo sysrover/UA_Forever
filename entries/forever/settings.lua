@@ -54,6 +54,60 @@ local settings = {
     ["Enemy NPC Buffs/Debuffs"] = "Ефекти ворожих істот",
     ["Enemy Player Buffs/Debuffs"] = "Ефекти ворожих гравців",
     ["Friendly Player Buffs/Debuffs"] = "Ефекти союзників",
+    ["All NPCs: Display names for all NPCs"] =
+        "Усі НПЦ: показувати імена всіх НПЦ.",
+    ["None: Do not display names for any NPCs"] =
+        "Немає: не показувати імена жодних НПЦ.",
+    ["Quest NPCs: Display names for NPCs involved with quests, as well as tracked NPCs using the minimap tracker."] =
+        "Квестові НПЦ: показувати імена НПЦ, пов'язаних із завданнями, а також НПЦ, яких відстежує мінімапа.",
+    ["Hostile, Quest, and Interactive NPCs: Display names for hostile NPC's, those NPCs involved with quests or being tracked, and NPC's you can interact with."] =
+        "Ворожі, квестові та інтерактивні НПЦ: показувати імена ворожих НПЦ, НПЦ, пов'язаних із завданнями чи відстежуваних, а також НПЦ, з якими можна взаємодіяти.",
+    ["Hostile and Quest NPCs: Display names for hostile NPC's and those NPCs involved with quests or being tracked."] =
+        "Ворожі та квестові НПЦ: показувати імена ворожих НПЦ та НПЦ, пов'язаних із завданнями чи відстежуваних.",
+    ["Enemy Buffs: Show the temporary beneficial effects applied to the player."] =
+        "Підсилення ворогів: показувати тимчасові позитивні ефекти, накладені на гравця.",
+    ["Spell Target: Displays the name of the unit being targeted by the spell on the cast bar."] =
+        "Ціль закляття: показувати на смузі застосування ім'я цілі закляття.",
+    ["Friendly Units: Stack nameplates for friendly units."] =
+        "Дружні істоти: складати індикатори імен дружніх істот стосом.",
+    ["ALT key: Use the \"ALT\" key to Loot when \"Auto Loot\" is checked, and to Auto Loot when it is not."] =
+        "Клавіша ALT: утримуйте ALT для звичайного збору здобичі, коли ввімкнено автозбір, і для автозбору, коли його вимкнено.",
+    ["CTRL key: Use the \"CTRL\" key to Loot when \"Auto Loot\" is checked, and to Auto Loot when it is not."] =
+        "Клавіша CTRL: утримуйте CTRL для звичайного збору здобичі, коли ввімкнено автозбір, і для автозбору, коли його вимкнено.",
+    ["SHIFT key: Use the \"SHIFT\" key to Loot when \"Auto Loot\" is checked, and to Auto Loot when it is not."] =
+        "Клавіша SHIFT: утримуйте SHIFT для звичайного збору здобичі, коли ввімкнено автозбір, і для автозбору, коли його вимкнено.",
+    ["Personal Debuffs: Show the temporary negative effects you have applied to the player."] =
+        "Ваші послаблення: показувати тимчасові негативні ефекти, накладені вами на гравця.",
+    ["Personal Debuffs: Show the temporary negative effects you have applied to the unit."] =
+        "Ваші послаблення: показувати тимчасові негативні ефекти, накладені вами на істоту.",
+    ["Enemy Units: Stack nameplates for enemy units."] =
+        "Ворожі істоти: складати індикатори імен ворожих істот стосом.",
+    ["Health Value: Displays the unit's current health."] =
+        "Значення здоров'я: показувати поточний запас здоров'я істоти.",
+    ["Health Percentage: Displays the unit's current health as a percentage of total health."] =
+        "Відсоток здоров'я: показувати поточне здоров'я істоти у відсотках від максимального.",
+    ["Spell Icon: Displays the icon of the spell on the cast bar."] =
+        "Значок закляття: показувати значок закляття на смузі застосування.",
+    ["Spell Name: Displays the name of the spell on the cast bar."] =
+        "Назва закляття: показувати назву закляття на смузі застосування.",
+    ["None: Do not apply a key."] =
+        "Немає: не призначати клавішу.",
+    ["Big Debuff: Show the temporary crowd control effects you or your allies have applied to the player."] =
+        "Сильне послаблення: показувати тимчасові ефекти контролю, накладені вами або вашими союзниками на гравця.",
+    ["Health Bar Color: The nameplate health bar will change color if you lose threat on the unit as a tank, or gain threat on a unit as a DPS."] =
+        "Колір смуги здоров'я: смуга здоров'я змінюватиме колір, якщо ви втратите загрозу як танк або отримаєте її як боєць.",
+    ["Flash When Targeted By Enemy: Controls whether cast bars on nameplates display in a more noticeable way when your character is the target of the spell."] =
+        "Блимати, коли ворог бере вас за ціль: робить смуги застосування на індикаторах помітнішими, коли закляття спрямоване на вашого персонажа.",
+    ["Flash: The nameplate will flash if you lose threat on the unit as a tank, or gain threat on a unit as a DPS."] =
+        "Блимання: індикатор імені блиматиме, якщо ви втратите загрозу як танк або отримаєте її як боєць.",
+    ["Mob Buffs: Show the temporary beneficial effects applied to the unit."] =
+        "Підсилення істот: показувати тимчасові позитивні ефекти, накладені на істоту.",
+    ["Shared CC: Show the temporary crowd control effects you or your allies have applied to the unit."] =
+        "Спільний контроль: показувати тимчасові ефекти контролю, накладені вами або вашими союзниками на істоту.",
+    ["Highlight Important Casts: Controls whether cast bars on nameplates display in a more noticeable way for important casts."] =
+        "Виділяти важливі закляття: робить смуги застосування на індикаторах помітнішими для важливих заклять.",
+    ["Progressive: The nameplate will look different if you are close to losing threat on the unit as a tank, or close to gaining threat on a unit as a DPS."] =
+        "Поступово: індикатор імені змінюватиметься, коли ви близькі до втрати загрози як танк або до її отримання як боєць.",
     ["Debuff Padding"] = "Відступ послаблень",
     ["Spell Name"] = "Назва закляття",
     ["Spell Icon"] = "Значок закляття",

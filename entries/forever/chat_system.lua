@@ -31,6 +31,9 @@ local chat = {
     },
     loot_quality = { Uncommon = "незвичайні" },
     loot_method = { ["Group Loot"] = "групова здобич" },
+    reputation_standings = {
+        Neutral = "нейтральне", Honored = "шанобливе",
+    },
     exact = {
         ["You have been disconnected from Blizzard services."] =
             "Вас відключено від сервісів Blizzard.",
@@ -163,6 +166,24 @@ chat.format = {
     learned_ability = function (spell)
         return "Ви вивчили нову здібність: " .. spell .. "."
     end,
+    learned_passive = function (spell)
+        return "Ви отримали новий пасивний ефект: " .. spell .. "."
+    end,
+    reputation_standing = function (standing, faction)
+        return "Ваше ставлення до фракції «" .. faction .. "» тепер "
+            .. standing .. "."
+    end,
+    quest_share_already = function (player, quest)
+        return player .. " не вдалося поділитися завданням «" .. quest
+            .. "»: ви вже виконуєте це завдання."
+    end,
+    group_invite_busy = function (player)
+        return "[" .. player .. "] запрошує вас до групи, але ви вже перебуваєте в групі."
+    end,
+    auction_won = function (item)
+        return "Ви виграли аукціон: " .. item
+    end,
+    away = function (reason) return "Тепер ви відійшли: " .. reason end,
     skill_increased = function (name, rank)
         return "Ваше вміння «" .. name .. "» зросло до " .. rank .. "."
     end,

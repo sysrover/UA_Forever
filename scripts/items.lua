@@ -124,6 +124,20 @@ item_id_from_link = function (getter, index)
 end
 
 local function merchant_rows()
+    local title_region = _G.MerchantFrameTitleText
+    if title_region and type(title_region.GetText) == "function"
+        and options.can_lookup("translate_npc") then
+        local ok, source = pcall(title_region.GetText, title_region)
+        source = ok and safe_string(source) or nil
+        local translated = source and entries.lookup_name("npc", source)
+        if translated then
+            runtime.apply(title_region, {
+                owner = "merchant", slot = "npc.name", source = source,
+                translated = utils.cap(translated), category = "npc",
+                option = "translate_npc", priority = runtime.PRIORITY.DOMAIN,
+            })
+        end
+    end
     local page_region = _G.MerchantPageText
     if page_region and type(page_region.GetText) == "function" then
         local ok, source = pcall(page_region.GetText, page_region)
