@@ -49,6 +49,7 @@ session.reset = function (tooltip, on_invalidate)
         "uaForeverShowOriginal", "uaForeverKey", "uaForeverAuraRetryKey",
         "uaForeverGenericText", "uaForeverBilingualLines",
         "uaForeverUnitRefreshAt", "uaForeverUpdateBudget",
+        "uaForeverAuraTooltip", "uaForeverAuraUnit",
     }) do
         tooltip[field] = nil
     end

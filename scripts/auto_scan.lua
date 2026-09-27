@@ -64,7 +64,10 @@ local function bucket(group)
     return store[group]
 end
 
-local domains = { items = "item", npcs = "npc", quests = "quest", spells = "spell" }
+local domains = {
+    items = "item", npcs = "npc", quests = "quest",
+    spells = "spell", auras = "spell",
+}
 
 local function translated_name(group, id, name)
     local domain = domains[group]
@@ -1196,7 +1199,7 @@ auto_scan.export_text = function ()
 
     local probe = saved_mouse_probe
     if type(probe) == "table" then
-        local lines = { "[MOUSE_PROBE] | 1", "", "# TargetFrame aura probe" }
+        local lines = { "[MOUSE_PROBE] | 1", "", "# Aura tooltip probe" }
         local function add(field, value)
             if value ~= nil then
                 lines[#lines + 1] = field .. " = " .. field_text(value)
@@ -1230,7 +1233,9 @@ auto_scan.export_text = function ()
         end
         for _, group in ipairs(auras.api or {}) do
             lines[#lines + 1] = ""
-            lines[#lines + 1] = "## API " .. tostring(group.filter)
+            lines[#lines + 1] = "## API " .. tostring(group.unit or "target")
+                .. " " .. tostring(group.filter)
+            add("unit", group.unit or "target")
             add("auraCount", #(group.rows or {}))
             add("secret", group.secret)
             add("failed", group.failed)

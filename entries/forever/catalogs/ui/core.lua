@@ -666,6 +666,8 @@ local ui = {
     ["Escort Miran to the excavation site (Complete)"] = "Супроводіть Мірана до місця розкопок (виконано)",
     ["Must be in Defensive Stance"] = "Потрібно перебувати в захисній стійці",
     ["6 Minutes until release"] = "6 хвилин до звільнення духу",
+    ["Tools: Runed Silver Rod"] = "Інструменти: рунічний срібний жезл",
+    ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
 }
 
 if addonTable.forever_catalog then

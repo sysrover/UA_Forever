@@ -24,7 +24,10 @@ local tooltip_catalog = assert(addon_table.forever_tooltip_ui,
 local tooltip_format = tooltip_catalog.format
 local tooltip_line
 local visible_tooltip_font_strings
+local visible_spell_id
+local player_aura_spell_id
 local translate_object_tooltip_title
+local after_aura_tooltip_rendered
 local MAX_TOOLTIP_LINES = 40
 local tooltip_font_strings = setmetatable({}, { __mode = "k" })
 local character_stat_line_heights = setmetatable({}, { __mode = "k" })
@@ -477,10 +480,8 @@ local function process(tooltip, data, kind)
         -- Camelot exposes secret aura values in combat. Only use a public
         -- numeric spell ID; never compare, format, or cache a secret value.
         id = safe_number(data.spellID)
-        if not id and tooltip.GetSpell then
-            local ok_spell, _, tooltip_spell_id = pcall(tooltip.GetSpell, tooltip)
-            if ok_spell then id = safe_number(tooltip_spell_id) end
-        end
+        if not id then id = visible_spell_id(tooltip) end
+        if not id then id = player_aura_spell_id(tooltip) end
         -- Some builds expose the spell directly as data.id; keep that as the
         -- last fallback because other builds use id for the aura instance.
         if not id then id = safe_number(data.id) end
@@ -538,14 +539,18 @@ local function process(tooltip, data, kind)
         and (kind == "item" or kind == "spell" or kind == "aura") then
         local missing_entry = not entries.get_entry(
             kind == "item" and "item" or "spell", id)
-        if missing_entry then
-            auto_scan.capture_tooltip(tooltip, kind, id, true)
+        local capture_id = id
+        if kind == "aura" and data.uaForeverCaptureByTitle == true then
+            capture_id = nil
+        end
+        if missing_entry or kind == "aura" then
+            auto_scan.capture_tooltip(tooltip, kind, capture_id, missing_entry)
         end
         local generation = tooltip.uaForeverGeneration
         scheduler.request("auto-tooltip:" .. tostring(tooltip), generation, function ()
             local ok, shown = pcall(tooltip.IsShown, tooltip)
             if ok and shown and tooltip.uaForeverGeneration == generation then
-                auto_scan.capture_tooltip(tooltip, kind, id, missing_entry)
+                auto_scan.capture_tooltip(tooltip, kind, capture_id, missing_entry)
             end
         end, 0.15, tooltip)
     end
@@ -561,7 +566,7 @@ local function safe_process(tooltip, data, kind)
     return result == true
 end
 
-local function visible_spell_id(tooltip)
+visible_spell_id = function (tooltip)
     if not tooltip then return nil end
     if type(tooltip.GetSpell) == "function" then
         local ok, _, second, third = pcall(tooltip.GetSpell, tooltip)
@@ -686,6 +691,94 @@ local function world_cursor_owner(tooltip)
     local ok, owner = pcall(tooltip.GetOwner, tooltip)
     return ok and not is_secret(owner)
         and (owner == _G.UIParent or owner == _G.WorldFrame)
+end
+
+local function public_frame_name(frame)
+    if not frame or is_secret(frame) then return nil end
+    for _, method in ipairs({ "GetDebugName", "GetName" }) do
+        local ok_method, callback = pcall(function () return frame[method] end)
+        if ok_method and type(callback) == "function" then
+            local ok, value = pcall(callback, frame)
+            value = ok and safe_string(value) or nil
+            if value then return value end
+        end
+    end
+end
+
+-- Aura tooltips are also reported as TooltipDataType.Spell. The rendered
+-- owner is the stable discriminator: player buffs are buttons below
+-- BuffFrame.AuraContainer, while unit-frame auras live below an Auras
+-- container. Keep this classification for the complete tooltip generation so
+-- deferred generic passes cannot demote the aura back to an ordinary spell.
+local function aura_tooltip_context(tooltip)
+    if not tooltip or is_secret(tooltip) then return nil end
+    local marked = tooltip.uaForeverAuraTooltip == true
+    local marked_unit = marked and tooltip.uaForeverAuraUnit or nil
+    if marked_unit and marked_unit ~= "unknown" then
+        return marked_unit
+    end
+    if type(tooltip.GetOwner) ~= "function" then
+        return marked and "unknown" or nil
+    end
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or not owner or is_secret(owner) then
+        return marked and "unknown" or nil
+    end
+    for _ = 1, 10 do
+        local name = public_frame_name(owner)
+        if owner == _G.BuffFrame or owner == _G.DebuffFrame
+            or name and (name:find("BuffFrame", 1, true)
+                or name:find("DebuffFrame", 1, true)) then
+            return "player"
+        end
+        if name and (name:find(".AuraContainer", 1, true)
+            or name:find(".Auras", 1, true)) then
+            return "unit"
+        end
+        if type(owner.GetParent) ~= "function" then break end
+        local parent_ok, parent = pcall(owner.GetParent, owner)
+        if not parent_ok or not parent or parent == owner or is_secret(parent) then
+            break
+        end
+        owner = parent
+    end
+    return marked and "unknown" or nil
+end
+
+local function mark_aura_tooltip(tooltip)
+    local context = aura_tooltip_context(tooltip) or "unknown"
+    tooltip.uaForeverAuraTooltip = true
+    tooltip.uaForeverAuraUnit = context
+    return context
+end
+
+player_aura_spell_id = function (tooltip)
+    if aura_tooltip_context(tooltip) ~= "player" then return nil end
+    local title, region = tooltip_line(tooltip, "Left", 1)
+    local claim = region and runtime.get(region)
+    title = normalized_tooltip_text(claim and claim.source or title)
+    if not title then return nil end
+
+    local unit_auras = _G.C_UnitAuras
+    local get_by_index = unit_auras and unit_auras.GetAuraDataByIndex
+    if type(get_by_index) ~= "function" then return nil end
+    local matched_id
+    for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
+        for index = 1, 40 do
+            local aura_ok, aura = pcall(get_by_index, "player", index, filter)
+            if not aura_ok or not aura or is_secret(aura) then break end
+            local fields_ok, name, spell_id = pcall(function ()
+                return aura.name, aura.spellId
+            end)
+            name = fields_ok and normalized_tooltip_text(name) or nil
+            spell_id = fields_ok and safe_number(spell_id) or nil
+            if name == title and spell_id then
+                if matched_id and matched_id ~= spell_id then return nil end
+                matched_id = spell_id
+            end
+        end
+    end
+    return matched_id
 end
 
 local function capture_world_tooltip(tooltip, line_count)
@@ -1293,12 +1386,17 @@ local function translate_generic_tooltip(tooltip)
         local resolved = ok_info and info and safe_number(info.spellID) or nil
         if resolved and entries.get_entry("spell", resolved) then spell_id = resolved end
     end
-    if not spell_id or not entries.get_entry("spell", spell_id) then
-        spell_id = spell_adapter.resolve_aura_id(left_title) or spell_id
+    local aura_id_inferred = false
+    if not spell_id then
+        spell_id = spell_adapter.resolve_aura_id(left_title)
+        aura_id_inferred = spell_id ~= nil
     end
     if spell_id then
         local kind = cast_spell and "spell" or "aura"
-        if safe_process(tooltip, { spellID = spell_id }, kind) then
+        if safe_process(tooltip, {
+            spellID = spell_id,
+            uaForeverCaptureByTitle = kind == "aura" and aura_id_inferred,
+        }, kind) then
             if cast_spell then return end
             local retry_key = tooltip_key("aura", spell_id)
             if tooltip.uaForeverAuraRetryKey ~= retry_key then
@@ -1308,7 +1406,10 @@ local function translate_generic_tooltip(tooltip)
                     local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
                     if shown_ok and shown then
                         tooltip_font_strings[tooltip] = nil
-                        safe_process(tooltip, { spellID = spell_id }, "aura")
+                        safe_process(tooltip, {
+                            spellID = spell_id,
+                            uaForeverCaptureByTitle = aura_id_inferred,
+                        }, "aura")
                     end
                 end, nil, tooltip)
             end
@@ -1341,20 +1442,24 @@ tooltips.finalize = translate_generic_tooltip
 
 local function translate_unit_aura_tooltip(tooltip, data)
     if not tooltip then return false end
-    local spell_id = type(data) == "table"
-        and (safe_number(data.spellID) or safe_number(data.id)) or nil
-    if type(tooltip.GetSpell) == "function" then
-        local spell_ok, _, value = pcall(tooltip.GetSpell, tooltip)
-        spell_id = spell_id or spell_ok and safe_number(value) or nil
+    mark_aura_tooltip(tooltip)
+    local observed_spell_id = type(data) == "table"
+        and safe_number(data.spellID) or nil
+    observed_spell_id = observed_spell_id or visible_spell_id(tooltip)
+        or player_aura_spell_id(tooltip)
+    if not observed_spell_id and type(data) == "table" then
+        observed_spell_id = safe_number(data.id)
     end
-    if not spell_id or not entries.get_entry("spell", spell_id) then
+    local spell_id = observed_spell_id
+    local inferred_by_title = false
+    if not spell_id then
         spell_id = spell_adapter.resolve_aura_id(
             tooltip_line(tooltip, "Left", 1))
-            or spell_id
+        inferred_by_title = spell_id ~= nil
     end
     if not spell_id or not entries.get_entry("spell", spell_id) then
         translate_generic_tooltip(tooltip)
-        return false
+        return false, observed_spell_id, inferred_by_title
     end
 
     local aura_key = tooltip_key("aura", spell_id)
@@ -1365,7 +1470,10 @@ local function translate_unit_aura_tooltip(tooltip, data)
         tooltip.uaForeverSessionKey = aura_key
         tooltip.uaForeverKind = "aura"
     end
-    return safe_process(tooltip, { spellID = spell_id }, "aura")
+    return safe_process(tooltip, {
+        spellID = spell_id,
+        uaForeverCaptureByTitle = inferred_by_title,
+    }, "aura"), observed_spell_id, inferred_by_title
 end
 
 local target_aura_overlay = {
@@ -1956,11 +2064,8 @@ tooltips.aura_probe_candidate = function (tooltip)
     if not tooltip or type(tooltip.IsShown) ~= "function" then return false end
     local ok_shown, shown = pcall(tooltip.IsShown, tooltip)
     if not ok_shown or shown ~= true then return false end
-    if type(tooltip.GetSpell) == "function" then
-        local ok_spell, _, spell_id = pcall(tooltip.GetSpell, tooltip)
-        spell_id = ok_spell and safe_number(spell_id) or nil
-        if spell_id and entries.get_entry("spell", spell_id) then return true end
-    end
+    if aura_tooltip_context(tooltip) then return true end
+    if visible_spell_id(tooltip) then return true end
     local title = tooltip_line(tooltip, "Left", 1)
     return spell_adapter.resolve_aura_id(title) ~= nil
 end
@@ -2018,7 +2123,8 @@ tooltips.capture_aura = function (tooltip)
         return result
     end
     local report = { before = snapshot() }
-    translate_generic_tooltip(tooltip)
+    mark_aura_tooltip(tooltip)
+    after_aura_tooltip_rendered(tooltip)
     report.after = snapshot()
     if UA_ForeverDB then
         UA_ForeverDB.scan = UA_ForeverDB.scan or {}
@@ -2084,6 +2190,16 @@ local function visible_tooltip_window()
 end
 
 tooltips.visible_window = visible_tooltip_window
+
+tooltips.visible_aura_window = function ()
+    for _, descriptor in ipairs(visible_tooltip_windows()) do
+        local tooltip = descriptor.frame
+        if aura_tooltip_context(tooltip)
+            or tooltips.aura_probe_candidate(tooltip) then
+            return tooltip
+        end
+    end
+end
 
 local function diagnostic_scalar(value)
     if value == nil or is_secret(value) then return nil end
@@ -2304,37 +2420,39 @@ local function diagnostic_target_aura_children()
     local unit_auras = _G.C_UnitAuras
     local get_by_index = unit_auras and unit_auras.GetAuraDataByIndex
     if type(get_by_index) == "function" then
-        for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
-            local group = { filter = filter, rows = {}, calls = 0,
-                secret = false, failed = false }
-            for index = 1, 40 do
-                local aura_ok, aura = pcall(get_by_index, "target", index, filter)
-                group.calls = group.calls + 1
-                if not aura_ok then
-                    group.failed = true
-                    break
+        for _, unit in ipairs({ "player", "target" }) do
+            for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
+                local group = { unit = unit, filter = filter, rows = {}, calls = 0,
+                    secret = false, failed = false }
+                for index = 1, 40 do
+                    local aura_ok, aura = pcall(get_by_index, unit, index, filter)
+                    group.calls = group.calls + 1
+                    if not aura_ok then
+                        group.failed = true
+                        break
+                    end
+                    if aura == nil then break end
+                    if is_secret(aura) then
+                        group.secret = true
+                        break
+                    end
+                    local fields_ok, name, spell_id, icon, instance_id = pcall(function ()
+                        return aura.name, aura.spellId, aura.icon, aura.auraInstanceID
+                    end)
+                    if not fields_ok then
+                        group.secret = true
+                        break
+                    end
+                    group.rows[#group.rows + 1] = {
+                        index = index,
+                        name = diagnostic_scalar(name),
+                        spellID = diagnostic_scalar(spell_id),
+                        icon = diagnostic_scalar(icon),
+                        auraInstanceID = diagnostic_scalar(instance_id),
+                    }
                 end
-                if aura == nil then break end
-                if is_secret(aura) then
-                    group.secret = true
-                    break
-                end
-                local fields_ok, name, spell_id, icon, instance_id = pcall(function ()
-                    return aura.name, aura.spellId, aura.icon, aura.auraInstanceID
-                end)
-                if not fields_ok then
-                    group.secret = true
-                    break
-                end
-                group.rows[#group.rows + 1] = {
-                    index = index,
-                    name = diagnostic_scalar(name),
-                    spellID = diagnostic_scalar(spell_id),
-                    icon = diagnostic_scalar(icon),
-                    auraInstanceID = diagnostic_scalar(instance_id),
-                }
+                result.api[#result.api + 1] = group
             end
-            result.api[#result.api + 1] = group
         end
     else
         result.apiStatus = "missing"
@@ -2937,6 +3055,11 @@ local function schedule_tooltip_finalize(tooltip)
     local function finalize()
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
+            if aura_tooltip_context(tooltip) then
+                mark_aura_tooltip(tooltip)
+                after_aura_tooltip_rendered(tooltip)
+                return
+            end
             local spell_id = visible_spell_id(tooltip)
             if spell_id and entries.get_entry("spell", spell_id) then
                 safe_process(tooltip, { id = spell_id, spellID = spell_id }, "spell")
@@ -2954,16 +3077,24 @@ local function schedule_tooltip_finalize(tooltip)
         finalize, 0.2, tooltip)
 end
 
-local function after_aura_tooltip_rendered(tooltip)
+after_aura_tooltip_rendered = function (tooltip)
     if not tooltip or is_secret(tooltip) then return end
+    mark_aura_tooltip(tooltip)
     note_tooltip_event(tooltip, "auraMethod")
-    pcall(translate_unit_aura_tooltip, tooltip)
+    local aura_ok, _, observed_spell_id, inferred_by_title =
+        pcall(translate_unit_aura_tooltip, tooltip)
+    observed_spell_id = aura_ok and safe_number(observed_spell_id) or nil
+    inferred_by_title = aura_ok and inferred_by_title == true
     local metadata_ok, tooltip_id, kind, key = pcall(function ()
         return tooltip.uaForeverID, tooltip.uaForeverKind, tooltip.uaForeverKey
     end)
-    if options.account and options.account.auto_scan_content
-        and metadata_ok and not tooltip_id then
-        pcall(auto_scan.capture_tooltip, tooltip, "aura")
+    if options.account and options.account.auto_scan_content and metadata_ok then
+        local capture_id = observed_spell_id
+            or not inferred_by_title and safe_number(tooltip_id) or nil
+        local missing_entry = capture_id
+            and not entries.get_entry("spell", capture_id) or nil
+        pcall(auto_scan.capture_tooltip, tooltip, "aura",
+            capture_id, missing_entry)
     end
     if metadata_ok and kind == "aura" and key then
         scheduler.cancel("tooltip:" .. tostring(tooltip))
@@ -3100,6 +3231,7 @@ local function prepare_tooltip_frames()
             -- their owner from GetOwner(). Ignore its potentially secret
             -- arguments and translate only the tooltip that Blizzard rendered.
             hooks.region(tooltip, "ShowAuraTooltip", function (self)
+                mark_aura_tooltip(self)
                 after_aura_tooltip_rendered(self)
             end)
             -- Setter callbacks ignore their potentially secret aura arguments.
@@ -3107,10 +3239,12 @@ local function prepare_tooltip_frames()
                 "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
                 "SetUnitBuff", "SetUnitDebuff" }) do
                 hooks.region(tooltip, method, function (self)
-                    local shown_ok, shown = pcall(self.IsShown, self)
-                    if shown_ok and shown then
-                        after_aura_tooltip_rendered(self)
-                    end
+                    -- These setters normally finish before GameTooltip is
+                    -- shown. The old IsShown guard dropped player-buff auras
+                    -- at exactly this point and the later generic pass then
+                    -- classified them as ordinary spells.
+                    mark_aura_tooltip(self)
+                    after_aura_tooltip_rendered(self)
                 end)
             end
         end
@@ -3270,7 +3404,12 @@ tooltips.prepare = function ()
     if types.Spell then
         TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
             if not tooltip.uaForeverTargetAuraMeasuring then
-                safe_process(tooltip, data, "spell")
+                if aura_tooltip_context(tooltip) then
+                    mark_aura_tooltip(tooltip)
+                    safe_process(tooltip, data, "aura")
+                else
+                    safe_process(tooltip, data, "spell")
+                end
             end
         end)
     end

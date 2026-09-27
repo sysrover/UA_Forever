@@ -549,7 +549,8 @@ local function register_slash_command()
             local status = { state = "waiting", attempts = 0 }
             UA_ForeverDB.scan.auraCapture = status
             local function capture_aura()
-                local tooltip = _G.GameTooltip
+                local tooltip = tooltips.visible_aura_window
+                    and tooltips.visible_aura_window() or nil
                 local shown = tooltip and type(tooltip.IsShown) == "function"
                     and select(2, pcall(tooltip.IsShown, tooltip))
                 if not shown then
@@ -580,7 +581,8 @@ local function register_slash_command()
                 local max_attempts = math.max(1, math.ceil(delay * 4))
                 local function poll()
                     status.attempts = status.attempts + 1
-                    if tooltips.aura_probe_candidate(_G.GameTooltip) then
+                    if tooltips.visible_aura_window
+                        and tooltips.visible_aura_window() then
                         if capture_aura() then return end
                     end
                     if status.attempts >= max_attempts then
