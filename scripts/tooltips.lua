@@ -1257,8 +1257,6 @@ local function translate_generic_tooltip(tooltip)
         end
     end
 
-    -- Unlike older Classic clients, Forever makes aura data secret and taints
-    -- secure aura consumers when an addon registers a UnitAura post-call.
     -- Prefer the public spell ID from the already-built tooltip. Some player
     -- aura tooltips expose no public ID, so fall back to the rendered title
     -- and the addon's own spell dictionary without querying protected auras.
@@ -1348,6 +1346,309 @@ local function translate_unit_aura_tooltip(tooltip, data)
         tooltip.uaForeverKind = "aura"
     end
     return safe_process(tooltip, { spellID = spell_id }, "aura")
+end
+
+local target_aura_overlay = {
+    markers = {},
+    auras = {},
+    dirty = true,
+    elapsed = 0,
+    layoutElapsed = 0,
+    refreshElapsed = 0,
+}
+
+local function overlay_object_value(object, method)
+    if not object then return nil end
+    local method_ok, callback = pcall(function () return object[method] end)
+    if not method_ok or type(callback) ~= "function" then return nil end
+    local ok, value = pcall(callback, object)
+    if ok and not is_secret(value) then return value end
+end
+
+local function overlay_aura_field(aura, key)
+    if not aura or is_secret(aura) then return nil end
+    local ok, value = pcall(function () return aura[key] end)
+    if not ok or is_secret(value) then return nil end
+    return value
+end
+
+local function overlay_aura_is_large(aura)
+    local source = safe_string(overlay_aura_field(aura, "sourceUnit"))
+    if not source then return false end
+    for _, unit in ipairs({ "player", "vehicle", "pet" }) do
+        local same_ok, same = pcall(_G.UnitIsUnit, source, unit)
+        if same_ok and not is_secret(same) and same == true then return true end
+        if type(_G.UnitIsOwnerOrControllerOfUnit) == "function" then
+            local owner_ok, owner = pcall(
+                _G.UnitIsOwnerOrControllerOfUnit, unit, source)
+            if owner_ok and not is_secret(owner) and owner == true then return true end
+        end
+    end
+    return false
+end
+
+local function overlay_collect_auras(filter, maximum, helpful)
+    local result = {}
+    local unit_auras = _G.C_UnitAuras
+    local getter = unit_auras and unit_auras.GetAuraDataByIndex
+    if type(getter) ~= "function" then return result end
+    for index = 1, maximum do
+        local ok, aura = pcall(getter, "target", index, filter)
+        if not ok or aura == nil or is_secret(aura) then break end
+        local instance_id = safe_number(
+            overlay_aura_field(aura, "auraInstanceID"))
+        local spell_id = safe_number(overlay_aura_field(aura, "spellId"))
+        local nameplate_only = overlay_aura_field(aura, "isNameplateOnly") == true
+        if instance_id and spell_id and (not helpful or not nameplate_only) then
+            result[#result + 1] = {
+                auraInstanceID = instance_id,
+                spellID = spell_id,
+                size = overlay_aura_is_large(aura) and 21 or 17,
+            }
+        end
+    end
+    return result
+end
+
+local function overlay_marker(index)
+    local marker = target_aura_overlay.markers[index]
+    if marker then return marker end
+    marker = CreateFrame("Frame", nil, UIParent)
+    marker:EnableMouse(false)
+    marker:SetAlpha(0)
+    marker:Show()
+    target_aura_overlay.markers[index] = marker
+    return marker
+end
+
+local function overlay_target_is_other_player()
+    if type(_G.UnitExists) ~= "function" or type(_G.UnitIsPlayer) ~= "function"
+        or type(_G.UnitIsUnit) ~= "function" then return false end
+    local exists_ok, exists = pcall(_G.UnitExists, "target")
+    local player_ok, player = pcall(_G.UnitIsPlayer, "target")
+    local self_ok, is_self = pcall(_G.UnitIsUnit, "target", "player")
+    return exists_ok and exists == true and player_ok and player == true
+        and self_ok and is_self ~= true
+end
+
+local function overlay_target_container()
+    local ok, container = pcall(function ()
+        return _G.TargetFrame
+            and _G.TargetFrame.TargetFrameContent
+            and _G.TargetFrame.TargetFrameContent.TargetFrameContentContextual
+            and _G.TargetFrame.TargetFrameContent.TargetFrameContentContextual.Auras
+    end)
+    return ok and container or nil
+end
+
+local function rebuild_target_aura_overlay_layout()
+    target_aura_overlay.dirty = false
+    target_aura_overlay.auras = {}
+    for _, marker in ipairs(target_aura_overlay.markers) do marker:Hide() end
+    if not overlay_target_is_other_player() then return end
+
+    local container = overlay_target_container()
+    if not container then return end
+    local shown_ok, shown = pcall(container.IsShown, container)
+    if not shown_ok or shown ~= true then return end
+    local anchor_reference_ok, anchor_reference = pcall(function ()
+        return _G.TargetFrame
+            and _G.TargetFrame.TargetFrameContainer
+            and _G.TargetFrame.TargetFrameContainer.FrameTexture
+    end)
+    if not anchor_reference_ok or not anchor_reference then return end
+
+    local buff_filter, debuff_filter = "HELPFUL", "HARMFUL"
+    local buff_ok, value = pcall(container.GetBuffFilterString, container)
+    if buff_ok then buff_filter = safe_string(value) or buff_filter end
+    local debuff_ok
+    debuff_ok, value = pcall(container.GetDebuffFilterString, container)
+    if debuff_ok then debuff_filter = safe_string(value) or debuff_filter end
+
+    local buffs = overlay_collect_auras(buff_filter, 32, true)
+    local debuffs = overlay_collect_auras(debuff_filter, 16, false)
+    local friendly_ok, friendly = pcall(_G.UnitIsFriend, "player", "target")
+    friendly = friendly_ok and not is_secret(friendly) and friendly == true
+    local groups = friendly and { buffs, debuffs } or { debuffs, buffs }
+
+    local mirrored = _G.TargetFrame and _G.TargetFrame.buffsOnTop == true
+    local anchor = mirrored and "BOTTOMLEFT" or "TOPLEFT"
+    local relative_anchor = mirrored and "TOPLEFT" or "BOTTOMLEFT"
+    local base_x, base_y = 5, mirrored and -6 or 9
+    local vertical_direction = mirrored and 1 or -1
+    local target_scale = overlay_object_value(_G.TargetFrame, "GetEffectiveScale")
+    local ui_scale = overlay_object_value(_G.UIParent, "GetEffectiveScale")
+    local marker_scale = type(target_scale) == "number" and type(ui_scale) == "number"
+        and ui_scale > 0 and target_scale / ui_scale or 1
+
+    local constrained_width = 122
+    local constrained_lines = 0
+    local tot = _G.TargetFrame and _G.TargetFrame.totFrame
+    if overlay_object_value(tot, "IsShown") == true then
+        constrained_width = safe_number(_G.TargetFrame.TOT_AURA_ROW_WIDTH) or 101
+        constrained_lines = 2
+    end
+
+    local cursor_x, cursor_y = 0, 0
+    local line_index, line_size, line_height = 1, 0, 0
+    local placed = false
+    local marker_index = 0
+    local function advance_line(gap)
+        cursor_x = 0
+        cursor_y = cursor_y + (line_height + gap) * vertical_direction
+        line_index = line_index + 1
+        line_size, line_height = 0, 0
+    end
+    for _, group in ipairs(groups) do
+        if placed and #group > 0 then advance_line(3) end
+        for _, aura in ipairs(group) do
+            local maximum = line_index <= constrained_lines
+                and constrained_width or 122
+            local next_size = line_size > 0 and line_size + aura.size or aura.size
+            if line_size > 0 and next_size > maximum then
+                advance_line(3)
+                next_size = aura.size
+            end
+
+            marker_index = marker_index + 1
+            local marker = overlay_marker(marker_index)
+            marker:ClearAllPoints()
+            marker:SetScale(marker_scale)
+            marker:SetSize(aura.size, aura.size)
+            marker:SetPoint(anchor, anchor_reference, relative_anchor,
+                base_x + cursor_x, base_y + cursor_y)
+            marker:Show()
+            aura.marker = marker
+            target_aura_overlay.auras[#target_aura_overlay.auras + 1] = aura
+
+            cursor_x = cursor_x + aura.size + 3
+            line_size = next_size + 3
+            line_height = math.max(line_height, aura.size)
+            placed = true
+        end
+    end
+end
+
+local function cursor_over_overlay_marker(marker)
+    if not marker or type(_G.GetCursorPosition) ~= "function" then return false end
+    local shown_ok, shown = pcall(marker.IsShown, marker)
+    if not shown_ok or shown ~= true then return false end
+    local ok, left, bottom, width, height = pcall(marker.GetRect, marker)
+    if not ok or not left or not bottom or not width or not height then return false end
+    local scale = overlay_object_value(marker, "GetEffectiveScale")
+    if type(scale) ~= "number" or scale <= 0 then return false end
+    local cursor_ok, x, y = pcall(_G.GetCursorPosition)
+    if not cursor_ok or is_secret(x) or is_secret(y) then return false end
+    x, y = x / scale, y / scale
+    return x >= left and x <= left + width and y >= bottom and y <= bottom + height
+end
+
+local function hide_target_aura_overlay()
+    local tooltip = target_aura_overlay.tooltip
+    if tooltip and tooltip:IsShown() then tooltip:Hide() end
+    target_aura_overlay.currentAuraInstanceID = nil
+end
+
+local function show_target_aura_overlay(aura)
+    local tooltip = target_aura_overlay.tooltip
+    if not tooltip then return end
+    tooltip_session.reset(tooltip, function (region)
+        character_stat_line_heights[region] = nil
+    end)
+    if type(tooltip.SetMinimumWidth) == "function" then
+        tooltip:SetMinimumWidth(0)
+    end
+    tooltip:SetOwner(aura.marker, "ANCHOR_BOTTOMLEFT")
+    tooltip.uaForeverTargetAuraMeasuring = true
+    local ok, applied = pcall(tooltip.SetUnitAuraByAuraInstanceID,
+        tooltip, "target", aura.auraInstanceID)
+    tooltip.uaForeverTargetAuraMeasuring = nil
+    if not ok or applied == false then
+        tooltip:Hide()
+        return
+    end
+    tooltip:Show()
+    local native_width = overlay_object_value(tooltip, "GetWidth") or 0
+    local native_height = overlay_object_value(tooltip, "GetHeight") or 0
+    local translated = translate_unit_aura_tooltip(tooltip, {
+        spellID = aura.spellID,
+    })
+    if not translated then
+        tooltip:Hide()
+        return
+    end
+    tooltip:Show()
+    local translated_width = overlay_object_value(tooltip, "GetWidth") or 0
+    local translated_height = overlay_object_value(tooltip, "GetHeight") or 0
+    local width = math.max(native_width, translated_width) + 20
+    local height = math.max(native_height, translated_height) + 4
+    if type(tooltip.SetMinimumWidth) == "function" then
+        tooltip:SetMinimumWidth(width)
+    end
+    tooltip:SetWidth(width)
+    tooltip:SetHeight(height)
+    tooltip:SetFrameStrata("TOOLTIP")
+    tooltip:SetFrameLevel(10000)
+    target_aura_overlay.currentAuraInstanceID = aura.auraInstanceID
+end
+
+local function prepare_target_aura_overlay()
+    if target_aura_overlay.watcher or type(_G.CreateFrame) ~= "function" then return end
+    local tooltip = CreateFrame("GameTooltip", "UAForeverTargetAuraTooltip",
+        UIParent, "GameTooltipTemplate")
+    tooltip:SetClampedToScreen(true)
+    tooltip:EnableMouse(false)
+    local opaque_background = tooltip:CreateTexture(nil, "BACKGROUND", nil, -8)
+    opaque_background:SetPoint("TOPLEFT", tooltip, "TOPLEFT", 4, -4)
+    opaque_background:SetPoint("BOTTOMRIGHT", tooltip, "BOTTOMRIGHT", -4, 4)
+    opaque_background:SetColorTexture(0.015, 0.015, 0.02, 1)
+    tooltip.uaForeverOpaqueBackground = opaque_background
+    tooltip:Hide()
+    target_aura_overlay.tooltip = tooltip
+
+    local watcher = CreateFrame("Frame")
+    watcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    watcher:RegisterEvent("PLAYER_TARGET_CHANGED")
+    watcher:RegisterUnitEvent("UNIT_AURA", "target")
+    watcher:RegisterUnitEvent("UNIT_TARGET", "target")
+    watcher:SetScript("OnEvent", function ()
+        target_aura_overlay.dirty = true
+    end)
+    watcher:SetScript("OnUpdate", function (_, elapsed)
+        target_aura_overlay.elapsed = target_aura_overlay.elapsed + elapsed
+        target_aura_overlay.layoutElapsed = target_aura_overlay.layoutElapsed + elapsed
+        target_aura_overlay.refreshElapsed = target_aura_overlay.refreshElapsed + elapsed
+        if target_aura_overlay.elapsed < 0.03 then return end
+        target_aura_overlay.elapsed = 0
+
+        if not options.can_translate("translate_spell")
+            or not overlay_target_is_other_player() then
+            hide_target_aura_overlay()
+            return
+        end
+        if target_aura_overlay.dirty or target_aura_overlay.layoutElapsed >= 0.5 then
+            target_aura_overlay.layoutElapsed = 0
+            rebuild_target_aura_overlay_layout()
+        end
+
+        local hovered
+        for _, aura in ipairs(target_aura_overlay.auras) do
+            if cursor_over_overlay_marker(aura.marker) then
+                hovered = aura
+                break
+            end
+        end
+        if not hovered then
+            hide_target_aura_overlay()
+            return
+        end
+        if target_aura_overlay.currentAuraInstanceID ~= hovered.auraInstanceID
+            or target_aura_overlay.refreshElapsed >= 0.25 then
+            target_aura_overlay.refreshElapsed = 0
+            show_target_aura_overlay(hovered)
+        end
+    end)
+    target_aura_overlay.watcher = watcher
 end
 
 local function capture_generic_tooltip_ui(tooltip)
@@ -1907,6 +2208,187 @@ local function diagnostic_method(tooltip, method, fields)
     return result
 end
 
+local function diagnostic_has_method(object, method)
+    local ok, value = pcall(function () return object and object[method] end)
+    return ok and type(value) == "function"
+end
+
+local function diagnostic_target_aura_children()
+    local result = { children = {}, api = {}, enumeratedTooltips = {} }
+    local ok, container = pcall(function ()
+        return _G.TargetFrame
+            and _G.TargetFrame.TargetFrameContent
+            and _G.TargetFrame.TargetFrameContent.TargetFrameContentContextual
+            and _G.TargetFrame.TargetFrameContent.TargetFrameContentContextual.Auras
+    end)
+    if not ok or not container then
+        result.status = ok and "missing" or "inaccessible"
+        return result
+    end
+
+    result.status = "found"
+    result.container = {
+        name = object_label(container),
+        objectType = public_object_value(container, "GetObjectType"),
+        shown = public_object_value(container, "IsShown") == true,
+        mouseOver = public_object_value(container, "IsMouseOver") == true,
+        forbidden = public_object_value(container, "IsForbidden") == true,
+        protected = public_object_value(container, "IsProtected") == true,
+    }
+
+    local queue = {}
+    for _, child in ipairs(object_list(container, "GetChildren")) do
+        queue[#queue + 1] = { object = child, depth = 1 }
+    end
+    local seen = { [container] = true }
+    local cursor = 1
+    while cursor <= #queue and #result.children < 128 do
+        local entry = queue[cursor]
+        cursor = cursor + 1
+        local child = entry.object
+        if child and not seen[child] then
+            seen[child] = true
+            local icon = diagnostic_has_method(child, "GetIcon")
+                and public_object_value(child, "GetIcon") or nil
+            local row = {
+                depth = entry.depth,
+                name = object_label(child),
+                objectType = public_object_value(child, "GetObjectType"),
+                id = diagnostic_scalar(public_object_value(child, "GetID")),
+                shown = public_object_value(child, "IsShown") == true,
+                mouseOver = public_object_value(child, "IsMouseOver") == true,
+                forbidden = public_object_value(child, "IsForbidden") == true,
+                protected = public_object_value(child, "IsProtected") == true,
+                hasGetIcon = diagnostic_has_method(child, "GetIcon"),
+                hasGetAuraInstance = diagnostic_has_method(child, "GetAuraInstance"),
+                hasShowTooltip = diagnostic_has_method(child, "ShowTooltip"),
+                hasPopulateTooltip = diagnostic_has_method(child, "PopulateTooltip"),
+                iconTexture = icon and diagnostic_scalar(
+                    public_object_value(icon, "GetTexture")) or nil,
+                iconAtlas = icon and diagnostic_scalar(
+                    public_object_value(icon, "GetAtlas")) or nil,
+            }
+            result.children[#result.children + 1] = row
+            if entry.depth < 5 then
+                for _, descendant in ipairs(object_list(child, "GetChildren")) do
+                    queue[#queue + 1] = {
+                        object = descendant,
+                        depth = entry.depth + 1,
+                    }
+                end
+            end
+        end
+    end
+    result.count = #result.children
+
+    local unit_auras = _G.C_UnitAuras
+    local get_by_index = unit_auras and unit_auras.GetAuraDataByIndex
+    if type(get_by_index) == "function" then
+        for _, filter in ipairs({ "HELPFUL", "HARMFUL" }) do
+            local group = { filter = filter, rows = {}, calls = 0,
+                secret = false, failed = false }
+            for index = 1, 40 do
+                local aura_ok, aura = pcall(get_by_index, "target", index, filter)
+                group.calls = group.calls + 1
+                if not aura_ok then
+                    group.failed = true
+                    break
+                end
+                if aura == nil then break end
+                if is_secret(aura) then
+                    group.secret = true
+                    break
+                end
+                local fields_ok, name, spell_id, icon, instance_id = pcall(function ()
+                    return aura.name, aura.spellId, aura.icon, aura.auraInstanceID
+                end)
+                if not fields_ok then
+                    group.secret = true
+                    break
+                end
+                group.rows[#group.rows + 1] = {
+                    index = index,
+                    name = diagnostic_scalar(name),
+                    spellID = diagnostic_scalar(spell_id),
+                    icon = diagnostic_scalar(icon),
+                    auraInstanceID = diagnostic_scalar(instance_id),
+                }
+            end
+            result.api[#result.api + 1] = group
+        end
+    else
+        result.apiStatus = "missing"
+    end
+
+    if type(_G.EnumerateFrames) == "function" then
+        local current
+        for _ = 1, 10000 do
+            local frame_ok, frame = pcall(_G.EnumerateFrames, current)
+            if not frame_ok or not frame then break end
+            current = frame
+            if public_object_value(frame, "IsShown") == true
+                and public_object_value(frame, "GetObjectType") == "GameTooltip" then
+                result.enumeratedTooltips[#result.enumeratedTooltips + 1] = {
+                    name = object_label(frame),
+                    forbidden = public_object_value(frame, "IsForbidden") == true,
+                    protected = public_object_value(frame, "IsProtected") == true,
+                    mouseOver = public_object_value(frame, "IsMouseOver") == true,
+                    parent = object_label(public_object_value(frame, "GetParent")),
+                }
+            end
+        end
+    end
+    return result
+end
+
+tooltips.capture_mouse_focus = function ()
+    local report = { foci = {}, targetAuras = diagnostic_target_aura_children() }
+    local candidates = {}
+    if type(_G.GetMouseFoci) == "function" then
+        local ok, values = pcall(_G.GetMouseFoci)
+        if ok and type(values) == "table" then
+            for _, value in ipairs(values) do candidates[#candidates + 1] = value end
+        end
+    end
+    if #candidates == 0 and type(_G.GetMouseFocus) == "function" then
+        local ok, value = pcall(_G.GetMouseFocus)
+        if ok and value then candidates[1] = value end
+    end
+
+    local seen = {}
+    for focus_index, candidate in ipairs(candidates) do
+        local current, depth = candidate, 0
+        while current and not seen[current] and depth < 10 do
+            seen[current] = true
+            depth = depth + 1
+            local icon = diagnostic_has_method(current, "GetIcon")
+                and public_object_value(current, "GetIcon") or nil
+            report.foci[#report.foci + 1] = {
+                focus = focus_index,
+                depth = depth,
+                name = object_label(current),
+                objectType = public_object_value(current, "GetObjectType"),
+                id = diagnostic_scalar(public_object_value(current, "GetID")),
+                forbidden = public_object_value(current, "IsForbidden") == true,
+                protected = public_object_value(current, "IsProtected") == true,
+                hasAuraInstance = diagnostic_has_method(current, "GetAuraInstance"),
+                hasIcon = icon ~= nil,
+                iconTexture = icon and diagnostic_scalar(
+                    public_object_value(icon, "GetTexture")) or nil,
+                iconAtlas = icon and diagnostic_scalar(
+                    public_object_value(icon, "GetAtlas")) or nil,
+            }
+            current = public_object_value(current, "GetParent")
+        end
+    end
+    report.count = #report.foci
+    if UA_ForeverDB then
+        UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+        UA_ForeverDB.scan.mouseProbe = report
+    end
+    return report
+end
+
 local function tooltip_diagnostic_snapshot(entry)
     local tooltip = entry.frame
     local result = {
@@ -2447,6 +2929,23 @@ local function schedule_tooltip_finalize(tooltip)
         finalize, 0.2, tooltip)
 end
 
+local function after_aura_tooltip_rendered(tooltip)
+    if not tooltip or is_secret(tooltip) then return end
+    note_tooltip_event(tooltip, "auraMethod")
+    pcall(translate_unit_aura_tooltip, tooltip)
+    local metadata_ok, tooltip_id, kind, key = pcall(function ()
+        return tooltip.uaForeverID, tooltip.uaForeverKind, tooltip.uaForeverKey
+    end)
+    if options.account and options.account.auto_scan_content
+        and metadata_ok and not tooltip_id then
+        pcall(auto_scan.capture_tooltip, tooltip, "aura")
+    end
+    if metadata_ok and kind == "aura" and key then
+        scheduler.cancel("tooltip:" .. tostring(tooltip))
+        scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+    end
+end
+
 local function prepare_tooltip_frames()
     -- Bag buttons copy their mixin methods when the frames are created, so a
     -- later hook on BaseBagSlotButtonMixin does not reach those buttons.
@@ -2492,11 +2991,18 @@ local function prepare_tooltip_frames()
                 if applied then tooltip.uaForeverKind = "equipment-slot" end
             end)
     end
+    local tooltip_frames, seen_tooltips = {}, {}
     for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
         "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
         "ItemRefShoppingTooltip2", "EmbeddedItemTooltip",
         "BuffFrameTooltip" }) do
         local tooltip = _G[name]
+        if tooltip and not seen_tooltips[tooltip] then
+            tooltip_frames[#tooltip_frames + 1] = tooltip
+            seen_tooltips[tooltip] = true
+        end
+    end
+    for _, tooltip in ipairs(tooltip_frames) do
         if tooltip then
             if tooltip == _G.GameTooltip then
                 hooks.region(tooltip, "SetUnit", function (self)
@@ -2569,34 +3075,16 @@ local function prepare_tooltip_frames()
             -- their owner from GetOwner(). Ignore its potentially secret
             -- arguments and translate only the tooltip that Blizzard rendered.
             hooks.region(tooltip, "ShowAuraTooltip", function (self)
-                note_tooltip_event(self, "auraMethod")
-                translate_unit_aura_tooltip(self)
-                if options.account and options.account.auto_scan_content
-                    and not self.uaForeverID then
-                    auto_scan.capture_tooltip(self, "aura")
-                end
-                if self.uaForeverKind == "aura" and self.uaForeverKey then
-                    scheduler.cancel("tooltip:" .. tostring(self))
-                    scheduler.cancel("tooltip-late:" .. tostring(self))
-                end
+                after_aura_tooltip_rendered(self)
             end)
             -- Setter callbacks ignore their potentially secret aura arguments.
             for _, method in ipairs({ "SetUnitAuraByAuraInstanceID",
                 "SetUnitBuffByAuraInstanceID", "SetUnitDebuffByAuraInstanceID", "SetUnitAura",
                 "SetUnitBuff", "SetUnitDebuff" }) do
                 hooks.region(tooltip, method, function (self)
-                    note_tooltip_event(self, "auraMethod")
                     local shown_ok, shown = pcall(self.IsShown, self)
                     if shown_ok and shown then
-                        translate_unit_aura_tooltip(self)
-                        if options.account and options.account.auto_scan_content
-                            and not self.uaForeverID then
-                            auto_scan.capture_tooltip(self, "aura")
-                        end
-                        if self.uaForeverKind == "aura" and self.uaForeverKey then
-                            scheduler.cancel("tooltip:" .. tostring(self))
-                            scheduler.cancel("tooltip-late:" .. tostring(self))
-                        end
+                        after_aura_tooltip_rendered(self)
                     end
                 end)
             end
@@ -2735,12 +3223,12 @@ tooltips.prepare = function ()
         return
     end
     tooltips.prepared = true
+    prepare_target_aura_overlay()
 
     if _G.EventRegistry and type(_G.EventRegistry.RegisterCallback) == "function" then
         _G.EventRegistry:RegisterCallback("TalentDisplay.TooltipCreated",
             talent_adapter.translate, tooltips)
     end
-
     local types = Enum.TooltipDataType
     if types.Item then
         TooltipDataProcessor.AddTooltipPostCall(types.Item, function (tooltip, data)
@@ -2756,12 +3244,11 @@ tooltips.prepare = function ()
     end
     if types.Spell then
         TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
-            safe_process(tooltip, data, "spell")
+            if not tooltip.uaForeverTargetAuraMeasuring then
+                safe_process(tooltip, data, "spell")
+            end
         end)
     end
-    -- Do not register Enum.TooltipDataType.UnitAura here. On Camelot/Forever
-    -- that callback taints Blizzard's secret aura update path. Aura tooltips
-    -- are handled by the tooltip setter post-hooks below and the generic pass.
     if types.Unit then
         TooltipDataProcessor.AddTooltipPostCall(types.Unit, function (tooltip, data)
             safe_process(tooltip, data, "npc")
