@@ -448,23 +448,18 @@ local function register_slash_command()
         elseif command == "menus" then
             message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
         elseif command == "owner" then
-            local frame = type(_G.GetMouseFocus) == "function" and _G.GetMouseFocus() or nil
-            if not frame and type(_G.GetMouseFoci) == "function" then
-                local ok, foci = pcall(_G.GetMouseFoci)
-                if ok and type(foci) == "table" then frame = foci[1] end
+            local function capture_owner()
+                if tooltips.capture_mouse_focus then
+                    tooltips.capture_mouse_focus()
+                end
             end
-            local region = frame
-            if frame and type(frame.GetFontString) == "function" then
-                local ok, value = pcall(frame.GetFontString, frame)
-                if ok and value then region = value end
-            end
-            local claim = region and runtime.get(region)
-            if claim then
-                message(string.format("owner=%s; slot=%s; source=%s; translation=%s; generation=%s",
-                    tostring(claim.owner), tostring(claim.slot), tostring(claim.source),
-                    tostring(claim.translated), tostring(claim.generation)))
+            local delay = tonumber(value)
+            if delay and delay > 0 then
+                delay = math.min(delay, 15)
+                scheduler.cancel("manual-owner-capture")
+                scheduler.request("manual-owner-capture", nil, capture_owner, delay)
             else
-                message("для елемента під курсором немає translation claim")
+                capture_owner()
             end
         elseif command == "tooltip" then
             local all_value = value:match("^all%s*(.-)$")

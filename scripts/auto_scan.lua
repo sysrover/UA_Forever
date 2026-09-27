@@ -376,6 +376,20 @@ auto_scan.clear_runtime_owner = function (owner)
     end
 end
 
+auto_scan.discard_ui = function (source)
+    source = safe_text(source)
+    if not source then return end
+    local records = bucket("ui")
+    if records then
+        local key = type(utils.get_text_hash) == "function"
+            and utils.get_text_hash(source) or source
+        records[key] = nil
+    end
+    local legacy = UA_ForeverDB and UA_ForeverDB.scan
+        and UA_ForeverDB.scan.ui
+    if type(legacy) == "table" then legacy[source] = nil end
+end
+
 auto_scan.record_ui = function (source, translated, slot, surface, owner)
     source = safe_text(source)
     slot = safe_text(slot)
@@ -848,7 +862,9 @@ local function domain_store_has_text(store, source)
 end
 
 auto_scan.export_text = function ()
-    if cleared then return "" end
+    local saved_mouse_probe = UA_ForeverDB and UA_ForeverDB.scan
+        and UA_ForeverDB.scan.mouseProbe
+    if cleared and type(saved_mouse_probe) ~= "table" then return "" end
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
     local catalog_records = {}
@@ -1085,13 +1101,80 @@ auto_scan.export_text = function ()
         end
         if #lines > 1 then parts[#parts + 1] = table.concat(lines, "\n") end
     end
+
+    local probe = saved_mouse_probe
+    if type(probe) == "table" then
+        local lines = { "[MOUSE_PROBE] | 1", "", "# TargetFrame aura probe" }
+        local function add(field, value)
+            if value ~= nil then
+                lines[#lines + 1] = field .. " = " .. field_text(value)
+            end
+        end
+        add("focusCount", probe.count or 0)
+        for index, row in ipairs(probe.foci or {}) do
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = "## focus " .. index
+            for _, field in ipairs({ "focus", "depth", "name", "objectType",
+                "id", "forbidden", "protected", "hasAuraInstance",
+                "hasIcon", "iconTexture", "iconAtlas" }) do
+                add(field, row[field])
+            end
+        end
+
+        local auras = probe.targetAuras or {}
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = "## TargetFrame.Auras"
+        add("status", auras.status)
+        add("childCount", auras.count or 0)
+        for index, row in ipairs(auras.children or {}) do
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = "### child " .. index
+            for _, field in ipairs({ "depth", "name", "objectType", "id",
+                "shown", "mouseOver", "forbidden", "protected",
+                "hasGetIcon", "hasGetAuraInstance", "hasShowTooltip",
+                "hasPopulateTooltip", "iconTexture", "iconAtlas" }) do
+                add(field, row[field])
+            end
+        end
+        for _, group in ipairs(auras.api or {}) do
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = "## API " .. tostring(group.filter)
+            add("auraCount", #(group.rows or {}))
+            add("secret", group.secret)
+            add("failed", group.failed)
+            for _, row in ipairs(group.rows or {}) do
+                lines[#lines + 1] = ""
+                lines[#lines + 1] = "### aura " .. tostring(row.index)
+                for _, field in ipairs({ "name", "spellID", "icon",
+                    "auraInstanceID" }) do
+                    add(field, row[field])
+                end
+            end
+        end
+        lines[#lines + 1] = ""
+        lines[#lines + 1] = "## EnumerateFrames GameTooltip"
+        add("tooltipCount", #(auras.enumeratedTooltips or {}))
+        for index, row in ipairs(auras.enumeratedTooltips or {}) do
+            lines[#lines + 1] = ""
+            lines[#lines + 1] = "### tooltip " .. index
+            for _, field in ipairs({ "name", "forbidden", "protected",
+                "mouseOver", "parent" }) do
+                add(field, row[field])
+            end
+        end
+        parts[#parts + 1] = table.concat(lines, "\n")
+    end
     return table.concat(parts, "\n\n")
 end
 
 auto_scan.clear_diagnostics = function ()
-    local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto
+    local scan = UA_ForeverDB and UA_ForeverDB.scan
+    local store = scan and scan.auto
     if type(store) == "table" then
         for group in pairs(diagnostic_groups) do store[group] = nil end
+    end
+    if type(scan) == "table" then
+        scan.mouseProbe = nil
     end
     hook_states = {}
 end
@@ -1099,6 +1182,7 @@ end
 auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
         UA_ForeverDB.scan.auto = {}
+        UA_ForeverDB.scan.mouseProbe = nil
     end
     surface_states = {}
     hook_states = {}
