@@ -197,6 +197,38 @@ local function translate_micro_button_tooltip(button)
     if tooltips.finalize then tooltips.finalize(tooltip) end
 end
 
+local function is_edit_mode_layout_menu(menu)
+    if not menu then return false end
+    local manager = _G.EditModeManagerFrame
+    local dropdown = manager and manager.LayoutDropdown
+    if dropdown and type(menu.GetOwnerRegion) == "function" then
+        local ok, owner = pcall(menu.GetOwnerRegion, menu)
+        if ok and owner == dropdown then return true end
+    end
+    if type(menu.ToDebugString) == "function" then
+        local ok, tag = pcall(menu.ToDebugString, menu)
+        if ok and tag == "MENU_EDIT_MODE_MANAGER" then return true end
+    end
+    return false
+end
+
+local function edit_mode_user_layout_names()
+    local names = {}
+    local manager = _G.EditModeManagerFrame
+    local layout_info = manager and manager.layoutInfo
+    local layouts = layout_info and layout_info.layouts
+    local types = _G.Enum and _G.Enum.EditModeLayoutType
+    if type(layouts) ~= "table" or type(types) ~= "table" then return names end
+    for _, info in ipairs(layouts) do
+        local layout_type = info and info.layoutType
+        if layout_type == types.Account or layout_type == types.Character then
+            local name = info.layoutName
+            if type(name) == "string" and name ~= "" then names[name] = true end
+        end
+    end
+    return names
+end
+
 local function translate_open_menu()
     local function translate()
         local manager = _G.Menu and type(_G.Menu.GetManager) == "function"
@@ -204,8 +236,29 @@ local function translate_open_menu()
         local menu = manager and type(manager.GetOpenMenu) == "function"
             and manager:GetOpenMenu() or nil
         if menu then
-            strings.translate_frame(menu, nil, menu_walks.modern)
-            capture_auto_frame(menu)
+            if is_edit_mode_layout_menu(menu) then
+                local user_layout_names = edit_mode_user_layout_names()
+                local walk = {
+                    id = menu_walks.modern.id,
+                    surface = menu_walks.modern.surface,
+                    owner = menu_walks.modern.owner,
+                    reason = menu_walks.modern.reason,
+                    skip_region = function (region)
+                        if not region or type(region.GetText) ~= "function" then
+                            return false
+                        end
+                        local ok, value = pcall(region.GetText, region)
+                        return ok and type(value) == "string"
+                            and user_layout_names[value] == true
+                    end,
+                }
+                strings.translate_frame(menu, nil, walk)
+                -- Account/character layout names are user data, so rendered
+                -- rows from this menu do not belong in the UI text report.
+            else
+                strings.translate_frame(menu, nil, menu_walks.modern)
+                capture_auto_frame(menu)
+            end
         end
     end
 

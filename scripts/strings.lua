@@ -246,6 +246,8 @@ local function is_capture_noise(normalized, frame_name)
         or frame_name:find("GameTooltip", 1, true)
         or frame_name:find("PlayerName", 1, true)
         or frame_name:find("CharacterFrameTitleText", 1, true)
+        -- This is a preset/account/character layout name, not UI vocabulary.
+        or frame_name:find("EditModeManagerFrame.LayoutDropdown", 1, true)
         or frame_name:find("MainStatusTrackingBar", 1, true)
         or frame_name:find("CharacterLevelText", 1, true)
         or frame_name:find("ItemTextPageText", 1, true)
@@ -287,10 +289,10 @@ local function capture_font_string(region, stats)
         if type(auto_scan.record_ui) == "function" then
             auto_scan.record_ui(text, true, frame_name)
         end
-        auto_scan.record_runtime_result({
-            owner = "ui-scan", slot = frame_name or "ui.text",
-            source = text, translated = translated,
-        }, text, "видимий UI-текст")
+        if type(auto_scan.record_ui_observation) == "function" then
+            auto_scan.record_ui_observation(text, translated, text,
+                frame_name or "ui.text")
+        end
         return
     end
     if normalized == "" or normalized == "EN" or normalized == "UA"
@@ -340,7 +342,14 @@ end
 
 local function scan_frame(frame, seen, stats, allow_protected, surface, walk_metadata)
     walker.walk(walk_metadata, frame, function (region)
-        if translate_font_string(region, nil, nil, surface) then
+        local skip = type(surface) == "table" and surface.skip_region
+            or type(walk_metadata) == "table" and walk_metadata.skip_region
+        local skip_ok, skipped = true, false
+        if type(skip) == "function" then
+            skip_ok, skipped = pcall(skip, region)
+        end
+        if skip_ok and not skipped
+            and translate_font_string(region, nil, nil, surface) then
             stats.translated = stats.translated + 1
         end
         apply_ukrainian_font(region)

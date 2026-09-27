@@ -507,7 +507,14 @@ local quest_map_labels = {
 
 local quest_log_labels = {
     Quests = true, ["Quests:"] = true,
+    ["(Elite)"] = true,
+    ["Search Quest Log"] = true,
 }
+
+local function is_quest_log_label(text)
+    return quest_log_labels[text] == true
+        or type(text) == "string" and text:match("^Quests:%s*%d+/%d+$") ~= nil
+end
 
 local function translate_quest_log_labels()
     local map = _G.QuestMapFrame
@@ -516,10 +523,12 @@ local function translate_quest_log_labels()
     walker.walk({ id = "quest-log-labels", surface = "quest",
         owner = "quest-ui", reason = "LEGACY_REGION_DISCOVERY" },
         root, function (region)
-        if quest_log_labels[safe_text(region)] then
+        if is_quest_log_label(safe_text(region)) then
             strings.translate_region(region)
         end
     end, nil, { frames = 0 })
+    local count = _G.QuestLogQuestCount
+    if is_quest_log_label(safe_text(count)) then strings.translate_region(count) end
 end
 
 local function translate_quest_map_labels()
@@ -626,6 +635,8 @@ local function prepare_dialog_hooks()
         -- Blizzard rewrites the quest-list heading during every list refresh.
         -- Reapply its UI translation after that final native write.
         translate_quest_log_labels()
+        scheduler.request("quest-log-static-labels", nil,
+            translate_quest_log_labels, 0.05)
         translate_quest_map_labels()
         local scroll = _G.QuestScrollFrame
         local pool = scroll and scroll.objectiveFramePool

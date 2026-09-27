@@ -663,6 +663,8 @@ local ui = {
     ["Triple Buffering"] = "Потрійна буферизація",
     ["Voice Chat Volume"] = "Гучність голосового чату",
     ["Must have a Shield equipped"] = "Потрібно спорядити щит",
+    ["Escort Miran to the excavation site (Complete)"] = "Супроводіть Мірана до місця розкопок (виконано)",
+    ["Must be in Defensive Stance"] = "Потрібно перебувати в захисній стійці",
 }
 
 if addonTable.forever_catalog then

@@ -29,6 +29,7 @@
     <Script file="quest_ui.lua"/>
     <Script file="gossip_ui.lua"/>
     <Script file="map_labels.lua"/>
+    <Script file="edit_mode.lua"/>
     <Script file="level_up_display.lua"/>
     <Script file="translation.lua"/>
     <Script file="quest_switcher.lua"/>

@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local entries = addon_table.use("entries")
+local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local gossip_ui = addon_table.use("gossip_ui")
@@ -30,6 +31,7 @@ local function apply(region, slot, source, translated, category, option)
         translated = translated, category = category,
         option = type(option) == "string" and option or nil,
         options = type(option) == "table" and option or nil,
+        surface = "gossip",
         priority = runtime.PRIORITY.DOMAIN,
     })
 end
@@ -69,6 +71,9 @@ local function quest_title(button, info)
 end
 
 local function greeting(frame, source)
+    auto_scan.surface_event("gossip", "GOSSIP_SHOW")
+    auto_scan.surface_hook("gossip", "GossipGreetingTextMixin.Setup", true, true)
+    auto_scan.surface_attempt("gossip", "GossipGreetingTextMixin.Setup")
     local region = frame and frame.GreetingText
     local id = npc_id()
     if region then runtime.invalidate(region) end
@@ -121,7 +126,9 @@ end
 gossip_ui.prepare = function ()
     hooks.region(_G.GossipFrameSharedMixin, "SetGossipTitle", gossip_title)
     hooks.region(_G.GossipFrame, "SetGossipTitle", gossip_title)
-    hooks.region(_G.GossipGreetingTextMixin, "Setup", greeting)
+    local greeting_hook = hooks.region(_G.GossipGreetingTextMixin, "Setup", greeting)
+    auto_scan.surface_hook("gossip", "GossipGreetingTextMixin.Setup",
+        greeting_hook, false)
     hooks.region(_G.GossipOptionButtonMixin, "Setup", option)
     hooks.region(_G.GossipSharedAvailableQuestButtonMixin, "Setup", quest_title)
     hooks.region(_G.GossipSharedActiveQuestButtonMixin, "Setup", quest_title)
