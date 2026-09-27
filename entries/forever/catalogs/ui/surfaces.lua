@@ -70,5 +70,8 @@ addonTable.forever_surface_ui = {
         discovered = function (zone)
             return "Відкрито нову територію: " .. zone
         end,
+        faction_territory = function (faction)
+            return "Контроль території: " .. faction
+        end,
     },
 }

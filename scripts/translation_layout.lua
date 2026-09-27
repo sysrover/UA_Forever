@@ -3,6 +3,9 @@ local layout = addon_table.use("translation_layout")
 local strings = addon_table.use("strings")
 
 local BUTTON_TEXT_PADDING = 24
+local AUCTION_TAB_PADDING = 20
+local AUCTION_TAB_SIDE_PADDING = 20
+local AUCTION_TAB_MIN_WIDTH = 70
 local QUEST_BUTTON_TEXT_PADDING = 16
 local QUEST_BUTTON_MIN_WIDTH = 64
 local BAG_TOOLTIP_TEXT_PADDING = 24
@@ -12,6 +15,15 @@ local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
 local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
+local AUCTION_TAB_SOURCES = {
+    Auctions = true, Bid = true, Bids = true, Browse = true, Buy = true,
+    Sell = true,
+}
+local AUCTION_TAB_NAMES = {
+    AuctionHouseFrameAuctionsTab = true,
+    AuctionHouseFrameBuyTab = true,
+    AuctionHouseFrameSellTab = true,
+}
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -54,6 +66,78 @@ local function is_tooltip(frame)
     if not method_ok or type(get_type) ~= "function" then return false end
     local ok, object_type = pcall(get_type, frame)
     return ok and not is_secret(object_type) and object_type == "GameTooltip"
+end
+
+local function object_name(owner)
+    if not owner then return nil end
+    local method_ok, get_name = pcall(function () return owner.GetName end)
+    if not method_ok or type(get_name) ~= "function" then return nil end
+    local ok, name = pcall(get_name, owner)
+    return ok and not is_secret(name) and type(name) == "string" and name or nil
+end
+
+local function parent_of(owner)
+    if not owner then return nil end
+    local method_ok, get_parent = pcall(function () return owner.GetParent end)
+    if not method_ok or type(get_parent) ~= "function" then return nil end
+    local ok, parent = pcall(get_parent, owner)
+    return ok and not is_secret(parent) and parent or nil
+end
+
+local function named_auction_tab(button)
+    local name = object_name(button)
+    if not name then return false end
+    return AUCTION_TAB_NAMES[name] == true
+        or name:match("^AuctionFrameTab[123]$") ~= nil
+        or name:match("^AuctionHouseFrameTab[123]$") ~= nil
+        or name:match("^Auction.*Tab[123]$") ~= nil
+end
+
+local function find_auction_tab(region, source)
+    if source and not AUCTION_TAB_SOURCES[source] then return nil end
+    local button
+    local owner = region
+    for _ = 1, 6 do
+        if not owner then break end
+        if is_button(owner) and not button then button = owner end
+        if button and named_auction_tab(button) then return button end
+        local name = object_name(owner)
+        if button and (owner == _G.AuctionFrame
+            or owner == _G.AuctionHouseFrame
+            or name == "AuctionFrame" or name == "AuctionHouseFrame") then
+            return button
+        end
+        local parent = parent_of(owner)
+        if parent == owner then break end
+        owner = parent
+    end
+end
+
+local function fit_auction_tab(region, source)
+    local button = find_auction_tab(region, source)
+    if not button or type(button.SetWidth) ~= "function" then return false end
+    local resize = _G.PanelTemplates_TabResize
+    if type(resize) == "function" then
+        local ok = pcall(resize, button, AUCTION_TAB_PADDING, nil,
+            AUCTION_TAB_MIN_WIDTH)
+        if ok then return true end
+    end
+    -- Client build 70009's native resizer first removes the FontString width
+    -- constraint, measures the full text, then restores both text and tab
+    -- widths. Mirror that sequence only when the native helper is unavailable.
+    if region and type(region.SetWidth) == "function" then
+        pcall(region.SetWidth, region, 0)
+    end
+    local text_width = unbounded_text_width(region)
+        or safe_dimension(button, "GetTextWidth")
+    if not text_width then return false end
+    local required_width = math.max(AUCTION_TAB_MIN_WIDTH,
+        math.ceil(text_width + AUCTION_TAB_SIDE_PADDING + AUCTION_TAB_PADDING))
+    if region and type(region.SetWidth) == "function" then
+        pcall(region.SetWidth, region, text_width)
+    end
+    pcall(button.SetWidth, button, required_width)
+    return true
 end
 
 local function fit_tooltip_height_to_region(tooltip, region, previous_region_height, previous_tooltip_height)
@@ -226,6 +310,7 @@ local function fit_button_to_text(button, region)
         and is_protected_frame(button) then return end
 
     region = region or (type(button.GetFontString) == "function" and button:GetFontString())
+    if fit_auction_tab(region) then return end
     local text_width = unbounded_text_width(region)
     local button_width = safe_dimension(button, "GetWidth")
     if not text_width or not button_width then return end
@@ -250,4 +335,5 @@ layout.fit_tooltip_width_to_region = fit_tooltip_width_to_region
 layout.restore_tooltip_width = restore_tooltip_width
 layout.fit_aura_header_width = fit_aura_header_width
 layout.fit_bag_tooltip_width = fit_bag_tooltip_width
+layout.fit_auction_tab = fit_auction_tab
 layout.fit_button_to_text = fit_button_to_text

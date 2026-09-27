@@ -213,6 +213,40 @@ local function apply_native_zone_region(region, native, owner)
     })
 end
 
+local function translated_zone_status(source)
+    local faction = source:match("^%((.-) Territory%)$")
+        or source:match("^(.-) Territory$")
+    if faction then
+        local translated_faction = strings.find_ui_translation(faction)
+        if safe_string(translated_faction) and translated_faction ~= faction then
+            return surface_text.faction_territory(translated_faction)
+        end
+    end
+    local translated = strings.find_ui_translation(source)
+    return safe_string(translated) and translated ~= source and translated or nil
+end
+
+local function apply_zone_status_region(region, source)
+    if not source or visible_text(region) ~= source then return end
+    runtime.invalidate(region)
+    if not options.can_lookup("translate_zone") then return end
+    local translated = translated_zone_status(source)
+    if translated then
+        runtime.apply(region, {
+            owner = "zone-announce-status", slot = "zone.status",
+            source = source, translated = translated,
+            option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
+        })
+    end
+end
+
+local function apply_zone_status_regions()
+    for _, name in ipairs({ "PVPInfoTextString", "PVPArenaTextString" }) do
+        local region = _G[name]
+        apply_zone_status_region(region, visible_text(region))
+    end
+end
+
 local function after_zone_text_event()
     local zone = native_zone_text("GetZoneText")
     local subzone = native_zone_text("GetSubZoneText")
@@ -221,11 +255,17 @@ local function after_zone_text_event()
     if shown and (shown == subzone or shown == zone) then
         apply_native_zone_region(_G.SubZoneTextString, shown, "subzone-announce")
     end
+    apply_zone_status_regions()
 end
 
 local function after_subzone_load()
-    apply_native_zone_region(_G.SubZoneTextString,
-        native_zone_text("GetSubZoneText"), "subzone-announce")
+    local region = _G.SubZoneTextString
+    local shown = visible_text(region)
+    local subzone = native_zone_text("GetSubZoneText")
+    if shown == subzone then
+        apply_native_zone_region(region, subzone, "subzone-announce")
+    end
+    apply_zone_status_regions()
 end
 
 local function ui_message_region(frame, message, message_id)
