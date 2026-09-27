@@ -3,6 +3,7 @@ local _, addon_table = ...
 local auto_scan = addon_table.use("auto_scan")
 local dev_log = addon_table.use("dev_log")
 local entries = addon_table.use("entries")
+local layout = addon_table.use("translation_layout")
 local options = addon_table.use("options")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
@@ -599,6 +600,9 @@ local function translate_crafting_row(row)
     if text and options.translate_name("skill") then
         apply_skill_text(row.Label or row.Name, text, "skill", "skill.name")
     end
+    if row.Label then
+        layout.fit_profession_recipe_label(row)
+    end
     if recipe_info then
         hook_owner(row, "OnEnter", function (self)
             local tooltip = _G.GameTooltip
@@ -840,6 +844,8 @@ local function translate_crafting_page()
                 apply_skill_text(form.OutputText, output, "item", "item.name")
             end
         end
+        layout.fit_profession_output_text(form.OutputText)
+        layout.fit_profession_output_text(form.RecraftingOutputText)
     end
 
     translate_button(page.CreateButton)

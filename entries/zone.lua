@@ -162,4 +162,9 @@ addonTable.zone = {
     ["Windfield Orchard"] = "сад Віндфілдів",
     ["Windsong Lake"] = "озеро Пісні Вітру",
     ["Windsong Standing Stones"] = "стоячі камені Пісні Вітру",
+    ["Dwarven District"] = "Дворфійський квартал",
+    ["Mage Quarter"] = "Квартал магів",
+    ["Old Town"] = "Старе місто",
+    ["The Canals"] = "Канали",
+    ["Wizard's Sanctum"] = "Святилище чарівника",
 }

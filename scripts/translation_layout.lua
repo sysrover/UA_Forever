@@ -230,6 +230,66 @@ local function fit_bag_tooltip_width(tooltip, region, source)
     end
 end
 
+local function is_shown(frame)
+    if not frame then return false end
+    local method_ok, callback = pcall(function () return frame.IsShown end)
+    if not method_ok or type(callback) ~= "function" then return false end
+    local ok, value = pcall(callback, frame)
+    return ok and not is_secret(value) and value == true
+end
+
+local function fit_profession_recipe_label(row)
+    local label = row and row.Label
+    if not label or type(label.SetWidth) ~= "function" then return false end
+
+    -- Mirror ProfessionsRecipeListRecipeMixin:Init from client build 70009.
+    -- Blizzard sizes Label to the native English string width; after the text
+    -- is translated, Count remains anchored to that stale width and the longer
+    -- Ukrainian recipe name is ellipsized.
+    local row_width = safe_dimension(row, "GetWidth")
+    local skill_up_width = safe_dimension(row.SkillUps, "GetWidth") or 0
+    local count_width = is_shown(row.Count)
+        and (safe_dimension(row.Count, "GetStringWidth")
+            or safe_dimension(row.Count, "GetWidth") or 0) or 0
+    local right_width = is_shown(row.LockedIcon)
+        and (safe_dimension(row.LockedIcon, "GetWidth") or 0) or 0
+    local text_width = unbounded_text_width(label)
+    if not row_width or not text_width then return false end
+
+    local available = math.max(0,
+        row_width - right_width - count_width - skill_up_width - 10)
+    pcall(label.SetWidth, label, math.min(available, text_width))
+    return true
+end
+
+local function fit_profession_output_text(region)
+    if not region or type(region.SetWidth) ~= "function"
+        or type(region.SetHeight) ~= "function" then return false end
+
+    -- Mirror the local SetTextToFit helper used by
+    -- ProfessionsRecipeSchematicFormMixin:UpdateOutputItem in build 70009.
+    -- Blizzard runs it for the native item name before UA_Forever replaces
+    -- the text, so a longer Ukrainian name otherwise keeps the English width.
+    local minimized = false
+    local professions_util = _G.ProfessionsUtil
+    if professions_util
+        and type(professions_util.IsCraftingMinimized) == "function" then
+        local ok, value = pcall(professions_util.IsCraftingMinimized)
+        minimized = ok and not is_secret(value) and value == true
+    end
+
+    local max_width = minimized and 250 or 800
+    pcall(region.SetHeight, region, 200)
+    pcall(region.SetWidth, region, max_width)
+    if not minimized then
+        local text_width = safe_dimension(region, "GetStringWidth")
+        if text_width then pcall(region.SetWidth, region, text_width) end
+    end
+    local text_height = safe_dimension(region, "GetStringHeight")
+    if text_height then pcall(region.SetHeight, region, text_height) end
+    return true
+end
+
 local function fit_quest_map_button_group(button)
     local quest_map = _G.QuestMapFrame
     local details = quest_map and (quest_map.DetailsFrame
@@ -335,5 +395,7 @@ layout.fit_tooltip_width_to_region = fit_tooltip_width_to_region
 layout.restore_tooltip_width = restore_tooltip_width
 layout.fit_aura_header_width = fit_aura_header_width
 layout.fit_bag_tooltip_width = fit_bag_tooltip_width
+layout.fit_profession_recipe_label = fit_profession_recipe_label
+layout.fit_profession_output_text = fit_profession_output_text
 layout.fit_auction_tab = fit_auction_tab
 layout.fit_button_to_text = fit_button_to_text

@@ -4096,6 +4096,9 @@ local verified_entries = {
     ["Saean"] = {
         ["syhrbtitssiemdyu"] = "Пробач, Хульдаре... Але, схоже, я ввів тебе в оману.",
     },
+    ["Erich Lohan"] = {
+        ["akmehwtogtfedkattebere"] = "Запитай мене, як отримати безплатний напій у «Синьому Самітнику»!",
+    },
 }
 
 addonTable.chat = addonTable.chat or {}

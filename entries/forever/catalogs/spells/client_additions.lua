@@ -20369,7 +20369,24 @@ local client_spells = {
     [1229730] = { "Сліпучий спалах", en="Blinding Flare" },
     [1229736] = { "Багаття", en="Campfire" },
     [1229737] = { "Звичайне вогнище", en="Basic Campfire" },
-    [1229739] = { "Вітальне багаття", en="Welcoming Campfire" },
+    [1229739] = {
+        "Вітальне багаття",
+        "Надає різні переваги табору після 1 хв сидіння біля багаття залежно від додаткових табірних об’єктів, розміщених поруч.",
+        "Надає різні переваги табору після 1 хв сидіння біля багаття залежно від додаткових табірних об’єктів, розміщених поруч.",
+        en="Welcoming Campfire",
+        aura_lines = {
+            ["Grants various camp benefits after 1 min spent sitting near the campfire, based on what additional camp objects are placed near the campfire."] =
+                "Надає різні переваги табору після 1 хв сидіння біля багаття залежно від додаткових табірних об’єктів, розміщених поруч.",
+            ["Grants various camp benefits after 1 min spent sitting near the campfire. You may also craft using tradeskills, as long as you do not move."] =
+                "Надає різні переваги табору після 1 хв сидіння біля багаття. Також можна займатися ремеслом, якщо не рухатися.",
+        },
+        aura_patterns = {
+            { "^(%d+) seconds remaining$", "Залишилося %s с" },
+            { "^(%d+) second remaining$", "Залишилася %s с" },
+            { "^(%d+) minutes remaining$", "Залишилося %s хв" },
+            { "^(%d+) minute remaining$", "Залишилася %s хв" },
+        },
+    },
     [1229745] = { "Акваріум", en="Fish Bowl" },
     [1229754] = { "Риба", en="Fish" },
     [1229756] = { "(DNT) Перехідна аура Кальдоранської фази 1-2", en="(DNT) Caldoran Phase 1 to 2 Transition Aura" },
@@ -24323,7 +24340,24 @@ local client_spells = {
     [1289695] = { "дага", en="Main Gauche" },
     [1289714] = { "Енергетичний сік", en="Power Sap" },
     [1289718] = { "Сват Палетуск", en="Swat Paletusk" },
-    [1289723] = { "Вітальне багаття", en="Welcoming Campfire" },
+    [1289723] = {
+        "Вітальне багаття",
+        "Надає різні переваги табору після 1 хв сидіння біля багаття. Також можна займатися ремеслом, якщо не рухатися.",
+        "Надає різні переваги табору після 1 хв сидіння біля багаття. Також можна займатися ремеслом, якщо не рухатися.",
+        en="Welcoming Campfire",
+        aura_lines = {
+            ["Grants various camp benefits after 1 min spent sitting near the campfire, based on what additional camp objects are placed near the campfire."] =
+                "Надає різні переваги табору після 1 хв сидіння біля багаття залежно від додаткових табірних об’єктів, розміщених поруч.",
+            ["Grants various camp benefits after 1 min spent sitting near the campfire. You may also craft using tradeskills, as long as you do not move."] =
+                "Надає різні переваги табору після 1 хв сидіння біля багаття. Також можна займатися ремеслом, якщо не рухатися.",
+        },
+        aura_patterns = {
+            { "^(%d+) seconds remaining$", "Залишилося %s с" },
+            { "^(%d+) second remaining$", "Залишилася %s с" },
+            { "^(%d+) minutes remaining$", "Залишилося %s хв" },
+            { "^(%d+) minute remaining$", "Залишилася %s хв" },
+        },
+    },
     [1289727] = { "Ремонт та перезарядка пілона", en="Repair and Recharge Pylon" },
     [1289849] = { "дага", en="Main Gauche" },
     [1289866] = { "Фантастичний клинок", en="Phantasmal Blade" },
@@ -26597,4 +26631,3 @@ for id, entry in pairs(client_spells) do
         end
     end
 end
-
