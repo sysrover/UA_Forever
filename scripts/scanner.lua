@@ -2,6 +2,7 @@ local _, addon_table = ...
 
 local dev_log = addon_table.use("dev_log")
 local auto_scan = addon_table.use("auto_scan")
+local book_ui = addon_table.use("book_ui")
 local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local scanner = addon_table.use("scanner")
@@ -335,7 +336,8 @@ local function collect_quest_log_ids()
                 local key = "task" .. task_index
                 scan_fields[key] = task
                 local ok_task, translated_task = pcall(
-                    entries.translate_quest_objective_task, task, quest_id)
+                    entries.translate_quest_objective_task, task, quest_id,
+                    fields.objective)
                 missing_fields[key] = not ok_task or translated_task == task
             end
             auto_scan.record_quest(quest_id, scan_fields, missing_fields)
@@ -348,75 +350,19 @@ end
 
 scanner.capture_quest_log = collect_quest_log_ids
 
-local current_book_id
-local current_book_name
-
-scanner.note_book = function (...)
-    for index = 1, select("#", ...) do
-        local value = select(index, ...)
-        if not note_unsafe("book-id", value)
-            and type(value) == "number" and value > 0 then
-            current_book_id = value
-            break
-        end
-    end
-    if type(_G.ItemTextGetItem) == "function" then
-        local ok, name, id = pcall(_G.ItemTextGetItem)
-        if ok then
-            if note_unsafe("book-name", name) then name = nil end
-            current_book_name = safe_string(name) or current_book_name
-            if not note_unsafe("book-id", id)
-                and type(id) == "number" and id > 0 then
-                current_book_id = id
-            end
-        end
-    end
-    if not current_book_id and current_book_name and entries.lookup_id then
-        current_book_id = entries.lookup_id("item", current_book_name)
-    end
-    local legacy_id = utils.get_currently_viewed_book_id
-        and utils.get_currently_viewed_book_id() or 0
-    if type(legacy_id) == "number" and legacy_id > 0 then
-        current_book_id = legacy_id
-    end
-end
-
-scanner.begin_book = function (...)
-    current_book_id = nil
-    current_book_name = nil
-    scanner.note_book(...)
-end
+scanner.note_book = book_ui.note
+scanner.begin_book = book_ui.begin
 
 scanner.capture_book_page = function ()
-    scanner.note_book()
-    if type(_G.ItemTextGetText) ~= "function" then return end
-    local text_ok, source = pcall(_G.ItemTextGetText)
-    if text_ok and note_unsafe("book-page", source) then source = nil end
-    source = text_ok and safe_string(source) or nil
-    if not source then return end
-    local page = 1
-    if type(_G.ItemTextGetPage) == "function" then
-        local page_ok, value = pcall(_G.ItemTextGetPage)
-        if page_ok and note_unsafe("book-page-number", value) then value = nil end
-        if page_ok and type(value) == "number" and value > 0 then page = value end
-    end
-    local identity = current_book_id or current_book_name
-        or (type(utils.get_text_hash) == "function" and utils.get_text_hash(source))
+    local snapshot = book_ui.snapshot()
+    if not snapshot then return end
+    local identity = snapshot.identity
+        or (type(utils.get_text_hash) == "function"
+            and utils.get_text_hash(snapshot.source))
     if not identity then return end
-    local translated
-    local book = current_book_id and addon_table.book
-        and addon_table.book[current_book_id]
-    if type(book) == "table" and type(book[page]) == "string" then
-        translated = book[page]
-    end
-    local visible
-    local region = _G.ItemTextPageText
-    local visible_ok, value = region and pcall(region.GetText, region)
-    if visible_ok and note_unsafe("book-visible", value) then value = nil end
-    visible = visible_ok and safe_string(value) or nil
     if type(auto_scan.record_book) == "function" then
-        auto_scan.record_book(identity, page, source, visible or source,
-            translated, current_book_name)
+        auto_scan.record_book(identity, snapshot.page, snapshot.source,
+            snapshot.visible, snapshot.translated, snapshot.name)
     end
 end
 

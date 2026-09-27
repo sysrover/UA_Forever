@@ -8,7 +8,6 @@ local strings = addon_table.use("strings")
 local utils = addon_table.use("utils")
 local runtime = addon_table.use("translation_runtime")
 local cleared = false
-local static_diagnostics_visible = true
 local suppress_developer_capture = false
 
 local groups = {
@@ -32,6 +31,19 @@ local groups = {
     { "technical_literals", "[TECHNICAL_LITERALS]" },
 }
 
+local diagnostic_groups = {
+    unsafe = true,
+    hooks = true,
+    catalog_conflicts = true,
+    compatibility = true,
+    invalid_candidates = true,
+    technical_literals = true,
+}
+
+local function diagnostics_enabled()
+    return options.account and options.account.auto_scan_diagnostics == true
+end
+
 local function safe_text(value)
     return runtime.safe_string_or_nil(value)
 end
@@ -39,6 +51,7 @@ end
 local function bucket(group)
     if not options.account or not options.account.auto_scan_content
         or not UA_ForeverDB then return nil end
+    if diagnostic_groups[group] and not diagnostics_enabled() then return nil end
     cleared = false
     UA_ForeverDB.scan = UA_ForeverDB.scan or {}
     UA_ForeverDB.scan.auto = UA_ForeverDB.scan.auto or {}
@@ -55,6 +68,18 @@ local function translated_name(group, id, name)
     local source = entry and type(entry.en) == "string" and entry.en or name
     return entry and type(entry[1]) == "string" and entry[1] ~= ""
         and (not source or entry[1] ~= source)
+end
+
+local function translated_zone(source)
+    if entries.get_glossary_text then
+        local ok, value = pcall(entries.get_glossary_text, source, source, "zone")
+        if ok and type(value) == "string" and value ~= "" and value ~= source then
+            return value
+        end
+    end
+    local value = addon_table.zone and addon_table.zone[source]
+    return type(value) == "string" and value ~= "" and value ~= source
+        and value or nil
 end
 
 local function english_source(text)
@@ -112,7 +137,7 @@ auto_scan.record_compatibility_fallback = function (reason, context)
 end
 
 auto_scan.record_hook_status = function (state)
-    if type(state) ~= "table" then return end
+    if not diagnostics_enabled() or type(state) ~= "table" then return end
     local id = safe_text(state.id)
     if not id then return end
     cleared = false
@@ -351,9 +376,11 @@ auto_scan.clear_runtime_owner = function (owner)
     end
 end
 
-auto_scan.record_ui = function (source, translated, slot)
+auto_scan.record_ui = function (source, translated, slot, surface, owner)
     source = safe_text(source)
     slot = safe_text(slot)
+    surface = safe_text(surface) or slot and slot:match("^([^.]+)") or "visible-ui"
+    owner = safe_text(owner) or "ui-scan"
     if not source or not has_english_words(source)
         or domain_owned_ui_slot(slot) then return end
     local records = bucket("ui")
@@ -397,7 +424,11 @@ auto_scan.record_ui = function (source, translated, slot)
         end
         return
     end
-    records[key] = { text = source, slot = slot }
+    records[key] = {
+        text = source, visible = source,
+        owner = owner, slot = slot or "ui.text", surface = surface,
+        reason = "MISSING_TRANSLATION",
+    }
 end
 
 auto_scan.record_book = function (identity, page, source, visible, translated, name)
@@ -438,19 +469,55 @@ local function has_ui_translation(text)
     return ok and type(translated) == "string" and translated ~= text
 end
 
+local function annotate_personalized_gossip(record, text)
+    local _, template, personalized, translation_hint, template_code =
+        utils.get_gossip_lookup_codes(text)
+    record.template = personalized and template or nil
+    record.personalized = personalized
+    record.personalizationConfidence = personalized == "name" and "exact" or
+        personalized and "probable" or nil
+    record.translationHint = translation_hint
+    record.templateCode = template_code
+    return template_code
+end
+
+local function gossip_records_for_export(records)
+    local prepared = {}
+    for key, record in pairs(records or {}) do
+        if type(record) == "table" then
+            local copy = {}
+            for field, value in pairs(record) do copy[field] = value end
+            local template_code = type(copy.text) == "string"
+                and annotate_personalized_gossip(copy, copy.text) or nil
+            local npc_id = copy.npcID or tostring(key):match("^(%d+):")
+            local export_key = template_code and npc_id
+                and tostring(npc_id) .. ":" .. template_code or key
+            prepared[export_key] = copy
+        end
+    end
+    return prepared
+end
+
 local function translated_gossip(record)
     local catalog = addon_table.gossip
     if type(catalog) ~= "table" or not record.npcID or not record.text then return false end
-    local code = utils.get_text_code(record.text)
+    local codes = utils.get_gossip_lookup_codes(record.text)
     local hash = utils.get_text_hash(record.text)
     for _, key in ipairs({ record.npcID, "!common" }) do
         local values = catalog[key]
         if type(values) == "table" then
-            local translation = values[code] or values[hash]
-            if not translation and code and type(values["!code"]) == "table" then
-                local pattern = utils.match_text_code(code,
-                    utils.table_string_keys(values["!code"]))
-                translation = pattern and values[values["!code"][pattern]]
+            local translation
+            for _, code in ipairs(codes) do
+                translation = translation or values[code]
+            end
+            translation = translation or values[hash]
+            if not translation and type(values["!code"]) == "table" then
+                local known_codes = utils.table_string_keys(values["!code"])
+                for _, code in ipairs(codes) do
+                    local pattern = utils.match_text_code(code, known_codes)
+                    translation = pattern and values[values["!code"][pattern]]
+                    if translation then break end
+                end
             end
             if type(translation) == "string" and translation ~= record.text then
                 return true
@@ -483,10 +550,21 @@ auto_scan.record_quest = function (id, fields, missing_fields)
         or type(missing_fields) ~= "table" then return end
     local record = records[id] or {}
     record.fields = record.fields or {}
+    record.objectiveSource = safe_text(fields.objective) or record.objectiveSource
     for key, value in pairs(fields) do
         if missing_fields[key] then
             local text = safe_text(value)
-            if text then record.fields[key] = text end
+            local translated_task
+            if text and key:match("^task%d+$")
+                and entries.translate_quest_objective_task then
+                local ok, result = pcall(entries.translate_quest_objective_task,
+                    text, id, record.objectiveSource)
+                if ok and type(result) == "string" and result ~= text then
+                    translated_task = result
+                end
+            end
+            if text and not translated_task then record.fields[key] = text
+            else record.fields[key] = nil end
         else
             if not (record.unapplied and record.unapplied[key]) then
                 record.fields[key] = nil
@@ -538,12 +616,17 @@ auto_scan.record_gossip = function (id, code, source, is_reply)
     local records = bucket("gossips")
     local text = safe_text(source)
     if not records or not id or not code or not text then return end
-    local key = tostring(id) .. ":" .. tostring(code)
-    local previous = records[key]
-    records[key] = {
+    local record = {
         npcID = tonumber(id), text = text, reply = is_reply == true,
-        unapplied = previous and previous.unapplied or nil,
     }
+    local exact_key = tostring(id) .. ":" .. tostring(code)
+    local template_code = annotate_personalized_gossip(record, text)
+    code = template_code or code
+    local key = tostring(id) .. ":" .. tostring(code)
+    local previous = records[key] or records[exact_key]
+    record.unapplied = previous and previous.unapplied or nil
+    if exact_key ~= key then records[exact_key] = nil end
+    records[key] = record
 end
 
 auto_scan.record_visible_gossip = function (id, source, visible, expected)
@@ -552,18 +635,22 @@ auto_scan.record_visible_gossip = function (id, source, visible, expected)
     source = safe_text(source)
     visible = safe_text(visible)
     if not records or not id or id <= 0 or not source or not visible then return end
-    local code = utils.get_text_code(source)
+    local record = { npcID = id, text = source, reply = false }
+    local template_code = annotate_personalized_gossip(record, source)
+    local exact_code = utils.get_text_code(source)
+    local code = template_code or exact_code
     if not code or code == "" then return end
     local key = tostring(id) .. ":" .. code
+    local exact_key = exact_code and tostring(id) .. ":" .. exact_code or key
     local translated = translated_gossip({ npcID = id, text = source })
     if english_source(visible) and visible == source
         and (not translated or expected) then
-        records[key] = {
-            npcID = id, text = source, reply = false,
-            unapplied = translated and expected or nil,
-        }
+        record.unapplied = translated and expected or nil
+        if exact_key ~= key then records[exact_key] = nil end
+        records[key] = record
     else
         records[key] = nil
+        if exact_key ~= key then records[exact_key] = nil end
     end
 end
 
@@ -603,11 +690,16 @@ auto_scan.record_combat_text = function (kind, source, translated, global_name, 
     }
 end
 
-auto_scan.record_world_tooltip = function (source, visible)
+auto_scan.record_world_tooltip = function (source, visible, context)
     local records = bucket("objects")
     source = safe_text(source)
     visible = safe_text(visible)
+    context = type(context) == "table" and context or {}
     if not records or not source then return end
+    if visible and visible ~= source then
+        records[source] = nil
+        return
+    end
     local translated = addon_table.translate_object_name
         and addon_table.translate_object_name(source)
         or addon_table.zone and addon_table.zone[source]
@@ -616,21 +708,40 @@ auto_scan.record_world_tooltip = function (source, visible)
         records[source] = nil
         return
     end
-    records[source] = { name = source, unapplied = unapplied or nil }
+    records[source] = {
+        name = source, translation = safe_text(translated), visible = visible,
+        owner = safe_text(context.owner) or "object-tooltip",
+        slot = safe_text(context.slot) or "object.name",
+        surface = safe_text(context.surface) or "GameTooltip",
+        reason = unapplied and "NOT_APPLIED" or "MISSING_TRANSLATION",
+        unapplied = unapplied or nil,
+    }
 end
 
-auto_scan.record_zone_name = function (source, visible)
+auto_scan.record_zone_name = function (source, visible, context)
     local records = bucket("zones")
     source = safe_text(source)
     visible = safe_text(visible)
+    context = type(context) == "table" and context or {}
     if not records or not source then return end
-    local translated = addon_table.zone and addon_table.zone[source]
+    if visible and visible ~= source then
+        records[source] = nil
+        return
+    end
+    local translated = translated_zone(source)
     local unapplied = translated and visible == source
     if not english_source(source) or translated and not unapplied then
         records[source] = nil
         return
     end
-    records[source] = { name = source, unapplied = unapplied or nil }
+    records[source] = {
+        name = source, translation = safe_text(translated), visible = visible,
+        owner = safe_text(context.owner) or "zone-label",
+        slot = safe_text(context.slot) or "zone.name",
+        surface = safe_text(context.surface) or "unknown-zone-surface",
+        reason = unapplied and "NOT_APPLIED" or "MISSING_TRANSLATION",
+        unapplied = unapplied or nil,
+    }
 end
 
 auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
@@ -743,7 +854,8 @@ auto_scan.export_text = function ()
     local catalog_records = {}
     local invalid_candidate_records = {}
     local catalog = addon_table.forever_catalog
-    if static_diagnostics_visible and catalog
+    local include_diagnostics = diagnostics_enabled()
+    if include_diagnostics and catalog
         and type(catalog.get_ui_conflicts) == "function" then
         for _, conflict in ipairs(catalog.get_ui_conflicts(true)) do
             local sources = {}
@@ -760,7 +872,7 @@ auto_scan.export_text = function ()
             }
         end
     end
-    if static_diagnostics_visible then
+    if include_diagnostics then
         for _, candidate in ipairs(addon_table.forever_catalog_invalid_candidates or {}) do
             local key = tostring(candidate.domain) .. ":" .. tostring(candidate.id)
             invalid_candidate_records[key] = candidate
@@ -768,10 +880,14 @@ auto_scan.export_text = function ()
     end
     for _, descriptor in ipairs(groups) do
         local group, label = descriptor[1], descriptor[2]
-        local records = group == "hooks" and hook_states
-            or group == "catalog_conflicts" and catalog_records
-            or group == "invalid_candidates" and invalid_candidate_records
-            or store[group] or {}
+        local records = {}
+        if include_diagnostics or not diagnostic_groups[group] then
+            records = group == "hooks" and hook_states
+                or group == "catalog_conflicts" and catalog_records
+                or group == "invalid_candidates" and invalid_candidate_records
+                or group == "gossips" and gossip_records_for_export(store[group])
+                or store[group] or {}
+        end
         local keys = {}
         for key, record in pairs(records) do
             if type(record) == "table" then
@@ -803,10 +919,12 @@ auto_scan.export_text = function ()
                         and addon_table.translate_object_name(record.name)
                         or addon_table.zone and addon_table.zone[record.name]
                     keep = english_source(record.name)
+                        and (not record.visible or record.visible == record.name)
                         and (not translated or record.unapplied == true)
                 elseif group == "zones" then
-                    local translated = addon_table.zone and addon_table.zone[record.name]
+                    local translated = translated_zone(record.name)
                     keep = english_source(record.name)
+                        and (not record.visible or record.visible == record.name)
                         and (not translated or record.unapplied == true)
                 elseif group == "unapplied" then
                     keep = english_source(record.text)
@@ -842,7 +960,8 @@ auto_scan.export_text = function ()
                         local index = indices[field]
                         local translation = index and entry and entry[index]
                         if field:match("^task%d+$") and entries.translate_quest_objective_task then
-                            local ok, result = pcall(entries.translate_quest_objective_task, value, key)
+                            local ok, result = pcall(entries.translate_quest_objective_task,
+                                value, key, record.objectiveSource)
                             if ok then translation = result end
                         end
                         if english_source(value) and ((record.unapplied
@@ -921,12 +1040,19 @@ auto_scan.export_text = function ()
                 elseif group == "unsafe" then
                     output_fields = { "reason", "count" }
                 elseif record_unapplied or fields_unapplied then
-                    output_fields = { "spellID", "npcID", "bookID", "page" }
+                    output_fields = { "spellID", "npcID", "bookID", "page",
+                        "translation", "visible", "owner", "slot", "surface",
+                        "reason", "template", "personalized",
+                        "personalizationConfidence", "translationHint",
+                        "templateCode" }
                 else
                     output_fields = { "spellID", "npcID", "bookID", "page",
-                        "npc", "name", "text", "translation", "owner", "slot",
+                        "npc", "name", "text", "translation", "visible",
+                        "owner", "slot", "surface",
                         "reason", "event", "language", "reply", "global",
-                        "current", "capture" }
+                        "current", "capture", "template", "personalized",
+                        "personalizationConfidence", "translationHint",
+                        "templateCode" }
                 end
                 for _, field in ipairs(output_fields) do
                     if record[field] ~= nil
@@ -962,6 +1088,14 @@ auto_scan.export_text = function ()
     return table.concat(parts, "\n\n")
 end
 
+auto_scan.clear_diagnostics = function ()
+    local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto
+    if type(store) == "table" then
+        for group in pairs(diagnostic_groups) do store[group] = nil end
+    end
+    hook_states = {}
+end
+
 auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
         UA_ForeverDB.scan.auto = {}
@@ -969,6 +1103,5 @@ auto_scan.clear = function ()
     surface_states = {}
     hook_states = {}
     cleared = true
-    static_diagnostics_visible = false
     suppress_developer_capture = true
 end

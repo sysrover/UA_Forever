@@ -1,5 +1,6 @@
 local _, addon_table = ...
 
+local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
 local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
@@ -174,6 +175,11 @@ local function merchant_rows()
     end
     local id = item_id_from_link(_G.GetBuybackItemLink, buyback_count)
     apply_row(_G.MerchantBuyBackItemName, id)
+end
+
+local function refresh_merchant_title()
+    auto_scan.surface_attempt("merchant-title", "merchant_rows")
+    merchant_rows()
 end
 
 local function buyback_rows()
@@ -361,8 +367,20 @@ end
 
 items.prepare = function ()
     declare_loot_hooks()
-    hooks.global("MerchantFrame_UpdateMerchantInfo", merchant_rows)
+    hooks.global("MerchantFrame_UpdateMerchantInfo", refresh_merchant_title)
     hooks.global("MerchantFrame_UpdateBuybackInfo", buyback_rows)
+    local title_region = _G.MerchantFrameTitleText
+    local title_hook = "MerchantFrameTitleText.SetText"
+    local title_hook_available = hooks.region(title_region, "SetText", function (region)
+        auto_scan.surface_hook("merchant-title", title_hook, true, true)
+        if not runtime.is_applying(region) then refresh_merchant_title() end
+    end)
+    auto_scan.surface_hook("merchant-title", title_hook,
+        title_hook_available, false)
+    hooks.region_script(_G.MerchantFrame, "OnShow", function ()
+        auto_scan.surface_event("merchant-title", "MerchantFrame.OnShow")
+        refresh_merchant_title()
+    end, "merchant-title")
     hooks.global("QuestInfo_ShowRewards", items.refresh_quest_rewards)
     hooks.global("QuestFrameProgressItems_Update", refresh_required_items)
     hooks.region_script(_G.QuestFrameProgressPanel, "OnShow",
@@ -392,6 +410,7 @@ items.prepare = function ()
     local combined = _G.ContainerFrameCombinedBags
     hooks.region(combined, "UpdateName", bag_title)
     bag_title(combined)
+    refresh_merchant_title()
     local count = type(_G.NUM_CONTAINER_FRAMES) == "number"
         and _G.NUM_CONTAINER_FRAMES or 0
     for index = 1, count do

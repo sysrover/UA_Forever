@@ -8651,6 +8651,8 @@ local npc = { -- [id] = { title, description (optional) }
 [265813] = { "Ерік Ясномолот", "шукач пригод", en="Eric Brighthammer" }, -- Eric Brighthammer <Adventurer>
 [269075] = { "сніжний леопард-скрадач", en="Snow Leopard Prowler" }, -- Snow Leopard Prowler
 [271546] = { "горянинка Ґретхен", en="Mountaineer Gretchen" }, -- Mountaineer Gretchen
+[258098] = { [1] = "Елдрун Бурелом", en = "Eldrun Stormbreaker" },
+[263643] = { [1] = "Шон Ґардофф", en = "Sean Guardoff" },
 }
 
 if addonTable.npc then

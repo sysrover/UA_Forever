@@ -21,6 +21,7 @@ local scope_buttons = {}
 local name_buttons = {}
 local shift_button
 local auto_scan_button
+local auto_scan_diagnostics_button
 local export_window
 local form_link_window
 local FORM_URL = "https://forms.gle/b2oGGebJGTxZsnfn8"
@@ -233,6 +234,10 @@ local function refresh_tooltip_mode_controls()
         auto_scan_button:SetChecked(options.account
             and options.account.auto_scan_content == true)
     end
+    if auto_scan_diagnostics_button then
+        auto_scan_diagnostics_button:SetChecked(options.account
+            and options.account.auto_scan_diagnostics == true)
+    end
 end
 
 local function create_tooltip_mode_button(parent, value, label, relative_to, offset_y)
@@ -355,8 +360,23 @@ local function register_addon_settings()
         end
     end)
 
+    auto_scan_diagnostics_button = CreateFrame("CheckButton", nil, page,
+        "UICheckButtonTemplate")
+    auto_scan_diagnostics_button:SetPoint("TOPLEFT", auto_scan_button,
+        "BOTTOMLEFT", 20, -6)
+    auto_scan_diagnostics_button.text:SetFontObject("GameFontHighlight")
+    runtime.set_fallback_text(auto_scan_diagnostics_button.text,
+        addon_locale.auto_scan_diagnostics)
+    auto_scan_diagnostics_button:SetScript("OnClick", function (self)
+        options.account.auto_scan_diagnostics = self:GetChecked() == true
+        if not options.account.auto_scan_diagnostics
+            and type(auto_scan.clear_diagnostics) == "function" then
+            auto_scan.clear_diagnostics()
+        end
+    end)
+
     local scan_help = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    scan_help:SetPoint("TOPLEFT", auto_scan_button, "BOTTOMLEFT", 2, -10)
+    scan_help:SetPoint("TOPLEFT", auto_scan_diagnostics_button, "BOTTOMLEFT", -18, -10)
     scan_help:SetWidth(270)
     scan_help:SetJustifyH("LEFT")
     runtime.set_fallback_text(scan_help, addon_locale.scan_help)

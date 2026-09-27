@@ -73,6 +73,12 @@ chat.format = {
     appearance = function (item)
         return item .. " додано до вашої колекції виглядів."
     end,
+    tipsy = function (name, item)
+        return name .. " здається, трохи напідпитку від " .. item .. "."
+    end,
+    sobering = function (name)
+        return name .. " здається, він протверезіє."
+    end,
     gained = function (value) return "Отримано: " .. value end,
     currency = function (value) return "Ви отримуєте валюту: " .. value end,
     create_links = function (value) return "Ви створюєте: " .. value end,

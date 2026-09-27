@@ -111,7 +111,14 @@ local function normalized_tooltip_text(text)
         :gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
-local function set_tooltip_translation(tooltip, region, source, translated, slot, category, owner, source_kind, allow_fallback, adjust_layout, after_visibility)
+local function item_name_visible_matches(visible, expected)
+    if visible == expected then return true end
+    if type(visible) ~= "string" or type(expected) ~= "string"
+        or visible:sub(1, #expected) ~= expected then return false end
+    return visible:sub(#expected + 1):match("^ %([^()]+%)$") ~= nil
+end
+
+local function set_tooltip_translation(tooltip, region, source, translated, slot, category, owner, source_kind, allow_fallback, adjust_layout, after_visibility, visible_matcher, catalog_source)
     local source_unsafe = is_secret(source)
     translated = safe_string(translated)
     source = safe_string(source)
@@ -177,6 +184,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             phase = "dynamic",
             lookup_tier = source_kind or (category and "domain")
                 or "tooltip-adapter",
+            catalog_source = catalog_source,
             allow_unknown_source = true,
             source_unsafe = source_unsafe,
             unsafe_context = "tooltip:" .. (owner or "generic"),
@@ -190,6 +198,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
                 end
             end,
             after_visibility = visibility_callback,
+            visible_matches = visible_matcher,
         })
         if ok then
             local fallback = tooltip.uaForeverFallback and tooltip.uaForeverFallback[slot]
@@ -294,17 +303,25 @@ local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fal
     for index = first_index or 1, line_count do
         local left, left_region = tooltip_line(tooltip, "Left", index)
         local right, right_region = tooltip_line(tooltip, "Right", index)
-        local translated_left, _, left_kind = strings.find_ui_translation(left, left_region)
-        local translated_right, _, right_kind = strings.find_ui_translation(right, right_region)
+        local translated_left, _, left_kind, _, _, _, left_provenance =
+            strings.find_ui_translation(left, left_region)
+        local translated_right, _, right_kind, _, _, _, right_provenance =
+            strings.find_ui_translation(right, right_region)
         if translated_left and translated_left ~= left then
             if set_tooltip_translation(tooltip, left_region, left, translated_left,
                 "generic.left:" .. index, nil, "generic", left_kind,
-                allow_fallback, adjust_layout) then applied = applied + 1 end
+                allow_fallback, adjust_layout, nil, nil,
+                left_provenance and left_provenance.source) then
+                applied = applied + 1
+            end
         end
         if translated_right and translated_right ~= right then
             if set_tooltip_translation(tooltip, right_region, right, translated_right,
                 "generic.right:" .. index, nil, "generic", right_kind,
-                allow_fallback, adjust_layout) then applied = applied + 1 end
+                allow_fallback, adjust_layout, nil, nil,
+                right_provenance and right_provenance.source) then
+                applied = applied + 1
+            end
         end
     end
     return applied
@@ -330,6 +347,7 @@ item_adapter.configure({
     make_text = make_text,
     tooltip_line = function (...) return tooltip_line(...) end,
     set_translation = set_tooltip_translation,
+    item_name_visible_matches = item_name_visible_matches,
     rewrite_generic = rewrite_generic_lines,
     max_lines = MAX_TOOLTIP_LINES,
 })
@@ -667,7 +685,11 @@ local function capture_world_tooltip(tooltip, line_count)
     if not source or not visible then return end
     local _, title = tooltip_title_parts(source)
     local _, shown_title = tooltip_title_parts(visible)
-    auto_scan.record_world_tooltip(title, shown_title)
+    auto_scan.record_world_tooltip(title, shown_title, {
+        owner = claim and claim.owner or "object-tooltip",
+        slot = claim and claim.slot or "object.name",
+        surface = "GameTooltip",
+    })
 end
 
 translate_object_tooltip_title = function (tooltip)
@@ -961,7 +983,8 @@ local function translate_shopping_tooltip(tooltip)
         end
         if translated and visible ~= utils.cap(translated) then
             set_tooltip_translation(tooltip, region, source, utils.cap(translated),
-                "item.name", "item", "item-tooltip", nil, false, false)
+                "item.name", "item", "item-tooltip", nil, false, false, nil,
+                item_name_visible_matches)
         end
     end
 
@@ -971,10 +994,12 @@ local function translate_shopping_tooltip(tooltip)
         local ok, current = pcall(label.GetText, label)
         current = ok and safe_string(current) or nil
         if current then
-            local translated, _, source_kind = strings.find_ui_translation(current, label)
+            local translated, _, source_kind, _, _, _, provenance =
+                strings.find_ui_translation(current, label)
             if translated and translated ~= current then
                 set_tooltip_translation(tooltip, label, current, translated,
-                    "comparison.header", nil, "generic", source_kind, false, false)
+                    "comparison.header", nil, "generic", source_kind, false,
+                    false, nil, nil, provenance and provenance.source)
             end
         end
     end
@@ -1704,29 +1729,368 @@ local function object_list(object, method)
     return ok and result or {}
 end
 
-local function visible_tooltip_window()
-    for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
-        "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
-        "ItemRefShoppingTooltip2", "EmbeddedItemTooltip",
-        "BuffFrameTooltip" }) do
-        local candidate = _G[name]
-        if candidate and public_object_value(candidate, "IsShown") == true then
-            return candidate
-        end
+local diagnostic_tooltip_names = {
+    "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
+    "ShoppingTooltip1", "ShoppingTooltip2", "ItemRefShoppingTooltip1",
+    "ItemRefShoppingTooltip2", "EmbeddedItemTooltip", "BuffFrameTooltip",
+}
+
+local function visible_tooltip_windows()
+    local result, seen = {}, {}
+    local function add(candidate, global_name, known_tooltip)
+        if not candidate or seen[candidate]
+            or public_object_value(candidate, "IsShown") ~= true then return end
+        local kind = public_object_value(candidate, "GetObjectType")
+        local name = object_label(candidate)
+        if not known_tooltip and kind ~= "GameTooltip"
+            and not (type(name) == "string"
+                and name:find("Tooltip", 1, true)) then return end
+        seen[candidate] = true
+        result[#result + 1] = { frame = candidate, globalName = global_name }
+    end
+    for _, name in ipairs(diagnostic_tooltip_names) do
+        add(_G[name], name, true)
     end
     for _, candidate in ipairs(object_list(_G.UIParent, "GetChildren")) do
-        if public_object_value(candidate, "IsShown") == true then
-            local object_type = public_object_value(candidate, "GetObjectType")
-            local name = object_label(candidate)
-            if object_type == "GameTooltip"
-                or type(name) == "string" and name:find("Tooltip", 1, true) then
-                return candidate
-            end
-        end
+        add(candidate)
     end
+    return result
+end
+
+local function visible_tooltip_window()
+    local visible = visible_tooltip_windows()
+    return visible[1] and visible[1].frame or nil
 end
 
 tooltips.visible_window = visible_tooltip_window
+
+local function diagnostic_scalar(value)
+    if value == nil or is_secret(value) then return nil end
+    local kind = type(value)
+    if kind == "string" then return safe_string(value) end
+    if kind == "number" or kind == "boolean" then return value end
+end
+
+local function diagnostic_field(object, key)
+    if not object or is_secret(object) then return nil end
+    local ok, value = pcall(function () return object[key] end)
+    return ok and diagnostic_scalar(value) or nil
+end
+
+local diagnostic_catalog_paths = {
+    classic_string = "entries/string.lua",
+    ui = "entries/forever/catalogs/ui/core.lua",
+    settings = "entries/forever/catalogs/ui/settings.lua",
+    skills = "entries/forever/catalogs/ui/skills.lua",
+    client_domains_skills = "entries/forever/catalogs/ui/client_skills.lua",
+    client_verified_ui = "entries/forever/catalogs/ui/client_verified.lua",
+    client_global_strings = "entries/forever/catalogs/ui/client_global.lua",
+}
+
+local function diagnostic_edit_target(claim)
+    local catalog_source = safe_string(claim.catalog_source)
+    if catalog_source and diagnostic_catalog_paths[catalog_source] then
+        return diagnostic_catalog_paths[catalog_source]
+    end
+    local slot = safe_string(claim.slot) or ""
+    local category = safe_string(claim.category)
+    local owner = safe_string(claim.owner)
+    if slot:find("comparison.label:", 1, true) == 1 then
+        return "entries/forever/catalogs/ui/tooltips.lua"
+    end
+    if category == "item" or owner == "item-tooltip" then
+        return "entries/forever/catalogs/items/catalog.lua"
+    end
+    if category == "spell" or owner == "spell-tooltip" then
+        return "entries/forever/catalogs/spells/"
+    end
+    if category == "npc" or owner == "npc-tooltip" then
+        return "entries/forever/catalogs/npcs/catalog.lua"
+    end
+    if category == "object" or owner == "object-tooltip" then
+        return "entries/forever/catalogs/objects/catalog.lua"
+    end
+    if owner == "generic" or slot:find("generic.", 1, true) == 1
+        or slot == "comparison.header" then
+        return "entries/forever/catalogs/ui/core.lua"
+    end
+end
+
+local function diagnostic_lookup(region, visible)
+    if not visible then return nil end
+    local ok, translated, normalized, tier, category, slot, option, provenance =
+        pcall(strings.find_ui_translation, visible, region)
+    translated = ok and safe_string(translated) or nil
+    if not translated then return nil end
+    local catalog_source = type(provenance) == "table"
+        and safe_string(provenance.source) or nil
+    local result = {
+        translated = translated,
+        normalized = safe_string(normalized),
+        lookupTier = safe_string(tier),
+        category = safe_string(category),
+        slot = safe_string(slot),
+        option = safe_string(option),
+        catalogSource = catalog_source,
+    }
+    result.editTarget = diagnostic_edit_target({
+        owner = "generic", slot = result.slot or "generic.text",
+        category = result.category, catalog_source = catalog_source,
+    })
+    return result
+end
+
+local function diagnostic_claim(claim, visible)
+    if not claim then return nil end
+    local result = {
+        owner = safe_string(claim.owner),
+        slot = safe_string(claim.slot),
+        source = safe_string(claim.source),
+        translated = safe_string(claim.translated),
+        priority = safe_number(claim.priority),
+        generation = safe_number(claim.generation),
+        instance = diagnostic_scalar(claim.instance),
+        phase = safe_string(claim.phase),
+        category = safe_string(claim.category),
+        lookupTier = safe_string(claim.lookup_tier),
+        catalogSource = safe_string(claim.catalog_source),
+    }
+    result.editTarget = diagnostic_edit_target(claim)
+    result.visibleMatchesSource = visible ~= nil and visible == result.source
+    result.visibleMatchesTranslation = visible ~= nil
+        and visible == result.translated
+    if not result.visibleMatchesTranslation
+        and type(claim.visible_matches) == "function" then
+        local ok, matches = pcall(claim.visible_matches,
+            visible, result.translated)
+        result.visibleMatchesTranslation = ok and matches == true
+    end
+    if visible == nil then
+        result.state = "text_unreadable"
+    elseif result.visibleMatchesTranslation then
+        result.state = "translation_visible"
+    elseif result.visibleMatchesSource then
+        result.state = "source_visible"
+    else
+        result.state = "claim_overwritten"
+    end
+    return result
+end
+
+local function diagnostic_region(region, location, index, side)
+    if not region then return nil end
+    local ok, value = pcall(function () return region:GetText() end)
+    local secret = not ok or is_secret(value)
+    local visible = not secret and safe_string(value) or nil
+    return {
+        location = location,
+        index = index,
+        side = side,
+        region = object_label(region),
+        shown = public_object_value(region, "IsShown") == true,
+        secret = secret,
+        visible = visible,
+        claim = diagnostic_claim(runtime.get(region), visible),
+        availableTranslation = diagnostic_lookup(region, visible),
+    }
+end
+
+local function diagnostic_method(tooltip, method, fields)
+    local ok_method, callback = pcall(function () return tooltip[method] end)
+    if not ok_method or type(callback) ~= "function" then return nil end
+    local ok, values = pcall(function () return { callback(tooltip) } end)
+    local result = { ok = ok }
+    if not ok then return result end
+    for index, field in ipairs(fields) do
+        result[field] = diagnostic_scalar(values[index])
+    end
+    return result
+end
+
+local function tooltip_diagnostic_snapshot(entry)
+    local tooltip = entry.frame
+    local result = {
+        name = object_label(tooltip),
+        globalName = entry.globalName,
+        objectType = public_object_value(tooltip, "GetObjectType"),
+        shown = public_object_value(tooltip, "IsShown") == true,
+        visible = public_object_value(tooltip, "IsVisible") == true,
+        owner = object_label(public_object_value(tooltip, "GetOwner")),
+        parent = object_label(public_object_value(tooltip, "GetParent")),
+        kind = safe_string(tooltip.uaForeverKind),
+        id = safe_number(tooltip.uaForeverID),
+        generation = safe_number(tooltip.uaForeverGeneration),
+        sessionKey = diagnostic_scalar(tooltip.uaForeverSessionKey),
+        translated = tooltip.uaForeverKey ~= nil,
+        showOriginal = tooltip.uaForeverShowOriginal == true,
+        hasSession = tooltip.uaForeverSessionKey ~= nil,
+        events = {}, lines = {}, extraRegions = {},
+    }
+    if is_shopping_tooltip(tooltip) then
+        result.role = "item_comparison"
+    elseif tooltip == _G.GameTooltip then
+        result.role = "primary"
+    elseif tooltip == _G.ItemRefTooltip then
+        result.role = "item_reference"
+    else
+        result.role = "tooltip"
+    end
+    if result.owner == "<anonymous>" then result.owner = nil end
+    if result.parent == "<anonymous>" then result.parent = nil end
+    for _, measure in ipairs({ "GetLeft", "GetTop", "GetWidth", "GetHeight" }) do
+        result[measure] = safe_number(public_object_value(tooltip, measure))
+    end
+    for event, count in pairs(tooltip_events[tooltip] or {}) do
+        result.events[event] = safe_number(count)
+    end
+
+    result.numLines = safe_number(public_object_value(tooltip, "NumLines"))
+    result.item = diagnostic_method(tooltip, "GetItem", { "name", "link" })
+    if result.item and result.item.link then
+        result.item.id = safe_number(result.item.link:match("item:(%d+)"))
+    end
+    result.spell = diagnostic_method(tooltip, "GetSpell",
+        { "name", "second", "third" })
+    if result.spell then
+        if safe_number(result.spell.third) then
+            result.spell.id = safe_number(result.spell.third)
+            result.spell.rank = safe_string(result.spell.second)
+        elseif safe_number(result.spell.second) then
+            result.spell.id = safe_number(result.spell.second)
+        else
+            result.spell.rank = safe_string(result.spell.second)
+        end
+    end
+    result.unit = diagnostic_method(tooltip, "GetUnit", { "name", "token" })
+    result.hyperlink = diagnostic_method(tooltip, "GetHyperlink", { "value" })
+
+    local ok_data_method, get_tooltip_data = pcall(function ()
+        return tooltip.GetTooltipData
+    end)
+    local ok_data, data = false, nil
+    if ok_data_method and type(get_tooltip_data) == "function" then
+        ok_data, data = pcall(get_tooltip_data, tooltip)
+    end
+    if type(data) == "table" and ok_data and not is_secret(data) then
+        result.tooltipData = {
+            type = diagnostic_field(data, "type"),
+            id = diagnostic_field(data, "id"),
+            guid = diagnostic_field(data, "guid"),
+            hyperlink = diagnostic_field(data, "hyperlink"),
+        }
+    elseif ok_data_method and type(get_tooltip_data) == "function" then
+        result.tooltipData = { ok = ok_data }
+    end
+
+    if result.item then
+        if not result.item.id and result.kind == "item"
+            and result.tooltipData then
+            result.item.id = safe_number(result.tooltipData.id)
+        end
+        local item_entry = result.item.id
+            and entries.get_entry("item", result.item.id) or nil
+        local translated_name = item_entry and safe_string(item_entry[1])
+            or result.item.name and safe_string(
+                entries.lookup_name("item", result.item.name)) or nil
+        result.item.catalogFound = item_entry ~= nil
+            or translated_name ~= nil
+        result.item.catalogName = translated_name
+        result.item.editTarget =
+            "entries/forever/catalogs/items/catalog.lua"
+    end
+    if result.spell then
+        if not result.spell.id and result.kind == "spell"
+            and result.tooltipData then
+            result.spell.id = safe_number(result.tooltipData.id)
+        end
+        local spell_entry = result.spell.id
+            and entries.get_entry("spell", result.spell.id) or nil
+        local translated_name = spell_entry and safe_string(spell_entry[1])
+            or result.spell.name and safe_string(
+                entries.lookup_name("spell", result.spell.name)) or nil
+        result.spell.catalogFound = spell_entry ~= nil
+            or translated_name ~= nil
+        result.spell.catalogName = translated_name
+        result.spell.editTarget =
+            "entries/forever/catalogs/spells/"
+    end
+
+    local seen_regions = {}
+    local count = math.min(result.numLines or MAX_TOOLTIP_LINES,
+        MAX_TOOLTIP_LINES)
+    for index = 1, count do
+        for _, side in ipairs({ "Left", "Right" }) do
+            local _, region = tooltip_line(tooltip, side, index, true)
+            if region then
+                seen_regions[region] = true
+                result.lines[#result.lines + 1] = diagnostic_region(region,
+                    side .. tostring(index), index, side)
+            end
+        end
+    end
+
+    local ok_header, header = pcall(function () return tooltip.CompareHeader end)
+    local ok_label, label = pcall(function () return header and header.Label end)
+    if ok_header and ok_label and label then
+        seen_regions[label] = true
+        result.compareHeader = diagnostic_region(label,
+            "CompareHeader.Label")
+    end
+
+    for index, region in ipairs(visible_tooltip_font_strings(tooltip)) do
+        if not seen_regions[region] then
+            result.extraRegions[#result.extraRegions + 1] = diagnostic_region(
+                region, "FontString" .. tostring(index))
+        end
+    end
+    return result
+end
+
+-- Capture every visible tooltip as plain SavedVariables-safe data. This is
+-- intentionally explicit rather than exhaustive: it records the identity,
+-- native tooltip data, rendered regions and translation claims needed to
+-- decide whether a catalog entry is missing or a later Blizzard write won.
+tooltips.capture_visible_tooltips = function (save)
+    local visible = visible_tooltip_windows()
+    local report = {
+        version = 1,
+        status = #visible > 0 and "captured" or "no_tooltip",
+        count = #visible,
+        tooltips = {},
+    }
+    if type(_G.time) == "function" then
+        local ok, timestamp = pcall(_G.time)
+        report.timestamp = ok and safe_number(timestamp) or nil
+    end
+    if type(_G.GetBuildInfo) == "function" then
+        local ok, version, build, date, interface = pcall(_G.GetBuildInfo)
+        if ok then
+            report.client = { version = safe_string(version),
+                build = safe_string(build), date = safe_string(date),
+                interface = safe_number(interface) }
+        end
+    end
+    local focus
+    if type(_G.GetMouseFocus) == "function" then
+        local ok, value = pcall(_G.GetMouseFocus)
+        if ok and not is_secret(value) then focus = value end
+    end
+    if not focus and type(_G.GetMouseFoci) == "function" then
+        local ok, values = pcall(_G.GetMouseFoci)
+        if ok and type(values) == "table" and not is_secret(values)
+            and not is_secret(values[1]) then focus = values[1] end
+    end
+    if focus then report.mouseFocus = object_label(focus) end
+    for _, entry in ipairs(visible) do
+        report.tooltips[#report.tooltips + 1] =
+            tooltip_diagnostic_snapshot(entry)
+    end
+    if save ~= false and UA_ForeverDB then
+        UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+        UA_ForeverDB.scan.tooltipProbe = report
+    end
+    return report
+end
 
 -- One-shot diagnostic of every object under the visible tooltip window.
 -- It never formats protected values and records only a marker for secret text.

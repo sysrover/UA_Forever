@@ -25,6 +25,7 @@
     <Script file="settings.lua"/>
     <Script file="menus.lua"/>
     <Script file="items.lua"/>
+    <Script file="book_ui.lua"/>
     <Script file="quest_ui.lua"/>
     <Script file="gossip_ui.lua"/>
     <Script file="map_labels.lua"/>

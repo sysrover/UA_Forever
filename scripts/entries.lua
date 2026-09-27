@@ -411,12 +411,53 @@ local function resolve_entry_with_possible_ref(entry_type, entry_id, depth)
     return entry
 end
 
+local function get_book_entry(book_id, book_name)
+    local at = addon_table
+    local numeric_id = tonumber(book_id)
+    local book = numeric_id and at.book[numeric_id] or nil
+    local identity = book and numeric_id or nil
+
+    if not book and type(book_name) == "string" and book_name ~= "" then
+        book = at.book[book_name]
+        identity = book and book_name or nil
+    end
+
+    return book, identity
+end
+
+entries.get_book_page = function (book_id, book_name, page)
+    local book, identity = get_book_entry(book_id, book_name)
+    page = tonumber(page) or 1
+    local text = book and book[page]
+    return type(text) == "string" and make_text(text) or nil, identity
+end
+
+entries.get_book_title = function (book_name)
+    if type(book_name) ~= "string" or book_name == "" then return nil end
+    local translated = addon_table.translate_object_name
+        and addon_table.translate_object_name(book_name)
+    if type(translated) ~= "string" or translated == "" then return nil end
+    return make_text(utils.cap(translated))
+end
+
 entries.get_entry = function (entry_type, entry_id)
     if not entry_type or not entry_id then
         return
     end
 
     local at = addon_table
+    if entry_type == "book" then
+        local book = get_book_entry(entry_id)
+
+        if book then
+            return make_text_array(book)
+        elseif options.account.dev_mode and entry_id ~= 8383 then -- #8383 is a saved letter inventory item
+            dev_log.missing_book_page(entry_id, ItemTextGetPage(), ItemTextGetText())
+        end
+
+        return
+    end
+
     entry_id = tonumber(entry_id)
     if entry_id == 0 then
         return
@@ -435,18 +476,6 @@ entries.get_entry = function (entry_type, entry_id)
             return make_text_array(quest)
         elseif options.account.dev_mode then
             dev_log.missing_quest(entry_id)
-        end
-
-        return
-    end
-
-    if entry_type == "book" then
-        local book = at.book[entry_id]
-
-        if book then
-            return make_text_array(book)
-        elseif options.account.dev_mode and entry_id ~= 8383 then -- #8383 is a saved letter inventory item
-            dev_log.missing_book_page(entry_id, ItemTextGetPage(), ItemTextGetText())
         end
 
         return
@@ -614,12 +643,15 @@ local function get_gossip_text(npc_id, gossip_text)
     npc_id = tonumber(npc_id)
 
     -- Reviewed in-game scan codes are authoritative for these dialogues.
-    local gossip_code = utils.get_text_code(gossip_text)
-    if gossip_code and #gossip_code > 0 then
+    local gossip_codes, _, _, _, template_code = utils.get_gossip_lookup_codes(gossip_text)
+    local gossip_code = gossip_codes[1]
+    if #gossip_codes > 0 then
         for _, gossip_key in ipairs({ npc_id, '!common' }) do
             local npc_strings = at.gossip[gossip_key]
-            if npc_strings and npc_strings[gossip_code] then
-                return make_text(npc_strings[gossip_code]), gossip_code
+            for _, code in ipairs(gossip_codes) do
+                if npc_strings and npc_strings[code] then
+                    return make_text(npc_strings[code]), code
+                end
             end
         end
     end
@@ -637,21 +669,23 @@ local function get_gossip_text(npc_id, gossip_text)
 
     -- check text code hit
 
-    if gossip_code and #gossip_code > 0 then
+    if #gossip_codes > 0 then
         for _, gossip_key in ipairs({ npc_id, '!common' }) do
             local npc_strings = at.gossip[gossip_key]
             if npc_strings and npc_strings['!code'] then
                 local known_gossip_keys = utils.table_string_keys(npc_strings['!code'])
-                local gossip_key = utils.match_text_code(gossip_code, known_gossip_keys)
-                if gossip_key then
-                    local hash = npc_strings['!code'][gossip_key]
-                    return make_text(npc_strings[hash]), gossip_code
+                for _, code in ipairs(gossip_codes) do
+                    local gossip_key = utils.match_text_code(code, known_gossip_keys)
+                    if gossip_key then
+                        local hash = npc_strings['!code'][gossip_key]
+                        return make_text(npc_strings[hash]), code
+                    end
                 end
             end
         end
     end
 
-    return nil, gossip_code
+    return nil, template_code or gossip_code
 end
 
 entries.get_gossip_text_for_npc_talk = function (npc_id, gossip_text)
@@ -762,7 +796,7 @@ entries.get_item_suffix = function (item_name_en)
     return at.item_suffix[item_suffix_en]
 end
 
-entries.translate_quest_objective_task = function (text, quest_id)
+entries.translate_quest_objective_task = function (text, quest_id, objective_source)
     -- Camelot's quest tracker gets its visible objective strings from the
     -- legacy GetQuestLogLeaderBoard API. Keep the live C_QuestLog objective
     -- table pristine and translate only the text after its dynamic N/N prefix.
@@ -771,13 +805,21 @@ entries.translate_quest_objective_task = function (text, quest_id)
     if text == "Ready for turn-in" then return "Можна здати" end
     local progress_prefix, objective_text = text:match("^(%d+%s*/%s*%d+%s+)(.+)$")
     if progress_prefix and objective_text then
-        return progress_prefix .. entries.translate_quest_objective_task(objective_text, quest_id)
+        return progress_prefix .. entries.translate_quest_objective_task(
+            objective_text, quest_id, objective_source)
     end
 
     local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
         or addon_table.quest_both[tonumber(quest_id)])
     local task = quest and quest.tasks and quest.tasks[text]
     if type(task) == "string" then return task end
+    if type(objective_source) == "string"
+        and text:lower() == objective_source:lower() then
+        local objective = quest and quest[3]
+        if type(objective) == "string" and objective ~= "" and objective ~= text then
+            return objective
+        end
+    end
 
     -- try parse "LEFT: RIGHT"
     local parts = { string_split(":", text, 2) }
