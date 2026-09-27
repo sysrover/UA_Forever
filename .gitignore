@@ -1,6 +1,6 @@
 /tools
 /build
 /.dayzdiag
-/automation/results
+/automation
 __pycache__/
 *.pyc
