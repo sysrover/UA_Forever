@@ -332,6 +332,18 @@ local settings = {
     ["Interact With Target"] = "Взаємодія з ціллю",
     ["Interact Key Sound Cue"] = "Звуковий сигнал клавіші взаємодії",
     ["Enable Mouse Sensitivity"] = "Увімкнути чутливість миші",
+    ["FidelityFX Super Resolution 1.0: AMD FidelityFX Super Resolution 1.0 is a cutting edge super-optimized spatial upscaling technology that produces impressive image quality at fast framerates."] = "FidelityFX Super Resolution 1.0: AMD FidelityFX Super Resolution 1.0 — передова, надзвичайно оптимізована технологія просторового масштабування, що забезпечує вражаючу якість зображення за високої частоти кадрів.",
+    ["Good: Ray Traced Shadows from directional and local light sources at reduced resolution."] = "Добре: тіні з трасуванням променів від спрямованих і локальних джерел світла зі зниженою роздільною здатністю.",
+    ["High: Ray Traced Shadows from directional and local light sources at full resolution."] = "Високо: тіні з трасуванням променів від спрямованих і локальних джерел світла з повною роздільною здатністю.",
+    ["Triple buffering evens out frame rate spikes but may slightly increase input latency on slower GPUs. Enabled: Triple Buffering Disabled: Double Buffering"] = "Потрійна буферизація згладжує стрибки частоти кадрів, але може дещо збільшити затримку введення на повільніших графічних процесорах. Увімкнено: потрійна буферизація. Вимкнено: подвійна буферизація.",
+    ["Fair: Ray Traced Shadows from directional light sources at reduced resolution."] = "Задовільно: тіні з трасуванням променів від спрямованих джерел світла зі зниженою роздільною здатністю.",
+    ["Aggressive: Minor loss to fine detail"] = "Агресивно: незначна втрата дрібних деталей",
+    ["Bicubic: An upscale resulting in a soft image or improved quality SSAA if above 100% render scale."] = "Бікубічне: масштабування створює м'яке зображення або покращує якість SSAA, якщо масштаб рендерингу перевищує 100%.",
+    ["Point: An upscale resulting in a hard, pixelated image."] = "Точкове: масштабування створює різке, пікселізоване зображення.",
+    ["Bilinear: An upscale resulting in a very soft image or standard quality SSAA if above 100% render scale."] = "Білінійне: масштабування створює дуже м'яке зображення або стандартну якість SSAA, якщо масштаб рендерингу перевищує 100%.",
+    ["Auto Detect: Selected Graphics API. Auto-detect best available Graphics API."] = "Автовизначення: вибраний графічний API. Автоматично визначає найкращий доступний графічний API.",
+    ["Standard: Almost no loss to visual quality"] = "Стандартно: майже без втрати якості зображення",
+    ["DirectX 12: Current Graphics API."] = "DirectX 12: поточний графічний API.",
 }
 
 if addonTable.forever_catalog then

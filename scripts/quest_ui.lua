@@ -851,5 +851,11 @@ quest_ui.prepare = function ()
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
         translate_tracker_labels, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
-    hooks.mixin("QuestTimerMixin", "UpdateQuestTimers", translate_quest_timer)
+    -- The XML-created frame copies mixin methods during construction in client
+    -- build 70009, so hooking the mixin afterwards does not reach that frame.
+    -- Prefer the live frame and keep the mixin as a late-load fallback.
+    if not hooks.region(_G.QuestTimerFrame, "UpdateQuestTimers",
+        translate_quest_timer) then
+        hooks.mixin("QuestTimerMixin", "UpdateQuestTimers", translate_quest_timer)
+    end
 end

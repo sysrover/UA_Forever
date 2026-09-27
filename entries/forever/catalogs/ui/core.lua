@@ -63,6 +63,8 @@ local ui = {
     ["Complete Quest"] = "Завершити завдання",
     ["Cancel"] = "Скасувати",
     ["Do you want to make Thunderbrew Distillery your new home?"] = "Хочете зробити винокурню Громовара своїм новим домом?",
+    ["By disabling transmogrification you will no longer see any appearances applied to other players' gear via transmogrification. You will only see the equipment other players actually have equipped. Are you sure you wish to disable transmogrification? You may re-enable this at any time by speaking with me again."] =
+        "Після вимкнення трансмогрифікації ви більше не бачитимете вигляди, застосовані до спорядження інших гравців. Ви бачитимете лише спорядження, яке вони насправді носять.\n\nВи впевнені, що хочете вимкнути трансмогрифікацію?\n\nВи можете будь-коли ввімкнути її знову, поговоривши зі мною.",
     ["Close"] = "Закрити",
     ["Description"] = "Опис",
     ["DESCRIPTION"] = "ОПИС",
@@ -668,6 +670,8 @@ local ui = {
     ["6 Minutes until release"] = "6 хвилин до звільнення духу",
     ["Tools: Runed Silver Rod"] = "Інструменти: рунічний срібний жезл",
     ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
+    ["By enabling transmogrification you will see any custom appearances applied to your own and other players' equipment via transmogrification. Are you sure you wish to enable transmogrification? You may disable transmogrification at any time by speaking with me again."] = "Увімкнувши трансмогрифікацію, ви бачитимете всі змінені вигляди, застосовані до вашого спорядження та спорядження інших гравців за допомогою трансмогрифікації. Ви справді бажаєте увімкнути трансмогрифікацію? Ви можете вимкнути її будь-коли, знову поговоривши зі мною.",
+    ["Must be in Battle Stance"] = "Потрібно перебувати в бойовій стійці",
 }
 
 if addonTable.forever_catalog then
@@ -728,7 +732,33 @@ local function translate_requirement(requirement)
     return "Потрібно: " .. table.concat(parts, ", ")
 end
 
+local function translate_quest_timer_value(first_count, first_unit,
+        second_count, second_unit)
+    local units = addonTable.forever_surface_ui
+        and addonTable.forever_surface_ui.quest
+        and addonTable.forever_surface_ui.quest.timer_units
+    if type(units) ~= "table" then return nil end
+    local translated_units = {}
+    for _, unit in ipairs(units) do
+        translated_units[unit.source] = unit.translated
+    end
+    local first = translated_units[first_unit]
+    if not first then return nil end
+    local result = first_count .. " " .. first
+    if second_count ~= "" or second_unit ~= "" then
+        local second = translated_units[second_unit]
+        if second_count == "" or not second then return nil end
+        result = result .. " " .. second_count .. " " .. second
+    end
+    return result
+end
+
 addonTable.forever_ui_patterns = {
+    {
+        -- SecondsToTime() emits at most two abbreviated units for quest timers.
+        pattern = "^(%d+)%s+(%a+)%s*(%d*)%s*(%a*)$",
+        replace = translate_quest_timer_value,
+    },
     {
         pattern = "^Pass on Loot: (.+)$",
         replace = function (value)

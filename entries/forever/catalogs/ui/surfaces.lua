@@ -71,7 +71,11 @@ addonTable.forever_surface_ui = {
             return "Відкрито нову територію: " .. zone
         end,
         faction_territory = function (faction)
-            return "Контроль території: " .. faction
+            local territories = {
+                ["Альянс"] = "Територія Альянсу",
+                ["Орда"] = "Територія Орди",
+            }
+            return territories[faction]
         end,
     },
 }

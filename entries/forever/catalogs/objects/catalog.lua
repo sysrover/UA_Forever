@@ -1141,6 +1141,10 @@ addonTable.object = { -- [key] = text
 ["The Bronze Kettle"] = "Бронзовий казанок",
 ["Thistlefuzz Arcanery"] = "Арканерія Будякопуха",
 ["Corpse of Carne"] = "Тіло Карна",
+["Champions Hall"] = "Зала чемпіонів",
+["Essential Components"] = "Необхідні компоненти",
+["The Finest Thread"] = "Найкраща нитка",
+["Door"] = "Двері",
 }
 
 addonTable.translate_object_name = function (name)
