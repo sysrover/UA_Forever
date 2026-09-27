@@ -1424,7 +1424,11 @@ addonTable.spell = {
 [25668] = { ref=9574 }, -- Flame Buffet
 [25678] = { "Пісня сирени", en="Siren's Song" },
 [25688] = { "Нараін!", "Змінює ваш зовнішній вигляд так, щоб ви були схожі на Нараіна Тихомрія.", "Ви Нараін! Тільки тсс!", en="Narain!" },
-[25694] = { "Ситість", nil, "Відновлення {1} мани кожні {2} с.#by {1} every {2} sec", en="Well Fed" },
+[25694] = { "Ситість", nil, "Відновлення {1} мани кожні {2} с.#by {1} every {2} sec", en="Well Fed",
+    aura_lines = {
+        ["Your Attack Power is increased by 10. Experience gained from kills increased by 5%."] = "Силу атаки збільшено на 10. Досвід, отриманий за вбивства, збільшено на 5%.",
+    },
+},
 [25695] = { "Їжа", nil, "Відновлює {1} здоров'я щосекунди.#Restores {1} health", en="Food" },
 [25696] = { "Напій", nil, "Відновлює {1} мани щосекунди.#Restores {1} mana", en="Drink" },
 [25700] = { ref=433 }, -- Food
@@ -3672,6 +3676,24 @@ addonTable.spell = {
         ["Increases chance to block by 75% for 7 sec, but will only block 2 attacks."] = "Збільшує шанс блокування на 75% на 7 с, але дає змогу заблокувати лише 2 атаки.",
     },
 },
+[13536] = {
+    tooltip_lines = {
+        ["Tools: Runed Silver Rod"] = "Інструменти: рунічний срібний жезл",
+        ["Permanently enchant a bracer so it increases the wearer's Strength by 4."] = "Назавжди зачаровує наручі, збільшуючи силу власника на 4.",
+    },
+},
+[13640] = {
+    tooltip_lines = {
+        ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
+        ["Permanently enchant a piece of chest armor to give +6 Stamina."] = "Назавжди зачаровує нагрудну броню, надаючи +6 витривалості.",
+    },
+},
+[13648] = {
+    tooltip_lines = {
+        ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
+        ["Permanently enchant bracers to give +5 Stamina."] = "Назавжди зачаровує наручі, надаючи +5 витривалості.",
+    },
+},
 }
 
 -- Verified spell additions and corrections.
@@ -3747,6 +3769,21 @@ addonTable.spell[1283391] = {
     "Приємний дим багаття долинає звідкись неподалік.",
     "Приємний дим багаття долинає звідкись неподалік.",
     en = "Campfire Nearby",
+}
+
+addonTable.spell[1249519] = {
+    "Ситість",
+    nil,
+    "Силу атаки збільшено на {1}. Досвід за вбивства збільшено на 5%.#by {1}",
+    en = "Well Fed",
+    aura_lines = {
+        ["Your Attack Power is increased by 10. Experience gained from kills increased by 5%."] =
+            "Силу атаки збільшено на 10. Досвід за вбивства збільшено на 5%.",
+    },
+    aura_patterns = {
+        { "^Your Attack Power is increased by (%d+)%. Experience gained from kills increased by 5%%%.?$",
+            "Силу атаки збільшено на %s. Досвід за вбивства збільшено на 5%%." },
+    },
 }
 
 addonTable.spell[3319] = {
