@@ -21,6 +21,7 @@
     <Script file="tooltip_map_adapter.lua"/>
     <Script file="tooltip_spell_adapter.lua"/>
     <Script file="tooltip_talent_adapter.lua"/>
+    <Script file="tooltip_diagnostics.lua"/>
     <Script file="strings.lua"/>
     <Script file="settings.lua"/>
     <Script file="menus.lua"/>
