@@ -174,6 +174,7 @@ adapter.translate = function (_, button, tooltip)
             end
             if not translated and addon_table.talent_description_eligible
                 and addon_table.talent_description_eligible[id]
+                and entry
                 and type(entry[2]) == "string"
                 and entry[2]:sub(1, 1) ~= "[" then
                 if entry[2]:find("#", 1, true) then
