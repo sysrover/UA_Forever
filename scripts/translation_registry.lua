@@ -292,7 +292,6 @@ registry.register_defaults = function (translate_frame)
             "Menu.ModifyMenu(MENU_MINIMAP_BATTLEFIELD)",
             "Minimap_Update",
             "ZoneText_OnEvent", "SubZoneText_OnLoad",
-            "ScenarioObjectiveTrackerMixin.LayoutContents",
             "UIWidgetObjectiveTrackerMixin.OnEvent",
             "UIWidgetObjectiveTrackerMixin.LayoutContents",
             "QueueStatusEntry_SetUpActiveWorldPVP",

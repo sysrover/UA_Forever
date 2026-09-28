@@ -448,30 +448,6 @@ local function wrap_ui_error_add_message(frame)
     if ok then wrapped_ui_error_frames[frame] = true end
 end
 
-local function after_scenario_layout(self)
-    local region = self and self.Header and self.Header.Text
-    local zone = native_zone_text("GetZoneText")
-    if not zone or visible_text(region) ~= zone then return end
-    -- The rendered header already identifies the zone label. Calling
-    -- ShouldShowMawBuffs here reads protected aura data and can taint the
-    -- Edit Mode objective-tracker layout when auras become secret.
-    local scenario = _G.C_Scenario
-    if not scenario or type(scenario.GetInfo) ~= "function" then return end
-    local info_ok, scenario_type = pcall(function ()
-        return select(10, scenario.GetInfo())
-    end)
-    if not info_ok or type(scenario_type) ~= "number"
-        or scenario_type == _G.LE_SCENARIO_TYPE_CHALLENGE_MODE
-        or scenario_type == _G.LE_SCENARIO_TYPE_PROVING_GROUNDS
-        or scenario_type == _G.LE_SCENARIO_TYPE_USE_DUNGEON_DISPLAY then return end
-    local block = self.ProvingGroundsBlock
-    if block and type(block.IsActive) == "function" then
-        local block_ok, active = pcall(block.IsActive, block)
-        if not block_ok or active then return end
-    end
-    apply_native_zone_region(region, zone, "zone-scenario")
-end
-
 local function after_real_zone_writer(region, owner)
     local getter = translation.original and translation.original.GetRealZoneText
         or _G.GetRealZoneText
@@ -949,8 +925,6 @@ map_labels.prepare = function ()
             auto_scan.record_ui(message, false, "UIErrorsFrame")
         end
     end)
-    hooks.region(_G.ScenarioObjectiveTrackerMixin, "LayoutContents",
-        after_scenario_layout)
     local widget = _G.UIWidgetObjectiveTrackerMixin
     for _, method in ipairs({ "OnEvent", "LayoutContents" }) do
         hooks.region(widget, method, after_widget_zone)
