@@ -28,8 +28,21 @@ end
 
 local function publish_hook_state(state)
     local auto_scan = addon_table.use("auto_scan")
+    if type(auto_scan.diagnostics_enabled) == "function"
+        and not auto_scan.diagnostics_enabled() then return end
+    local changed = state._published ~= true
+        or state._publishedAvailable ~= state.available
+        or state._publishedInstalled ~= state.installed
+        or state._publishedObserved ~= state.observed
+        or state._publishedError ~= state.lastError
+    if not changed then return end
     if type(auto_scan.record_hook_status) == "function" then
         auto_scan.record_hook_status(hook_snapshot(state))
+        state._published = true
+        state._publishedAvailable = state.available
+        state._publishedInstalled = state.installed
+        state._publishedObserved = state.observed
+        state._publishedError = state.lastError
     end
 end
 

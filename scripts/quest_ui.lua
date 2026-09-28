@@ -780,6 +780,15 @@ local function translate_tracker_labels()
     end, nil, { frames = 0 })
 end
 
+local function schedule_tracker_labels()
+    if type(scheduler.request) ~= "function" then
+        translate_tracker_labels()
+        return
+    end
+    scheduler.request("quest-tracker-static-labels", nil,
+        translate_tracker_labels)
+end
+
 local function after_update(self, quest)
     if not self or not quest then return end
     local method_ok, get_id = pcall(function () return quest.GetID end)
@@ -797,7 +806,10 @@ local function after_update(self, quest)
     if not block_ok or not block then return end
     translate_header(block, id)
     translate_objectives(self, block, id)
-    translate_tracker_labels()
+    -- UpdateSingle can run once per changed quest in the same native batch.
+    -- Static tracker labels are independent of the quest block, so coalesce
+    -- their fallback discovery instead of walking the whole tree Q times.
+    schedule_tracker_labels()
 end
 
 local function translate_quest_timer(frame)

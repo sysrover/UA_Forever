@@ -15062,6 +15062,11 @@ local items = {
         ["6 Slot Reagent Bag"] = "Сумка для реагентів на 6 комірок",
     },
 },
+[249391] = {
+    tooltip_lines = {
+        ["Scarce"] = "Дефіцитний",
+    },
+},
 }
 
 if addonTable.item then

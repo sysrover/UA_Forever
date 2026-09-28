@@ -51,9 +51,9 @@ local function put(group, key, value)
         return
     end
     if is_secret(group) or is_secret(key) then return end
-    value = safe_saved_value(value)
     missing[group] = missing[group] or {}
     if missing[group][key] == nil then
+        value = safe_saved_value(value)
         missing[group][key] = value == nil and true or value
         notify("Новий запис: " .. group .. " " .. tostring(key))
     end
@@ -73,12 +73,21 @@ dev_log.record_id = function (group, id, name, translated)
     if not scanned_ids or not group or not id or id <= 0 then return end
 
     scanned_ids[group] = scanned_ids[group] or {}
-    local record = scanned_ids[group][id] or {}
+    local record = scanned_ids[group][id]
+    local is_new = type(record) ~= "table"
+    if is_new then record = {} end
     local clean_name = safe_name(name)
-    if clean_name then record.name = clean_name end
-    if translated ~= nil then record.translated = translated and true or false end
-    record.lastSeen = type(_G.date) == "function" and _G.date("!%Y-%m-%dT%H:%M:%SZ") or nil
-    scanned_ids[group][id] = record
+    local translated_value = translated ~= nil and translated and true
+        or translated ~= nil and false or nil
+    local changed = is_new or clean_name and record.name ~= clean_name
+        or translated ~= nil and record.translated ~= translated_value
+    if changed then
+        if clean_name then record.name = clean_name end
+        if translated ~= nil then record.translated = translated_value end
+        record.lastSeen = type(_G.date) == "function"
+            and _G.date("!%Y-%m-%dT%H:%M:%SZ") or nil
+        scanned_ids[group][id] = record
+    end
 
     if translated == false then
         put(group, id, clean_name or true)

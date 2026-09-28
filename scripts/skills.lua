@@ -10,6 +10,7 @@ local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
 local registry = addon_table.use("translation_registry")
+local scheduler = addon_table.use("translation_scheduler")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("skills")
 local surface_text = assert(addon_table.forever_surface_ui,
@@ -150,7 +151,10 @@ skills.refresh = function (only_frame)
                 })
             total.frames = total.frames + (stats.frames or 0)
             total.translated = total.translated + (stats.translated or 0)
-            record_frame_ids(frame, {}, {}, 1)
+            if options.account and (options.account.auto_scan_content
+                or options.account.dev_mode) then
+                record_frame_ids(frame, {}, {}, 1)
+            end
         end
     end
     return total
@@ -897,6 +901,15 @@ local function translate_crafting_page()
     translate_button(page.CreateAllButton)
 end
 
+local function schedule_crafting_page()
+    if type(scheduler.request) ~= "function" then
+        translate_crafting_page()
+        return
+    end
+    scheduler.request("professions-crafting-page", nil,
+        translate_crafting_page)
+end
+
 local function requirement_name(name)
     if type(name) ~= "string" or is_secret(name) then return nil end
     if surface_text.requirement_names[name] then
@@ -1125,14 +1138,14 @@ skills.prepare = function ()
     hook_mixin("ProfessionsMixin", "SelectBookPage", translate_professions)
     hook_mixin("ProfessionsMixin", "Refresh", translate_professions)
     hook_mixin("ProfessionsMixin", "OnShow", translate_professions)
-    hook_mixin("ProfessionsCraftingPageMixin", "Refresh", translate_crafting_page)
-    hook_mixin("ProfessionsCraftingPageMixin", "Update", translate_crafting_page)
-    hook_mixin("ProfessionsCraftingPageMixin", "ValidateControls", translate_crafting_page)
-    hook_mixin("ProfessionsCraftingPageMixin", "OnRecipeSelected", translate_crafting_page)
-    hook_mixin("ProfessionsRecipeSchematicFormMixin", "Init", translate_crafting_page)
-    hook_mixin("ProfessionsRecipeSchematicFormMixin", "Refresh", translate_crafting_page)
-    hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateOutputItem", translate_crafting_page)
-    hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateRecipeDescription", translate_crafting_page)
+    hook_mixin("ProfessionsCraftingPageMixin", "Refresh", schedule_crafting_page)
+    hook_mixin("ProfessionsCraftingPageMixin", "Update", schedule_crafting_page)
+    hook_mixin("ProfessionsCraftingPageMixin", "ValidateControls", schedule_crafting_page)
+    hook_mixin("ProfessionsCraftingPageMixin", "OnRecipeSelected", schedule_crafting_page)
+    hook_mixin("ProfessionsRecipeSchematicFormMixin", "Init", schedule_crafting_page)
+    hook_mixin("ProfessionsRecipeSchematicFormMixin", "Refresh", schedule_crafting_page)
+    hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateOutputItem", schedule_crafting_page)
+    hook_mixin("ProfessionsRecipeSchematicFormMixin", "UpdateRecipeDescription", schedule_crafting_page)
     hook_mixin("ProfessionsRecipeSchematicFormMixin", "Update",
         translate_crafting_requirements)
     hook_mixin("ProfessionsRecipeListCategoryMixin", "Init", translate_crafting_row)
@@ -1214,15 +1227,15 @@ skills.prepare = function ()
     hook_crafting_requirements(schematic_form)
     hook_crafting_description(schematic_form)
     for _, method in ipairs({ "Refresh", "Update", "ValidateControls", "OnRecipeSelected" }) do
-        hook_owner(crafting_page, method, translate_crafting_page)
+        hook_owner(crafting_page, method, schedule_crafting_page)
     end
     for _, method in ipairs({ "Init", "Refresh", "UpdateOutputItem", "UpdateRecipeDescription" }) do
-        hook_owner(schematic_form, method, translate_crafting_page)
+        hook_owner(schematic_form, method, schedule_crafting_page)
     end
     hook_owner(schematic_form, "Update", translate_crafting_requirements)
     hooks.region_script(professions_frame, "OnShow", translate_professions,
         "professions")
-    hooks.region_script(crafting_page, "OnShow", translate_crafting_page,
+    hooks.region_script(crafting_page, "OnShow", schedule_crafting_page,
         "crafting")
     hooks.region_script(_G.ProfessionsBookFrame, "OnShow", translate_professions,
         "professions")

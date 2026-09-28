@@ -124,15 +124,44 @@ local function update_quest_npc_name()
     end
 end
 
+local dirty_open_panels = {}
+local refresh_all_open_panels = false
+
 local function refresh_open_panels()
+    local refresh_all = refresh_all_open_panels
+    local dirty = dirty_open_panels
+    refresh_all_open_panels = false
+    dirty_open_panels = {}
     update_quest_npc_name()
     items.refresh_quest_rewards()
-    registry.refresh_open()
+    if refresh_all then
+        registry.refresh_open()
+    else
+        for id in pairs(dirty) do registry.refresh(id) end
+    end
     quest_switcher.refresh()
-    if options.account.auto_scan_content then strings.capture_visible_ui() end
+    if options.account.auto_scan_content then
+        if refresh_all then
+            strings.capture_visible_ui()
+        else
+            for id in pairs(dirty) do
+                local surface = registry.get(id)
+                for _, root_name in ipairs(surface and surface.roots or {}) do
+                    local frame = _G[root_name]
+                    local shown_ok, shown = frame and pcall(frame.IsShown, frame)
+                    if shown_ok and shown then strings.capture_frame(frame) end
+                end
+            end
+        end
+    end
 end
 
-local function schedule_panel_refresh()
+local function schedule_panel_refresh(surface_ids)
+    if type(surface_ids) ~= "table" then
+        refresh_all_open_panels = true
+    else
+        for _, id in ipairs(surface_ids) do dirty_open_panels[id] = true end
+    end
     scheduler.request("open-panels", nil, refresh_open_panels)
 end
 
@@ -144,8 +173,6 @@ end
 local function schedule_trainer_refresh(event)
     if event then auto_scan.surface_event("trainer", event) end
     scheduler.request("trainer-content", nil, refresh_trainer)
-    scheduler.request("trainer-content-retry", nil, refresh_trainer, 0.1)
-    scheduler.request("trainer-content-late", nil, refresh_trainer, 0.35)
 end
 
 local function schedule_current_quest_capture(event)
@@ -847,10 +874,12 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             auto_scan.surface_event("quest-greeting", event)
             quest_greeting_shown()
         end
-        schedule_panel_refresh()
+        schedule_panel_refresh({ "quest-gossip", "items" })
     elseif event == "QUEST_LOG_UPDATE" then
-        scheduler.request("quest-log-capture", nil,
-            scanner.capture_quest_log, 0.2)
+        if options.account.auto_scan_content or options.account.dev_mode then
+            scheduler.request("quest-log-capture", nil,
+                scanner.capture_quest_log, 0.2)
+        end
         scheduler.request("quest-tracker-progress", nil,
             quest_ui.refresh_tracker_progress, 0.2)
     end
