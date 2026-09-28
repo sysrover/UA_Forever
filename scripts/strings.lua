@@ -38,6 +38,8 @@ local combat_text_event_globals = {
 }
 local combat_text_originals = {}
 local combat_text_catalog_sources = {
+    [" (%d blocked)"] = true,
+    ["%s (Block)"] = true,
     ["Changed Target!"] = true,
 }
 local combat_text_catalog_globals = {}
