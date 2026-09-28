@@ -237,6 +237,24 @@ local function apply_native_zone_region(region, native, owner)
     })
 end
 
+local function after_zone_announcement_write(region, native, owner)
+    if not region or runtime.is_applying(region) then return end
+    if type(native) == "string" and native == "" then
+        runtime.invalidate(region)
+        return
+    end
+    native = safe_string(native)
+    if not native or not options.can_lookup("translate_zone") then return end
+    local translated = translated_zone_name(native)
+    if not translated then return end
+    runtime.apply(region, {
+        owner = owner, slot = "zone.name", source = native,
+        translated = translated, option = "translate_zone",
+        priority = runtime.PRIORITY.CONTEXT,
+        record_runtime = false, verify_after_apply = false,
+    })
+end
+
 local function translated_zone_status(source)
     local faction = source:match("^%((.-) Territory%)$")
         or source:match("^(.-) Territory$")
@@ -280,6 +298,37 @@ local function after_zone_text_event()
         apply_native_zone_region(_G.SubZoneTextString, shown, "subzone-announce")
     end
     apply_zone_status_regions()
+end
+
+local syncing_zone_announcement_pair = false
+local function after_zone_text_frame_event()
+    after_zone_text_event()
+    if syncing_zone_announcement_pair then return end
+    local zone = native_zone_text("GetZoneText")
+    local subzone = native_zone_text("GetSubZoneText")
+    if not zone then return end
+    local toast_manager = _G.EventToastManagerFrame
+    if toast_manager and type(toast_manager.IsCurrentlyToasting) == "function" then
+        local ok, toasting = pcall(toast_manager.IsCurrentlyToasting,
+            toast_manager)
+        if not ok or toasting == true then return end
+    end
+    if type(_G.FadingFrame_Show) ~= "function" then return end
+    syncing_zone_announcement_pair = true
+    if not subzone or subzone == zone then
+        if _G.SubZoneTextString then
+            pcall(_G.SubZoneTextString.SetText, _G.SubZoneTextString, "")
+        end
+        if _G.SubZoneTextFrame and type(_G.SubZoneTextFrame.Hide) == "function" then
+            pcall(_G.SubZoneTextFrame.Hide, _G.SubZoneTextFrame)
+        end
+        pcall(_G.FadingFrame_Show, _G.ZoneTextFrame)
+        syncing_zone_announcement_pair = false
+        return
+    end
+    pcall(_G.FadingFrame_Show, _G.ZoneTextFrame)
+    pcall(_G.FadingFrame_Show, _G.SubZoneTextFrame)
+    syncing_zone_announcement_pair = false
 end
 
 local function after_subzone_load()
@@ -875,11 +924,17 @@ map_labels.prepare = function ()
     hooks.global("Minimap_Update", after_minimap_update)
     hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
     after_minimap_update()
+    hooks.region(_G.ZoneTextString, "SetText", function (region, native)
+        after_zone_announcement_write(region, native, "zone-announce")
+    end)
+    hooks.region(_G.SubZoneTextString, "SetText", function (region, native)
+        after_zone_announcement_write(region, native, "subzone-announce")
+    end)
     hooks.global("ZoneText_OnEvent", after_zone_text_event)
     hooks.global("SubZoneText_OnLoad", after_subzone_load)
     -- ZoneTextFrame's XML script keeps its own function reference. Hook the
     -- frame event as well so each newly written area name is translated.
-    hooks.region_script(_G.ZoneTextFrame, "OnEvent", after_zone_text_event,
+    hooks.region_script(_G.ZoneTextFrame, "OnEvent", after_zone_text_frame_event,
         "zone-announcement")
     hooks.region_script(_G.ZoneTextFrame, "OnShow", after_zone_text_event,
         "zone-announcement")
