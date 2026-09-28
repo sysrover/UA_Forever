@@ -2,7 +2,59 @@ local _, addon_table = ...
 local entries = addon_table.use("entries")
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
+local unpack_values = unpack or table.unpack
 local compiled
+local cache_generation = 0
+local positive_cache = { values = {}, queue = {}, first = 1, last = 0, size = 0,
+    limit = 512 }
+local negative_cache = { values = {}, queue = {}, first = 1, last = 0, size = 0,
+    limit = 1024 }
+local region_names = setmetatable({}, { __mode = "k" })
+
+local function clear_cache(cache)
+    cache.values, cache.queue = {}, {}
+    cache.first, cache.last, cache.size = 1, 0, 0
+end
+
+local function cache_get(cache, key)
+    local entry = cache.values[key]
+    if entry and type(runtime.metric) == "function" then
+        runtime.metric("resolver_cache_hits")
+    end
+    return entry
+end
+
+local function cache_put(cache, key, value)
+    if cache.values[key] then
+        cache.values[key] = value
+        return
+    end
+    cache.last = cache.last + 1
+    cache.queue[cache.last] = key
+    cache.values[key] = value
+    cache.size = cache.size + 1
+    while cache.size > cache.limit do
+        local oldest = cache.queue[cache.first]
+        cache.queue[cache.first] = nil
+        cache.first = cache.first + 1
+        if oldest and cache.values[oldest] then
+            cache.values[oldest] = nil
+            cache.size = cache.size - 1
+        end
+    end
+end
+
+resolver.invalidate_cache = function ()
+    cache_generation = cache_generation + 1
+    clear_cache(positive_cache)
+    clear_cache(negative_cache)
+end
+
+resolver.cache_stats = function ()
+    return { positive = positive_cache.size, negative = negative_cache.size,
+        positiveLimit = positive_cache.limit, negativeLimit = negative_cache.limit,
+        generation = cache_generation }
+end
 
 resolver.prepare = function ()
     if compiled then return end
@@ -42,12 +94,47 @@ end
 
 local function safe_name(region)
     if not region or type(region.GetDebugName) ~= "function" then return "" end
+    local cached = region_names[region]
+    if cached ~= nil then return cached end
     local ok, value = pcall(region.GetDebugName, region)
     if type(_G.issecretvalue) == "function" then
         local secret_ok, secret = pcall(_G.issecretvalue, value)
         if not secret_ok or secret then return "" end
     end
-    return ok and type(value) == "string" and value or ""
+    value = ok and type(value) == "string" and value or ""
+    region_names[region] = value
+    return value
+end
+
+local function cache_context(context)
+    if context == nil then return "" end
+    if type(context) ~= "table" then return nil end
+    local parts = {}
+    for _, key in ipairs({ "category", "slot", "option", "domain" }) do
+        local value = context[key]
+        if value ~= nil then
+            if type(value) ~= "string" and type(value) ~= "number"
+                and type(value) ~= "boolean" then return nil end
+            if type(_G.issecretvalue) == "function" then
+                local ok, secret = pcall(_G.issecretvalue, value)
+                if not ok or secret then return nil end
+            end
+            parts[#parts + 1] = key .. "=" .. tostring(value)
+        end
+    end
+    return table.concat(parts, ";")
+end
+
+local function pattern_cache_key(text, normalized, frame_name, context)
+    local context_key = cache_context(context)
+    if context_key == nil then return nil end
+    local catalog_version = compiled and compiled.catalog
+        and (compiled.catalog.cache_version or compiled.catalog.version) or 0
+    if type(catalog_version) ~= "string" and type(catalog_version) ~= "number" then
+        catalog_version = 0
+    end
+    return table.concat({ tostring(cache_generation), tostring(catalog_version),
+        frame_name, context_key, text, normalized }, "\031")
 end
 
 local function explicit_domain_name(text, normalized, context)
@@ -169,14 +256,34 @@ resolver.find_ui = function (text, region, context)
     if translated then return translated, normalized, "domain", "skill", "skill.name" end
     translated = translate_recipe_output(text)
     if translated then return translated, normalized, "domain", "item", "item.name" end
+    local cache_key = pattern_cache_key(text, normalized, frame_name, context)
+    if cache_key then
+        local positive = cache_get(positive_cache, cache_key)
+        if positive then
+            return positive.translation, positive.normalized, "pattern"
+        end
+        local negative = cache_get(negative_cache, cache_key)
+        if negative then return nil, negative.normalized end
+        if type(runtime.metric) == "function" then
+            runtime.metric("resolver_cache_misses")
+        end
+    end
     for _, pattern in ipairs(compiled.patterns) do
         local captures = { text:match(pattern.pattern) }
         if #captures == 0 and normalized ~= text then
             captures = { normalized:match(pattern.pattern) }
         end
         if #captures > 0 then
-            return pattern.replace(unpack(captures)), normalized, "pattern"
+            translated = pattern.replace(unpack_values(captures))
+            if cache_key and type(translated) == "string" then
+                cache_put(positive_cache, cache_key,
+                    { translation = translated, normalized = normalized })
+            end
+            return translated, normalized, "pattern"
         end
+    end
+    if cache_key then
+        cache_put(negative_cache, cache_key, { normalized = normalized })
     end
     return nil, normalized
 end

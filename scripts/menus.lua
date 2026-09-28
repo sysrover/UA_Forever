@@ -671,6 +671,13 @@ local function popup_text_region(dialog)
     return dialog.text or dialog.Text or name and _G[name .. "Text"]
 end
 
+local function resize_popup_for_text(dialog, text)
+    if not dialog or type(text) ~= "string" or type(dialog.Resize) ~= "function"
+        or dialog.uaForeverLayoutText == text then return end
+    dialog.uaForeverLayoutText = text
+    pcall(dialog.Resize, dialog)
+end
+
 local function translate_quit_countdown(dialog)
     local region = popup_text_region(dialog)
     if not region or type(region.GetText) ~= "function" then return end
@@ -683,9 +690,7 @@ local function translate_quit_countdown(dialog)
         translated = surface_text.quit_countdown(count),
         priority = runtime.PRIORITY.CONTEXT,
     })
-    if applied and type(dialog.Resize) == "function" then
-        pcall(dialog.Resize, dialog)
-    end
+    if applied then resize_popup_for_text(dialog, surface_text.quit_countdown(count)) end
 end
 
 local function translate_popup_button(dialog, getter)
@@ -761,9 +766,7 @@ local function translate_resurrection_popup(dialog)
         owner = "popup", slot = "resurrection.message", source = source,
         translated = translated, priority = runtime.PRIORITY.CONTEXT,
     })
-    if applied and type(dialog.Resize) == "function" then
-        pcall(dialog.Resize, dialog)
-    end
+    if applied then resize_popup_for_text(dialog, translated) end
     translate_popup_button(dialog, "GetButton1")
     translate_popup_button(dialog, "GetButton2")
     return true
@@ -816,6 +819,9 @@ local function after_static_popup_show(which, _, _, data)
     if type(find) ~= "function" then return end
     local ok, dialog = pcall(find, which, data)
     if not ok or not dialog then return end
+    -- StaticPopup frames are pooled. A new show may reset native dimensions
+    -- even when its translated countdown/message equals the previous show.
+    dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
     if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT"
         and not translate_home_popup(dialog)
@@ -832,11 +838,13 @@ local function after_static_popup_show(which, _, _, data)
 end
 
 local function after_static_popup_update(dialog)
-    if dialog and dialog.which == "QUIT" then
+    if not dialog then return end
+    local which = dialog.which
+    if which == "QUIT" then
         translate_quit_countdown(dialog)
+    elseif which == "RESURRECT" or which == "RESURRECT_NO_SICKNESS" then
+        translate_resurrection_popup(dialog)
     end
-    translate_home_popup(dialog)
-    translate_resurrection_popup(dialog)
 end
 
 menus_ui.prepare = function ()

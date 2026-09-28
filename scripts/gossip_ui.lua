@@ -5,8 +5,12 @@ local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local gossip_ui = addon_table.use("gossip_ui")
+local scheduler = addon_table.use("translation_scheduler")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("gossip")
+
+local element_extent_overrides = setmetatable({}, { __mode = "k" })
+local hooked_extent_views = setmetatable({}, { __mode = "k" })
 
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
@@ -26,7 +30,7 @@ local function apply(region, slot, source, translated, category, option)
     -- Setup has just written to a pooled row. Discard the previous row claim.
     runtime.invalidate(region)
     if not safe_string(source) or not safe_string(translated) then return end
-    runtime.apply(region, {
+    return runtime.apply(region, {
         owner = "gossip", slot = slot, source = source,
         translated = translated, category = category,
         option = type(option) == "string" and option or nil,
@@ -34,6 +38,53 @@ local function apply(region, slot, source, translated, category, option)
         surface = "gossip",
         priority = runtime.PRIORITY.DOMAIN,
     })
+end
+
+local function gossip_scroll_box()
+    local panel = _G.GossipFrame and _G.GossipFrame.GreetingPanel
+    return panel and panel.ScrollBox or nil
+end
+
+local function ensure_gossip_extent_hook()
+    local scroll_box = gossip_scroll_box()
+    if not scroll_box or type(scroll_box.GetView) ~= "function" then return end
+    local ok, view = pcall(scroll_box.GetView, scroll_box)
+    if not ok or not view then return end
+    if hooked_extent_views[view] then return scroll_box, view end
+    if type(view.GetElementExtentCalculator) ~= "function"
+        or type(view.SetElementExtentCalculator) ~= "function" then return end
+    local calculator_ok, calculator = pcall(view.GetElementExtentCalculator, view)
+    if not calculator_ok or type(calculator) ~= "function" then return end
+    local installed = pcall(view.SetElementExtentCalculator, view,
+        function (data_index, element_data)
+            local calculated = calculator(data_index, element_data)
+            return element_extent_overrides[element_data] or calculated
+        end)
+    if not installed then return end
+    hooked_extent_views[view] = true
+    return scroll_box, view
+end
+
+local function refresh_gossip_element_layout(frame, extent_region)
+    extent_region = extent_region or frame
+    if not frame or not extent_region or type(frame.GetElementData) ~= "function"
+        or type(extent_region.GetHeight) ~= "function" then return end
+    local scroll_box, view = ensure_gossip_extent_hook()
+    if not scroll_box or not view or type(scroll_box.FullUpdate) ~= "function" then
+        return
+    end
+    local data_ok, element_data = pcall(frame.GetElementData, frame)
+    local height_ok, height = pcall(extent_region.GetHeight, extent_region)
+    if not data_ok or type(element_data) ~= "table"
+        or not height_ok or type(height) ~= "number" or height <= 0 then return end
+    element_extent_overrides[element_data] = height
+    scheduler.request("gossip-element-layout", nil, function ()
+        local current_ok, current_view = pcall(scroll_box.GetView, scroll_box)
+        if not current_ok or current_view ~= view then return end
+        local immediate = _G.ScrollBoxConstants
+            and _G.ScrollBoxConstants.UpdateImmediately or true
+        pcall(scroll_box.FullUpdate, scroll_box, immediate)
+    end)
 end
 
 local function font_string(button)
@@ -63,11 +114,13 @@ local function quest_title(button, info)
     if not translated or translated == title then return end
     translated = replace_title(source, title, translated)
     if not translated then return end
-    apply(region, "quest:" .. tostring(quest_id) .. ".name", source, translated, "quest",
+    local applied = apply(region, "quest:" .. tostring(quest_id) .. ".name",
+        source, translated, "quest",
         { "translate_quest", "translate_gossip" })
     if options.translate_name("quest") and type(button.Resize) == "function" then
         pcall(button.Resize, button)
     end
+    if applied then refresh_gossip_element_layout(button) end
 end
 
 local function greeting(frame, source)
@@ -80,11 +133,13 @@ local function greeting(frame, source)
     if not region or not id or not safe_string(source)
         or not options.can_lookup("translate_gossip") then return end
     local translated = entries.get_gossip_text_for_npc_talk(id, source)
-    apply(region, "npc:" .. id .. ".greeting", source, translated, nil, "translate_gossip")
+    local applied = apply(region, "npc:" .. id .. ".greeting", source,
+        translated, nil, "translate_gossip")
     if type(frame.SetSize) == "function" and type(region.GetHeight) == "function" then
         local ok, height = pcall(region.GetHeight, region)
         if ok and type(height) == "number" then pcall(frame.SetSize, frame, 270, height) end
     end
+    if applied then refresh_gossip_element_layout(frame, region) end
 end
 
 local function option(button, info)
@@ -101,8 +156,10 @@ local function option(button, info)
     if not translated or translated == name then return end
     translated = replace_title(source, name, translated)
     if not translated then return end
-    apply(region, "npc:" .. id .. ".option:" .. tostring(info.orderIndex), source, translated, nil, "translate_gossip")
+    local applied = apply(region, "npc:" .. id .. ".option:"
+        .. tostring(info.orderIndex), source, translated, nil, "translate_gossip")
     if type(button.Resize) == "function" then pcall(button.Resize, button) end
+    if applied then refresh_gossip_element_layout(button) end
 end
 
 local function gossip_title(frame, source)
@@ -124,6 +181,7 @@ local function gossip_title(frame, source)
 end
 
 gossip_ui.prepare = function ()
+    ensure_gossip_extent_hook()
     hooks.region(_G.GossipFrameSharedMixin, "SetGossipTitle", gossip_title)
     hooks.region(_G.GossipFrame, "SetGossipTitle", gossip_title)
     local greeting_hook = hooks.region(_G.GossipGreetingTextMixin, "Setup", greeting)

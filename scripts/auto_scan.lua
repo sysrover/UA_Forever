@@ -93,6 +93,7 @@ local groups = {
 
 local diagnostic_groups = {
     observed_ui = true,
+    runtime = true,
     lockdowns = true,
     unsafe = true,
     hooks = true,
@@ -105,6 +106,8 @@ local diagnostic_groups = {
 local function diagnostics_enabled()
     return options.account and options.account.auto_scan_diagnostics == true
 end
+
+auto_scan.diagnostics_enabled = diagnostics_enabled
 
 local function safe_text(value)
     return runtime.safe_string_or_nil(value)
@@ -179,6 +182,30 @@ end
 
 local surface_states = {}
 local hook_states = {}
+local diagnostic_retention = {}
+
+local function bounded_diagnostic_put(group, records, key, value, limit)
+    local state = diagnostic_retention[group]
+    if not state then
+        state = { queue = {}, first = 1, last = 0, tokens = {}, next = 0 }
+        diagnostic_retention[group] = state
+    end
+    state.next = state.next + 1
+    local token = state.next
+    state.tokens[key] = token
+    state.last = state.last + 1
+    state.queue[state.last] = { key = key, token = token }
+    records[key] = value
+    while state.last - state.first + 1 > limit do
+        local row = state.queue[state.first]
+        state.queue[state.first] = nil
+        state.first = state.first + 1
+        if row and state.tokens[row.key] == row.token then
+            state.tokens[row.key] = nil
+            records[row.key] = nil
+        end
+    end
+end
 
 auto_scan.record_unsafe_source = function (context)
     local records = bucket("unsafe")
@@ -226,6 +253,7 @@ auto_scan.record_hook_status = function (state)
 end
 
 local function get_surface_state(surface)
+    if not diagnostics_enabled() then return nil end
     surface = safe_text(surface)
     if not surface then return nil end
     local state = surface_states[surface]
@@ -397,23 +425,35 @@ auto_scan.record_runtime_result = function (spec, visible, reason)
         local retained = reason == "RETAINED_AFTER_APPLY"
         local applied = visible ~= nil and visible ~= source
             and reason ~= "APPLY_FAILED" and reason ~= "OVERWRITTEN_AFTER_APPLY"
-        runtime_records[key] = {
-            owner = owner, slot = slot, surface = surface,
-            text = source, translation = translated, visible = visible,
-            lookupTier = safe_text(spec.lookupTier),
-            catalogSource = safe_text(spec.catalogSource),
-            reasonDetail = reason_detail,
-            regionKey = safe_text(spec.regionKey),
-            phase = safe_text(spec.phase),
-            generation = type(spec.generation) == "number"
-                and spec.generation or nil,
-            instance = (type(spec.instance) == "string"
-                or type(spec.instance) == "number") and spec.instance or nil,
-            applied = applied,
-            retained = retained,
-            outcome = safe_text(reason)
-                or (applied and "APPLIED" or "NOT_APPLIED"),
-        }
+        local lookup_tier = safe_text(spec.lookupTier)
+        local catalog_source = safe_text(spec.catalogSource)
+        local region_key = safe_text(spec.regionKey)
+        local phase = safe_text(spec.phase)
+        local generation = type(spec.generation) == "number"
+            and spec.generation or nil
+        local instance = (type(spec.instance) == "string"
+            or type(spec.instance) == "number") and spec.instance or nil
+        local outcome = safe_text(reason) or (applied and "APPLIED" or "NOT_APPLIED")
+        local current = runtime_records[key]
+        if type(current) ~= "table" or current.owner ~= owner
+            or current.slot ~= slot or current.surface ~= surface
+            or current.text ~= source or current.translation ~= translated
+            or current.visible ~= visible or current.lookupTier ~= lookup_tier
+            or current.catalogSource ~= catalog_source
+            or current.reasonDetail ~= reason_detail
+            or current.regionKey ~= region_key or current.phase ~= phase
+            or current.generation ~= generation or current.instance ~= instance
+            or current.applied ~= applied or current.retained ~= retained
+            or current.outcome ~= outcome then
+            bounded_diagnostic_put("runtime", runtime_records, key, {
+                owner = owner, slot = slot, surface = surface,
+                text = source, translation = translated, visible = visible,
+                lookupTier = lookup_tier, catalogSource = catalog_source,
+                reasonDetail = reason_detail, regionKey = region_key,
+                phase = phase, generation = generation, instance = instance,
+                applied = applied, retained = retained, outcome = outcome,
+            }, 512)
+        end
     end
     if not records then return end
     if visible == source or reason == "OVERWRITTEN_AFTER_APPLY" then
@@ -479,12 +519,21 @@ auto_scan.record_ui_observation = function (source, translated, visible, slot)
     slot = safe_text(slot) or "ui.text"
     if not records or not source or not translated or translated == source then return end
     local key = untranslated_key("ui-scan", slot, source)
-    records[key] = {
+    local resolved_visible = visible or source
+    local option_enabled = options.can_translate("translate_string") == true
+    local current = records[key]
+    if type(current) == "table" and current.owner == "ui-scan"
+        and current.slot == slot and current.surface == "ui-scan"
+        and current.text == source and current.translation == translated
+        and current.visible == resolved_visible
+        and current.optionEnabled == option_enabled
+        and current.outcome == "OBSERVED_ENGLISH_WITH_TRANSLATION" then return end
+    bounded_diagnostic_put("observed_ui", records, key, {
         owner = "ui-scan", slot = slot, surface = "ui-scan",
-        text = source, translation = translated, visible = visible or source,
-        optionEnabled = options.can_translate("translate_string") == true,
+        text = source, translation = translated, visible = resolved_visible,
+        optionEnabled = option_enabled,
         outcome = "OBSERVED_ENGLISH_WITH_TRANSLATION",
-    }
+    }, 512)
 end
 
 auto_scan.clear_runtime_owner = function (owner)
@@ -541,7 +590,7 @@ auto_scan.record_ui = function (source, translated, slot, surface, owner)
         end
     end
     local ui_translation
-    if strings.find_ui_translation then
+    if translated == nil and strings.find_ui_translation then
         local ok, value = pcall(strings.find_ui_translation, source)
         if ok then ui_translation = value end
     end
@@ -1013,6 +1062,12 @@ auto_scan.export_text = function ()
     local invalid_candidate_records = {}
     local catalog = addon_table.forever_catalog
     local include_diagnostics = diagnostics_enabled()
+    if include_diagnostics then
+        local registry = addon_table.use("translation_registry")
+        if type(registry.each_hook) == "function" then
+            registry.each_hook(auto_scan.record_hook_status)
+        end
+    end
     if include_diagnostics and catalog
         and type(catalog.get_ui_conflicts) == "function" then
         for _, conflict in ipairs(catalog.get_ui_conflicts(true)) do
@@ -1145,9 +1200,13 @@ auto_scan.export_text = function ()
                     for _, row in ipairs(record.lines) do
                         local title_translated = row.index == 1 and row.side == "Left"
                             and translated_name(group, key, row.text)
+                        local ui_translated = has_ui_translation(row.text)
+                        local globally_covered_item_line = group == "items"
+                            and ui_translated
                         if visible_english_tooltip_text(row.text)
+                            and not globally_covered_item_line
                             and (row.unapplied or (not title_translated
-                                and not has_ui_translation(row.text))) then
+                                and not ui_translated)) then
                             lines[#lines + 1] = row
                         end
                     end
@@ -1332,6 +1391,7 @@ auto_scan.clear_diagnostics = function ()
         scan.mouseProbe = nil
     end
     hook_states = {}
+    diagnostic_retention = {}
 end
 
 auto_scan.clear = function ()
@@ -1341,6 +1401,7 @@ auto_scan.clear = function ()
     end
     surface_states = {}
     hook_states = {}
+    diagnostic_retention = {}
     cleared = true
     suppress_developer_capture = true
 end

@@ -167,4 +167,5 @@ addonTable.zone = {
     ["Old Town"] = "Старе місто",
     ["The Canals"] = "Канали",
     ["Wizard's Sanctum"] = "Святилище чарівника",
+    ["Lakeshire Town Hall"] = "Ратуша Приозер'я",
 }

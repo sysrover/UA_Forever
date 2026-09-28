@@ -8656,6 +8656,23 @@ local npc = { -- [id] = { title, description (optional) }
 [276740] = { [1] = "Седрік Каменешукач", en = "Cedrik Stonequest" },
 [270581] = { [1] = "Фіренз Вішонар", en = "Fyrenz Vishonar" },
 [270693] = { [1] = "Кинджалоікл", en = "Daggerfang" },
+[256391] = { [1] = "Елейн Комптон", en = "Elaine Compton" },
+[256393] = { [1] = "В'ючний мул", en = "Pack Mule" },
+[256399] = { [1] = "В'ючний мул на відпочинку", en = "Off-Duty Pack Mule" },
+[256729] = { [1] = "Ніна Влучностріл", en = "Nina Surefire" },
+[256730] = { [1] = "Стондрі Темномолот", en = "Stondry Darkhammer" },
+[256733] = { [1] = "Фріц Шипун", en = "Fritz Fizzle" },
+[256734] = { [1] = "Даніель Шовкопіс", en = "Daniel Stitchsong" },
+[256735] = { [1] = "Мівін Тінеткач", en = "Mivin Shadowweave" },
+[256736] = { [1] = "Г'юї Сонячноділ", en = "Huey Sunnydale" },
+[256739] = { [1] = "Ящик ковальських товарів", en = "Crate of Blacksmithing Goods" },
+[258878] = { [1] = "Аукціоніст Швидкогрош", en = "Auctioneer Quickcoin" },
+[256389] = { [1] = "Тамелін Олдрідж", en = "Tamelyn Aldridge" },
+[256390] = { [1] = "Марсі Бейкер", en = "Marcy Baker" },
+[256731] = { [1] = "Калсі Санден", en = "Kalsey Sanden" },
+[256732] = { [1] = "Алінсія", en = "Alynsia" },
+[256738] = { [1] = "Кошик алхімічних товарів", en = "Basket of Alchemy Goods" },
+[256740] = { [1] = "Ящик припасів для зачарування", en = "Crate of Enchanting Supplies" },
 }
 
 if addonTable.npc then

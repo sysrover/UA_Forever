@@ -367,7 +367,7 @@ local function capture_font_string(region, stats)
     end
 
     if type(auto_scan.record_ui) == "function" then
-        auto_scan.record_ui(normalized, nil, frame_name)
+        auto_scan.record_ui(normalized, false, frame_name)
     end
 
     if #normalized > 1000 then normalized = normalized:sub(1, 1000) end
@@ -419,38 +419,30 @@ end
 local function after_combat_text_add_message(message)
     auto_scan.surface_hook("combat-text", "CombatText_AddMessage", true, true)
     if type(message) ~= "string" or is_secret(message) then return end
-    local translated = resolver.find_ui(message)
-    if options.account and options.account.auto_scan_content
+    local capture_enabled = options.account
+        and options.account.auto_scan_content == true
+    local translate_enabled = options.can_translate("translate_string")
+        and options.translate_combat_text()
+    if not capture_enabled and not translate_enabled then return end
+    if capture_enabled
         and type(auto_scan.record_ui) == "function" then
+        local translated = resolver.find_ui(message)
         auto_scan.record_ui(message, translated, "CombatText")
     end
-    if not options.can_translate("translate_string")
-        or not options.translate_combat_text() then return end
-    if not translated or translated == message then return end
-
-    local line_count = tonumber(_G.NUM_COMBAT_TEXT_LINES) or 20
-    for index = 1, math.min(line_count, 100) do
-        local region = _G["CombatText" .. index]
-        if region then
-            local shown_ok, shown = pcall(region.IsShown, region)
-            if shown_ok and shown and not is_secret(shown) then
-                local text_ok, current = pcall(region.GetText, region)
-                if text_ok and not is_secret(current) and current == message then
-                    runtime.apply(region, {
-                        owner = "combat-text", slot = "line:" .. index,
-                        source = message, translated = translated,
-                        option = "translate_string",
-                        priority = runtime.PRIORITY.STATIC_UI,
-                    })
-                end
-            end
-        end
-    end
+    -- Build 70009 exposes no written FontString identity through this global
+    -- callback. Let all messages in the native burst share one bounded pass.
+    strings.refresh_combat_text()
 end
 
 local function refresh_combat_text()
+    local capture_enabled = options.account
+        and options.account.auto_scan_content == true
+    local translate_enabled = options.can_translate("translate_string")
+        and options.translate_combat_text()
+    if not capture_enabled and not translate_enabled then return false end
     auto_scan.surface_attempt("combat-text", "refresh_combat_text")
     local line_count = tonumber(_G.NUM_COMBAT_TEXT_LINES) or 20
+    local saw_visible = false
     for index = 1, math.min(line_count, 100) do
         local region = _G["CombatText" .. index]
         if region then
@@ -459,18 +451,19 @@ local function refresh_combat_text()
             if shown_ok and shown and not is_secret(shown)
                 and text_ok and type(source) == "string" and source ~= ""
                 and not is_secret(source) then
-                -- The Forever client can retain the old Latin-only font on
-                -- pooled combat lines even after their shared FontObject was
-                -- updated. Repair the concrete visible line as well.
-                fonts.apply_to_font_string(region)
+                saw_visible = true
+                -- A client-global translation may already be Cyrillic before
+                -- resolver/runtime sees the line. Repair that pooled font;
+                -- runtime.apply handles fonts for actual resolver results.
+                if translate_enabled and source:find("[\208\209]") then
+                    fonts.apply_to_font_string(region)
+                end
                 local translated = resolver.find_ui(source, region)
-                if options.account and options.account.auto_scan_content
+                if capture_enabled
                     and type(auto_scan.record_ui) == "function" then
                     auto_scan.record_ui(source, translated, "CombatText" .. index)
                 end
-                if options.can_translate("translate_string")
-                    and options.translate_combat_text()
-                    and translated and translated ~= source then
+                if translate_enabled and translated and translated ~= source then
                     runtime.apply(region, {
                         owner = "combat-text", slot = "line:" .. index,
                         source = source, translated = translated,
@@ -481,12 +474,19 @@ local function refresh_combat_text()
             end
         end
     end
+    return saw_visible
 end
 
 strings.refresh_combat_text = function ()
-    refresh_combat_text()
-    scheduler.request("combat-text-event", nil, refresh_combat_text)
-    scheduler.request("combat-text-event-late", nil, refresh_combat_text, 0.05)
+    local capture_enabled = options.account
+        and options.account.auto_scan_content == true
+    local translate_enabled = options.can_translate("translate_string")
+        and options.translate_combat_text()
+    if not capture_enabled and not translate_enabled then return end
+    scheduler.request({ id = "combat-text-event", task_kind = "combat-text",
+        max_retries = 1, retry_delay = 0.05, callback = function ()
+            if not refresh_combat_text() then return false end
+        end })
 end
 
 strings.prepare = function ()
@@ -590,23 +590,10 @@ strings.capture_visible_ui = function ()
     for _, frame in ipairs(visible_safe_roots()) do
         capture_frame(frame, seen, 1, stats, allows_protected_children(frame))
     end
-    for text, record in pairs(UA_ForeverDB.scan.ui or {}) do
-        local translated, normalized = resolver.find_ui(text)
-        local eligible = not translated and normalized ~= "" and normalized:find("[A-Za-z]") ~= nil
-        if eligible then
-            local frames = type(record) == "table" and record.frames or nil
-            if type(frames) ~= "table" or #frames == 0 then
-                stats.unique = stats.unique + 1
-            else
-                for _, frame_name in ipairs(frames) do
-                    if not is_capture_noise(normalized, frame_name) then
-                        stats.unique = stats.unique + 1
-                        break
-                    end
-                end
-            end
-        end
-    end
+    -- Historical scan.ui entries are re-evaluated during export/catalog
+    -- refresh, not on every panel event. Gameplay capture is scoped to the
+    -- currently visible roots above.
+    stats.unique = stats.new
     return stats
 end
 

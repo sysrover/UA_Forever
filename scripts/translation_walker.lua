@@ -20,10 +20,16 @@ walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
         auto_scan.record_compatibility_fallback(metadata.reason,
             metadata.surface .. ":" .. metadata.owner .. ":" .. metadata.id)
     end
+    local max_nodes = tonumber(metadata.max_nodes) or 1000
+    max_nodes = math.max(1, math.min(math.floor(max_nodes), 5000))
     seen = seen or {}
     local function visit(frame, depth)
         if not frame or seen[frame] or depth > 20
             or (skip_frame and skip_frame(frame)) then return end
+        if stats.frames >= max_nodes then
+            stats.truncated = true
+            return
+        end
         seen[frame] = true
         stats.frames = stats.frames + 1
         if frame.GetRegions then

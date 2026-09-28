@@ -30,6 +30,8 @@ local deferred_scalar_surfaces = {}
 local performance_surfaces = setmetatable({}, { __mode = "k" })
 local performance_scalar_surfaces = {}
 local performance_totals = {}
+local verification_surfaces = setmetatable({}, { __mode = "k" })
+local verification_scalar_surfaces = {}
 
 local function indexed_bucket(object_index, scalar_index, surface, create)
     if surface == nil then return nil end
@@ -216,8 +218,18 @@ local function safe_text(region)
     if ok then return safe_string(value) end
 end
 
+local function region_is_visible(region)
+    if not region then return false end
+    local method_ok, is_visible = pcall(function () return region.IsVisible end)
+    if not method_ok or type(is_visible) ~= "function" then return true end
+    local ok, visible = pcall(is_visible, region)
+    if not ok or is_secret_value(visible) then return true end
+    return visible == true
+end
+
 local function record_runtime_result(region, spec, source, translated, reason, reason_detail)
-    if type(auto_scan.record_runtime_result) ~= "function"
+    if spec.record_runtime == false
+        or type(auto_scan.record_runtime_result) ~= "function"
         or not options.account or not options.account.auto_scan_content then return end
     local surface_id
     if type(spec.surface) == "string" then
@@ -269,7 +281,8 @@ local function visible_matches(claim, visible, display)
 end
 
 local function same_options(left, right)
-    left, right = left or {}, right or {}
+    if left == right then return true end
+    if type(left) ~= "table" or type(right) ~= "table" then return false end
     if #left ~= #right then return false end
     for index, value in ipairs(left) do
         if right[index] ~= value then return false end
@@ -277,26 +290,80 @@ local function same_options(left, right)
     return true
 end
 
+local protected_state_methods = { "IsForbidden", "IsProtected" }
+
+local function verification_slot(surface, create)
+    local kind = type(surface)
+    local object_surface = kind == "table" or kind == "userdata"
+        or kind == "thread" or kind == "function"
+    local index = object_surface and verification_surfaces
+        or verification_scalar_surfaces
+    local key = object_surface and surface or kind .. ":" .. tostring(surface)
+    local value = index[key]
+    if not value and create then
+        value = { regions = setmetatable({}, { __mode = "k" }) }
+        index[key] = value
+    end
+    return value, index, key
+end
+
 local function schedule_post_apply_verification(region, claim, spec, display)
-    if not options.account or not options.account.auto_scan_content
+    if spec.verify_after_apply == false
+        or not options.account or not options.account.auto_scan_content
         or type(scheduler.request) ~= "function" then return end
+    local surface = spec.surface or spec.tooltip or claim.surface or region
+    local batch, batch_index, batch_key = verification_slot(surface, true)
+    if batch.generation ~= claim.generation then
+        batch.generation = claim.generation
+        batch.regions = setmetatable({}, { __mode = "k" })
+    end
+    batch.regions[region] = {
+        claim = claim, spec = spec, display = display,
+    }
     scheduler.request({
-        id = "runtime-post-apply:" .. tostring(region),
+        id = "runtime-post-apply:" .. tostring(surface)
+            .. ":" .. tostring(claim.generation),
         generation = claim.generation,
-        surface = spec.surface or spec.tooltip,
-        instance = region,
+        surface = surface,
+        instance = claim.generation,
         task_kind = "post-apply",
-        callback = function ()
-            if claims[region] ~= claim then return end
-            local visible = safe_text(region)
-            if not visible_matches(claim, visible, display) then
-                clear_claim(region)
-                record_runtime_result(region, spec, claim.source,
-                    claim.translated, "OVERWRITTEN_AFTER_APPLY")
-            else
-                record_runtime_result(region, spec, claim.source,
-                    claim.translated, "RETAINED_AFTER_APPLY")
+        max_retries = 2,
+        retry_delay = 0.05,
+        callback = function (attempt)
+            local retry = false
+            for pending_region, row in pairs(batch.regions) do
+                local pending_claim = row.claim
+                if claims[pending_region] ~= pending_claim then
+                    batch.regions[pending_region] = nil
+                elseif not region_is_visible(pending_region) then
+                    clear_claim(pending_region)
+                    batch.regions[pending_region] = nil
+                    if type(auto_scan.discard_runtime_result) == "function" then
+                        auto_scan.discard_runtime_result(row.spec,
+                            pending_claim.source)
+                    end
+                else
+                    local visible = safe_text(pending_region)
+                    if not visible_matches(pending_claim, visible, row.display) then
+                        if attempt <= 2 then
+                            retry = true
+                        else
+                            clear_claim(pending_region)
+                            batch.regions[pending_region] = nil
+                            record_runtime_result(pending_region, row.spec,
+                                pending_claim.source, pending_claim.translated,
+                                "OVERWRITTEN_AFTER_APPLY")
+                        end
+                    else
+                        batch.regions[pending_region] = nil
+                        record_runtime_result(pending_region, row.spec,
+                            pending_claim.source, pending_claim.translated,
+                            "RETAINED_AFTER_APPLY")
+                    end
+                end
             end
+            if retry then return false end
+            if batch_index[batch_key] == batch then batch_index[batch_key] = nil end
         end,
     })
 end
@@ -330,7 +397,7 @@ local function protected_frame_state(region)
     local frame = region
     for _ = 1, 5 do
         if not frame then break end
-        for _, method in ipairs({ "IsForbidden", "IsProtected" }) do
+        for _, method in ipairs(protected_state_methods) do
             local method_ok, callback = pcall(function () return frame[method] end)
             if not method_ok or is_secret_value(callback) then
                 return nil, method == "IsForbidden"
@@ -458,6 +525,9 @@ runtime.clear_surface = function (surface, on_release)
         if deferred_writes[row[1]] == row[2] then clear_deferred(row[1]) end
     end
     deferred_layouts[surface] = nil
+    local verification, verification_index, verification_key =
+        verification_slot(surface, false)
+    if verification then verification_index[verification_key] = nil end
     if type(scheduler.cancel_surface) == "function" then
         scheduler.cancel_surface(surface)
     end
@@ -507,8 +577,11 @@ runtime.clear = runtime.invalidate
 runtime.allowed = function (spec)
     if not options.can_translate() then return false end
     if spec and spec.option and not options.can_translate(spec.option) then return false end
-    for _, option in ipairs(spec and spec.options or {}) do
-        if not options.can_translate(option) then return false end
+    local spec_options = spec and spec.options
+    if type(spec_options) == "table" then
+        for _, option in ipairs(spec_options) do
+            if not options.can_translate(option) then return false end
+        end
     end
     if not spec or not spec.category or not spec.slot
         or not spec.slot:match("%.name$") then return true end
@@ -555,6 +628,7 @@ runtime.apply = function (region, spec)
 
     -- A new Blizzard write to a pooled region begins a new claim. A lower
     -- priority pass cannot replace a still visible domain/context claim.
+    local cached_native_overwrite = false
     if previous then
         local current = safe_text(region)
         local same_lifecycle = previous.owner == spec.owner
@@ -564,12 +638,27 @@ runtime.apply = function (region, spec)
         local owner_generation_changed = previous.owner == spec.owner
             and previous.surface == spec.surface
             and previous.generation ~= generation
-        if instance_changed or owner_generation_changed
+        cached_native_overwrite = spec.reapply_cached == true
+            and current == previous.source
+            and previous.generation == generation
+            and previous.owner == spec.owner and previous.slot == spec.slot
+            and previous.priority == priority and previous.instance == instance
+            and previous.source == source and previous.translated == translated
+            and previous.name_original == name_original
+            and previous.option == spec.option
+            and previous.category == spec.category
+            and same_options(previous.options, spec.options)
+            and previous.visible_matches == spec.visible_matches
+            and not previous.visible_original and not previous.layout_pending
+            and (not options.can_translate("override_system_fonts")
+                or previous.font_ready == true)
+        if not cached_native_overwrite and (instance_changed or owner_generation_changed
             or current and current ~= previous.translated
-            and current ~= previous.name_original and current ~= previous.source then
+            and current ~= previous.name_original and current ~= previous.source) then
             previous = nil
             clear_claim(region)
         elseif current and current == previous.source
+            and not cached_native_overwrite
             and (previous.generation ~= generation or not previous.visible_original) then
             previous = nil
             clear_claim(region)
@@ -592,6 +681,21 @@ runtime.apply = function (region, spec)
             runtime.restore_source(region, source)
         end
         return false
+    end
+    if cached_native_overwrite
+        and not (spec.tooltip and spec.tooltip.uaForeverShowOriginal) then
+        local method_ok, set_text = pcall(function () return region.SetText end)
+        local write_allowed = runtime.can_write_text(region)
+        if method_ok and type(set_text) == "function" and write_allowed then
+            writing[region] = true
+            local ok = pcall(set_text, region, display)
+            writing[region] = nil
+            runtime.metric("set_text_calls", spec.surface, generation)
+            runtime.metric("cached_reapply_hits", spec.surface, generation)
+            if ok and visible_matches(previous, safe_text(region), display) then
+                return true
+            end
+        end
     end
     if previous and previous.generation == generation
         and previous.owner == spec.owner and previous.slot == spec.slot

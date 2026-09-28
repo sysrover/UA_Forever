@@ -17,6 +17,30 @@ local ironforge_map_tile_ids = { [271410] = true, [8061347] = true }
 local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge1.png"
 local original_map_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
+local coordinate_templates = setmetatable({}, { __mode = "k" })
+local coordinate_rules
+local translated_map_names = {}
+local unpack_values = unpack or table.unpack
+
+local function prepare_coordinate_rules()
+    if coordinate_rules then return coordinate_rules end
+    coordinate_rules = { cursor = {}, player = {} }
+    for _, rule in ipairs(addon_table.forever_ui_patterns or {}) do
+        if rule.pattern == "^Cursor: ([%d%.]+), ([%d%.]+)$" then
+            coordinate_rules.cursor[#coordinate_rules.cursor + 1] = rule
+        elseif rule.pattern == "^Player: ([%d%.]+), ([%d%.]+)$"
+            or rule.pattern == "^Player: ([%d%.]+), ([%d%.]+) %((.+)%)$" then
+            coordinate_rules.player[#coordinate_rules.player + 1] = rule
+        end
+    end
+    return coordinate_rules
+end
+
+local function apply_coordinate_rule(rule, source)
+    local captures = { source:match(rule.pattern) }
+    if #captures == 0 then return nil end
+    return rule.replace(unpack_values(captures))
+end
 
 local function replace_ironforge_map_tile(pin)
     if not pin or not pin.overlayTexturePool then return end
@@ -586,22 +610,30 @@ local function after_worldmap_coords_update(self)
         true, true)
     auto_scan.surface_attempt("worldmap-coords", "after_worldmap_coords_update")
 
-    -- These labels are rewritten on every OnUpdate. Translate them from this
-    -- owner callback so the native writer cannot immediately restore English.
+    -- Build 70009 rewrites these labels every OnUpdate. Reuse the selected
+    -- catalog pattern and only substitute the current numbers/map name.
     local function translate_coordinate(region, slot)
         local source = visible_text(region)
         if not source then return false end
-        local translated, _, source_kind, category, inferred_slot, option,
-            provenance = strings.find_ui_translation(source, region)
+        local kind = slot == "coords.cursor" and "cursor" or "player"
+        local cached = coordinate_templates[region]
+        local translated = cached and apply_coordinate_rule(cached, source)
+        if not translated then
+            for _, rule in ipairs(prepare_coordinate_rules()[kind]) do
+                translated = apply_coordinate_rule(rule, source)
+                if translated then
+                    coordinate_templates[region] = rule
+                    break
+                end
+            end
+        end
         if not translated or translated == source then return false end
-        runtime.invalidate(region)
         return runtime.apply(region, {
-            owner = "worldmap-coords", slot = slot or inferred_slot or "ui.text",
-            source = source, translated = translated, category = category,
-            option = option or "translate_string",
-            lookup_tier = source_kind,
-            catalog_source = provenance and provenance.source,
+            owner = "worldmap-coords", slot = slot or "ui.text",
+            source = source, translated = translated,
+            option = "translate_string", lookup_tier = "pattern",
             surface = "worldmap-coords", priority = runtime.PRIORITY.CONTEXT,
+            record_runtime = false, verify_after_apply = false,
         })
     end
     translate_coordinate(self.CursorCoords and self.CursorCoords.Label,
@@ -627,7 +659,18 @@ local function after_worldmap_coords_update(self)
     if not id_ok or type(map_id) ~= "number" then return end
     local info_ok, info = pcall(get_info, map_id)
     local native = info_ok and info and safe_string(info.name)
-    local translated = native and translated_zone_name(native)
+    local cached = translated_map_names[map_id]
+    local translated
+    if cached and cached.source == native then
+        translated = cached.translated
+    else
+        translated = native and translated_zone_name(native)
+        if native and translated then
+            translated_map_names[map_id] = {
+                source = native, translated = translated,
+            }
+        end
+    end
     if not translated then return end
     local start_at, end_at = current:find(native, 1, true)
     if not start_at then return end
@@ -637,6 +680,7 @@ local function after_worldmap_coords_update(self)
         owner = "zone-worldmap-coords", slot = "zone.name",
         source = current, translated = translated_line,
         option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
+        record_runtime = false, verify_after_apply = false,
     })
 end
 

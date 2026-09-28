@@ -13,6 +13,7 @@ local compositor_fonts = {}
 local compositor_font_count = 0
 local item_text_fonts = {}
 local item_text_font_count = 0
+local applied_signatures = setmetatable({}, { __mode = "k" })
 local original_damage_text_font
 local combat_text_font_names = {
     "CombatTextFont",
@@ -44,6 +45,36 @@ local function sanitize_font_flags(font_flags)
     return table.concat(result, ", ")
 end
 
+local function desired_signature(file, height, flags)
+    return tostring(file) .. "\031" .. tostring(height) .. "\031" .. tostring(flags)
+end
+
+local function font_matches(font, file, height, flags)
+    local method_ok, get_font = pcall(function () return font.GetFont end)
+    if not method_ok or type(get_font) ~= "function" then return false end
+    local ok, current_file, current_height, current_flags = pcall(get_font, font)
+    return ok and current_file == file and current_height == height
+        and sanitize_font_flags(current_flags) == flags
+end
+
+local function set_font_if_needed(font, file, height, flags)
+    flags = sanitize_font_flags(flags)
+    local signature = desired_signature(file, height, flags)
+    if applied_signatures[font] == signature
+        and font_matches(font, file, height, flags) then return true end
+    if font_matches(font, file, height, flags) then
+        applied_signatures[font] = signature
+        return true
+    end
+    local method_ok, set_font = pcall(function () return font.SetFont end)
+    if not method_ok or type(set_font) ~= "function" then return false end
+    local ok, applied = pcall(set_font, font, file, height, flags)
+    if type(runtime.metric) == "function" then runtime.metric("set_font_calls") end
+    if not ok or applied == false then return false end
+    applied_signatures[font] = signature
+    return true
+end
+
 local function apply_combat_text_font_objects()
     if not options.can_translate("override_system_fonts") then return end
     for _, name in ipairs(combat_text_font_names) do
@@ -54,11 +85,7 @@ local function apply_combat_text_font_objects()
                 if type(height) ~= "number" or height <= 0 or height > 120 then
                     height = 25
                 end
-                pcall(font.SetFont, font, assets.font_frizqt, height,
-                    sanitize_font_flags(flags))
-                if type(runtime.metric) == "function" then
-                    runtime.metric("set_font_calls")
-                end
+                set_font_if_needed(font, assets.font_frizqt, height, flags)
             end
         end
     end
@@ -98,6 +125,8 @@ local function apply_compositor_font(font_string, height, flags)
         compositor_fonts[key] = font
     end
 
+    local signature = "compositor\031" .. key
+    if applied_signatures[font_string] == signature then return true end
     local color_ok, r, g, b, a = false, nil, nil, nil, nil
     if type(get_text_color) == "function" then
         color_ok, r, g, b, a = pcall(get_text_color, font_string)
@@ -110,6 +139,7 @@ local function apply_compositor_font(font_string, height, flags)
         pcall(set_text_color, font_string, r, g, b,
             type(a) == "number" and a or 1)
     end
+    applied_signatures[font_string] = signature
     return true
 end
 
@@ -169,6 +199,11 @@ local function apply_item_text_html_fonts(region)
     local font_table = catalog[material] or catalog.default
     if type(font_table) ~= "table" then return false end
 
+    local signature = "html\031" .. material
+    for _, tag in ipairs({ "P", "H1", "H2", "H3" }) do
+        signature = signature .. "\031" .. tostring(font_table[tag])
+    end
+    if applied_signatures[region] == signature then return true end
     local paragraph_applied = false
     for _, tag in ipairs({ "P", "H1", "H2", "H3" }) do
         local font = item_text_font(font_table[tag])
@@ -179,6 +214,7 @@ local function apply_item_text_html_fonts(region)
             end
         end
     end
+    if paragraph_applied then applied_signatures[region] = signature end
     return paragraph_applied
 end
 
@@ -224,18 +260,10 @@ fonts.apply_to_font_string = function (font_string)
     if guarded then
         return apply_compositor_font(font_string, height, flags)
     end
-    local set_ok, set_font = pcall(function () return font_string.SetFont end)
-    if not set_ok or type(set_font) ~= "function" then return false end
-    local call_ok, applied = pcall(set_font, font_string,
-        assets.font_frizqt, height, flags)
-    if type(runtime.metric) == "function" then
-        runtime.metric("set_font_calls")
-    end
     -- FontInstance:SetFont can return false without raising a Lua error while
-    -- addon media are still becoming available during a cold login. Treat
-    -- that as a failed application so callers do not replace visible English
-    -- with Cyrillic that the old font cannot render.
-    return call_ok and applied ~= false
+    -- addon media are still becoming available during a cold login. Failed
+    -- calls are deliberately not signed so a later attempt can repair them.
+    return set_font_if_needed(font_string, assets.font_frizqt, height, flags)
 end
 
 fonts.prepare = function ()
@@ -308,10 +336,7 @@ fonts.prepare = function ()
                 font_height = f.height
             end
             if font_height then
-                font:SetFont(f.file, font_height, sanitize_font_flags(font_flags))
-                if type(runtime.metric) == "function" then
-                    runtime.metric("set_font_calls")
-                end
+                set_font_if_needed(font, f.file, font_height, font_flags)
             end
         end
     end
