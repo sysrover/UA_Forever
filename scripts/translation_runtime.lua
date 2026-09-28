@@ -22,6 +22,171 @@ local generations = setmetatable({}, { __mode = "k" })
 local generation_instances = setmetatable({}, { __mode = "k" })
 local writing = setmetatable({}, { __mode = "k" })
 local deferred_writes = setmetatable({}, { __mode = "k" })
+local deferred_layouts = setmetatable({}, { __mode = "k" })
+local claim_surfaces = setmetatable({}, { __mode = "k" })
+local deferred_surfaces = setmetatable({}, { __mode = "k" })
+local claim_scalar_surfaces = {}
+local deferred_scalar_surfaces = {}
+local performance_surfaces = setmetatable({}, { __mode = "k" })
+local performance_scalar_surfaces = {}
+local performance_totals = {}
+
+local function indexed_bucket(object_index, scalar_index, surface, create)
+    if surface == nil then return nil end
+    local kind = type(surface)
+    local object_surface = kind == "table" or kind == "userdata"
+        or kind == "thread" or kind == "function"
+    local index = object_surface and object_index or scalar_index
+    local key = object_surface and surface or kind .. ":" .. tostring(surface)
+    local bucket = index[key]
+    if not bucket and create then
+        bucket = setmetatable({}, { __mode = "k" })
+        index[key] = bucket
+    end
+    return bucket, index, key
+end
+
+local function unindex_region(object_index, scalar_index, surface, region)
+    local bucket, index, key = indexed_bucket(object_index, scalar_index,
+        surface, false)
+    if not bucket then return end
+    bucket[region] = nil
+    if next(bucket) == nil then index[key] = nil end
+end
+
+local function clear_claim(region)
+    local claim = claims[region]
+    if not claim then return false end
+    unindex_region(claim_surfaces, claim_scalar_surfaces,
+        claim.surface, region)
+    claims[region] = nil
+    return true
+end
+
+local function put_claim(region, claim)
+    clear_claim(region)
+    claims[region] = claim
+    local bucket = indexed_bucket(claim_surfaces, claim_scalar_surfaces,
+        claim.surface, true)
+    if bucket then bucket[region] = claim end
+end
+
+local function clear_deferred(region)
+    local spec = deferred_writes[region]
+    if not spec then return false end
+    unindex_region(deferred_surfaces, deferred_scalar_surfaces,
+        spec.surface, region)
+    deferred_writes[region] = nil
+    return true
+end
+
+local function put_deferred(region, spec)
+    clear_deferred(region)
+    deferred_writes[region] = spec
+    local bucket = indexed_bucket(deferred_surfaces, deferred_scalar_surfaces,
+        spec.surface, true)
+    if bucket then bucket[region] = spec end
+end
+
+local function metrics_enabled()
+    local account = options.account
+    return account and (account.dev_mode == true
+        or account.auto_scan_diagnostics == true)
+end
+
+runtime.metric = function (name, surface, generation, amount)
+    if not metrics_enabled() or type(name) ~= "string" then return end
+    amount = type(amount) == "number" and amount or 1
+    performance_totals[name] = (performance_totals[name] or 0) + amount
+    if surface == nil then return end
+    local bucket = indexed_bucket(performance_surfaces,
+        performance_scalar_surfaces, surface, true)
+    if not bucket then return end
+    local key = type(generation) == "number" and generation or 0
+    local row = bucket[key]
+    if not row then
+        row = {}
+        bucket[key] = row
+    end
+    row[name] = (row[name] or 0) + amount
+end
+
+local function add_duration(row, name, value)
+    row._durations = row._durations or {}
+    local sample = row._durations[name]
+    if not sample then
+        sample = { values = {}, next_index = 1, count = 0, sum = 0, max = 0 }
+        row._durations[name] = sample
+    end
+    sample.count = sample.count + 1
+    sample.sum = sample.sum + value
+    sample.max = math.max(sample.max, value)
+    sample.values[sample.next_index] = value
+    sample.next_index = sample.next_index % 128 + 1
+end
+
+runtime.metric_duration = function (name, surface, generation, value)
+    if not metrics_enabled() or type(name) ~= "string"
+        or type(value) ~= "number" then return end
+    add_duration(performance_totals, name, math.max(0, value))
+    if surface == nil then return end
+    local bucket = indexed_bucket(performance_surfaces,
+        performance_scalar_surfaces, surface, true)
+    local key = type(generation) == "number" and generation or 0
+    local row = bucket[key]
+    if not row then row = {}; bucket[key] = row end
+    add_duration(row, name, math.max(0, value))
+end
+
+runtime.performance_snapshot = function (surface, generation)
+    local source = performance_totals
+    if surface ~= nil then
+        local bucket = indexed_bucket(performance_surfaces,
+            performance_scalar_surfaces, surface, false)
+        source = bucket and bucket[type(generation) == "number"
+            and generation or runtime.generation(surface)] or {}
+    end
+    local result = {}
+    for name, value in pairs(source or {}) do
+        if name ~= "_durations" then result[name] = value end
+    end
+    result.durations = {}
+    for name, sample in pairs(source and source._durations or {}) do
+        local values = {}
+        for _, value in pairs(sample.values) do values[#values + 1] = value end
+        table.sort(values)
+        local function percentile(fraction)
+            if #values == 0 then return 0 end
+            return values[math.max(1, math.ceil(#values * fraction))]
+        end
+        result.durations[name] = {
+            count = sample.count, total = sample.sum, max = sample.max,
+            p50 = percentile(0.50), p95 = percentile(0.95),
+        }
+    end
+    if type(_G.collectgarbage) == "function" then
+        local ok, memory = pcall(_G.collectgarbage, "count")
+        if ok and type(memory) == "number" then result.memoryKB = memory end
+    end
+    local deferred_count = 0
+    if surface ~= nil then
+        local bucket = indexed_bucket(deferred_surfaces,
+            deferred_scalar_surfaces, surface, false)
+        for _ in pairs(bucket or {}) do deferred_count = deferred_count + 1 end
+        if deferred_layouts[surface] then deferred_count = deferred_count + 1 end
+    else
+        for _ in pairs(deferred_writes) do deferred_count = deferred_count + 1 end
+        for _ in pairs(deferred_layouts) do deferred_count = deferred_count + 1 end
+    end
+    result.deferred_queue_length = deferred_count
+    return result
+end
+
+runtime.reset_performance = function ()
+    performance_surfaces = setmetatable({}, { __mode = "k" })
+    performance_scalar_surfaces = {}
+    performance_totals = {}
+end
 
 runtime.is_secret_value = function (value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -103,6 +268,15 @@ local function visible_matches(claim, visible, display)
     return ok and matches == true
 end
 
+local function same_options(left, right)
+    left, right = left or {}, right or {}
+    if #left ~= #right then return false end
+    for index, value in ipairs(left) do
+        if right[index] ~= value then return false end
+    end
+    return true
+end
+
 local function schedule_post_apply_verification(region, claim, spec, display)
     if not options.account or not options.account.auto_scan_content
         or type(scheduler.request) ~= "function" then return end
@@ -111,11 +285,12 @@ local function schedule_post_apply_verification(region, claim, spec, display)
         generation = claim.generation,
         surface = spec.surface or spec.tooltip,
         instance = region,
+        task_kind = "post-apply",
         callback = function ()
             if claims[region] ~= claim then return end
             local visible = safe_text(region)
             if not visible_matches(claim, visible, display) then
-                claims[region] = nil
+                clear_claim(region)
                 record_runtime_result(region, spec, claim.source,
                     claim.translated, "OVERWRITTEN_AFTER_APPLY")
             else
@@ -132,6 +307,18 @@ local function display_translation(claim)
         return claim.name_original
     end
     return claim.translated
+end
+
+runtime.is_stable_claim = function (region, surface, generation)
+    local claim = region and claims[region]
+    if not claim or claim.surface ~= surface
+        or claim.generation ~= generation or claim.visible_original then
+        return false
+    end
+    if not runtime.allowed(claim) then return false end
+    if options.can_translate("override_system_fonts")
+        and claim.font_ready ~= true then return false end
+    return visible_matches(claim, safe_text(region), display_translation(claim))
 end
 
 local function protected_frame_state(region)
@@ -203,10 +390,11 @@ end
 runtime.for_each_claim = function (surface, callback)
     if not surface or type(callback) ~= "function" then return 0 end
     local snapshot = {}
-    for region, claim in pairs(claims) do
-        if claim.surface == surface then
-            snapshot[#snapshot + 1] = { region = region, claim = claim }
-        end
+    local bucket = indexed_bucket(claim_surfaces, claim_scalar_surfaces,
+        surface, false)
+    for region, claim in pairs(bucket or {}) do
+        runtime.metric("claim_visits", surface, claim.generation)
+        snapshot[#snapshot + 1] = { region = region, claim = claim }
     end
     local count = 0
     for _, row in ipairs(snapshot) do
@@ -234,48 +422,87 @@ local function stable_instance(value)
     end
 end
 
-runtime.begin_generation = function (surface, instance)
+runtime.begin_generation = function (surface, instance, on_release)
     if not surface or is_secret_value(surface) then return nil end
+    runtime.clear_surface(surface, on_release)
     local generation = (generations[surface] or 0) + 1
     generations[surface] = generation
     generation_instances[surface] = stable_instance(instance)
-    for region, claim in pairs(claims) do
-        if claim.surface == surface then claims[region] = nil end
-    end
-    for region, spec in pairs(deferred_writes) do
-        if spec.surface == surface then deferred_writes[region] = nil end
-    end
     return generation
+end
+
+runtime.clear_surface = function (surface, on_release)
+    if not surface or is_secret_value(surface) then return 0 end
+    local removed = 0
+    local claim_bucket = indexed_bucket(claim_surfaces,
+        claim_scalar_surfaces, surface, false)
+    local claim_snapshot = {}
+    for region, claim in pairs(claim_bucket or {}) do
+        claim_snapshot[#claim_snapshot + 1] = { region, claim }
+    end
+    for _, row in ipairs(claim_snapshot) do
+        local region, claim = row[1], row[2]
+        if claims[region] == claim then
+            if type(on_release) == "function" then pcall(on_release, region, claim) end
+            clear_claim(region)
+            removed = removed + 1
+        end
+    end
+    local deferred_bucket = indexed_bucket(deferred_surfaces,
+        deferred_scalar_surfaces, surface, false)
+    local deferred_snapshot = {}
+    for region, spec in pairs(deferred_bucket or {}) do
+        deferred_snapshot[#deferred_snapshot + 1] = { region, spec }
+    end
+    for _, row in ipairs(deferred_snapshot) do
+        if deferred_writes[row[1]] == row[2] then clear_deferred(row[1]) end
+    end
+    deferred_layouts[surface] = nil
+    if type(scheduler.cancel_surface) == "function" then
+        scheduler.cancel_surface(surface)
+    end
+    runtime.metric("surface_claims_cleared", surface,
+        runtime.generation(surface), removed)
+    return removed
+end
+
+runtime.defer_layout = function (surface, callback)
+    if not surface or type(callback) ~= "function" then return false end
+    deferred_layouts[surface] = {
+        generation = runtime.generation(surface),
+        instance = runtime.generation_instance(surface),
+        callback = callback,
+    }
+    return true
 end
 
 runtime.release = function (region, owner, slot)
     local claim = region and claims[region]
     if not claim then
         if region and not owner and not slot and deferred_writes[region] then
-            deferred_writes[region] = nil
+            clear_deferred(region)
             return true
         end
         return false
     end
     if owner and claim.owner ~= owner then return false end
     if slot and claim.slot ~= slot then return false end
-    claims[region] = nil
-    deferred_writes[region] = nil
+    clear_claim(region)
+    clear_deferred(region)
     return true
 end
 
 runtime.invalidate = function (region)
     if not region then return false end
     local existed = claims[region] ~= nil or deferred_writes[region] ~= nil
-    claims[region] = nil
-    deferred_writes[region] = nil
+    clear_claim(region)
+    clear_deferred(region)
     return existed
 end
 
 -- Compatibility names for adapters migrated in later stages.
 runtime.next_generation = runtime.begin_generation
 runtime.clear = runtime.invalidate
-runtime.clear_surface = runtime.begin_generation
 
 runtime.allowed = function (spec)
     if not options.can_translate() then return false end
@@ -306,31 +533,6 @@ runtime.apply = function (region, spec)
     end
     local source = safe_string(spec.source) or safe_text(region)
     local allowed = runtime.allowed(spec)
-    local method_ok, set_text = pcall(function () return region.SetText end)
-    if not method_ok or type(set_text) ~= "function" then
-        if allowed then
-            record_runtime_result(region, spec, source, translated, "SetText недоступний")
-        end
-        return false
-    end
-    local write_allowed, write_reason, write_detail = runtime.can_write_text(region)
-    if not write_allowed then
-        if allowed then
-            record_runtime_result(region, spec, source, translated,
-                write_reason, write_detail)
-            if write_detail == "IN_COMBAT_LOCKDOWN"
-                and spec.defer_if_protected ~= false and source then
-                local deferred_spec = {}
-                for key, value in pairs(spec) do deferred_spec[key] = value end
-                deferred_spec.source = source
-                deferred_writes[region] = deferred_spec
-            else
-                deferred_writes[region] = nil
-            end
-        end
-        return false
-    end
-    deferred_writes[region] = nil
     local name_original = safe_string(spec.name_original)
     local display = name_original and spec.category
         and not options.translate_name(spec.category)
@@ -366,11 +568,11 @@ runtime.apply = function (region, spec)
             or current and current ~= previous.translated
             and current ~= previous.name_original and current ~= previous.source then
             previous = nil
-            claims[region] = nil
+            clear_claim(region)
         elseif current and current == previous.source
             and (previous.generation ~= generation or not previous.visible_original) then
             previous = nil
-            claims[region] = nil
+            clear_claim(region)
         end
     end
     if previous
@@ -382,6 +584,7 @@ runtime.apply = function (region, spec)
         return false, "CLAIM_CONFLICT"
     end
     if not allowed then
+        runtime.metric("option_disabled", spec.surface, generation)
         if previous then
             runtime.show_original(region, true)
         elseif spec.category and spec.slot and spec.slot:match("%.name$")
@@ -392,11 +595,18 @@ runtime.apply = function (region, spec)
     end
     if previous and previous.generation == generation
         and previous.owner == spec.owner and previous.slot == spec.slot
+        and previous.priority == priority and previous.instance == instance
         and previous.source == source and previous.translated == translated
         and previous.name_original == name_original
+        and previous.option == spec.option
+        and previous.category == spec.category
+        and same_options(previous.options, spec.options)
         and not previous.visible_original
+        and (not options.can_translate("override_system_fonts")
+            or previous.font_ready == true)
+        and not previous.layout_pending
         and visible_matches(previous, safe_text(region), display) then
-        record_runtime_result(region, spec, source, translated)
+        runtime.metric("stable_claim_hits", spec.surface, generation)
         return true
     end
 
@@ -409,16 +619,47 @@ runtime.apply = function (region, spec)
     if source == display then return false end
     if spec.tooltip and spec.tooltip.uaForeverShowOriginal then return false end
 
+    local method_ok, set_text = pcall(function () return region.SetText end)
+    if not method_ok or type(set_text) ~= "function" then
+        if allowed then
+            record_runtime_result(region, spec, source, translated, "SetText недоступний")
+        end
+        return false
+    end
+    local write_allowed, write_reason, write_detail = runtime.can_write_text(region)
+    if not write_allowed then
+        if allowed then
+            record_runtime_result(region, spec, source, translated,
+                write_reason, write_detail)
+            if write_detail == "IN_COMBAT_LOCKDOWN"
+                and spec.defer_if_protected ~= false and source then
+                local deferred_spec = {}
+                for key, value in pairs(spec) do deferred_spec[key] = value end
+                deferred_spec.source = source
+                deferred_spec.generation = generation
+                deferred_spec.instance = instance
+                put_deferred(region, deferred_spec)
+            else
+                clear_deferred(region)
+            end
+        end
+        return false
+    end
+    clear_deferred(region)
+
+    local font_ready = not options.can_translate("override_system_fonts")
     if options.can_translate("override_system_fonts") then
         local font_ok = runtime.ensure_font(region)
         if not font_ok and display:find("[\208\209]") then
             record_runtime_result(region, spec, source, translated, "шрифт не застосувався")
             return false
         end
+        font_ready = font_ok == true
     end
     writing[region] = true
     local ok = pcall(set_text, region, display)
     writing[region] = nil
+    runtime.metric("set_text_calls", spec.surface, generation)
     if not ok then
         record_runtime_result(region, spec, source, translated, "SetText завершився помилкою")
         return false
@@ -440,8 +681,11 @@ runtime.apply = function (region, spec)
         catalog_source = spec.catalog_source,
         after_visibility = spec.after_visibility,
         visible_matches = spec.visible_matches,
+        font_ready = font_ready,
+        layout_pending = spec.layout_pending == true,
+        after_apply = spec.after_apply,
     }
-    claims[region] = claim
+    put_claim(region, claim)
     if spec.after_apply then pcall(spec.after_apply, region, source) end
     if spec.after_visibility then pcall(spec.after_visibility, region) end
     record_runtime_result(region, spec, source, translated)
@@ -458,12 +702,46 @@ runtime.retry_deferred = function ()
     for _, entry in ipairs(pending) do
         local region, spec = entry.region, entry.spec
         if deferred_writes[region] == spec then
-            deferred_writes[region] = nil
+            clear_deferred(region)
             local current = safe_text(region)
-            if current and current == safe_string(spec.source)
+            local current_generation = spec.surface
+                and runtime.generation(spec.surface) or spec.generation
+            local current_instance = spec.surface
+                and runtime.generation_instance(spec.surface) or spec.instance
+            local lifecycle_current = (not spec.generation
+                    or spec.generation == current_generation)
+                and (spec.instance == nil or spec.instance == current_instance)
+            local shown = true
+            local method_ok, is_shown = pcall(function () return region.IsShown end)
+            if method_ok and type(is_shown) == "function" then
+                local ok, value = pcall(is_shown, region)
+                shown = ok and not is_secret_value(value) and value == true
+            end
+            if lifecycle_current and shown
+                and current and current == safe_string(spec.source)
+                and runtime.allowed(spec)
                 and runtime.apply(region, spec) then
                 applied = applied + 1
             end
+        end
+    end
+    local layouts = {}
+    for surface, spec in pairs(deferred_layouts) do
+        layouts[#layouts + 1] = { surface = surface, spec = spec }
+    end
+    for _, entry in ipairs(layouts) do
+        local surface, spec = entry.surface, entry.spec
+        if deferred_layouts[surface] == spec then
+            deferred_layouts[surface] = nil
+            local current = spec.generation == runtime.generation(surface)
+                and spec.instance == runtime.generation_instance(surface)
+            local shown = true
+            local method_ok, is_shown = pcall(function () return surface.IsShown end)
+            if method_ok and type(is_shown) == "function" then
+                local ok, value = pcall(is_shown, surface)
+                shown = ok and not is_secret_value(value) and value == true
+            end
+            if current and shown then pcall(spec.callback, surface) end
         end
     end
     return applied

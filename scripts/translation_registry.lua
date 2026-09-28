@@ -403,6 +403,10 @@ registry.register_defaults = function (translate_frame)
         domains = { "npc", "chat" }, slots = { "chat.text" },
         dynamic_hooks = { "CHAT_MSG_MONSTER_SAY", "CHAT_MSG_MONSTER_YELL" },
         clear_on_reuse = true })
+    registry.register_surface({ id = "achievement-alert", roots = {},
+        domains = { "ui" }, slots = { "achievement.name", "ui.title" },
+        dynamic_hooks = { "AchievementAlertFrame_SetUp" },
+        clear_on_reuse = true })
 end
 
 registry.each = function (callback)

@@ -94,6 +94,12 @@ local function show_export_window()
         help:SetJustifyH("LEFT")
         runtime.set_fallback_text(help, addon_locale.export_help)
 
+        local performance_text = content_frame:CreateFontString(nil, "ARTWORK",
+            "GameFontHighlightSmall")
+        performance_text:SetPoint("TOPLEFT", 20, -63)
+        performance_text:SetWidth(640)
+        performance_text:SetJustifyH("LEFT")
+
         local form_button = CreateFrame("Button", nil, content_frame,
             "UIPanelButtonTemplate")
         form_button:SetSize(135, 24)
@@ -103,7 +109,7 @@ local function show_export_window()
 
         local scroll = CreateFrame("ScrollFrame", nil, content_frame,
             "UIPanelScrollFrameTemplate")
-        scroll:SetPoint("TOPLEFT", 20, -75)
+        scroll:SetPoint("TOPLEFT", 20, -85)
         scroll:SetPoint("BOTTOMRIGHT", -42, 48)
         local edit = CreateFrame("EditBox", nil, scroll)
         edit:SetMultiLine(true)
@@ -127,10 +133,33 @@ local function show_export_window()
         copy:SetPoint("BOTTOMRIGHT", -20, 14)
         runtime.set_fallback_text(copy, addon_locale.select_for_copy)
 
-        local function refresh()
-            local content = auto_scan.export_text()
-            local has_data = content ~= ""
-            if not has_data then content = addon_locale.no_export_data end
+        local function performance_summary(snapshot)
+            if type(snapshot) ~= "table" or not snapshot.available
+                or not snapshot.enabled then
+                return addon_locale.performance_unavailable
+            end
+            local current = snapshot.Current or {}
+            local average = snapshot.Average or {}
+            local peak = snapshot.Peak or {}
+            local function value(row, field)
+                return type(row[field]) == "string" and row[field] or "—"
+            end
+            return string.format(addon_locale.performance_addon,
+                value(current, "addonCPU"), value(average, "addonCPU"),
+                value(peak, "addonCPU"))
+        end
+
+        local function refresh(update_report)
+            local snapshot
+            if type(auto_scan.performance_snapshot) == "function" then
+                snapshot = auto_scan.performance_snapshot()
+            end
+            runtime.set_fallback_text(performance_text,
+                performance_summary(snapshot))
+            if update_report == false then return end
+            local scan_content = auto_scan.export_text()
+            local has_data = scan_content ~= ""
+            local content = has_data and scan_content or addon_locale.no_export_data
             edit:SetHeight(math.max(380, math.ceil(#content / 65) * 16))
             edit:SetText(content)
             edit:SetCursorPosition(0)
@@ -155,6 +184,7 @@ local function show_export_window()
             StaticPopup_Show("UA_FOREVER_CLEAR_AUTO_SCAN")
         end)
         copy:SetScript("OnClick", function ()
+            refresh()
             edit:SetFocus()
             edit:HighlightText()
         end)
@@ -191,6 +221,15 @@ local function show_export_window()
         end)
         collapse:SetScript("OnLeave", function () GameTooltip:Hide() end)
         set_collapsed(false)
+
+        local performance_elapsed = 0
+        window:SetScript("OnUpdate", function (_, elapsed)
+            if window.collapsed then return end
+            performance_elapsed = performance_elapsed + elapsed
+            if performance_elapsed < 1 then return end
+            performance_elapsed = 0
+            refresh(false)
+        end)
 
         window.refresh = refresh
         export_window = window

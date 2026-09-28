@@ -1,5 +1,6 @@
 local _, addon_table = ...
 local layout = addon_table.use("translation_layout")
+local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
 
 local BUTTON_TEXT_PADDING = 24
@@ -230,6 +231,58 @@ local function fit_bag_tooltip_width(tooltip, region, source)
     end
 end
 
+local function fit_tooltip_snapshot(tooltip, snapshot)
+    if not is_tooltip(tooltip) or type(snapshot) ~= "table" then return false end
+    local original_width = snapshot.tooltip_width
+        or safe_dimension(tooltip, "GetWidth")
+    local original_height = snapshot.tooltip_height
+        or safe_dimension(tooltip, "GetHeight")
+    if not original_width or not original_height then return false end
+
+    local max_text_width = 0
+    for index = 1, snapshot.count or 0 do
+        local row = snapshot[index]
+        for _, side in ipairs({ row and row.left, row and row.right }) do
+            if side and side.region then
+                max_text_width = math.max(max_text_width,
+                    unbounded_text_width(side.region) or 0)
+            end
+        end
+    end
+    local target_width = original_width
+    if original_width < TOOLTIP_COMPACT_WIDTH and max_text_width > 0 then
+        target_width = math.min(TOOLTIP_MAX_WIDTH,
+            math.max(original_width, math.ceil(max_text_width + TOOLTIP_TEXT_PADDING)))
+    end
+    if target_width > original_width and type(tooltip.SetWidth) == "function" then
+        local ok = pcall(tooltip.SetWidth, tooltip, target_width)
+        if ok and type(runtime.metric) == "function" then
+            runtime.metric("layout_writes", tooltip, tooltip.uaForeverGeneration)
+        end
+    end
+
+    local height_delta = 0
+    for index = 1, snapshot.count or 0 do
+        local row = snapshot[index]
+        for _, side in ipairs({ row and row.left, row and row.right }) do
+            if side and side.region and side.previous_height then
+                local current = safe_dimension(side.region, "GetStringHeight")
+                    or safe_dimension(side.region, "GetHeight")
+                if current then height_delta = height_delta + current - side.previous_height end
+            end
+        end
+    end
+    local target_height = original_height + height_delta
+    if math.abs(height_delta) >= 0.5 and target_height > 0
+        and type(tooltip.SetHeight) == "function" then
+        local ok = pcall(tooltip.SetHeight, tooltip, target_height)
+        if ok and type(runtime.metric) == "function" then
+            runtime.metric("layout_writes", tooltip, tooltip.uaForeverGeneration)
+        end
+    end
+    return true
+end
+
 local function is_shown(frame)
     if not frame then return false end
     local method_ok, callback = pcall(function () return frame.IsShown end)
@@ -395,6 +448,7 @@ layout.fit_tooltip_width_to_region = fit_tooltip_width_to_region
 layout.restore_tooltip_width = restore_tooltip_width
 layout.fit_aura_header_width = fit_aura_header_width
 layout.fit_bag_tooltip_width = fit_bag_tooltip_width
+layout.fit_tooltip_snapshot = fit_tooltip_snapshot
 layout.fit_profession_recipe_label = fit_profession_recipe_label
 layout.fit_profession_output_text = fit_profession_output_text
 layout.fit_auction_tab = fit_auction_tab

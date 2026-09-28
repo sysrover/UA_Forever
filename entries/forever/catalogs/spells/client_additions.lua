@@ -6966,7 +6966,11 @@ local client_spells = {
     [20010] = { "Чари для наручів - Чудова сила", en="Enchant Bracer - Superior Strength" },
     [20011] = { "Зачарувати браслет - чудова витривалість", en="Enchant Bracer - Superior Stamina" },
     [20012] = { "Чари для рукавичок - Більша спритність", en="Enchant Gloves - Greater Agility" },
-    [20013] = { "Чари для рукавичок - Більша сила", en="Enchant Gloves - Greater Strength" },
+    [20013] = {
+        "Чари для рукавичок - Більша сила",
+        "Назавжди зачаровує рукавиці, надаючи +7 до сили.",
+        en="Enchant Gloves - Greater Strength",
+    },
     [20014] = { "Зачарувати плащ - Більший опір", en="Enchant Cloak - Greater Resistance" },
     [20015] = { "Зачарувати плащ - Покращений захист", en="Enchant Cloak - Superior Defense" },
     [20016] = { "Зачарувати щит - Вищий дух", en="Enchant Shield - Superior Spirit" },

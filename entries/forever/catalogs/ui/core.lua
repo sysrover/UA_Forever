@@ -90,6 +90,7 @@ local ui = {
     ["Unspent Talents"] = "Вільні очки",
     ["Apply Changes"] = "Застосувати зміни",
     ["Achievements"] = "Досягнення",
+    ["Explore Dun Morogh"] = "Дослідіти Дун-Морог",
     ["Legacy"] = "Спадщина",
     ["Housing Dashboard"] = "Панель житла",
     ["Guild Finder"] = "Пошук гільдії",

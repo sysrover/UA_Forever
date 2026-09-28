@@ -1,5 +1,6 @@
 local _, addon_table = ...
 local entries = addon_table.use("entries")
+local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
 local compiled
 
@@ -122,6 +123,7 @@ resolver.find_ui = function (text, region, context)
         local ok, secret = pcall(_G.issecretvalue, text)
         if not ok or secret then return nil end
     end
+    if type(runtime.metric) == "function" then runtime.metric("resolver_calls") end
     local normalized = resolver.normalize(text)
     local frame_name = safe_name(region)
     resolver.prepare()
@@ -132,14 +134,6 @@ resolver.find_ui = function (text, region, context)
         if translated_zone then
             return translated_zone, normalized, "domain", "zone", "zone.name",
                 "translate_zone"
-        end
-    end
-    if frame_name:find("AuctionHouseFrame", 1, true) then
-        local translated_item = entries.lookup_name("item", text)
-            or entries.lookup_name("item", normalized)
-        if translated_item then
-            return translated_item, normalized, "domain", "item", "item.name",
-                "translate_item"
         end
     end
     local name, category, slot, domain_option =

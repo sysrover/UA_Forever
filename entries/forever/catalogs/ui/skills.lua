@@ -37,6 +37,15 @@ local skills = {
     ["Shield"] = "Щит",
     ["Mining"] = "Гірництво",
 
+    ["Runed Enchanting Rods"] = "Рунічні жезли зачарування",
+    ["Wizard Oils"] = "Чарівні олії",
+    ["Bracer Enchants"] = "Чари для наручів",
+    ["Boots Enchants"] = "Чари для чобіт",
+    ["Two-Handed Weapon Enchants"] = "Чари для дворучної зброї",
+    ["Relics"] = "Реліквії",
+    ["Agility Food"] = "Їжа для спритності",
+    ["Camping"] = "Таборування",
+
     ["Common"] = "Спільна",
     ["Dwarven"] = "Дворфійська",
     ["Gnomish"] = "Гномська",

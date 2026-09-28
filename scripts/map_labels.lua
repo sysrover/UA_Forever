@@ -606,9 +606,15 @@ local function after_worldmap_coords_update(self)
     end
     translate_coordinate(self.CursorCoords and self.CursorCoords.Label,
         "coords.cursor")
-    translate_coordinate(self.PlayerCoords and self.PlayerCoords.Label,
+    local player_translated = translate_coordinate(
+        self.PlayerCoords and self.PlayerCoords.Label,
         "coords.player")
+    if player_translated then return end
 
+    -- The full UI pattern normally translates the player coordinates and
+    -- zone in one write. Keep this domain-only fallback for custom settings
+    -- where generic UI translation is disabled but zone translation remains
+    -- enabled, or for a client format not covered by the UI pattern.
     local map_api = _G.C_Map
     local get_info = map_api and map_api.GetMapInfo
     if not map_api or type(map_api.GetBestMapForUnit) ~= "function"
@@ -623,19 +629,13 @@ local function after_worldmap_coords_update(self)
     local native = info_ok and info and safe_string(info.name)
     local translated = native and translated_zone_name(native)
     if not translated then return end
-    local source = current
-    local translated_at, translated_end = source:find(translated, 1, true)
-    if translated_at then
-        source = source:sub(1, translated_at - 1) .. native
-            .. source:sub(translated_end + 1)
-    end
-    local start_at, end_at = source:find(native, 1, true)
+    local start_at, end_at = current:find(native, 1, true)
     if not start_at then return end
-    local translated_line = source:sub(1, start_at - 1) .. translated
-        .. source:sub(end_at + 1)
+    local translated_line = current:sub(1, start_at - 1) .. translated
+        .. current:sub(end_at + 1)
     runtime.apply(region, {
         owner = "zone-worldmap-coords", slot = "zone.name",
-        source = source, translated = translated_line,
+        source = current, translated = translated_line,
         option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
     })
 end

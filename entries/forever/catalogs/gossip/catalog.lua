@@ -1018,6 +1018,19 @@ local verified_entries = {
     [3836] = {
         ["dtcetohritnenenowyaeyuggtobeltiotesggeientggtohnhwmytsdohetotlyuctltyuindoyuntskcnaeyuanocindenonoifltyuintnhetolteyinpysnyrcefswlwtintntrdtrstntrfsadsoonadsofhtelttetthdwlwewttkatteltteithd"] = "І чути цього не хочу, {ім'я:к}. Ні, нізащо вас не пустять до Випаленої ущелини. Неможливо. Цього не буде. Скільки разів мені ще повторювати — я не можу вас пропустити! Ви що, не розумієте загальної? Чи, може, ви орк під прикриттям? Н-І. НІ!\n\nЯкщо я впущу вас, доведеться впускати всіх. Незабаром сюди захочуть ваші близькі друзі, потім їхні далекі родичі, потім їхні друзі — і так без кінця. Минулого разу, коли таке сталося... гаразд, краще не згадуватимемо, що тоді було. ",
     },
+    [1423] = {
+        ["tetr"] = "Трансмогрифікатор",
+    },
+    [1430] = {
+        ["cgislelgptadsewesetesepn"] = "Кулінарія — це захоплення на все життя, і я бачу, що ми поділяємо ту саму пристрасть!",
+    },
+    [17804] = {
+        ["gscnakttyumeagifyuhengtoakofme"] = "Вітаю, громадянине. Якщо вам нічого в мене запитати, прошу не затримуватися.",
+    },
+    [68] = {
+        ["bp"] = "Перукарня",
+        ["tr"] = "Трансмогрифікатор",
+    },
 }
 
 addonTable.gossip = addonTable.gossip or {}

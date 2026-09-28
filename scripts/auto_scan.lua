@@ -1,4 +1,4 @@
-local _, addon_table = ...
+local addon_name, addon_table = ...
 
 local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
@@ -9,6 +9,64 @@ local utils = addon_table.use("utils")
 local runtime = addon_table.use("translation_runtime")
 local cleared = false
 local suppress_developer_capture = false
+
+local function profiler_percent(value)
+    if type(value) ~= "number" or value <= 0 then return "0%" end
+    if value >= 1 then return string.format("%.0f%%", value) end
+    if value >= 0.1 then return string.format("%.1f%%", value) end
+    if value >= 0.01 then return string.format("%.2f%%", value) end
+    return "0%"
+end
+
+auto_scan.performance_snapshot = function ()
+    local profiler = _G.C_AddOnProfiler
+    local metric_enum = _G.Enum and _G.Enum.AddOnProfilerMetric
+    local snapshot = {
+        addon = addon_name, available = false, enabled = false,
+        translation = type(runtime.performance_snapshot) == "function"
+            and runtime.performance_snapshot() or {},
+    }
+    if type(profiler) ~= "table" or type(metric_enum) ~= "table"
+        or type(profiler.IsEnabled) ~= "function" then
+        return snapshot
+    end
+
+    local enabled_ok, enabled = pcall(profiler.IsEnabled)
+    snapshot.available = true
+    snapshot.enabled = enabled_ok and enabled == true
+    if not enabled_ok or enabled ~= true
+        or type(profiler.GetApplicationMetric) ~= "function"
+        or type(profiler.GetOverallMetric) ~= "function"
+        or type(profiler.GetAddOnMetric) ~= "function" then
+        return snapshot
+    end
+
+    local metrics = {
+        { "Current", metric_enum.RecentAverageTime },
+        { "Average", metric_enum.SessionAverageTime },
+        { "Peak", metric_enum.PeakTime },
+    }
+    for _, row in ipairs(metrics) do
+        local label, metric = row[1], row[2]
+        if metric ~= nil then
+            local app_ok, application = pcall(profiler.GetApplicationMetric, metric)
+            local overall_ok, overall = pcall(profiler.GetOverallMetric, metric)
+            local addon_ok, addon = pcall(profiler.GetAddOnMetric, addon_name, metric)
+            if app_ok and overall_ok and addon_ok
+                and type(application) == "number" and type(overall) == "number"
+                and type(addon) == "number" then
+                -- Match Blizzard's AddonList:GetAddonMetricPercent denominator.
+                local relative_total = application - overall + addon
+                local addon_pct = relative_total > 0
+                    and addon / relative_total * 100 or 0
+                snapshot[label] = {
+                    addonCPU = profiler_percent(addon_pct),
+                }
+            end
+        end
+    end
+    return snapshot
+end
 
 local groups = {
     { "items", "[ITEMS]" }, { "gossips", "[GOSSIPS]" },
