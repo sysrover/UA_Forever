@@ -3561,7 +3561,11 @@ local items = {
 [5578] = { "креслення: Посріблений бронзовий нагрудник", use="Навчає вас створювати посріблений бронзовий нагрудник.", recipe_result_item=2869, en="Plans: Silvered Bronze Breastplate" },
 [5579] = { "молот повстанців", en="Militia Warhammer" },
 [5580] = { "молоток повстанців", en="Militia Hammer" },
-[5581] = { "гладка тростина", en="Smooth Walking Staff" },
+[5581] = { "гладка тростина", en="Smooth Walking Staff",
+    tooltip_lines = {
+        ["Staff"] = "Посох",
+    },
+},
 [5582] = { "каміннопазуриста живиця", en="Stonetalon Sap" },
 [5583] = { "луска чародракончика", en="Fey Dragon Scale" },
 [5584] = { "сутінковий вус", en="Twilight Whisker" },
@@ -15065,6 +15069,11 @@ local items = {
 [249391] = {
     tooltip_lines = {
         ["Scarce"] = "Дефіцитний",
+    },
+},
+[249399] = {
+    tooltip_lines = {
+        ["Scarce"] = "Рідкісний",
     },
 },
 }

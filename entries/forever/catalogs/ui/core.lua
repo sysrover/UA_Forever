@@ -673,6 +673,19 @@ local ui = {
     ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
     ["By enabling transmogrification you will see any custom appearances applied to your own and other players' equipment via transmogrification. Are you sure you wish to enable transmogrification? You may disable transmogrification at any time by speaking with me again."] = "Увімкнувши трансмогрифікацію, ви бачитимете всі змінені вигляди, застосовані до вашого спорядження та спорядження інших гравців за допомогою трансмогрифікації. Ви справді бажаєте увімкнути трансмогрифікацію? Ви можете вимкнути її будь-коли, знову поговоривши зі мною.",
     ["Must be in Battle Stance"] = "Потрібно перебувати в бойовій стійці",
+    ["Only Herbs can be placed in that."] = "Сюди можна покласти лише трави.",
+    ["Oh goodness Datto, this town is not well suited for the likes of me. There are as many nasty creatures here as there were in Gnomeregan before the accident! Do you have my belongings? If you don't, then who knows what the trolls have done with them now..."] = "Ой лишенько, Датто, це містечко зовсім не для таких, як я. Тут стільки ж мерзенних створінь, скільки було в Гномреґані до аварії! Мої речі в тебе? Якщо ні, то хтозна, що тролі вже з ними зробили...",
+    ["Requires Herbalism 15"] = "Потрібне травництво 15",
+    ["Hail! Have a care, Datto, the tunnel to Dun Morogh is infested with troggs and is not safe for travel. If you haven't any pressing business in Dun Morogh, I'll have to ask you to remain in Anvilmar until the tunnel is safer."] = "Вітаю! Обережніше, Датто: тунель до Дун-Морога кишить троґами, тож подорожувати ним небезпечно. Якщо в тебе немає нагальних справ у Дун-Морозі, мушу попросити тебе залишитися в Ковадлі, доки тунель не стане безпечнішим.",
+    ["Hm? You look a little young to be a siege engine pilot. But no matter...do you need something fixed? Well take a number and get comfortable. I'm working on a couple engines right now and won't have time for another job for at least a few days. Or, were you here for something else...?"] = "Гм? Ти наче замолодий, щоб керувати облоговою машиною. Та байдуже... треба щось полагодити? Тоді бери номерок і влаштовуйся зручніше. Я зараз працюю над кількома машинами й не матиму часу на нову роботу щонайменше кілька днів. Чи ти прийшов з іншої справи...?",
+    ["Diceman Jr"] = "Дайсмен-молодший",
+    ["Raise your herbalism skill to 20: 1/1"] = "Підвищте навичку травництва до 20: 1/1",
+    ["(Tier 1)"] = "(Ранг 1)",
+    ["Stranglethorn Fishing Extravaganza"] = "Рибальська феєрія Тернистої долини",
+    ["Call to Arms: Arathi Basin"] = "До зброї: Низина Араті",
+    ["Call to Arms: Darkspear Islands"] = "До зброї: Острови Чорного Списа",
+    ["Call to Arms: Warsong Gulch"] = "До зброї: Ущелина Пісні Війни",
+    ["Harvest Festival"] = "Свято врожаю",
 }
 
 if addonTable.forever_catalog then
