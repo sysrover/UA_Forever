@@ -21,7 +21,50 @@ local function deps()
     return assert(dependencies, "tooltip item adapter is not configured")
 end
 
+local function build_snapshot(tooltip)
+    local contract = deps()
+    local ok, count = pcall(tooltip.NumLines, tooltip)
+    count = ok and contract.safe_number(count) or nil
+    if not count or count < 1 then return nil, false end
+    count = math.min(count, contract.max_lines)
+    local snapshot = {
+        count = count,
+        tooltip_height = contract.safe_dimension(tooltip, "GetHeight"),
+        tooltip_width = contract.safe_dimension(tooltip, "GetWidth"),
+    }
+    runtime.metric("line_passes", tooltip, tooltip.uaForeverGeneration)
+    for index = 1, count do
+        local left, left_region = contract.tooltip_line(tooltip, "Left", index,
+            index == 1)
+        local right, right_region = contract.tooltip_line(tooltip, "Right", index,
+            index == 1)
+        snapshot[index] = {
+            left = { source = left, region = left_region,
+                visible = contract.normalized_text(left),
+                previous_height = contract.safe_dimension(left_region,
+                    "GetStringHeight") or contract.safe_dimension(left_region,
+                    "GetHeight") },
+            right = { source = right, region = right_region,
+                visible = contract.normalized_text(right),
+                previous_height = contract.safe_dimension(right_region,
+                    "GetStringHeight") or contract.safe_dimension(right_region,
+                    "GetHeight") },
+        }
+    end
+    return snapshot, snapshot[1] and snapshot[1].left.region ~= nil
+end
+
+adapter.snapshot = function (tooltip)
+    return build_snapshot(tooltip)
+end
+
 local function current_entry(tooltip)
+    local tooltip_util = _G.TooltipUtil
+    if tooltip_util and type(tooltip_util.GetDisplayedItem) == "function" then
+        local ok, _, _, id = pcall(tooltip_util.GetDisplayedItem, tooltip)
+        id = ok and deps().safe_number(id) or nil
+        if id then return entries.get_entry("item", id) end
+    end
     if type(tooltip.GetPrimaryTooltipData) ~= "function" then return nil end
     local ok, data = pcall(tooltip.GetPrimaryTooltipData, tooltip)
     if not ok or not data or runtime.is_secret_value(data) then return nil end
@@ -55,21 +98,18 @@ local function translate_use_region(tooltip, entry, region, source)
     end
     local description = format.item_use(translated, cooldown, unit)
     return contract.set_translation(tooltip, region, source,
-        description, "item.use", nil, "item-tooltip", nil, false)
+        description, "item.use", nil, "item-tooltip", nil, false, false)
 end
 
-local function translate_use(tooltip, entry, line_count)
+local function translate_use(tooltip, entry, snapshot)
     local contract = deps()
-    if not line_count then
-        local ok, count = pcall(tooltip.NumLines, tooltip)
-        line_count = ok and contract.safe_number(count) or nil
-    end
     local applied = false
-    for index = 2, math.min(line_count or contract.max_lines,
-        contract.max_lines) do
-        local source, region = contract.tooltip_line(tooltip, "Left", index, true)
-        local visible = contract.normalized_text(source)
+    local found = false
+    for index = 2, snapshot and snapshot.count or 1 do
+        local row = snapshot[index].left
+        local source, region, visible = row.source, row.region, row.visible
         if visible and visible:match("^Use:%s*") then
+            found = true
             hooks.region(region, "SetText", function (self)
                 if runtime.is_applying(self) then return end
                 local entry_now = current_entry(tooltip)
@@ -84,27 +124,28 @@ local function translate_use(tooltip, entry, line_count)
                 or applied
         end
     end
-    return applied
+    return applied, found
 end
 
-local function translate_lines(tooltip, entry, line_count)
+local function translate_lines(tooltip, entry, snapshot)
     local contract = deps()
-    if type(entry.tooltip_lines) ~= "table" then return 0 end
-    local count = line_count
-    if not count then
-        local ok, value = pcall(tooltip.NumLines, tooltip)
-        count = ok and contract.safe_number(value) or nil
-    end
+    if type(entry.tooltip_lines) ~= "table" then return 0, false end
     local applied = 0
-    for index = 2, math.min(count or contract.max_lines,
-        contract.max_lines) do
-        local source, region = contract.tooltip_line(tooltip, "Left", index)
-        local translated = entry.tooltip_lines[contract.normalized_text(source)]
+    local found = false
+    for index = 2, snapshot and snapshot.count or 1 do
+        local row = snapshot[index].left
+        local source, region = row.source, row.region
+        local translated = entry.tooltip_lines[row.visible]
         if translated and region and contract.set_translation(tooltip, region,
             source, translated, "item.description:" .. index, nil,
-            "item-tooltip") then applied = applied + 1 end
+            "item-tooltip", nil, nil, false) then
+            applied = applied + 1
+            found = true
+        elseif translated then
+            found = true
+        end
     end
-    return applied
+    return applied, found
 end
 
 local function field_text(value, tooltip, source_line)
@@ -221,20 +262,18 @@ local function match_effects(effect)
     return matched
 end
 
-local function translate_fields(tooltip, entry, line_count)
+local function translate_fields(tooltip, entry, snapshot)
     local contract = deps()
-    local ok, count = pcall(tooltip.NumLines, tooltip)
-    count = line_count or (ok and contract.safe_number(count))
-        or contract.max_lines
+    local count = snapshot and snapshot.count or 0
     local effects = {
         equip = { values = field_values(entry.equip), lines = {}, used = {},
             prefix = catalog.item_effect_prefix.equip },
         hit = { values = field_values(entry.hit), lines = {}, used = {},
             prefix = catalog.item_effect_prefix.hit },
     }
-    for index = 2, math.min(count, contract.max_lines) do
-        local source, region = contract.tooltip_line(tooltip, "Left", index)
-        local visible = contract.normalized_text(source)
+    for index = 2, count do
+        local row = snapshot[index].left
+        local region, visible = row.region, row.visible
         local claim = region and runtime.get(region)
         if claim and claim.owner == "item-tooltip" then
             local equip_index = claim.slot:match("^item%.equip:(%d+)$")
@@ -252,9 +291,10 @@ local function translate_fields(tooltip, entry, line_count)
     effects.equip.matches = match_effects(effects.equip)
     effects.hit.matches = match_effects(effects.hit)
     local applied = 0
-    for index = 2, math.min(count, contract.max_lines) do
-        local source, region = contract.tooltip_line(tooltip, "Left", index)
-        local visible = contract.normalized_text(source)
+    local found = false
+    for index = 2, count do
+        local row = snapshot[index].left
+        local source, region, visible = row.source, row.region, row.visible
         if visible and region then
             local value, slot
             if visible:match("^Equip:%s*") then
@@ -285,17 +325,70 @@ local function translate_fields(tooltip, entry, line_count)
                 slot = "item.description"
             end
             local claim = runtime.get(region)
+            if value then found = true end
             if value and (not claim or claim.owner ~= "item-tooltip")
                 and contract.set_translation(tooltip, region, source, value,
-                    slot, nil, "item-tooltip") then applied = applied + 1 end
+                    slot, nil, "item-tooltip", nil, nil, false) then
+                applied = applied + 1
+            end
         end
     end
-    return applied
+    return applied, found
+end
+
+local function translate_snapshot(tooltip, entry, snapshot)
+    local contract = deps()
+    if not snapshot then return { status = "incomplete", applied = false } end
+    local title_row = snapshot and snapshot[1] and snapshot[1].left
+    local native_title = title_row and title_row.source
+    local title_region = title_row and title_row.region
+    local title = contract.make_text(entry[1], tooltip)
+    local title_applied = false
+    if title and title_region then
+        local suffix = type(native_title) == "string" and entry.en
+            and native_title:sub(1, #entry.en + 1) == entry.en .. " "
+            and entries.get_item_suffix(native_title) or nil
+        if suffix then title = title .. " " .. suffix end
+        title_applied = contract.set_translation(tooltip, title_region,
+            native_title, title, "item.name", "item", "item-tooltip",
+            nil, nil, false, nil, contract.item_name_visible_matches)
+    end
+
+    local use_applied, use_found = translate_use(tooltip, entry, snapshot)
+    local lines_applied, lines_found = translate_lines(tooltip, entry, snapshot)
+    local fields_applied, fields_found = translate_fields(tooltip, entry, snapshot)
+    local generic_count = contract.rewrite_generic(tooltip,
+        snapshot and snapshot.count, tooltip.uaForeverReservedFirst,
+        nil, false, snapshot)
+    if type(contract.finish_layout) == "function" then
+        contract.finish_layout(tooltip, snapshot)
+    end
+
+    local expects_use = entry.use ~= nil
+    local expects_lines = type(entry.tooltip_lines) == "table"
+        and next(entry.tooltip_lines) ~= nil
+    local expects_fields = entry.equip ~= nil or entry.hit ~= nil
+        or entry.flavor ~= nil or entry.desc ~= nil
+    local incomplete = not snapshot or not title_region
+        or expects_use and not use_found
+        or expects_lines and not lines_found
+        or expects_fields and not fields_found
+    local applied = title_applied or use_applied or lines_applied > 0
+        or fields_applied > 0 or generic_count > 0
+    return {
+        status = incomplete and "incomplete"
+            or applied and "complete" or "unchanged",
+        applied = applied,
+    }
 end
 
 adapter.add = function (tooltip, id)
     local contract = deps()
-    if not options.can_lookup("translate_item") then return false end
+    runtime.metric("item_adapter_runs", tooltip, tooltip.uaForeverGeneration)
+    if not options.can_lookup("translate_item") then
+        tooltip.uaForeverItemStatus = "blocked"
+        return { status = "blocked", applied = false }
+    end
     local entry = entries.get_entry("item", id)
     local name
     if tooltip.GetItem then
@@ -305,44 +398,43 @@ adapter.add = function (tooltip, id)
     dev_log.record_id("items", id, name, entry ~= nil)
     if not entry then
         dev_log.missing_item(id, name)
-        return false
+        tooltip.uaForeverItemStatus = "blocked"
+        return { status = "blocked", applied = false }
     end
-    if not options.can_translate("translate_item") then return false end
+    if not options.can_translate("translate_item") then
+        tooltip.uaForeverItemStatus = "blocked"
+        return { status = "blocked", applied = false }
+    end
+
     tooltip.uaForeverReservedFirst = 2
-    local title = contract.make_text(entry[1], tooltip)
-    local ok_count, line_count = pcall(tooltip.NumLines, tooltip)
-    line_count = ok_count and contract.safe_number(line_count) or nil
-    local native_title, title_region = contract.tooltip_line(tooltip, "Left", 1)
-    local title_applied = false
-    if title and title_region then
-        local suffix = type(native_title) == "string" and entry.en
-            and native_title:sub(1, #entry.en + 1) == entry.en .. " "
-            and entries.get_item_suffix(native_title) or nil
-        if suffix then title = title .. " " .. suffix end
-        title_applied = contract.set_translation(tooltip, title_region,
-            native_title, title, "item.name", "item", "item-tooltip",
-            nil, nil, nil, nil, contract.item_name_visible_matches)
+    local snapshot, ready = build_snapshot(tooltip)
+    local result = translate_snapshot(tooltip, entry, snapshot)
+    if not ready then result.status = "incomplete" end
+    tooltip.uaForeverItemStatus = result.status
+    if result.status ~= "incomplete" then
+        tooltip.uaForeverItemCompleteGeneration = tooltip.uaForeverGeneration
+        return result
     end
-    local use_applied = translate_use(tooltip, entry, line_count)
-    local description_count = translate_lines(tooltip, entry, line_count)
-        + translate_fields(tooltip, entry, line_count)
-    local generic_count = contract.rewrite_generic(
-        tooltip, line_count, tooltip.uaForeverReservedFirst)
+
     local generation = tooltip.uaForeverGeneration
-    local function finalize_item_lines()
-        local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
-        if shown_ok and shown then
-            translate_use(tooltip, entry)
-            translate_lines(tooltip, entry)
-            translate_fields(tooltip, entry)
-            contract.rewrite_generic(tooltip, nil,
-                tooltip.uaForeverReservedFirst)
-        end
-    end
-    scheduler.request("tooltip-item:" .. tostring(tooltip), generation,
-        finalize_item_lines, nil, tooltip)
-    scheduler.request("tooltip-item-late:" .. tostring(tooltip), generation,
-        finalize_item_lines, 0.2, tooltip)
-    return title_applied or use_applied or description_count > 0
-        or generic_count > 0
+    scheduler.request({
+        id = "tooltip-item-late:" .. tostring(tooltip),
+        generation = generation,
+        surface = tooltip,
+        instance = "item-pipeline",
+        task_kind = "item-retry",
+        delay = 0.2,
+        callback = function ()
+            local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
+            if not shown_ok or not shown then return end
+            local retry_snapshot, retry_ready = build_snapshot(tooltip)
+            local retry_result = translate_snapshot(tooltip, entry, retry_snapshot)
+            if not retry_ready then retry_result.status = "incomplete" end
+            tooltip.uaForeverItemStatus = retry_result.status
+            if retry_result.status ~= "incomplete" then
+                tooltip.uaForeverItemCompleteGeneration = generation
+            end
+        end,
+    })
+    return result
 end

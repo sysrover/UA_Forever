@@ -293,6 +293,10 @@ local function is_capture_noise(normalized, frame_name)
         or frame_name:find("MainStatusTrackingBar", 1, true)
         or frame_name:find("CharacterLevelText", 1, true)
         or frame_name:find("ItemTextPageText", 1, true)
+        -- Auction result rows are dynamic item data, not UI vocabulary.
+        -- Keep their names in the client language and out of [UI] reports.
+        or (frame_name:find("AuctionHouseFrame", 1, true)
+            and frame_name:find(".ItemList.", 1, true))
         or frame_name:find(".FontStringContainer", 1, true)
         or frame_name:find("EditBox", 1, true)
 end

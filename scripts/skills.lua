@@ -536,6 +536,13 @@ local function recipe_row_data(row)
     return data
 end
 
+local function untranslated_english(source, translated)
+    return type(source) == "string" and source:find("[A-Za-z]") ~= nil
+        and source:find("[\208\209]") == nil
+        and (type(translated) ~= "string" or translated == ""
+            or translated == source)
+end
+
 local function translate_recipe_category(title, row)
     local data = recipe_row_data(row)
     local category = data and (data.categoryInfo or data.categoryData
@@ -561,6 +568,13 @@ local function translate_recipe_category(title, row)
             translated = surface_text.enchant_category(
                 utils.cap(translated_target))
         end
+    end
+    local category_id = numeric_field(category, "categoryID")
+    if untranslated_english(source, translated) then
+        local slot = category_id and "recipe.category:" .. category_id
+            or "recipe.category"
+        auto_scan.record_ui(source, false,
+            slot, "professions", "skills")
     end
     if translated and translated ~= source then
         local visible = text_from(title)
@@ -597,6 +611,18 @@ local function translate_crafting_row(row)
     local entry = type(recipe_id) == "number" and not is_secret(recipe_id)
         and entries.get_entry("spell", recipe_id)
     local text = entry_text(entry, row)
+    local recipe_source = recipe_info and recipe_info.name
+    if is_secret(recipe_source) then recipe_source = nil end
+    local known_translation = text
+    if type(recipe_source) == "string" and not known_translation then
+        known_translation = entries.lookup_name("spell", recipe_source)
+            or entries.lookup_name("item", recipe_source)
+            or strings.find_ui_translation(recipe_source, row.Label or row.Name)
+    end
+    if type(recipe_id) == "number" and not is_secret(recipe_id)
+        and untranslated_english(recipe_source, known_translation) then
+        auto_scan.record_id("spells", recipe_id, recipe_source, false)
+    end
     if text and options.translate_name("skill") then
         apply_skill_text(row.Label or row.Name, text, "skill", "skill.name")
     end
@@ -693,6 +719,18 @@ local function translate_reagent_slot(slot)
     apply_skill_text(slot.Name,
         current:sub(1, first - 1) .. translated .. current:sub(last + 1),
         "item", "item.name")
+end
+
+local function translate_enchant_slot(slot)
+    local name = slot and slot.Name
+    if not name then return end
+    local source = text_from(name)
+    local translated = source and strings.find_ui_translation(source, name)
+    if untranslated_english(source, translated) then
+        auto_scan.record_ui(source, false, "profession.enchant_slot",
+            "professions", "skills")
+    end
+    strings.translate_region(name)
 end
 
 local function recipe_info_from_form(form)
@@ -824,6 +862,13 @@ local function translate_crafting_page()
         strings.translate_region(form.FinishingReagents and form.FinishingReagents.Label)
         strings.translate_region(form.RecipeSourceButton and form.RecipeSourceButton.Text)
         strings.translate_region(form.FirstCraftBonus and form.FirstCraftBonus.Text)
+
+        local enchant_slot = form.enchantSlot
+        if enchant_slot then
+            translate_enchant_slot(enchant_slot)
+            hook_owner(enchant_slot, "SetNameText", translate_enchant_slot)
+            hook_owner(enchant_slot, "Update", translate_enchant_slot)
+        end
 
         if type(form.GetSlots) == "function" then
             local ok, slots = pcall(form.GetSlots, form)
@@ -1093,6 +1138,8 @@ skills.prepare = function ()
     hook_mixin("ProfessionsRecipeListCategoryMixin", "Init", translate_crafting_row)
     hook_mixin("ProfessionsRecipeListRecipeMixin", "Init", translate_crafting_row)
     hook_mixin("ProfessionsReagentSlotMixin", "Update", translate_reagent_slot)
+    hook_mixin("ProfessionsEnchantSlotMixin", "SetNameText", translate_enchant_slot)
+    hook_mixin("ProfessionsEnchantSlotMixin", "Update", translate_enchant_slot)
 
     -- ProfessionsFrame and its embedded BookPage are created from XML before
     -- UA_Forever installs hooks. Forever copies mixin methods onto those frame

@@ -276,6 +276,30 @@ local function prepare_auction_duration_dropdowns(auction_house)
     end
 end
 
+local function translate_auction_action_button(button, surface)
+    if not button then return end
+    local region = button.Text
+    if not region and type(button.GetFontString) == "function" then
+        local ok, font_string = pcall(button.GetFontString, button)
+        if ok then region = font_string end
+    end
+    if region then
+        strings.translate_region(region, nil, "ui.action", surface)
+    end
+end
+
+local function schedule_auction_item_buy_frame(frame)
+    if not frame then return end
+    scheduler.request("auction-house-item-buy-frame", nil, function ()
+        local surface = registry.get("misc")
+        translate_auction_action_button(frame.BackButton, surface)
+        translate_auction_action_button(frame.BidFrame
+            and frame.BidFrame.BidButton, surface)
+        translate_auction_action_button(frame.BuyoutFrame
+            and frame.BuyoutFrame.BuyoutButton, surface)
+    end)
+end
+
 local function schedule_auction_auctions_frame(frame)
     if not frame then return end
     scheduler.request("auction-house-auctions-frame", nil, function ()
@@ -826,6 +850,10 @@ menus_ui.prepare = function ()
         translate_auction_filter_dropdown)
     translate_auction_filter_dropdown(auction_filter)
     prepare_auction_duration_dropdowns(auction_house)
+    local item_buy_frame = auction_house and auction_house.ItemBuyFrame
+    hooks.region_script(item_buy_frame, "OnShow",
+        schedule_auction_item_buy_frame, "auction-item-buy-actions")
+    schedule_auction_item_buy_frame(item_buy_frame)
     local auctions_frame = auction_house and auction_house.AuctionsFrame
     hooks.region(auctions_frame, "SetTab", schedule_auction_auctions_frame)
     hooks.region_script(auctions_frame, "OnShow",

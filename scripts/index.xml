@@ -31,6 +31,7 @@
     <Script file="map_labels.lua"/>
     <Script file="edit_mode.lua"/>
     <Script file="level_up_display.lua"/>
+    <Script file="achievements.lua"/>
     <Script file="translation.lua"/>
     <Script file="quest_switcher.lua"/>
     <Script file="tooltips.lua"/>

@@ -3,6 +3,7 @@ local _, addon_table = ...
 local assets    = addon_table.use("assets") ---@class assets_class
 local fonts     = addon_table.use("fonts") ---@class fonts_class
 local options   = addon_table.use("options") ---@class options_class
+local runtime   = addon_table.use("translation_runtime")
 
 -- Since 2.5.6 (and corresponding builds for other versions) GetFont() reports internal font attributes (e.g. FILTER, FIXEDHEIGHT) among flags.
 -- Passing FIXEDHEIGHT back into SetFont() breaks rendering of pooled combat text font strings,
@@ -55,6 +56,9 @@ local function apply_combat_text_font_objects()
                 end
                 pcall(font.SetFont, font, assets.font_frizqt, height,
                     sanitize_font_flags(flags))
+                if type(runtime.metric) == "function" then
+                    runtime.metric("set_font_calls")
+                end
             end
         end
     end
@@ -86,6 +90,9 @@ local function apply_compositor_font(font_string, height, flags)
         if not set_ok or type(set_font) ~= "function" then return false end
         local applied_ok, applied = pcall(set_font, value,
             assets.font_frizqt, height, flags)
+        if type(runtime.metric) == "function" then
+            runtime.metric("set_font_calls")
+        end
         if not applied_ok or applied == false then return false end
         font = value
         compositor_fonts[key] = font
@@ -130,6 +137,9 @@ local function item_text_font(source_font)
     if not set_ok or type(set_font) ~= "function" then return nil end
     local applied_ok, applied = pcall(set_font, font, assets.font_frizqt,
         height, sanitize_font_flags(flags))
+    if type(runtime.metric) == "function" then
+        runtime.metric("set_font_calls")
+    end
     if not applied_ok or applied == false then return nil end
 
     item_text_fonts[source_font] = font
@@ -218,6 +228,9 @@ fonts.apply_to_font_string = function (font_string)
     if not set_ok or type(set_font) ~= "function" then return false end
     local call_ok, applied = pcall(set_font, font_string,
         assets.font_frizqt, height, flags)
+    if type(runtime.metric) == "function" then
+        runtime.metric("set_font_calls")
+    end
     -- FontInstance:SetFont can return false without raising a Lua error while
     -- addon media are still becoming available during a cold login. Treat
     -- that as a failed application so callers do not replace visible English
@@ -296,6 +309,9 @@ fonts.prepare = function ()
             end
             if font_height then
                 font:SetFont(f.file, font_height, sanitize_font_flags(font_flags))
+                if type(runtime.metric) == "function" then
+                    runtime.metric("set_font_calls")
+                end
             end
         end
     end
