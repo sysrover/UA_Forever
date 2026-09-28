@@ -3536,10 +3536,18 @@ addonTable.spell = {
 [20582] = { "Прудкість", "Ймовірність ухилення збільшено на {1}%.#increased by {1}%", en="Quickness" },
 [20583] = { ref=20551 }, -- Nature Resistance
 [20585] = { "Дух світлика", "Перетворює вас на світлика після смерті, збільшуючи швидкість руху на {1}%.#speed by {1}%", en="Wisp Spirit" },
-[20589] = { "Майстер втечі", "Вивільнитися від будь-яких ефектів сповільнення руху та знерухомлення.", en="Escape Artist" },
+[20589] = { "Майстер втечі", "Вивільнитися від будь-яких ефектів сповільнення руху та знерухомлення.", en="Escape Artist",
+    tooltip_lines = {
+        ["2 min cooldown"] = "Відновлення: 2 хв",
+    },
+},
 [20591] = { "Неосяжний розум", "Інтелект збільшено на {1}%.#increased by {1}%", en="Expansive Mind" },
 [20592] = { "Опір аркані", "Опір аркані збільшено на {1}.#increased by {1}", en="Arcane Resistance" },
-[20593] = { "Спеціалізація на інженерії", "Навичку інженерії збільшено на {1}.#increased by {1}", en="Engineering Specialization" },
+[20593] = { "Спеціалізація на інженерії", "Навичку інженерії збільшено на {1}.#increased by {1}", en="Engineering Specialization",
+    tooltip_lines = {
+        ["Your gnomish ingenuity reduces the rate of engineering devices failing or backfiring when you use them by 20%."] = "Ваша гномська винахідливість на 20% зменшує ймовірність відмови або зворотного спрацювання інженерних пристроїв під час їх використання.",
+    },
+},
 [20594] = { "Кам'яна форма", "Миттєво знімає всі ефекти кровотечі, отрути та хвороб і дає до них невразливість, а також зменшує всю отримувану фізичну шкоду на 10% протягом 8 с.", "Невразливість до ефектів кровотечі, отрути та хвороб. Броня збільшена на {1}%.#increased by {1}%", en="Stoneform",
     tooltip_lines = {
         ["Cooldown remaining: 2 min"] = "До відновлення: 2 хв",
@@ -3699,6 +3707,40 @@ addonTable.spell = {
     tooltip_lines = {
         ["Tools: Runed Golden Rod"] = "Інструменти: рунічний золотий жезл",
         ["Permanently enchant bracers to give +5 Stamina."] = "Назавжди зачаровує наручі, надаючи +5 витривалості.",
+    },
+},
+[1259817] = {
+    tooltip_lines = {
+        ["2 min cooldown"] = "Відновлення: 2 хв",
+        ["Your next 3 damaging abilities have their Mana cost reduced by 10% and deal 10% more damage."] = "Ваші наступні 3 здібності, що завдають шкоди, витрачають на 10% менше мани та завдають на 10% більше шкоди.",
+    },
+},
+[1293657] = {
+    tooltip_lines = {
+        ["You are fluent in the following languages:\r\nCommon\r\nGnomish"] = "Ви володієте такими мовами:\r\nЗагальна\r\nГномська",
+    },
+},
+[133] = {
+    tooltip_lines = {
+        ["30 Mana"] = "30 мани",
+        ["35 yd range"] = "Радіус дії: 35 м",
+    },
+},
+[1459] = {
+    tooltip_lines = {
+        ["60 Mana"] = "60 мани",
+        ["30 yd range"] = "Радіус дії: 30 м",
+        ["Increases the target's Intellect by 2 for 1 hour."] = "Збільшує інтелект цілі на 2 на 1 год.",
+    },
+},
+[168] = {
+    tooltip_lines = {
+        ["60 Mana"] = "60 мани",
+    },
+},
+[1230117] = {
+    tooltip_lines = {
+        ["Use: Unpacks a first aid kit that allows you and others sitting nearby to gain 3 increased Stamina, exclusive with Power Word: Fortitude.\r\n\r\nRequires a Campfire nearby. All camping features share a cooldown of 1 hour."] = "Використання: розкладає аптечку першої допомоги, що дає вам та іншим персонажам, які сидять поруч, 3 од. витривалості. Не поєднується зі «Словом сили: Стійкість».\r\n\r\nПоруч має бути багаття. Усі табірні можливості мають спільний час відновлення — 1 год.",
     },
 },
 }

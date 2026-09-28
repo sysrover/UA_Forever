@@ -344,6 +344,19 @@ local settings = {
     ["Auto Detect: Selected Graphics API. Auto-detect best available Graphics API."] = "Автовизначення: вибраний графічний API. Автоматично визначає найкращий доступний графічний API.",
     ["Standard: Almost no loss to visual quality"] = "Стандартно: майже без втрати якості зображення",
     ["DirectX 12: Current Graphics API."] = "DirectX 12: поточний графічний API.",
+    ["Enemy Debuffs: Show the temporary negative effects that enemies have applied to the player."] = "Негативні ефекти ворогів: показувати тимчасові негативні ефекти, накладені ворогами на гравця.",
+    ["Hold and Release: Hold and release allows you to begin casting a spell by pressing and holding down your spell key and then release the spell when you release the key."] = "Утримати й відпустити: дає змогу почати застосування закляття, натиснувши й утримуючи клавішу закляття, а застосувати його — відпустивши клавішу.",
+    ["Show nameplates for friendly players (SHIFT-V)"] = "Показувати індикатори імен дружніх гравців (SHIFT-V)",
+    ["Big Debuff: Show the temporary crowd control effects that enemies have applied to the player."] = "Великий негативний ефект: показувати тимчасові ефекти контролю, накладені ворогами на гравця.",
+    ["Relaxed Ping: When pressing the ping keybind, click to contextually ping, or click and drag to trigger the ping radial menu."] = "Вільна позначка: натисніть клавішу позначки й клацніть, щоб поставити контекстну позначку, або клацніть і перетягніть, щоб відкрити радіальне меню позначок.",
+    ["Friendly Players: Players that belong to the same faction as you."] = "Дружні гравці: гравці, що належать до тієї самої фракції, що й ви.",
+    ["Show nameplates for enemy units (V)"] = "Показувати індикатори імен ворожих істот (V)",
+    ["Minor: Units that are weaker than normal."] = "Слабкі: істоти, слабші за звичайних.",
+    ["Friendly NPCs: NPCs that belong to the same faction as you."] = "Дружні НІП: НІП, що належать до тієї самої фракції, що й ви.",
+    ["Quick Ping: Press and release the ping keybind to contextually ping, or press and hold to trigger the ping radial menu."] = "Швидка позначка: натисніть і відпустіть клавішу позначки, щоб поставити контекстну позначку, або натисніть і утримуйте її, щоб відкрити радіальне меню позначок.",
+    ["Personal Buffs: Show the temporary beneficial effects you have applied to the player."] = "Особисті позитивні ефекти: показувати тимчасові позитивні ефекти, які ви наклали на гравця.",
+    ["Minions: Units that belong to another player, such as pets, totems, or guardians."] = "Прислужники: істоти, що належать іншому гравцеві, як-от вихованці, тотеми чи вартові.",
+    ["Press and Tap: Press and tap allows you to tap the spell once to start casting and then tap a second time when you want to release the spell."] = "Натиснути двічі: дає змогу натиснути клавішу закляття один раз, щоб почати застосування, а потім удруге — коли захочете застосувати закляття.",
 }
 
 if addonTable.forever_catalog then

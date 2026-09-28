@@ -8673,6 +8673,9 @@ local npc = { -- [id] = { title, description (optional) }
 [256732] = { [1] = "Алінсія", en = "Alynsia" },
 [256738] = { [1] = "Кошик алхімічних товарів", en = "Basket of Alchemy Goods" },
 [256740] = { [1] = "Ящик припасів для зачарування", en = "Crate of Enchanting Supplies" },
+[258113] = { [1] = "Інґрід Данвальд", en = "Ingrid Dunwald" },
+[267687] = { [1] = "Синій механодоліт", en = "Blue Mechanostrider" },
+[267688] = { [1] = "Нефарбований механодоліт", en = "Unpainted Mechanostrider" },
 }
 
 if addonTable.npc then
