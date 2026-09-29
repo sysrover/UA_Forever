@@ -251,9 +251,7 @@ end
 
 diagnostics.install = function (tooltips, api)
     local aura_tooltip_context = api.aura_tooltip_context
-    local visible_spell_id = api.visible_spell_id
     local tooltip_line = api.tooltip_line
-    local spell_adapter = api.spell_adapter
     local tooltip_events = api.tooltip_events
     local safe_string = api.safe_string
     local safe_number = api.safe_number
@@ -277,9 +275,7 @@ diagnostics.install = function (tooltips, api)
         local ok_shown, shown = pcall(tooltip.IsShown, tooltip)
         if not ok_shown or shown ~= true then return false end
         if aura_tooltip_context(tooltip) then return true end
-        if visible_spell_id(tooltip) then return true end
-        local title = tooltip_line(tooltip, "Left", 1)
-        return spell_adapter.resolve_aura_id(title) ~= nil
+        return tooltip.uaForeverKind == "aura"
     end
     
     -- Explicit, bounded capture for aura tooltips. Values marked secret are never
@@ -310,6 +306,37 @@ diagnostics.install = function (tooltips, api)
                     result.spellName = safe_string(name)
                 end
             end
+            if type(tooltip.GetPrimaryTooltipInfo) == "function" then
+                local ok_info, info = pcall(
+                    tooltip.GetPrimaryTooltipInfo, tooltip)
+                if ok_info and not is_secret(info) and type(info) == "table" then
+                    result.getterName = safe_string(info.getterName)
+                end
+            end
+            if type(tooltip.GetPrimaryTooltipData) == "function" then
+                local ok_data, data = pcall(
+                    tooltip.GetPrimaryTooltipData, tooltip)
+                if ok_data and not is_secret(data) and type(data) == "table" then
+                    local tooltip_data = {
+                        type = safe_number(data.type),
+                        id = safe_number(data.id),
+                        spellID = safe_number(data.spellID),
+                        dataInstanceID = safe_number(data.dataInstanceID),
+                        lines = {},
+                    }
+                    for _, line_data in ipairs(data.lines or {}) do
+                        if type(line_data) == "table" and not is_secret(line_data) then
+                            tooltip_data.lines[#tooltip_data.lines + 1] = {
+                                type = safe_number(line_data.type),
+                                lineIndex = safe_number(line_data.lineIndex),
+                                leftText = safe_string(line_data.leftText),
+                                rightText = safe_string(line_data.rightText),
+                            }
+                        end
+                    end
+                    result.tooltipData = tooltip_data
+                end
+            end
             local ok_count, count = pcall(tooltip.NumLines, tooltip)
             result.numLines = ok_count and safe_number(count) or nil
             for index = 1, math.min(result.numLines or 20, 20) do
@@ -327,10 +354,6 @@ diagnostics.install = function (tooltips, api)
                         result.lines[#result.lines + 1] = row
                     end
                 end
-            end
-            local first = result.lines[1]
-            if first and first.side == "Left" and first.text then
-                result.titleID = spell_adapter.resolve_aura_id(first.text)
             end
             return result
         end

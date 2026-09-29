@@ -27,7 +27,6 @@ local tooltip_format = tooltip_catalog.format
 local tooltip_line
 local tooltip_line_region
 local visible_tooltip_font_strings
-local visible_spell_id
 local translate_object_tooltip_title
 local after_aura_tooltip_rendered
 local MAX_TOOLTIP_LINES = 40
@@ -549,14 +548,11 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "object" then
         id = safe_number(data.uaForeverID) or id_from_guid(data.guid, true) or safe_number(data.id)
     elseif kind == "spell" then
-        id = safe_number(data.id)
+        id = spell_adapter.resolve_structured_spell_id(tooltip, data)
     elseif kind == "aura" then
-        -- Camelot exposes secret aura values in combat. Only use a public
-        -- numeric spell ID; never compare, format, or cache a secret value.
+        -- Only public IDs already present in TooltipData may identify an aura.
+        -- safe_number rejects secret values before they can be cached.
         id = safe_number(data.spellID)
-        if not id then id = visible_spell_id(tooltip) end
-        -- Some builds expose the spell directly as data.id; keep that as the
-        -- last fallback because other builds use id for the aura instance.
         if not id then id = safe_number(data.id) end
     else
         id = safe_number(data.id) or safe_number(data.itemID)
@@ -597,7 +593,7 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "spell" then
         translated = spell_adapter.add_structured_spell(tooltip, data)
     elseif kind == "aura" then
-        translated = spell_adapter.add(tooltip, id, true)
+        translated = spell_adapter.add_structured_aura(tooltip, data)
     elseif kind == "npc" then
         translated = npc_adapter.add(tooltip, id)
         translated = quest_adapter.translate_embedded(tooltip) or translated
@@ -619,9 +615,6 @@ local function process(tooltip, data, kind, native_rebuild)
         local missing_entry = not entries.get_entry(
             kind == "item" and "item" or "spell", id)
         local capture_id = id
-        if kind == "aura" and data.uaForeverCaptureByTitle == true then
-            capture_id = nil
-        end
         if missing_entry or kind == "aura" then
             auto_scan.capture_tooltip(tooltip, kind, capture_id, missing_entry)
         end
@@ -643,32 +636,6 @@ local function safe_process(tooltip, data, kind, native_rebuild)
         return false
     end
     return result == true
-end
-
-visible_spell_id = function (tooltip)
-    if not tooltip then return nil end
-    local tooltip_util = _G.TooltipUtil
-    if tooltip_util and type(tooltip_util.GetDisplayedSpell) == "function" then
-        local ok, _, id = pcall(tooltip_util.GetDisplayedSpell, tooltip)
-        id = ok and safe_number(id) or nil
-        if id then return id end
-    end
-    if type(tooltip.GetSpell) == "function" then
-        local ok, _, second, third = pcall(tooltip.GetSpell, tooltip)
-        if ok then
-            local id = safe_number(third) or safe_number(second)
-            if id then return id end
-        end
-    end
-    if type(tooltip.GetHyperlink) == "function" then
-        local ok, link = pcall(tooltip.GetHyperlink, tooltip)
-        link = ok and safe_string(link) or nil
-        local id = link and (link:match("^spell:(%d+)")
-            or link:match("^enchant:(%d+)"))
-        id = safe_number(id)
-        if id then return id end
-    end
-    return nil
 end
 
 quest_adapter.configure({
@@ -709,6 +676,10 @@ talent_adapter.configure({
     normalized_text = normalized_tooltip_text,
     make_text = make_text,
     tooltip_line = function (...) return tooltip_line(...) end,
+    translate_static = function (source, region)
+        local translated = strings.find_ui_translation(source, region)
+        return translated
+    end,
     begin_tooltip = begin_tooltip,
     set_translation = set_tooltip_translation,
     rewrite_generic = rewrite_generic_lines,
@@ -1369,6 +1340,10 @@ local function translate_generic_tooltip(tooltip)
         return
     end
 
+    -- A restricted aura without a public ID must remain entirely native.
+    if tooltip.uaForeverAuraTooltip == true
+        and tooltip.uaForeverKind ~= "aura" then return end
+
     -- Empty equipment slots are translated synchronously when ItemUtil has
     -- finished rebuilding their tooltip. A deferred generic pass can otherwise
     -- rewrite the one-line tooltip again after it has been shown.
@@ -1389,6 +1364,7 @@ local function translate_generic_tooltip(tooltip)
     end
 
     if tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell"
+        or tooltip.uaForeverKind == "aura"
         or tooltip.uaForeverKind == "npc"
         or tooltip.uaForeverKind == "quest" then
         rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2)
@@ -1404,81 +1380,7 @@ local function translate_generic_tooltip(tooltip)
         return
     end
 
-    local left_title = tooltip_line(tooltip, "Left", 1)
-    local cast_spell = false
-    for index = 2, 6 do
-        local line = tooltip_line(tooltip, "Left", index)
-        local visible = normalized_tooltip_text(line)
-        if visible and (visible:match("^%d+ Rage$")
-            or visible:match("^%d+ Mana$")
-            or visible:match("^%d+ Energy$")
-            or visible:match("^%d+ Focus$")
-            or visible:match("^Requires .+ Stance")
-            or visible == "Melee Range" or visible == "Instant"
-            or tooltip_catalog.translated_cast_markers[visible]) then
-            cast_spell = true
-            break
-        end
-    end
-
-    -- Prefer the public spell ID from the already-built tooltip. Some player
-    -- aura tooltips expose no public ID, so fall back to the rendered title
-    -- and the addon's own spell dictionary without querying protected auras.
-    local spell_id
-    if type(tooltip.GetSpell) == "function" then
-        local ok_spell, _, tooltip_spell_id = pcall(tooltip.GetSpell, tooltip)
-        spell_id = ok_spell and safe_number(tooltip_spell_id) or nil
-    end
-    local public_left_title = safe_string(left_title)
-    if cast_spell and (not spell_id or not entries.get_entry("spell", spell_id))
-        and public_left_title
-        and C_Spell and type(C_Spell.GetSpellInfo) == "function" then
-        local ok_info, info = pcall(C_Spell.GetSpellInfo, public_left_title)
-        local resolved = ok_info and info and safe_number(info.spellID) or nil
-        if resolved and entries.get_entry("spell", resolved) then spell_id = resolved end
-    end
-    local aura_id_inferred = false
-    if not spell_id then
-        spell_id = spell_adapter.resolve_aura_id(left_title)
-        aura_id_inferred = spell_id ~= nil
-    end
-    if spell_id then
-        local kind = cast_spell and "spell" or "aura"
-        if safe_process(tooltip, {
-            spellID = spell_id,
-            uaForeverCaptureByTitle = kind == "aura" and aura_id_inferred,
-        }, kind) then
-            if cast_spell then return end
-            local retry_key = tooltip_key("aura", spell_id)
-            if tooltip.uaForeverAuraRetryKey ~= retry_key then
-                tooltip.uaForeverAuraRetryKey = retry_key
-                local generation = tooltip.uaForeverGeneration
-                scheduler.request("tooltip-aura:" .. tostring(tooltip), generation, function ()
-                    local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
-                    if shown_ok and shown then
-                        tooltip_font_strings[tooltip] = nil
-                        safe_process(tooltip, {
-                            spellID = spell_id,
-                            uaForeverCaptureByTitle = aura_id_inferred,
-                        }, "aura")
-                    end
-                end, nil, tooltip)
-            end
-            return
-        end
-        if kind == "aura" and public_left_title then
-            local title_spell_id = spell_adapter.resolve_aura_id(public_left_title)
-            if title_spell_id and title_spell_id ~= spell_id
-                and safe_process(tooltip, {
-                    spellID = title_spell_id,
-                    uaForeverCaptureByTitle = true,
-                }, "aura") then
-                return
-            end
-        end
-    end
-
-    left_title = public_left_title
+    local left_title = safe_string(tooltip_line(tooltip, "Left", 1))
     if not left_title then return end
 
     -- Quest blob tooltips can be built without a public quest ID on the pin.
@@ -1504,23 +1406,17 @@ tooltips.finalize = translate_generic_tooltip
 local function translate_unit_aura_tooltip(tooltip, data)
     if not tooltip then return false end
     mark_aura_tooltip(tooltip)
-    local observed_spell_id = type(data) == "table"
-        and safe_number(data.spellID) or nil
-    observed_spell_id = observed_spell_id or visible_spell_id(tooltip)
-    if not observed_spell_id and type(data) == "table" then
-        observed_spell_id = safe_number(data.id)
+    local structured_data = type(data) == "table" and data or nil
+    if not structured_data
+        and type(tooltip.GetPrimaryTooltipData) == "function" then
+        local ok, value = pcall(tooltip.GetPrimaryTooltipData, tooltip)
+        if ok and not is_secret(value) and type(value) == "table" then
+            structured_data = value
+        end
     end
-    local spell_id = observed_spell_id
-    local inferred_by_title = false
-    if not spell_id then
-        spell_id = spell_adapter.resolve_aura_id(
-            tooltip_line(tooltip, "Left", 1))
-        inferred_by_title = spell_id ~= nil
-    end
-    if not spell_id or not entries.get_entry("spell", spell_id) then
-        translate_generic_tooltip(tooltip)
-        return false, observed_spell_id, inferred_by_title
-    end
+    local spell_id = structured_data and safe_number(structured_data.spellID)
+        or structured_data and safe_number(structured_data.id) or nil
+    if not spell_id then return false end
 
     local aura_key = tooltip_key("aura", spell_id)
     if tooltip.uaForeverKind == "spell" and tooltip.uaForeverID == spell_id then
@@ -1530,10 +1426,7 @@ local function translate_unit_aura_tooltip(tooltip, data)
         tooltip.uaForeverSessionKey = aura_key
         tooltip.uaForeverKind = "aura"
     end
-    return safe_process(tooltip, {
-        spellID = spell_id,
-        uaForeverCaptureByTitle = inferred_by_title,
-    }, "aura"), observed_spell_id, inferred_by_title
+    return safe_process(tooltip, structured_data, "aura"), spell_id
 end
 
 local function capture_generic_tooltip_ui(tooltip)
@@ -1833,16 +1726,14 @@ after_aura_tooltip_rendered = function (tooltip)
     if not tooltip or is_secret(tooltip) then return end
     mark_aura_tooltip(tooltip)
     note_tooltip_event(tooltip, "auraMethod")
-    local aura_ok, _, observed_spell_id, inferred_by_title =
+    local aura_ok, _, observed_spell_id =
         pcall(translate_unit_aura_tooltip, tooltip)
     observed_spell_id = aura_ok and safe_number(observed_spell_id) or nil
-    inferred_by_title = aura_ok and inferred_by_title == true
     local metadata_ok, tooltip_id, kind, key = pcall(function ()
         return tooltip.uaForeverID, tooltip.uaForeverKind, tooltip.uaForeverKey
     end)
     if options.account and options.account.auto_scan_content and metadata_ok then
-        local capture_id = observed_spell_id
-            or not inferred_by_title and safe_number(tooltip_id) or nil
+        local capture_id = observed_spell_id or safe_number(tooltip_id)
         local missing_entry = capture_id
             and not entries.get_entry("spell", capture_id) or nil
         pcall(auto_scan.capture_tooltip, tooltip, "aura",
@@ -1856,9 +1747,7 @@ end
 
 tooltip_diagnostics.install(tooltips, {
     aura_tooltip_context = aura_tooltip_context,
-    visible_spell_id = visible_spell_id,
     tooltip_line = tooltip_line,
-    spell_adapter = spell_adapter,
     tooltip_events = tooltip_events,
     safe_string = safe_string,
     safe_number = safe_number,
@@ -1991,7 +1880,10 @@ local function prepare_tooltip_frames()
                     return
                 end
                 if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
-                if self.uaForeverKind ~= "item" then arm_tooltip_updates(self) end
+                if self.uaForeverKind ~= "item"
+                    and self.uaForeverKind ~= "talent" then
+                    arm_tooltip_updates(self)
+                end
                 if self == _G.GameTooltip and type(self.GetOwner) == "function" then
                     local owner_ok, owner = pcall(self.GetOwner, self)
                     if owner_ok and is_character_stat_owner(owner) then
@@ -2004,7 +1896,7 @@ local function prepare_tooltip_frames()
                     -- above and stay translated through guarded native writes.
                     translate_comparison_fallback_once(self,
                         self.uaForeverGeneration)
-                else
+                elseif self.uaForeverKind ~= "talent" then
                     schedule_tooltip_finalize(self)
                 end
             end)
@@ -2255,15 +2147,32 @@ tooltips.prepare = function ()
     end
     if types.Spell then
         TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
+            local trait_handled = talent_adapter.translate_structured_data(
+                tooltip, data)
+            if trait_handled then return end
             if not tooltip.uaForeverTargetAuraMeasuring then
-                if aura_tooltip_context(tooltip) then
-                    mark_aura_tooltip(tooltip)
-                    safe_process(tooltip, data, "aura")
-                else
-                    safe_process(tooltip, data, "spell", true)
-                end
+                safe_process(tooltip, data, "spell", true)
             end
         end)
+    end
+    if types.UnitAura then
+        TooltipDataProcessor.AddTooltipPostCall(types.UnitAura,
+            function (tooltip, data)
+                if tooltip.uaForeverTargetAuraMeasuring then return end
+                mark_aura_tooltip(tooltip)
+                safe_process(tooltip, data, "aura")
+            end)
+    end
+    if type(TooltipDataProcessor.AddLinePostCall) == "function"
+        and Enum.TooltipDataLineType then
+        local line_types = Enum.TooltipDataLineType
+        for _, line_type in ipairs({ line_types.SpellName,
+            line_types.SpellPassive, line_types.SpellDescription }) do
+            if line_type then
+                TooltipDataProcessor.AddLinePostCall(line_type,
+                    talent_adapter.translate_structured_line)
+            end
+        end
     end
     if types.Unit then
         TooltipDataProcessor.AddTooltipPostCall(types.Unit, function (tooltip, data)

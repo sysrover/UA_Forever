@@ -198,6 +198,14 @@ local function fit_tooltip_width_to_region(tooltip, region, source)
             tooltip.uaForeverOriginalWidth = tooltip_width
         end
         local ok = pcall(tooltip.SetWidth, tooltip, required_width)
+        -- Compact icon-tab tooltips are laid out before UA Forever replaces
+        -- their short native label. SetWidth alone does not expand the already
+        -- allocated line FontString in build 70009, leaving the Ukrainian text
+        -- clipped to a few characters with an ellipsis.
+        if ok and region and type(region.SetWidth) == "function" then
+            pcall(region.SetWidth, region,
+                math.max(1, required_width - TOOLTIP_TEXT_PADDING))
+        end
         if ok and quest_details_hint then
             tooltip.uaForeverTranslatedWidth = required_width
         end
