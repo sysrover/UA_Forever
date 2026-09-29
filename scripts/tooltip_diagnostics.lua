@@ -258,11 +258,13 @@ diagnostics.install = function (tooltips, api)
     local safe_string = api.safe_string
     local safe_number = api.safe_number
     local runtime = api.runtime
+    local strings = api.strings
     local is_secret = api.is_secret
     local note_tooltip_event = api.note_tooltip_event
     local mark_aura_tooltip = api.mark_aura_tooltip
     local after_aura_tooltip_rendered = api.after_aura_tooltip_rendered
     local each_shopping_tooltip = api.each_shopping_tooltip
+    local is_shopping_tooltip = api.is_shopping_tooltip
     local public_frame_name = api.public_frame_name
     local entries = api.entries
     local visible_tooltip_font_strings = api.visible_tooltip_font_strings
@@ -774,7 +776,29 @@ diagnostics.install = function (tooltips, api)
                 id = diagnostic_field(data, "id"),
                 guid = diagnostic_field(data, "guid"),
                 hyperlink = diagnostic_field(data, "hyperlink"),
+                lines = {},
             }
+            local ok_lines, data_lines = pcall(function () return data.lines end)
+            local ok_count, line_count = false, 0
+            if ok_lines and type(data_lines) == "table"
+                and not is_secret(data_lines) then
+                ok_count, line_count = pcall(function () return #data_lines end)
+            end
+            if ok_count then
+                for index = 1, math.min(line_count, MAX_TOOLTIP_LINES) do
+                    local ok_line, line = pcall(function ()
+                        return data_lines[index]
+                    end)
+                    if ok_line and type(line) == "table" and not is_secret(line) then
+                        result.tooltipData.lines[#result.tooltipData.lines + 1] = {
+                            index = index,
+                            type = diagnostic_field(line, "type"),
+                            leftText = diagnostic_field(line, "leftText"),
+                            rightText = diagnostic_field(line, "rightText"),
+                        }
+                    end
+                end
+            end
         elseif ok_data_method and type(get_tooltip_data) == "function" then
             result.tooltipData = { ok = ok_data }
         end
