@@ -16,6 +16,7 @@
     <Script file="translation_layout.lua"/>
     <Script file="tooltip_session.lua"/>
     <Script file="tooltip_item_adapter.lua"/>
+    <Script file="tooltip_comparison_adapter.lua"/>
     <Script file="tooltip_npc_adapter.lua"/>
     <Script file="tooltip_quest_adapter.lua"/>
     <Script file="tooltip_map_adapter.lua"/>
