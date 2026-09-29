@@ -5213,7 +5213,7 @@ local client_items = {
     [8645] = { "звичайне яйце", en="Ordinary Egg" },
     [8646] = { "погане яйце", en="Bad Egg" },
     [8647] = { "ящик для яєць", flavor="Якість гарантована!", en="Egg Crate" },
-    [8663] = { "мітрилова печатка", flavor="E Pluribus Mithril", en="Mithril Insignia" },
+    [8663] = { "мітрилова печатка", flavor="З багатьох — міфрил", en="Mithril Insignia" },
     [8683] = { "свіже яблуко Клари", use=7737, flavor="Свіжий смачний фрукт... що гарно підходить для маскування.", en="Clara's Fresh Apple" },
     [8684] = { "медова шипучка Внутрішніх земель", en="Hinterlands Honey Ripple" },
     [8685] = { "вантаж шипучки для Драна", flavor="В цій бочці знаходиться пакунок шипучки для Драна та кілька додаткових пляшок", en="Dran's Ripple Delivery" },
@@ -10021,7 +10021,7 @@ local client_items = {
     [17753] = { "лук хранителя гаю", equip=29637, en="Verdant Keeper's Aim" },
     [17756] = { "фрагмент тінекаменю", en="Shadowshard Fragment" },
     [17757] = { "амулет Духів", use="Змушує духів перших ханів кентаврів проявитися у фізичному світі.", en="Amulet of Spirits" },
-    [17758] = { "амулет Єднання", flavor="A great deal of power radiates from the amulet...", en="Amulet of Union" },
+    [17758] = { "амулет Єднання", flavor="Від амулета випромінюється величезна сила...", en="Amulet of Union" },
     [17759] = { "знак рішучості", equip="Збільшує ваш шанс протистояти ефектам приголомшення та страху на 1%.", use=21956, en="Mark of Resolution" },
     [17760] = { "насіння життя", en="Seed of Life" },
     [17761] = { "самоцвіт першого хана", use="Помістити всі п'ять ханських самоцвітів в амулет Духів.", flavor="Знайдено на тілі Колка...", en="Gem of the First Khan" },
@@ -13077,4 +13077,3 @@ for id in pairs(invalid_items) do
     if addonTable.item then addonTable.item[id] = nil end
 end
 merge_client_items()
-
