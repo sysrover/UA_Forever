@@ -275,11 +275,13 @@ resolver.find_ui = function (text, region, context)
         end
         if #captures > 0 then
             translated = pattern.replace(unpack_values(captures))
-            if cache_key and type(translated) == "string" then
-                cache_put(positive_cache, cache_key,
-                    { translation = translated, normalized = normalized })
+            if type(translated) == "string" then
+                if cache_key then
+                    cache_put(positive_cache, cache_key,
+                        { translation = translated, normalized = normalized })
+                end
+                return translated, normalized, "pattern"
             end
-            return translated, normalized, "pattern"
         end
     end
     if cache_key then

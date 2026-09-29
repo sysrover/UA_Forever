@@ -4,6 +4,22 @@ local _, addonTable = ...
 -- reads, semantic slots and Blizzard lifecycle; this catalog owns Ukrainian
 -- labels, grammar and dynamic formatters.
 local tooltip = {
+    dynamic_value_words = {
+        sec = "с", secs = "с", second = "с", seconds = "с",
+        min = "хв", mins = "хв", minute = "хв", minutes = "хв",
+        hr = "год", hrs = "год", hour = "год", hours = "год",
+        day = "дн", days = "дн",
+    },
+    requirement_names = {
+        Shield = "щит",
+        Shields = "щит",
+    },
+    power_resources = {
+        Rage = "люті",
+        Mana = "мани",
+        Energy = "енергії",
+        Focus = "концентрації",
+    },
     item_effect_prefix = {
         equip = "Екіпірування:",
         hit = "При влучанні:",

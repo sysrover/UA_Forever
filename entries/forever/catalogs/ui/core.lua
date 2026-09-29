@@ -699,6 +699,9 @@ local warrior_stances = {
     ["Defensive Stance"] = "захисна стійка",
     ["Berserker Stance"] = "стійка берсерка",
 }
+local tooltip_catalog = addonTable.forever_tooltip_ui or {}
+local requirement_names = tooltip_catalog.requirement_names or {}
+local power_resources = tooltip_catalog.power_resources or {}
 
 local function translate_requirement_part(requirement)
     requirement = requirement:match("^%s*(.-)%s*$")
@@ -716,7 +719,7 @@ local function translate_requirement_part(requirement)
     local level = name:match("^Level (%d+)$")
     if level then return "рівень " .. level, true end
 
-    local translated = warrior_stances[name] or ui[name]
+    local translated = warrior_stances[name] or requirement_names[name] or ui[name]
         or addonTable.string and addonTable.string[name]
     if not translated then
         local entries = addonTable.use("entries")
@@ -756,11 +759,14 @@ local function translate_quest_timer_value(first_count, first_unit,
     for _, unit in ipairs(units) do
         translated_units[unit.source] = unit.translated
     end
+    local dynamic_value_words = tooltip_catalog.dynamic_value_words or {}
     local first = translated_units[first_unit]
+        or dynamic_value_words[first_unit:lower()]
     if not first then return nil end
     local result = first_count .. " " .. first
     if second_count ~= "" or second_unit ~= "" then
         local second = translated_units[second_unit]
+            or dynamic_value_words[second_unit:lower()]
         if second_count == "" or not second then return nil end
         result = result .. " " .. second_count .. " " .. second
     end
@@ -770,7 +776,7 @@ end
 addonTable.forever_ui_patterns = {
     {
         -- SecondsToTime() emits at most two abbreviated units for quest timers.
-        pattern = "^(%d+)%s+(%a+)%s*(%d*)%s*(%a*)$",
+        pattern = "^([%d%.,]+)%s+(%a+)%s*([%d%.,]*)%s*(%a*)$",
         replace = translate_quest_timer_value,
     },
     {
@@ -841,8 +847,11 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
-        pattern = "^(%d+) Rage$",
-        replace = function (rage) return rage .. " люті" end,
+        pattern = "^([%+%-]?[%d%.,]+) ([A-Za-z]+)$",
+        replace = function (amount, resource)
+            local translated = power_resources[resource]
+            return translated and amount .. " " .. translated or nil
+        end,
     },
     {
         pattern = "^(%d+)%-(%d+) yd range$",
