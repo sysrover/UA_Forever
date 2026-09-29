@@ -40,6 +40,10 @@ lookup.get_name = function (spell_id)
     return get_row(databases.spell_names_uk, spell_id)
 end
 
+lookup.get_english_name = function (spell_id)
+    return get_row(databases.spell_names_en, spell_id)
+end
+
 lookup.get_description = function (spell_id)
     return get_row(databases.spell_descriptions_uk, spell_id)
 end

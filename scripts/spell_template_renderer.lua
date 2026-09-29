@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local renderer = addon_table.use("spell_template_renderer")
+local client_db = addon_table.use("spell_client_db")
 
 local compiled_cache = {}
 local rendered_cache = {}
@@ -11,6 +12,8 @@ local rendered_count = 0
 local RENDERED_CACHE_LIMIT = 512
 local MAX_VARIANTS = 64
 local MAX_CAPTURES = 30
+local tooltip_catalog = addon_table.forever_tooltip_ui or {}
+local dynamic_value_words = tooltip_catalog.dynamic_value_words or {}
 
 local function is_secret_value(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -65,6 +68,12 @@ local function match_dynamic_token(text)
         or text:match("^%$%d*[A-Za-z]~?%d+")
         or text:match("^%$<[%a_][%w_]*>")
         or text:match("^%$%d*[A-Za-z]")
+end
+
+local function localize_dynamic_value(value)
+    return (value:gsub("([A-Za-z]+)", function (word)
+        return dynamic_value_words[word:lower()] or word
+    end))
 end
 
 local function parse_template(text)
@@ -164,6 +173,16 @@ local function parse_template(text)
                 elseif prefix == "$N" then
                     nodes[#nodes + 1] = { kind = "text", value = "\n" }
                     position = position + 2
+                elseif prefix == "$@" then
+                    local identity, spell_id = text:sub(position):match(
+                        "^(%$@spellname(%d+))")
+                    spell_id = tonumber(spell_id)
+                    if not identity or not spell_id then return nil end
+                    nodes[#nodes + 1] = {
+                        kind = "spell_name", identity = identity,
+                        spell_id = spell_id,
+                    }
+                    position = position + #identity
                 else
                     local rest = text:sub(position)
                     local identity = match_dynamic_token(rest)
@@ -210,6 +229,12 @@ local function expand_nodes(nodes, variants)
         elseif node.kind == "token" then
             for _, variant in ipairs(variants) do
                 variant.segments[#variant.segments + 1] = node
+            end
+        elseif node.kind == "spell_name" then
+            local value = client_db.get_english_name(node.spell_id)
+            if not value then return nil end
+            for _, variant in ipairs(variants) do
+                append_text(variant, value)
             end
         elseif node.kind == "grammar" then
             local expanded = {}
@@ -277,10 +302,77 @@ local function compile_variant(variant)
     }
 end
 
+local function render_spell_name_nodes(nodes, english)
+    local output = {}
+    for _, node in ipairs(nodes) do
+        if node.kind == "text" then
+            output[#output + 1] = node.value
+        elseif node.kind == "spell_name" then
+            local value = english and client_db.get_english_name(node.spell_id)
+                or client_db.get_name(node.spell_id)
+            if not value then return nil end
+            output[#output + 1] = value
+        else
+            return nil
+        end
+    end
+    return table.concat(output)
+end
+
+local function split_spell_name_list(nodes, english)
+    local prefix_nodes = {}
+    local branches = {}
+    local found_conditional = false
+    for _, node in ipairs(nodes) do
+        if not found_conditional and node.kind ~= "conditional" then
+            prefix_nodes[#prefix_nodes + 1] = node
+        else
+            found_conditional = true
+            if node.kind ~= "conditional" or #node.branches[2] ~= 0 then
+                return nil
+            end
+            local branch = render_spell_name_nodes(node.branches[1], english)
+            if not branch then return nil end
+            branches[#branches + 1] = {
+                key = node.key,
+                identity = node.identity,
+                value = branch,
+            }
+        end
+    end
+    if not found_conditional or #branches == 0 then return nil end
+    local prefix = render_spell_name_nodes(prefix_nodes, english)
+    if not prefix then return nil end
+    return { prefix = prefix, branches = branches }
+end
+
+local function compile_spell_name_list(english, ukrainian)
+    local source = split_spell_name_list(english, true)
+    local translated = split_spell_name_list(ukrainian, false)
+    if not source or not translated
+        or #source.branches ~= #translated.branches then return nil end
+    local branches = {}
+    for index, source_branch in ipairs(source.branches) do
+        local translated_branch = translated.branches[index]
+        if source_branch.identity ~= translated_branch.identity then return nil end
+        branches[index] = {
+            english = source_branch.value,
+            ukrainian = translated_branch.value,
+        }
+    end
+    return {
+        english_prefix = source.prefix,
+        ukrainian_prefix = translated.prefix,
+        branches = branches,
+    }
+end
+
 local function compile_pair(english_raw, ukrainian_raw)
     local english = parse_template(english_raw)
     local ukrainian = parse_template(ukrainian_raw)
     if not english or not ukrainian then return nil end
+    local spell_name_list = compile_spell_name_list(english, ukrainian)
+    if spell_name_list then return { spell_name_list = spell_name_list } end
     local expanded = expand_nodes(english, { { segments = {}, decisions = {} } })
     if not expanded then return nil end
     local variants = {}
@@ -304,6 +396,10 @@ local function render_nodes(nodes, decisions, values)
                 value = token_values[1]
             end
             if value == nil then return nil end
+            output[#output + 1] = localize_dynamic_value(value)
+        elseif node.kind == "spell_name" then
+            local value = client_db.get_name(node.spell_id)
+            if not value then return nil end
             output[#output + 1] = value
         elseif node.kind == "conditional" then
             local choice = decisions[node.key]
@@ -325,6 +421,25 @@ local function render_nodes(nodes, decisions, values)
             return nil
         end
     end
+    return table.concat(output)
+end
+
+local function render_spell_name_list(plan, native_text)
+    local prefix_end = native_text:match(
+        "^" .. literal_pattern(plan.english_prefix) .. "()")
+    if not prefix_end then return nil end
+    local position = prefix_end
+    local output = { plan.ukrainian_prefix }
+    for _, branch in ipairs(plan.branches) do
+        local remaining = native_text:sub(position)
+        local branch_end = remaining:match(
+            "^" .. literal_pattern(branch.english) .. "()")
+        if branch_end then
+            output[#output + 1] = branch.ukrainian
+            position = position + branch_end - 1
+        end
+    end
+    if not native_text:sub(position):match("^%s*$") then return nil end
     return table.concat(output)
 end
 
@@ -392,6 +507,17 @@ renderer.render = function (
         compiled_cache[compiled_key] = cached_plan
     end
     if cached_plan.plan == false then
+        cache_rendered(rendered_key, nil)
+        return nil
+    end
+
+    if cached_plan.plan.spell_name_list then
+        local translated = render_spell_name_list(
+            cached_plan.plan.spell_name_list, native_text)
+        if translated and not translated:find("$", 1, true) then
+            cache_rendered(rendered_key, translated)
+            return translated
+        end
         cache_rendered(rendered_key, nil)
         return nil
     end
