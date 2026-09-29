@@ -41,7 +41,7 @@ session.reset = function (tooltip, on_invalidate)
         local suffix = tostring(tooltip)
         for _, prefix in ipairs({
             "tooltip:", "tooltip-late:", "tooltip-item:",
-            "tooltip-item-late:", "tooltip-comparison:", "tooltip-aura:",
+            "tooltip-item-late:", "tooltip-comparison:",
         }) do
             scheduler.cancel(prefix .. suffix)
         end
@@ -53,7 +53,7 @@ session.reset = function (tooltip, on_invalidate)
     for _, field in ipairs({
         "uaForeverSessionKey", "uaForeverKind", "uaForeverID",
         "uaForeverReservedFirst", "uaForeverFallback",
-        "uaForeverShowOriginal", "uaForeverKey", "uaForeverAuraRetryKey",
+        "uaForeverShowOriginal", "uaForeverKey",
         "uaForeverGenericText", "uaForeverBilingualLines",
         "uaForeverUnitRefreshAt", "uaForeverUpdateBudget",
         "uaForeverAuraTooltip", "uaForeverAuraUnit",
@@ -61,6 +61,8 @@ session.reset = function (tooltip, on_invalidate)
         "uaForeverComparisonManagedPending",
         "uaForeverComparisonCompleteGeneration",
         "uaForeverComparisonFallbackGeneration",
+        "uaForeverTalentLines", "uaForeverTalentEntries",
+        "uaForeverTalentEntryID",
     }) do
         tooltip[field] = nil
     end

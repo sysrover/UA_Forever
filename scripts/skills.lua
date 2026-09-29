@@ -6,6 +6,8 @@ local entries = addon_table.use("entries")
 local layout = addon_table.use("translation_layout")
 local options = addon_table.use("options")
 local skills = addon_table.use("skills")
+local client_db = addon_table.use("spell_client_db")
+local spell_renderer = addon_table.use("spell_template_renderer")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
@@ -467,22 +469,56 @@ local function entry_text(entry, owner, index)
     return utils.cap(entry[index])
 end
 
+local function spellbook_item_spell_id(info)
+    if type(info) ~= "table" then return nil end
+    local spell_id = info.spellID
+    if type(spell_id) == "number" and not is_secret(spell_id) then
+        return spell_id
+    end
+
+    local action_id = info.actionID
+    local pet_action = Enum and Enum.SpellBookItemType
+        and info.itemType == Enum.SpellBookItemType.PetAction
+    if not pet_action or type(action_id) ~= "number" or is_secret(action_id)
+        or not C_PetInfo
+        or type(C_PetInfo.GetSpellForPetAction) ~= "function" then return nil end
+
+    local ok, resolved_id = pcall(C_PetInfo.GetSpellForPetAction, action_id)
+    if ok and type(resolved_id) == "number" and not is_secret(resolved_id) then
+        return resolved_id
+    end
+end
+
+local function update_spellbook_item_layout(frame)
+    if frame and type(frame.UpdateTextContainer) == "function" then
+        pcall(frame.UpdateTextContainer, frame)
+    end
+end
+
+local function render_client_spell_description(spell_id, native_text)
+    if type(spell_id) ~= "number" or is_secret(spell_id)
+        or type(native_text) ~= "string" or native_text == "" then return nil end
+    return spell_renderer.render(
+        spell_id, "spell",
+        client_db.get_english_description(spell_id),
+        client_db.get_description(spell_id),
+        native_text
+    )
+end
+
 local function translate_spellbook_item(frame)
     local info = frame and frame.spellBookItemInfo
-    local spell_id = info and info.spellID
-    if type(spell_id) ~= "number" then return end
-    local entry = entries.get_entry("spell", spell_id)
-    local text = entry_text(entry, frame)
+    local spell_id = spellbook_item_spell_id(info)
+    local text = spell_id and client_db.get_name(spell_id)
     if text and options.translate_name("skill") then
         apply_skill_text(frame.Name, text, "skill", "skill.name")
     end
-    -- Some Camelot-only passive spells do not have a reviewed ClassicUA ID
-    -- entry yet, but their visible names are present in the Forever UI table.
-    if options.translate_name("skill") then
-        strings.translate_region(frame and frame.Name, "skill", "skill.name")
-    end
     strings.translate_region(frame and frame.SubName)
     strings.translate_region(frame and frame.RequiredLevel)
+    -- Blizzard sizes the text container before UA Forever replaces the native
+    -- name. Recalculate it from the database-backed Ukrainian text so the
+    -- existing three-line spell-name allowance is used before truncating.
+    update_spellbook_item_layout(frame)
 end
 
 local function translate_spellbook(frame)
@@ -512,9 +548,8 @@ translate_profession_spell_button = function (frame)
     if type(id) ~= "number" or type(offset) ~= "number" then return end
     local ok, info = pcall(C_SpellBook.GetSpellBookItemInfo,
         id + offset, Enum.SpellBookSpellBank.Player)
-    local spell_id = ok and info and info.spellID
-    local entry = type(spell_id) == "number" and entries.get_entry("spell", spell_id)
-    local text = entry_text(entry, frame)
+    local spell_id = ok and spellbook_item_spell_id(info)
+    local text = spell_id and client_db.get_name(spell_id)
     if text and options.translate_name("skill") then
         apply_skill_text(frame.spellString, text, "skill", "skill.name")
     end
@@ -612,9 +647,8 @@ local function translate_crafting_row(row)
     local recipe_info = data and (data.recipeInfo
         or (numeric_field(data, "recipeID") and data))
     local recipe_id = recipe_info and recipe_info.recipeID
-    local entry = type(recipe_id) == "number" and not is_secret(recipe_id)
-        and entries.get_entry("spell", recipe_id)
-    local text = entry_text(entry, row)
+    local text = type(recipe_id) == "number" and not is_secret(recipe_id)
+        and client_db.get_name(recipe_id)
     local recipe_source = recipe_info and recipe_info.name
     if is_secret(recipe_source) then recipe_source = nil end
     local known_translation = text
@@ -775,15 +809,13 @@ local function translate_crafting_description(form)
 
     local recipe_info = recipe_info_from_form(form)
     local recipe_id = recipe_info and recipe_info.recipeID
-    local spell_entry = type(recipe_id) == "number" and not is_secret(recipe_id)
-        and entries.get_entry("spell", recipe_id)
-    local description = entry_text(spell_entry, form, 2)
+    local source = text_from(region)
+    local description = render_client_spell_description(recipe_id, source)
     if description then
         apply_skill_text(region, description, nil, "spell.description")
         return
     end
 
-    local source = text_from(region)
     if not source or not source:match("^Craft an? .+%.$") then return end
     local output = translated_recipe_output(form, recipe_info)
     if not output then
@@ -1026,9 +1058,8 @@ local function translate_new_recipe_alert(frame, recipe_id)
     if type(recipe_id) ~= "number" or is_secret(recipe_id)
         or not options.translate_name("spell") then return end
 
-    local entry = entries.get_entry("spell", recipe_id)
-    local english = entry and entry.en
-    local ukrainian = entry and entry[1]
+    local english = client_db.get_english_name(recipe_id)
+    local ukrainian = client_db.get_name(recipe_id)
     local source = text_from(frame.Name)
     if type(english) ~= "string" or type(ukrainian) ~= "string"
         or not source then return end

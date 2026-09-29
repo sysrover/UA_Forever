@@ -590,9 +590,17 @@ local function register_slash_command()
                 if report then
                     status.state = "captured"
                     local before, after = report.before, report.after
-                    message(string.format("скан аури: ID %s, ID за назвою %s, рядків %s, переклад %s → %s",
-                        tostring(before.spellID or before.id or "?"),
-                        tostring(before.titleID or "?"), tostring(before.numLines or "?"),
+                    local data = before.tooltipData or {}
+                    local line_types = {}
+                    for _, line in ipairs(data.lines or {}) do
+                        line_types[#line_types + 1] = tostring(line.type or "?")
+                    end
+                    message(string.format("скан аури: getter %s, type %s, data.id %s, data.spellID %s, GetSpell %s, типи рядків [%s], переклад %s → %s",
+                        tostring(before.getterName or "?"),
+                        tostring(data.type or "?"), tostring(data.id or "?"),
+                        tostring(data.spellID or "?"),
+                        tostring(before.spellID or "?"),
+                        table.concat(line_types, ","),
                         before.translated and "так" or "ні",
                         after.translated and "так" or "ні"))
                     message("зробіть /reload; результат: UA_ForeverDB.scan.auraProbe у SavedVariables/UA_Forever.lua")
