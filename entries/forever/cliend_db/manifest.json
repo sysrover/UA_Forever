@@ -50,5 +50,12 @@
   "spellDescriptionMissingReferences": 3,
   "spellNameTranslatedChunksMerged": 18,
   "spellNameTranslatedChunkRowsMerged": 17889,
-  "spellNamesUkV4Complete": true
+  "spellNamesUkV4Complete": true,
+  "auraDescriptionsUk": 7740,
+  "auraDescriptionsNeedTranslation": 0,
+  "auraDescriptionTranslationChunks": 3,
+  "auraDescriptionTranslationChunkSize": 1000,
+  "auraDescriptionTranslatedChunksMerged": 3,
+  "auraDescriptionTranslatedChunkRowsMerged": 2146,
+  "auraDescriptionsUkComplete": true
 }

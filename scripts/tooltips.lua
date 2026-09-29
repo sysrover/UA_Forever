@@ -550,9 +550,12 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "spell" then
         id = spell_adapter.resolve_structured_spell_id(tooltip, data)
     elseif kind == "aura" then
-        -- Only public IDs already present in TooltipData may identify an aura.
+        -- Only public IDs already present in Blizzard's structured aura data
+        -- may identify an aura. ShowAuraTooltip receives AuraData.spellId,
+        -- while its generated TooltipData exposes id/spellID.
         -- safe_number rejects secret values before they can be cached.
-        id = safe_number(data.spellID)
+        id = safe_number(data.spellId)
+        if not id then id = safe_number(data.spellID) end
         if not id then id = safe_number(data.id) end
     else
         id = safe_number(data.id) or safe_number(data.itemID)
@@ -761,11 +764,9 @@ local function public_frame_name(frame)
     end
 end
 
--- Aura tooltips are also reported as TooltipDataType.Spell. The rendered
--- owner is the stable discriminator: player buffs are buttons below
--- BuffFrame.AuraContainer, while unit-frame auras live below an Auras
--- container. Keep this classification for the complete tooltip generation so
--- deferred generic passes cannot demote the aura back to an ordinary spell.
+-- UnitAura has its own structured tooltip type, but public aura surfaces can
+-- also rebuild through method hooks. Secure target-frame AuraButtonTooltip is
+-- intentionally outside both this owner lookup and addon callbacks.
 local function aura_tooltip_context(tooltip)
     if not tooltip or is_secret(tooltip) then return nil end
     local marked = tooltip.uaForeverAuraTooltip == true
@@ -1406,7 +1407,8 @@ tooltips.finalize = translate_generic_tooltip
 local function translate_unit_aura_tooltip(tooltip, data)
     if not tooltip then return false end
     mark_aura_tooltip(tooltip)
-    local structured_data = type(data) == "table" and data or nil
+    local structured_data = type(data) == "table" and not is_secret(data)
+        and data or nil
     if not structured_data
         and type(tooltip.GetPrimaryTooltipData) == "function" then
         local ok, value = pcall(tooltip.GetPrimaryTooltipData, tooltip)
@@ -1414,7 +1416,8 @@ local function translate_unit_aura_tooltip(tooltip, data)
             structured_data = value
         end
     end
-    local spell_id = structured_data and safe_number(structured_data.spellID)
+    local spell_id = structured_data and safe_number(structured_data.spellId)
+        or structured_data and safe_number(structured_data.spellID)
         or structured_data and safe_number(structured_data.id) or nil
     if not spell_id then return false end
 
@@ -1722,12 +1725,12 @@ local function schedule_tooltip_finalize(tooltip)
     end
 end
 
-after_aura_tooltip_rendered = function (tooltip)
+after_aura_tooltip_rendered = function (tooltip, aura_data)
     if not tooltip or is_secret(tooltip) then return end
     mark_aura_tooltip(tooltip)
     note_tooltip_event(tooltip, "auraMethod")
     local aura_ok, _, observed_spell_id =
-        pcall(translate_unit_aura_tooltip, tooltip)
+        pcall(translate_unit_aura_tooltip, tooltip, aura_data)
     observed_spell_id = aura_ok and safe_number(observed_spell_id) or nil
     local metadata_ok, tooltip_id, kind, key = pcall(function ()
         return tooltip.uaForeverID, tooltip.uaForeverKind, tooltip.uaForeverKey

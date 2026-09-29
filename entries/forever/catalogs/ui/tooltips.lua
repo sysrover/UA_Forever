@@ -46,6 +46,11 @@ local tooltip = {
 }
 
 tooltip.format = {
+    aura_time_remaining = function (amount, unit)
+        local translated_unit = tooltip.dynamic_value_words[unit:lower()]
+        if not translated_unit then return nil end
+        return "Залишилося " .. amount .. " " .. translated_unit
+    end,
     item_use = function (description, cooldown, unit)
         local result = "Використання: " .. description
         if cooldown then
