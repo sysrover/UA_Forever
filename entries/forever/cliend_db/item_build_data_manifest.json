@@ -1,0 +1,20 @@
+{
+  "sourceBuild": "1.60.1.70058",
+  "itemMetadata": 31818,
+  "itemClasses": 17,
+  "itemSubclasses": 100,
+  "itemSets": 536,
+  "itemSetBonuses": 1465,
+  "itemEnchantments": 2216,
+  "gemProperties": 0,
+  "itemNameDescriptions": 92,
+  "itemLimitCategories": 52,
+  "itemBonuses": 1124,
+  "itemBonusLists": 365,
+  "itemBonusTrees": 115,
+  "itemBonusTreeNodes": 1936,
+  "unavailableTables": [
+    "ItemRandomProperties",
+    "ItemRandomSuffix"
+  ]
+}
