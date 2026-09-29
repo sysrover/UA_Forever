@@ -45,5 +45,13 @@
     <Script file="catalogs\objects\client_additions.lua"/>
     <Script file="catalogs\ui\client_global.lua"/>
     <Script file="catalogs\ui\client_source.lua"/>
+    <Script file="cliend_db\spell_names.lua"/>
+    <Script file="cliend_db\spell_names_uk.lua"/>
+    <Script file="cliend_db\spell_descriptions.lua"/>
+    <Script file="cliend_db\spell_descriptions_uk.lua"/>
+    <Script file="cliend_db\aura_descriptions.lua"/>
+    <Script file="cliend_db\aura_descriptions_uk.lua"/>
+    <Script file="cliend_db\trait_entries.lua"/>
+    <Script file="cliend_db\trait_definition_overrides.lua"/>
     <Script file="catalogs\runtime\compile.lua"/>
 </Ui>

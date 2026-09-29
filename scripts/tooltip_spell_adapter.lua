@@ -5,6 +5,8 @@ local entries = addon_table.use("entries")
 local layout = addon_table.use("translation_layout")
 local options = addon_table.use("options")
 local strings = addon_table.use("strings")
+local client_db = addon_table.use("spell_client_db")
+local renderer = addon_table.use("spell_template_renderer")
 local adapter = addon_table.use("tooltip_spell_adapter")
 local dependencies
 local aura_spell_titles = {}
@@ -31,6 +33,91 @@ local function spell_name_category(tooltip)
         owner = parent
     end
     return "spell"
+end
+
+local SPELL_NAME = 13
+local SPELL_PASSIVE = 33
+local SPELL_DESCRIPTION = 34
+
+adapter.add_structured_spell = function (tooltip, data)
+    local contract = deps()
+    if not tooltip or type(data) ~= "table"
+        or not options.can_lookup("translate_spell") then return false end
+    local spell_id = contract.safe_number(data.id)
+    if not spell_id or type(data.lines) ~= "table" then return false end
+
+    local translated_name = client_db.get_name(spell_id)
+    local english_raw = client_db.get_english_description(spell_id)
+    local ukrainian_raw = client_db.get_description(spell_id)
+    local native_name
+    local applied = false
+    local service_indexes = {}
+    local max_line_index = 0
+    tooltip.uaForeverReservedFirst = 2
+
+    for _, line_data in ipairs(data.lines) do
+        if type(line_data) == "table" then
+            local line_type = contract.safe_number(line_data.type)
+            local line_index = contract.safe_number(line_data.lineIndex)
+            local source = contract.safe_string(line_data.leftText)
+            if line_index then
+                max_line_index = math.max(max_line_index, line_index)
+                local region = contract.line_region(tooltip, "Left", line_index)
+                if line_type == SPELL_NAME then
+                    native_name = source or native_name
+                    if region and source and translated_name
+                        and options.can_translate("translate_spell") then
+                        local category = "spell"
+                        applied = contract.set_translation(
+                            tooltip, region, source, translated_name,
+                            category .. ".name", category, "spell-tooltip"
+                        ) or applied
+                    end
+                elseif line_type == SPELL_DESCRIPTION then
+                    if region and source and english_raw and ukrainian_raw
+                        and options.can_translate("translate_spell") then
+                        local translated = renderer.render(
+                            spell_id, "spell", english_raw, ukrainian_raw, source
+                        )
+                        if translated then
+                            applied = contract.set_translation(
+                                tooltip, region, source, translated,
+                                "spell.description:" .. line_index, nil,
+                                "spell-tooltip"
+                            ) or applied
+                        end
+                    end
+                elseif line_type == SPELL_PASSIVE then
+                    if region and source
+                        and options.can_translate("translate_spell") then
+                        local translated, source_kind =
+                            contract.translate_static(source, region)
+                        if translated then
+                            applied = contract.set_translation(
+                                tooltip, region, source, translated,
+                                "spell.passive:" .. line_index, nil,
+                                "spell-tooltip", source_kind
+                            ) or applied
+                        end
+                    end
+                else
+                    service_indexes[line_index] = true
+                end
+            end
+        end
+    end
+
+    dev_log.record_id("spells", spell_id, native_name,
+        translated_name ~= nil or ukrainian_raw ~= nil)
+    if not translated_name and not ukrainian_raw then
+        dev_log.missing_spell(spell_id, native_name or tostring(spell_id))
+    end
+    if options.can_translate("translate_spell") and max_line_index > 0 then
+        applied = contract.rewrite_generic(
+            tooltip, max_line_index, 1, nil, nil, nil, service_indexes
+        ) > 0 or applied
+    end
+    return applied
 end
 
 adapter.resolve_aura_id = function (title)

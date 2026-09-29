@@ -6,6 +6,8 @@
     <Script file="dev_log.lua"/>
     <Script file="auto_scan.lua"/>
     <Script file="utils.lua"/>
+    <Script file="spell_client_db.lua"/>
+    <Script file="spell_template_renderer.lua"/>
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>
     <Script file="translation_scheduler.lua"/>

@@ -25,6 +25,7 @@ local tooltip_catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
 local tooltip_format = tooltip_catalog.format
 local tooltip_line
+local tooltip_line_region
 local visible_tooltip_font_strings
 local visible_spell_id
 local translate_object_tooltip_title
@@ -315,7 +316,7 @@ tooltips.translate_profession_recipe = function (tooltip, english)
         "skill.name", "skill", "spell-tooltip")
 end
 
-local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fallback, adjust_layout, snapshot)
+local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fallback, adjust_layout, snapshot, only_indexes)
     line_count = safe_number(line_count)
     if not line_count then
         local ok_count, value = pcall(tooltip.NumLines, tooltip)
@@ -329,48 +330,52 @@ local function rewrite_generic_lines(tooltip, line_count, first_index, allow_fal
     runtime.metric("line_passes", tooltip, tooltip.uaForeverGeneration)
 
     for index = first_index or 1, line_count do
-        local row = snapshot and snapshot[index]
-        local left = row and row.left and row.left.source
-        local left_region = row and row.left and row.left.region
-        local right = row and row.right and row.right.source
-        local right_region = row and row.right and row.right.region
-        if not snapshot then
-            left, left_region = tooltip_line(tooltip, "Left", index)
-            right, right_region = tooltip_line(tooltip, "Right", index)
-        end
-        local left_stable = runtime.is_stable_claim(left_region, tooltip,
-            tooltip.uaForeverGeneration)
-        local right_stable = runtime.is_stable_claim(right_region, tooltip,
-            tooltip.uaForeverGeneration)
-        runtime.metric("stable_claim_hits", tooltip, tooltip.uaForeverGeneration,
-            (left_stable and 1 or 0) + (right_stable and 1 or 0))
-        runtime.metric("tooltip_resolver_calls", tooltip, tooltip.uaForeverGeneration,
-            (left and not left_stable and 1 or 0)
-                + (right and not right_stable and 1 or 0))
-        local translated_left, _, left_kind, _, _, _, left_provenance
-        local translated_right, _, right_kind, _, _, _, right_provenance
-        if not left_stable then
-            translated_left, _, left_kind, _, _, _, left_provenance =
-                strings.find_ui_translation(left, left_region)
-        end
-        if not right_stable then
-            translated_right, _, right_kind, _, _, _, right_provenance =
-                strings.find_ui_translation(right, right_region)
-        end
-        if translated_left and translated_left ~= left then
-            if set_tooltip_translation(tooltip, left_region, left, translated_left,
-                "generic.left:" .. index, nil, "generic", left_kind,
-                allow_fallback, adjust_layout, nil, nil,
-                left_provenance and left_provenance.source) then
-                applied = applied + 1
+        if not only_indexes or only_indexes[index] then
+            local row = snapshot and snapshot[index]
+            local left = row and row.left and row.left.source
+            local left_region = row and row.left and row.left.region
+            local right = row and row.right and row.right.source
+            local right_region = row and row.right and row.right.region
+            if not snapshot then
+                left, left_region = tooltip_line(tooltip, "Left", index)
+                right, right_region = tooltip_line(tooltip, "Right", index)
             end
-        end
-        if translated_right and translated_right ~= right then
-            if set_tooltip_translation(tooltip, right_region, right, translated_right,
-                "generic.right:" .. index, nil, "generic", right_kind,
-                allow_fallback, adjust_layout, nil, nil,
-                right_provenance and right_provenance.source) then
-                applied = applied + 1
+            local left_stable = runtime.is_stable_claim(left_region, tooltip,
+                tooltip.uaForeverGeneration)
+            local right_stable = runtime.is_stable_claim(right_region, tooltip,
+                tooltip.uaForeverGeneration)
+            runtime.metric("stable_claim_hits", tooltip,
+                tooltip.uaForeverGeneration,
+                (left_stable and 1 or 0) + (right_stable and 1 or 0))
+            runtime.metric("tooltip_resolver_calls", tooltip,
+                tooltip.uaForeverGeneration,
+                (left and not left_stable and 1 or 0)
+                    + (right and not right_stable and 1 or 0))
+            local translated_left, _, left_kind, _, _, _, left_provenance
+            local translated_right, _, right_kind, _, _, _, right_provenance
+            if not left_stable then
+                translated_left, _, left_kind, _, _, _, left_provenance =
+                    strings.find_ui_translation(left, left_region)
+            end
+            if not right_stable then
+                translated_right, _, right_kind, _, _, _, right_provenance =
+                    strings.find_ui_translation(right, right_region)
+            end
+            if translated_left and translated_left ~= left then
+                if set_tooltip_translation(tooltip, left_region, left,
+                    translated_left, "generic.left:" .. index, nil, "generic",
+                    left_kind, allow_fallback, adjust_layout, nil, nil,
+                    left_provenance and left_provenance.source) then
+                    applied = applied + 1
+                end
+            end
+            if translated_right and translated_right ~= right then
+                if set_tooltip_translation(tooltip, right_region, right,
+                    translated_right, "generic.right:" .. index, nil, "generic",
+                    right_kind, allow_fallback, adjust_layout, nil, nil,
+                    right_provenance and right_provenance.source) then
+                    applied = applied + 1
+                end
             end
         end
     end
@@ -383,6 +388,12 @@ spell_adapter.configure({
     normalized_text = normalized_tooltip_text,
     make_text = make_text,
     tooltip_line = function (...) return tooltip_line(...) end,
+    line_region = function (...) return tooltip_line_region(...) end,
+    translate_static = function (source, region)
+        local translated, _, source_kind = strings.find_ui_translation(
+            source, region)
+        return translated, source_kind
+    end,
     visible_font_strings = function (...)
         return visible_tooltip_font_strings(...)
     end,
@@ -537,6 +548,8 @@ local function process(tooltip, data, kind, native_rebuild)
         end
     elseif kind == "object" then
         id = safe_number(data.uaForeverID) or id_from_guid(data.guid, true) or safe_number(data.id)
+    elseif kind == "spell" then
+        id = safe_number(data.id)
     elseif kind == "aura" then
         -- Camelot exposes secret aura values in combat. Only use a public
         -- numeric spell ID; never compare, format, or cache a secret value.
@@ -582,7 +595,7 @@ local function process(tooltip, data, kind, native_rebuild)
         translated = type(result) == "table" and result.applied == true
             or result == true
     elseif kind == "spell" then
-        translated = spell_adapter.add(tooltip, id, false)
+        translated = spell_adapter.add_structured_spell(tooltip, data)
     elseif kind == "aura" then
         translated = spell_adapter.add(tooltip, id, true)
     elseif kind == "npc" then
@@ -595,6 +608,10 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "object" then
         dev_log.record_id("objects", id, data.name, false)
         translated = translate_object_tooltip_title(tooltip)
+    end
+    if kind == "spell" then
+        scheduler.cancel("tooltip:" .. tostring(tooltip))
+        scheduler.cancel("tooltip-late:" .. tostring(tooltip))
     end
     if translated then tooltip.uaForeverKey = key end
     if options.account and options.account.auto_scan_content
@@ -1056,7 +1073,7 @@ visible_tooltip_font_strings = function (tooltip)
     return result
 end
 
-tooltip_line = function (tooltip, side, index, allow_hidden)
+tooltip_line_region = function (tooltip, side, index)
     local region
     local getter_name = side == "Right" and "GetRightLine" or "GetLeftLine"
     local getter_ok, getter = pcall(function () return tooltip[getter_name] end)
@@ -1064,8 +1081,6 @@ tooltip_line = function (tooltip, side, index, allow_hidden)
         local line_ok, candidate = pcall(getter, tooltip, index)
         if line_ok and candidate and not is_secret(candidate) then
             region = candidate
-            runtime.metric("native_tooltip_line_hits", tooltip,
-                tooltip.uaForeverGeneration)
         end
     end
     if not region and tooltip.GetName then
@@ -1078,6 +1093,16 @@ tooltip_line = function (tooltip, side, index, allow_hidden)
                     tooltip.uaForeverGeneration)
             end
         end
+    end
+
+    return region
+end
+
+tooltip_line = function (tooltip, side, index, allow_hidden)
+    local region = tooltip_line_region(tooltip, side, index)
+    if region then
+        runtime.metric("native_tooltip_line_hits", tooltip,
+            tooltip.uaForeverGeneration)
     end
 
     if region and not allow_hidden then
@@ -1781,17 +1806,16 @@ local function schedule_tooltip_finalize(tooltip)
     local function finalize()
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
+            if tooltip.uaForeverKind == "spell" then
+                capture_generic_tooltip_ui(tooltip)
+                return
+            end
             if aura_tooltip_context(tooltip) then
                 mark_aura_tooltip(tooltip)
                 after_aura_tooltip_rendered(tooltip)
                 return
             end
-            local spell_id = visible_spell_id(tooltip)
-            if spell_id and entries.get_entry("spell", spell_id) then
-                safe_process(tooltip, { id = spell_id, spellID = spell_id }, "spell")
-            else
-                translate_generic_tooltip(tooltip)
-            end
+            translate_generic_tooltip(tooltip)
             capture_generic_tooltip_ui(tooltip)
         end
     end
@@ -2234,7 +2258,7 @@ tooltips.prepare = function ()
                     mark_aura_tooltip(tooltip)
                     safe_process(tooltip, data, "aura")
                 else
-                    safe_process(tooltip, data, "spell")
+                    safe_process(tooltip, data, "spell", true)
                 end
             end
         end)
