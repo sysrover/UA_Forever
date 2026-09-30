@@ -37,6 +37,8 @@ local active_tooltips = tooltip_session.active
 local tooltip_events = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
+local ptr_feedback_hooked = false
+local ptr_feedback_cache = {}
 
 local function arm_tooltip_updates(tooltip, budget)
     if not tooltip then return end
@@ -64,8 +66,32 @@ local function begin_tooltip(tooltip, key, force)
         shift_held() or not options.can_translate(), function (region)
         character_stat_line_heights[region] = nil
     end, force)
-    if not started then return end
+    if not started then return false end
     tooltip_font_strings[tooltip] = nil
+    return true
+end
+
+local function reapply_cached_surface(tooltip)
+    if not tooltip or tooltip.uaForeverShowOriginal then return false end
+    local rows = {}
+    local valid = true
+    runtime.for_each_claim(tooltip, function (region, claim)
+        if not claim or claim.surface ~= tooltip then return end
+        local ok, current = pcall(region.GetText, region)
+        current = ok and runtime.safe_string_or_nil(current) or nil
+        if not current or current ~= claim.source
+            and current ~= claim.translated
+            and current ~= claim.name_original then
+            valid = false
+            return
+        end
+        rows[#rows + 1] = region
+    end)
+    if not valid or #rows == 0 then return false end
+    for _, region in ipairs(rows) do
+        runtime.show_original(region, false)
+    end
+    return true
 end
 
 local function sync_tooltip_original_state(tooltip)
@@ -317,20 +343,6 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         }
     end
     return ok
-end
-
-tooltips.translate_profession_recipe = function (tooltip, english)
-    english = safe_string(english)
-    if not tooltip or not english then return end
-    local source, region = tooltip_line(tooltip, "Left", 1)
-    if not region or source ~= english then return end
-    local translated = entries.lookup_name("spell", english)
-        or entries.lookup_name("item", english)
-    if not translated then return end
-    if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
-    tooltip.uaForeverReservedFirst = 2
-    set_tooltip_translation(tooltip, region, source, utils.cap(translated),
-        "skill.name", "skill", "spell-tooltip")
 end
 
 local function rewrite_generic_lines(tooltip, line_count, first_index,
@@ -599,15 +611,25 @@ local function process(tooltip, data, kind, native_rebuild)
             or safe_string(data.hyperlink)
         if item_instance then key = "item:" .. item_instance end
     end
-    begin_tooltip(tooltip, key,
+    local started = begin_tooltip(tooltip, key,
         native_rebuild == true and kind ~= "item")
     tooltip.uaForeverKind = kind
     tooltip.uaForeverID = id
     local translated = false
     if kind == "item" then
-        local result = item_adapter.add(tooltip, data, id)
-        translated = type(result) == "table" and result.applied == true
-            or result == true
+        local count_ok, line_count = pcall(tooltip.NumLines, tooltip)
+        line_count = count_ok and safe_number(line_count) or nil
+        local cache_valid = not started and native_rebuild == true
+            and line_count and tooltip.uaForeverItemLineCount == line_count
+            and reapply_cached_surface(tooltip)
+        if cache_valid then
+            translated = true
+        else
+            local result = item_adapter.add(tooltip, data, id)
+            translated = type(result) == "table" and result.applied == true
+                or result == true
+            tooltip.uaForeverItemLineCount = line_count
+        end
     elseif kind == "spell" then
         translated = spell_adapter.add_structured_spell(tooltip, data)
     elseif kind == "aura" then
@@ -628,8 +650,16 @@ local function process(tooltip, data, kind, native_rebuild)
         scheduler.cancel("tooltip-late:" .. tostring(tooltip))
     end
     if translated then tooltip.uaForeverKey = key end
-    if options.account and options.account.auto_scan_content
-        and (kind == "item" or kind == "spell" or kind == "aura") then
+    local should_auto_scan = options.account and options.account.auto_scan_content
+        and (kind == "item" or kind == "spell" or kind == "aura")
+    if should_auto_scan and kind == "item" then
+        if tooltip.uaForeverAutoScanItemKey == key then
+            should_auto_scan = false
+        else
+            tooltip.uaForeverAutoScanItemKey = key
+        end
+    end
+    if should_auto_scan then
         local missing_entry = kind == "item"
             and not item_client_db.has_translation(id)
             or kind ~= "item" and not entries.get_entry("spell", id)
@@ -1450,7 +1480,8 @@ local function translate_unit_aura_tooltip(tooltip, data)
 end
 
 local function capture_generic_tooltip_ui(tooltip)
-    if not tooltip or not options.account or not options.account.auto_scan_content then return end
+    if not tooltip or type(auto_scan.diagnostics_enabled) ~= "function"
+        or not auto_scan.diagnostics_enabled() then return end
     local kind = tooltip.uaForeverKind
     if kind == "item" or kind == "spell" or kind == "aura"
         or kind == "trainer" or kind == "npc" or kind == "quest"
@@ -1893,10 +1924,9 @@ local function prepare_tooltip_frames()
                 if shopping then self.uaForeverKind = "item" end
                 if shopping and comparison_manager_owns(self) then
                     self.uaForeverComparisonManagedPending = true
-                    -- Build 70009 calls Show() from ProcessInfo() before
-                    -- SetItemTooltip() has appended the comparison deltas.
-                    -- AnchorShoppingTooltips() runs after both item tooltips
-                    -- and their delta rows are complete, and owns translation.
+                    -- Build 70058 calls Show() from ProcessInfo() before it
+                    -- appends comparison rows. Their native writer functions
+                    -- are hooked directly, so OnShow must not rescan the frame.
                     return
                 end
                 if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
@@ -1921,12 +1951,13 @@ local function prepare_tooltip_frames()
                 end
             end)
             hooks.region_script(tooltip, "OnTooltipCleared", function (self)
-                    if is_shopping_tooltip(self)
+                    if (is_shopping_tooltip(self)
+                        or self.uaForeverKind == "item")
                         and self.uaForeverSessionKey then
-                        -- Build 70009 clears and rebuilds comparison tooltips
+                        -- Build 70058 clears and rebuilds item tooltips
                         -- from a bag-slot OnUpdate. Keep the small claim/cache
-                        -- set until the tooltip actually hides; guarded native
-                        -- writes update each reused line in place.
+                        -- set until the tooltip actually hides; item post-calls
+                        -- update each reused line in place.
                         tooltip_font_strings[self] = nil
                         return
                     end
@@ -1967,9 +1998,9 @@ end
 local function after_game_tooltip_update(tooltip)
     if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
     if tooltip.uaForeverKind == "item" or is_shopping_tooltip(tooltip) then
-        -- Build 70009 reruns TooltipDataProcessor post-calls after item
-        -- rebuilds. Shopping rows additionally use guarded SetText hooks, so
-        -- neither surface needs UA Forever's bounded OnUpdate fallback.
+        -- Build 70058 reruns TooltipDataProcessor post-calls after item
+        -- rebuilds. Comparison-only rows are handled by their native writers,
+        -- so neither surface needs UA Forever's bounded OnUpdate fallback.
         tooltip.uaForeverUpdateBudget = 0
         return
     end
@@ -2072,10 +2103,58 @@ local function after_game_tooltip_update(tooltip)
     end
 end
 
+local function prepare_ptr_feedback_hook()
+    if ptr_feedback_hooked then return true end
+    local reporter = _G.PTR_IssueReporter
+    if not reporter or type(reporter.HookIntoTooltip) ~= "function" then
+        return false
+    end
+    ptr_feedback_hooked = hooks.region(reporter, "HookIntoTooltip",
+        function (tooltip)
+            if not tooltip or tooltip.uaForeverShowOriginal
+                or not options.can_translate() then return end
+            local count_ok, count = pcall(tooltip.NumLines, tooltip)
+            count = count_ok and safe_number(count) or nil
+            if not count or count < 1 then return end
+            local source, region = tooltip_line(tooltip, "Left", count, true)
+            source = safe_string(source)
+            if not source or not region
+                or not source:find("to submit an issue for this", 1, true) then
+                return
+            end
+            local cached = ptr_feedback_cache[source]
+            local translated, source_kind, catalog_source
+            if cached then
+                translated = cached.translated
+                source_kind = cached.source_kind
+                catalog_source = cached.catalog_source
+            else
+                local provenance
+                translated, _, source_kind, _, _, _, provenance =
+                    strings.find_ui_translation(source, region)
+                catalog_source = provenance and provenance.source
+                ptr_feedback_cache[source] = {
+                    translated = translated,
+                    source_kind = source_kind,
+                    catalog_source = catalog_source,
+                }
+            end
+            if not translated or translated == source then return end
+            if not tooltip.uaForeverSessionKey then
+                begin_tooltip(tooltip, "ptr-feedback:" .. tostring(tooltip))
+            end
+            set_tooltip_translation(tooltip, region, source, translated,
+                "ptr-feedback", nil, "generic", source_kind,
+                false, false, nil, nil, catalog_source)
+        end) == true
+    return ptr_feedback_hooked
+end
+
 tooltips.prepare = function ()
     prepare_quest_map_hook()
     prepare_tooltip_frames()
     prepare_comparison_manager()
+    prepare_ptr_feedback_hook()
     hooks.region_script(_G.GameTooltip, "OnUpdate", after_game_tooltip_update,
         "quest-reward")
     hooks.region(_G.GameTooltipTextLeft1, "SetText", function (region)
@@ -2161,17 +2240,20 @@ tooltips.prepare = function ()
             runtime.metric("native_item_post_calls", tooltip,
                 tooltip and tooltip.uaForeverGeneration)
             sync_tooltip_original_state(tooltip)
-            if is_shopping_tooltip(tooltip) then
-                prepare_comparison_manager()
+            prepare_comparison_manager()
+            local managed_comparison = comparison_manager_owns(tooltip)
+            if managed_comparison or is_shopping_tooltip(tooltip) then
                 if not tooltip.uaForeverSessionKey then
                     begin_tooltip(tooltip, "comparison-pending")
                 end
                 tooltip.uaForeverKind = "item"
-                if comparison_manager_owns(tooltip) then
+                if managed_comparison then
                     mark_managed_comparison(tooltip, data)
-                else
                     install_comparison_text_guards(tooltip)
-                    bootstrap_comparison_translation(tooltip, data)
+                end
+                bootstrap_comparison_translation(tooltip, data)
+                if managed_comparison then
+                    tooltip.uaForeverComparisonWriteReady = true
                 end
             else
                 safe_process(tooltip, data, "item", true)
@@ -2308,7 +2390,8 @@ tooltips.refresh_active = function ()
         end
         if not show then
             if is_shopping_tooltip(tooltip) then
-                if translate_shopping_tooltip(tooltip) then
+                if reapply_comparison_claims(tooltip)
+                    or translate_shopping_tooltip(tooltip) then
                     tooltip.uaForeverComparisonManagedPending = nil
                     tooltip.uaForeverComparisonFallbackGeneration =
                         tooltip.uaForeverGeneration

@@ -595,6 +595,7 @@ local ui = {
     ["Track Recipe"] = "Відстежувати рецепт",
     ["Create All"] = "Створити все",
     ["Create"] = "Створити",
+    ["Set Amount"] = "Встановити кількість",
     ["Allows the miner to smelt a chunk of copper ore into a copper bar. Smelting copper requires a forge."] = "Дозволяє гірникові переплавити шматок мідної руди на мідний злиток. Для виплавки міді потрібна кузня.",
     ["Mining: Thorium Bar"] = "Гірництво: торієвий злиток",
     ["Корюшка Truesilver"] = "Виплавити істинне срібло",

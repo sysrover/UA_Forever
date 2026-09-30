@@ -7,7 +7,6 @@ local default_account = {
     enabled = true,
     dev_mode = false,
     dev_mode_notify_activity = false,
-    auto_scan_menus = false,
     auto_scan_content = false,
     auto_scan_diagnostics = false,
     override_system_fonts = true,

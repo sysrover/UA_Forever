@@ -26,7 +26,8 @@ local menu_walks = {
 }
 
 local function capture_auto_frame(frame)
-    if frame and options.account and options.account.auto_scan_content
+    if frame and type(auto_scan.diagnostics_enabled) == "function"
+        and auto_scan.diagnostics_enabled()
         and type(strings.capture_frame) == "function" then
         strings.capture_frame(frame)
     end

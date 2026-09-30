@@ -91,17 +91,23 @@ local groups = {
     { "technical_literals", "[TECHNICAL_LITERALS]" },
 }
 
-local diagnostic_groups = {
-    observed_ui = true,
-    runtime = true,
-    lockdowns = true,
-    unsafe = true,
-    hooks = true,
-    catalog_conflicts = true,
-    compatibility = true,
-    invalid_candidates = true,
-    technical_literals = true,
+-- The ordinary autoscan is a translation worklist, not a dump of every
+-- English string the client can expose. Keep only untranslated narrative and
+-- world content in it. Everything else is opt-in technical diagnostics.
+local content_groups = {
+    gossips = true,
+    npcs = true,
+    quests = true,
+    books = true,
+    chats = true,
+    objects = true,
 }
+
+local diagnostic_groups = {}
+for _, descriptor in ipairs(groups) do
+    local group = descriptor[1]
+    if not content_groups[group] then diagnostic_groups[group] = true end
+end
 
 local function diagnostics_enabled()
     return options.account and options.account.auto_scan_diagnostics == true
@@ -178,6 +184,26 @@ local function untranslated_key(owner, slot, source)
         and utils.get_text_hash(source) or source
     return tostring(owner or "ui") .. ":" .. tostring(slot or "text")
         .. ":" .. tostring(hash)
+end
+
+local function record_domain_diagnostic(owner, slot, source, translation,
+        visible, surface, reason)
+    source = safe_text(source)
+    translation = safe_text(translation)
+    if not source or not translation or translation == source then return end
+    owner = safe_text(owner) or "content"
+    slot = safe_text(slot) or "content.text"
+    local records = bucket("unapplied")
+    if not records then return end
+    records[untranslated_key(owner, slot, source)] = {
+        owner = owner,
+        slot = slot,
+        surface = safe_text(surface) or owner,
+        text = source,
+        translation = translation,
+        visible = safe_text(visible),
+        reason = safe_text(reason) or "OVERWRITTEN_AFTER_APPLY",
+    }
 end
 
 local surface_states = {}
@@ -626,14 +652,17 @@ auto_scan.record_book = function (identity, page, source, visible, translated, n
         and translated ~= "" and translated ~= source
     local still_source = visible == source
         or visible and visible:sub(1, #source) == source
-    if has_translation and not still_source then
+    if has_translation then
         records[key] = nil
+        if still_source then
+            record_domain_diagnostic("book", "book.page", source,
+                translated, visible, "ItemTextFrame")
+        end
         return
     end
     records[key] = {
         bookID = tonumber(identity), page = page,
         name = safe_text(name), text = source,
-        unapplied = has_translation and still_source or nil,
     }
 end
 
@@ -704,7 +733,7 @@ local function translated_gossip(record)
                 end
             end
             if type(translation) == "string" and translation ~= record.text then
-                return true
+                return translation
             end
         end
     end
@@ -715,6 +744,10 @@ auto_scan.record_id = function (group, id, name, translated)
     local records = bucket(group)
     id = tonumber(id)
     if not records or not id or id <= 0 then return end
+    if group == "npcs" and not english_source(name) then
+        records[id] = nil
+        return
+    end
     if translated_name(group, id, name) or (group == "skills" and translated == true) then
         if group ~= "quests" or not records[id] or not records[id].fields then
             records[id] = nil
@@ -734,6 +767,7 @@ auto_scan.record_quest = function (id, fields, missing_fields)
         or type(missing_fields) ~= "table" then return end
     local record = records[id] or {}
     record.fields = record.fields or {}
+    record.unapplied = nil
     record.objectiveSource = safe_text(fields.objective) or record.objectiveSource
     for key, value in pairs(fields) do
         if missing_fields[key] then
@@ -747,16 +781,15 @@ auto_scan.record_quest = function (id, fields, missing_fields)
                     translated_task = result
                 end
             end
-            if text and not translated_task then record.fields[key] = text
+            if text and english_source(text) and not translated_task then
+                record.fields[key] = text
             else record.fields[key] = nil end
         else
-            if not (record.unapplied and record.unapplied[key]) then
-                record.fields[key] = nil
-            end
+            record.fields[key] = nil
         end
     end
     if next(record.fields) then
-        record.name = safe_text(fields.title) or record.name
+        record.name = missing_fields.title and safe_text(fields.title) or nil
         records[id] = record
     elseif record.name and translated_name("quests", id, record.name) then
         records[id] = nil
@@ -781,9 +814,17 @@ auto_scan.record_visible_quest_field = function (id, field, source, visible, exp
     local still_english = english_source(visible) and visible == source
     local record = records[id] or {}
     record.fields = record.fields or {}
-    record.unapplied = record.unapplied or {}
-    record.unapplied[field] = still_english and translated and expected or nil
-    record.fields[field] = still_english and (not translated or expected) and source or nil
+    if translated then
+        record.fields[field] = nil
+        if type(record.unapplied) == "table" then record.unapplied[field] = nil end
+        if still_english and expected then
+            record_domain_diagnostic("quest:" .. tostring(id),
+                "quest." .. field, source, translation, visible,
+                "quest-gossip")
+        end
+    else
+        record.fields[field] = still_english and source or nil
+    end
     if next(record.fields) then
         if field == "title" then record.name = source end
         records[id] = record
@@ -799,7 +840,8 @@ end
 auto_scan.record_gossip = function (id, code, source, is_reply)
     local records = bucket("gossips")
     local text = safe_text(source)
-    if not records or not id or not code or not text then return end
+    if not records or not id or not code or not text
+        or not english_source(text) then return end
     local record = {
         npcID = tonumber(id), text = text, reply = is_reply == true,
     }
@@ -807,8 +849,11 @@ auto_scan.record_gossip = function (id, code, source, is_reply)
     local template_code = annotate_personalized_gossip(record, text)
     code = template_code or code
     local key = tostring(id) .. ":" .. tostring(code)
-    local previous = records[key] or records[exact_key]
-    record.unapplied = previous and previous.unapplied or nil
+    if translated_gossip(record) then
+        records[key] = nil
+        if exact_key ~= key then records[exact_key] = nil end
+        return
+    end
     if exact_key ~= key then records[exact_key] = nil end
     records[key] = record
 end
@@ -826,10 +871,16 @@ auto_scan.record_visible_gossip = function (id, source, visible, expected)
     if not code or code == "" then return end
     local key = tostring(id) .. ":" .. code
     local exact_key = exact_code and tostring(id) .. ":" .. exact_code or key
-    local translated = translated_gossip({ npcID = id, text = source })
-    if english_source(visible) and visible == source
-        and (not translated or expected) then
-        record.unapplied = translated and expected or nil
+    local translation = translated_gossip({ npcID = id, text = source })
+    local still_english = english_source(visible) and visible == source
+    if translation then
+        records[key] = nil
+        if exact_key ~= key then records[exact_key] = nil end
+        if still_english and expected then
+            record_domain_diagnostic("gossip:" .. tostring(id),
+                "gossip.text", source, translation, visible, "quest-gossip")
+        end
+    elseif still_english then
         if exact_key ~= key then records[exact_key] = nil end
         records[key] = record
     else
@@ -842,8 +893,15 @@ auto_scan.record_chat = function (name, code, source, language)
     local records = bucket("chats")
     local text = safe_text(source)
     local npc = safe_text(name)
-    if not records or not npc or not code or not text then return end
-    records[npc .. ":" .. tostring(code)] = {
+    if not records or not npc or not code or not text
+        or not english_source(text) then return end
+    local key = npc .. ":" .. tostring(code)
+    local ok, _, translation = pcall(entries.get_chat_text, npc, text)
+    if ok and type(translation) == "string" and translation ~= text then
+        records[key] = nil
+        return
+    end
+    records[key] = {
         npc = npc, text = text, language = safe_text(language),
     }
 end
@@ -888,17 +946,25 @@ auto_scan.record_world_tooltip = function (source, visible, context)
         and addon_table.translate_object_name(source)
         or addon_table.zone and addon_table.zone[source]
     local unapplied = translated and visible == source
-    if not english_source(source) or translated and not unapplied then
+    if not english_source(source) then
         records[source] = nil
         return
     end
+    if translated then
+        records[source] = nil
+        if unapplied then
+            record_domain_diagnostic("object-tooltip", "object.name",
+                source, translated, visible,
+                safe_text(context.surface) or "GameTooltip")
+        end
+        return
+    end
     records[source] = {
-        name = source, translation = safe_text(translated), visible = visible,
+        name = source, visible = visible,
         owner = safe_text(context.owner) or "object-tooltip",
         slot = safe_text(context.slot) or "object.name",
         surface = safe_text(context.surface) or "GameTooltip",
-        reason = unapplied and "NOT_APPLIED" or "MISSING_TRANSLATION",
-        unapplied = unapplied or nil,
+        reason = "MISSING_TRANSLATION",
     }
 end
 
@@ -1051,17 +1117,55 @@ local function migrate_lockdown_records(store)
     if next(lockdowns) then store.lockdowns = lockdowns end
 end
 
+local function migrate_content_unapplied(group, key, record)
+    local unapplied = record and record.unapplied
+    if not unapplied then return end
+    if group == "quests" and type(unapplied) == "table" then
+        local entry = entries.get_entry and entries.get_entry("quest", key)
+        local indices = { title = 1, description = 2, objective = 3,
+            progress = 4, reward = 5 }
+        for field in pairs(unapplied) do
+            local source = record.fields and record.fields[field]
+            local translation = entry and indices[field] and entry[indices[field]]
+            record_domain_diagnostic("quest:" .. tostring(key),
+                "quest." .. tostring(field), source, translation, source,
+                "quest-gossip")
+        end
+    elseif group == "gossips" then
+        record_domain_diagnostic("gossip:" .. tostring(record.npcID or key),
+            "gossip.text", record.text, translated_gossip(record), record.text,
+            "quest-gossip")
+    elseif group == "books" then
+        local book = record.bookID and addon_table.book
+            and addon_table.book[record.bookID]
+        local translation = type(book) == "table" and book[record.page]
+        record_domain_diagnostic("book", "book.page", record.text,
+            translation, record.text, "ItemTextFrame")
+    elseif group == "objects" then
+        record_domain_diagnostic(record.owner or "object-tooltip",
+            record.slot or "object.name", record.name, record.translation,
+            record.visible or record.name, record.surface or "GameTooltip")
+    end
+    record.unapplied = nil
+end
+
 auto_scan.export_text = function ()
     local saved_mouse_probe = UA_ForeverDB and UA_ForeverDB.scan
         and UA_ForeverDB.scan.mouseProbe
-    if cleared and type(saved_mouse_probe) ~= "table" then return "" end
+    local include_diagnostics = diagnostics_enabled()
+    if not include_diagnostics
+        and type(auto_scan.clear_diagnostics) == "function" then
+        auto_scan.clear_diagnostics()
+        saved_mouse_probe = nil
+    end
+    if cleared and (not include_diagnostics
+        or type(saved_mouse_probe) ~= "table") then return "" end
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
     migrate_lockdown_records(store)
     local catalog_records = {}
     local invalid_candidate_records = {}
     local catalog = addon_table.forever_catalog
-    local include_diagnostics = diagnostics_enabled()
     if include_diagnostics then
         local registry = addon_table.use("translation_registry")
         if type(registry.each_hook) == "function" then
@@ -1104,16 +1208,20 @@ auto_scan.export_text = function ()
         local keys = {}
         for key, record in pairs(records) do
             if type(record) == "table" then
+                if content_groups[group] then
+                    migrate_content_unapplied(group, key, record)
+                end
                 local keep = true
                 if group == "skills" then
                     keep = english_source(record.name) and not has_ui_translation(record.name)
                         and not entries.get_glossary_text(record.name)
                 elseif domains[group] and group ~= "quests" then
-                    keep = not translated_name(group, key, record.name)
-                        or type(record.lines) == "table"
+                    keep = (group ~= "npcs" or english_source(record.name))
+                        and (not translated_name(group, key, record.name)
+                            or type(record.lines) == "table")
                 elseif group == "gossips" then
                     keep = english_source(record.text)
-                        and (record.unapplied or not translated_gossip(record))
+                        and not translated_gossip(record)
                 elseif group == "chats" then
                     local ok, _, translated = pcall(entries.get_chat_text,
                         record.npc, record.text)
@@ -1133,7 +1241,7 @@ auto_scan.export_text = function ()
                         or addon_table.zone and addon_table.zone[record.name]
                     keep = english_source(record.name)
                         and (not record.visible or record.visible == record.name)
-                        and (not translated or record.unapplied == true)
+                        and not translated
                 elseif group == "zones" then
                     local translated = translated_zone(record.name)
                     keep = english_source(record.name)
@@ -1158,7 +1266,7 @@ auto_scan.export_text = function ()
                     local book = record.bookID and addon_table.book
                         and addon_table.book[record.bookID]
                     local translated = type(book) == "table" and book[record.page]
-                    keep = record.unapplied == true or english_source(record.text)
+                    keep = english_source(record.text)
                         and not (type(translated) == "string" and translated ~= ""
                             and translated ~= record.text)
                 elseif group == "ui" then
@@ -1181,8 +1289,7 @@ auto_scan.export_text = function ()
                                 value, key, record.objectiveSource)
                             if ok then translation = result end
                         end
-                        if english_source(value) and ((record.unapplied
-                            and record.unapplied[field]) or type(translation) ~= "string"
+                        if english_source(value) and (type(translation) ~= "string"
                             or translation == "" or translation == value) then
                             fields[field] = value
                         end
@@ -1193,6 +1300,7 @@ auto_scan.export_text = function ()
                     end
                     if next(fields) then
                         record.fields = fields
+                        if not fields.title then record.name = nil end
                     else keep = false end
                 end
                 if type(record.lines) == "table" then
@@ -1213,7 +1321,11 @@ auto_scan.export_text = function ()
                     record.lines = lines
                     if #lines == 0 then keep = false end
                 end
-                if keep then keys[#keys + 1] = key end
+                if keep then
+                    keys[#keys + 1] = key
+                elseif content_groups[group] then
+                    records[key] = nil
+                end
             end
         end
         table.sort(keys, function (a, b) return tostring(a) < tostring(b) end)
@@ -1315,7 +1427,7 @@ auto_scan.export_text = function ()
     end
 
     local probe = saved_mouse_probe
-    if type(probe) == "table" then
+    if include_diagnostics and type(probe) == "table" then
         local lines = { "[MOUSE_PROBE] | 1", "", "# Aura tooltip probe" }
         local function add(field, value)
             if value ~= nil then
@@ -1389,6 +1501,14 @@ auto_scan.clear_diagnostics = function ()
     end
     if type(scan) == "table" then
         scan.mouseProbe = nil
+        scan.ids = nil
+        scan.menus = nil
+    end
+    local missing = UA_ForeverDB and UA_ForeverDB.missing
+    if type(missing) == "table" then
+        for group in pairs(missing) do
+            if not content_groups[group] then missing[group] = nil end
+        end
     end
     hook_states = {}
     diagnostic_retention = {}
@@ -1398,7 +1518,10 @@ auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
         UA_ForeverDB.scan.auto = {}
         UA_ForeverDB.scan.mouseProbe = nil
+        UA_ForeverDB.scan.ids = nil
+        UA_ForeverDB.scan.menus = nil
     end
+    if UA_ForeverDB then UA_ForeverDB.missing = {} end
     surface_states = {}
     hook_states = {}
     diagnostic_retention = {}

@@ -20,6 +20,14 @@ comparison_adapter.install = function (api)
     local tooltip_line = api.tooltip_line
 
     local function is_shopping_tooltip(tooltip)
+        local manager = _G.TooltipComparisonManager
+        local owner = manager and manager.tooltip
+        local managed = owner and owner.shoppingTooltips
+        if type(managed) == "table" then
+            for _, comparison in ipairs(managed) do
+                if comparison == tooltip then return true end
+            end
+        end
         if tooltip == _G.ShoppingTooltip1 or tooltip == _G.ShoppingTooltip2
             or tooltip == _G.ItemRefShoppingTooltip1
             or tooltip == _G.ItemRefShoppingTooltip2 then return true end
@@ -32,7 +40,6 @@ comparison_adapter.install = function (api)
     local comparison_manager_hooked = false
     local prepare_comparison_manager = function () return false end
     local function comparison_manager_owns(tooltip)
-        if not comparison_manager_hooked then return false end
         local manager = _G.TooltipComparisonManager
         local primary = manager and manager.tooltip
         for _, comparison in ipairs(primary and primary.shoppingTooltips or {}) do
@@ -79,8 +86,8 @@ comparison_adapter.install = function (api)
     local comparison_guard_swept_tooltips = setmetatable({}, { __mode = "k" })
     local comparison_translation_cache = setmetatable({}, { __mode = "k" })
     local comparison_bootstrap_keys = setmetatable({}, { __mode = "k" })
-    local comparison_managed_keys = setmetatable({}, { __mode = "k" })
     local comparison_claim_regions = setmetatable({}, { __mode = "k" })
+    local comparison_condition_translation
     
     local function remember_comparison_claim(tooltip, region)
         if not tooltip or not region then return end
@@ -133,89 +140,6 @@ comparison_adapter.install = function (api)
         return applied
     end
     
-    local function apply_comparison_region_write(tooltip, written, native, side, index)
-        if runtime.is_applying(written) or tooltip.uaForeverShowOriginal then return end
-        native = safe_string(native)
-        if not native then return end
-        if not tooltip.uaForeverSessionKey then
-            begin_tooltip(tooltip, "comparison-write")
-            tooltip.uaForeverKind = "item"
-        end
-        local cached = comparison_translation_cache[written]
-        local translated, category, slot, source_kind, matcher
-        if cached and cached.source == native then
-            translated = cached.translated or nil
-            category, slot = cached.category, cached.slot
-            source_kind, matcher = cached.source_kind, cached.matcher
-        else
-            if side == "Left" and index == 1 then
-                translated = comparison_name_translation(tooltip, native)
-                category = "item"
-                slot = "item.name"
-                matcher = item_name_visible_matches
-            else
-                translated = comparison_item_labels[native]
-                if not translated then
-                    translated, _, source_kind = strings.find_ui_translation(
-                        native, written)
-                end
-                slot = "comparison.write:" .. side .. index
-            end
-            cached = {
-                source = native, translated = translated or false,
-                category = category, slot = slot,
-                source_kind = source_kind, matcher = matcher,
-            }
-            comparison_translation_cache[written] = cached
-        end
-        apply_comparison_claim(tooltip, written, cached, native, translated,
-            slot, category, "item-tooltip", source_kind, matcher)
-    end
-    
-    local function guard_comparison_region(tooltip, region, side, index)
-        if not region or comparison_guarded_regions[region] then return false end
-        local installed = hooks.region(region, "SetText", function (written, native)
-            apply_comparison_region_write(tooltip, written, native, side, index)
-        end)
-        if installed then comparison_guarded_regions[region] = true end
-        return installed == true
-    end
-    
-    local function apply_comparison_header_write(tooltip, written, native)
-        if runtime.is_applying(written) or tooltip.uaForeverShowOriginal then return end
-        native = safe_string(native)
-        if not native then return end
-        local cached = comparison_translation_cache[written]
-        local translated, source_kind, catalog_source
-        if cached and cached.source == native then
-            translated = cached.translated or nil
-            source_kind = cached.source_kind
-            catalog_source = cached.catalog_source
-        else
-            local provenance
-            translated, _, source_kind, _, _, _, provenance =
-                strings.find_ui_translation(native, written)
-            catalog_source = provenance and provenance.source
-            cached = {
-                source = native, translated = translated or false,
-                source_kind = source_kind, catalog_source = catalog_source,
-            }
-            comparison_translation_cache[written] = cached
-        end
-        apply_comparison_claim(tooltip, written, cached, native, translated,
-            "comparison.header", nil, "generic", source_kind, nil,
-            catalog_source)
-    end
-    
-    local function guard_comparison_header(tooltip, label)
-        if not label or comparison_guarded_regions[label] then return false end
-        local installed = hooks.region(label, "SetText", function (written, native)
-            apply_comparison_header_write(tooltip, written, native)
-        end)
-        if installed then comparison_guarded_regions[label] = true end
-        return installed == true
-    end
-
     local function comparison_snapshot(tooltip)
         local ok_count, count = pcall(tooltip.NumLines, tooltip)
         count = ok_count and safe_number(count) or nil
@@ -235,52 +159,46 @@ comparison_adapter.install = function (api)
         return snapshot
     end
     
-    local function install_comparison_text_guards(tooltip)
-        if not tooltip then return 0 end
-        local ok_count, count = pcall(tooltip.NumLines, tooltip)
-        count = ok_count and safe_number(count) or 0
-        count = math.max(0, math.min(count or 0, MAX_TOOLTIP_LINES))
-        local previous_count = tooltip.uaForeverComparisonGuardLineCount or 0
-        local installed = 0
-        local first_sweep = not comparison_guard_swept_tooltips[tooltip]
-        local first_index = first_sweep and 1 or previous_count + 1
-        local last_index = first_sweep and MAX_TOOLTIP_LINES or count
-        if first_sweep or count > previous_count then
-            -- Build 70009 appends comparison deltas after the Item post-call.
-            -- Guard every already-created hidden row once, then only inspect rows
-            -- beyond the previous visible count on later rebuilds.
-            for index = first_index, last_index do
-                for _, side in ipairs({ "Left", "Right" }) do
-                    local visible, region = tooltip_line(tooltip, side, index, true)
-                    if guard_comparison_region(tooltip, region, side, index) then
-                        installed = installed + 1
-                        apply_comparison_region_write(tooltip, region, visible,
-                            side, index)
-                    end
-                end
-            end
-            comparison_guard_swept_tooltips[tooltip] = true
-            tooltip.uaForeverComparisonGuardLineCount = math.max(previous_count, count)
-        end
-        local label = tooltip.CompareHeader and tooltip.CompareHeader.Label
-        if guard_comparison_header(tooltip, label) then
-            installed = installed + 1
-            local ok, visible = pcall(label.GetText, label)
-            if ok then apply_comparison_header_write(tooltip, label, visible) end
-        end
-        return installed
+    local function comparison_reference_item_id(reference)
+        if not reference or is_secret(reference) then return nil end
+        local ok, item_id, item_info = pcall(function ()
+            return reference.id or reference.itemID,
+                reference.guid or reference.hyperlink
+        end)
+        item_id = ok and safe_number(item_id) or nil
+        if item_id then return item_id end
+        if not ok or is_secret(item_info) or not item_info
+            or not _G.C_Item
+            or type(_G.C_Item.GetItemIDForItemInfo) ~= "function" then return nil end
+        local found_ok, found = pcall(_G.C_Item.GetItemIDForItemInfo, item_info)
+        return found_ok and safe_number(found) or nil
     end
 
-    local function comparison_condition_translation(source)
+    comparison_condition_translation = function (source)
         if type(source) ~= "string" then return nil end
+        if not source:match("^%(With .+ equipped in your .+%-hand%)$") then
+            return nil
+        end
         local manager = _G.TooltipComparisonManager
         local comparisons = manager and manager.tooltip
             and manager.tooltip.shoppingTooltips
         if type(comparisons) ~= "table" then return nil end
+        local item_ids = {}
         for _, related in ipairs(comparisons) do
             local related_id = related and related.uaForeverItemID
-            local with_name = related_id
-                and item_adapter.replace_known_name(related_id, source)
+            if related_id then item_ids[#item_ids + 1] = related_id end
+        end
+        local info = manager and manager.compareInfo
+        local references = info and { info.item } or {}
+        for _, reference in ipairs(info and info.additionalItems or {}) do
+            references[#references + 1] = reference
+        end
+        for _, reference in ipairs(references) do
+            local reference_id = comparison_reference_item_id(reference)
+            if reference_id then item_ids[#item_ids + 1] = reference_id end
+        end
+        for _, related_id in ipairs(item_ids) do
+            local with_name = item_adapter.replace_known_name(related_id, source)
             if with_name then
                 local name = with_name:match(
                     "^%(With (.-) equipped in your off%-hand%)$")
@@ -314,6 +232,111 @@ comparison_adapter.install = function (api)
             end
         end
         return applied
+    end
+
+    local function restore_comparison_markup(source, translated)
+        if type(source) ~= "string" or type(translated) ~= "string" then
+            return translated
+        end
+        for color, payload, reset in source:gmatch(
+            "(|c%x%x%x%x%x%x%x%x)(.-)(|r)") do
+            local token = payload
+            if token == "" or not translated:find(token, 1, true) then
+                token = payload:match("([%+%-]?[%d][%d%.,]*)")
+            end
+            if token and token ~= ""
+                and translated:find(token, 1, true)
+                and not translated:find(color .. token .. reset, 1, true) then
+                local first, last = translated:find(token, 1, true)
+                translated = translated:sub(1, first - 1) .. color .. token
+                    .. reset .. translated:sub(last + 1)
+            end
+        end
+        return translated
+    end
+
+    local function translate_comparison_region(tooltip, region, source, side,
+        index)
+        if not comparison_manager_owns(tooltip)
+            or tooltip.uaForeverShowOriginal then return false end
+        source = safe_string(source)
+        if not source or not region then return false end
+
+        -- Comparison rows are pooled FontStrings. Cache against the concrete
+        -- region instead of retaining every numeric delta ever displayed.
+        local cached = comparison_translation_cache[region]
+        if cached and cached.source ~= source then cached = nil end
+        local translated, source_kind, catalog_source, owner
+        if cached then
+            translated = cached.translated or nil
+            source_kind = cached.source_kind
+            catalog_source = cached.catalog_source
+            owner = cached.owner
+        else
+            translated = comparison_condition_translation(source)
+            owner = translated and "item-tooltip" or "generic"
+            if not translated then
+                local provenance
+                translated, _, source_kind, _, _, _, provenance =
+                    strings.find_ui_translation(source, region)
+                catalog_source = provenance and provenance.source
+            end
+            translated = restore_comparison_markup(source, translated)
+            cached = {
+                source = source,
+                translated = translated or false,
+                source_kind = source_kind,
+                catalog_source = catalog_source,
+                owner = owner,
+            }
+            comparison_translation_cache[region] = cached
+        end
+        if not translated then return false end
+        return apply_comparison_claim(tooltip, region, cached, source,
+            translated, "comparison.appended:" .. side .. ":" .. index,
+            nil, owner, source_kind, nil, catalog_source)
+    end
+
+    local function guard_comparison_region(tooltip, region, side, index)
+        if not region or comparison_guarded_regions[region] then return false end
+        local installed = hooks.region(region, "SetText", function (written, native)
+            if runtime.is_applying(written)
+                or not tooltip.uaForeverComparisonWriteReady then return end
+            translate_comparison_region(tooltip, written, native, side, index)
+        end)
+        if installed then comparison_guarded_regions[region] = true end
+        return installed == true
+    end
+
+    local function install_comparison_text_guards(tooltip)
+        if not tooltip then return false end
+        if not comparison_guard_swept_tooltips[tooltip] then
+            -- FontStrings are pooled by the client. Guard every region that
+            -- already exists once; rows created later are guarded by AddLine.
+            for index = 1, MAX_TOOLTIP_LINES do
+                for _, side in ipairs({ "Left", "Right" }) do
+                    local _, region = tooltip_line(tooltip, side, index, true)
+                    guard_comparison_region(tooltip, region, side, index)
+                end
+            end
+            comparison_guard_swept_tooltips[tooltip] = true
+        end
+        hooks.region(tooltip, "ClearLines", function (self)
+            self.uaForeverComparisonWriteReady = false
+        end)
+        hooks.region(tooltip, "AddLine", function (self, native)
+            if not self.uaForeverComparisonWriteReady then return end
+            local count_ok, count = pcall(self.NumLines, self)
+            count = count_ok and safe_number(count) or nil
+            if not count or count < 1 then return end
+            local visible, region = tooltip_line(self, "Left", count, true)
+            if not region then return end
+            guard_comparison_region(self, region, "Left", count)
+            if safe_string(visible) == safe_string(native) then
+                translate_comparison_region(self, region, native, "Left", count)
+            end
+        end)
+        return true
     end
 
     local function translate_shopping_tooltip(tooltip)
@@ -431,18 +454,35 @@ comparison_adapter.install = function (api)
     local function reapply_comparison_claims(tooltip)
         local state = comparison_claim_regions[tooltip]
         if not state then return false end
+        local rows = {}
         for _, region in ipairs(state.regions) do
             local claim = runtime.get(region)
             if claim and claim.surface == tooltip then
-                local disabled = claim.option
-                    and not options.can_translate(claim.option)
-                for _, option in ipairs(claim.options or {}) do
-                    if not options.can_translate(option) then disabled = true end
+                local ok, current = pcall(region.GetText, region)
+                current = ok and safe_string(current) or nil
+                -- Build 70058 clears every row before ProcessInfo(), then
+                -- appends comparison deltas afterwards. A cached delta region
+                -- can therefore be empty at this exact point; its writer hook
+                -- will restore the translation when Blizzard appends it.
+                if current then
+                    if current ~= claim.source
+                        and current ~= claim.translated
+                        and current ~= claim.name_original then return false end
+                    rows[#rows + 1] = { region = region, claim = claim }
                 end
-                runtime.show_original(region,
-                    tooltip.uaForeverShowOriginal == true or disabled
-                        or options.is_bilingual_tooltip())
             end
+        end
+        if #rows == 0 then return false end
+        for _, row in ipairs(rows) do
+            local claim = row.claim
+            local disabled = claim.option
+                and not options.can_translate(claim.option)
+            for _, option in ipairs(claim.options or {}) do
+                if not options.can_translate(option) then disabled = true end
+            end
+            runtime.show_original(row.region,
+                tooltip.uaForeverShowOriginal == true or disabled
+                    or options.is_bilingual_tooltip())
         end
         return comparison_title_claim_is_visible(tooltip)
     end
@@ -457,12 +497,19 @@ comparison_adapter.install = function (api)
             if item_id then tooltip.uaForeverItemID = item_id end
         end
         local key = comparison_item_key(tooltip, data)
+        if key then
+            local session_key = "comparison:" .. key
+            if begin_tooltip(tooltip, session_key) then
+                comparison_claim_regions[tooltip] = nil
+                tooltip.uaForeverKind = "item"
+                tooltip.uaForeverComparisonData = data
+                if item_id then tooltip.uaForeverItemID = item_id end
+            end
+        end
         if key and comparison_bootstrap_keys[tooltip] == key then
-            if item_id then item_adapter.add(tooltip, data, item_id) end
             if comparison_title_claim_is_visible(tooltip) then return false end
             if reapply_comparison_claims(tooltip) then return false end
         end
-        if item_id then item_adapter.add(tooltip, data, item_id) end
         translate_shopping_tooltip(tooltip)
         if key and comparison_title_claim_is_visible(tooltip) then
             comparison_bootstrap_keys[tooltip] = key
@@ -489,9 +536,6 @@ comparison_adapter.install = function (api)
 
     local function mark_managed_item(tooltip, data)
         if not tooltip then return end
-        if not tooltip.uaForeverSessionKey then
-            begin_tooltip(tooltip, "comparison-item")
-        end
         tooltip.uaForeverKind = "item"
         tooltip.uaForeverComparisonManagedPending = true
         tooltip.uaForeverComparisonData = data
@@ -502,52 +546,8 @@ comparison_adapter.install = function (api)
         end
     end
 
-    local function managed_comparison_key(manager, comparison, index)
-        local displayed = comparison_item_key(comparison, nil)
-            or comparison.uaForeverItemID
-                and "id:" .. tostring(comparison.uaForeverItemID)
-        local compared = comparison_identity_key(manager and manager.comparisonItem)
-        local info = manager and manager.compareInfo
-        local method_ok, method = pcall(function () return info and info.method end)
-        method = method_ok and safe_number(method) or 0
-        local cycle_ok, cycle = pcall(function () return manager.comparisonIndex end)
-        cycle = cycle_ok and safe_number(cycle) or 0
-        local count_ok, count = pcall(comparison.NumLines, comparison)
-        count = count_ok and safe_number(count) or 0
-        if not displayed or not compared then return nil end
-        return table.concat({ compared, displayed, tostring(method),
-            tostring(cycle), tostring(index), tostring(count) }, "\031")
-    end
-
-    local function after_anchor_shopping_tooltips(manager, primary_shown,
-        secondary_shown)
-        local owner = manager and manager.tooltip
-        local comparisons = owner and owner.shoppingTooltips
-        if type(comparisons) ~= "table" then return end
-        for index, comparison in ipairs(comparisons) do
-            local shown = index == 1 and primary_shown == true
-                or index == 2 and secondary_shown == true
-            if shown then
-                local key = managed_comparison_key(manager, comparison, index)
-                if not key or comparison_managed_keys[comparison] ~= key
-                    or not reapply_comparison_claims(comparison) then
-                    translate_shopping_tooltip(comparison)
-                    collect_comparison_claims(comparison, true)
-                    comparison_managed_keys[comparison] = key
-                end
-                comparison.uaForeverComparisonManagedPending = nil
-                comparison.uaForeverComparisonCompleteGeneration =
-                    comparison.uaForeverGeneration
-            end
-        end
-    end
-    
     prepare_comparison_manager = function ()
-        if comparison_manager_hooked then return true end
-        local manager = _G.TooltipComparisonManager
-        if not manager then return false end
-        comparison_manager_hooked = hooks.region(manager,
-            "AnchorShoppingTooltips", after_anchor_shopping_tooltips) == true
+        comparison_manager_hooked = _G.TooltipComparisonManager ~= nil
         return comparison_manager_hooked
     end
 

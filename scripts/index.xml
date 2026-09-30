@@ -9,6 +9,7 @@
     <Script file="spell_client_db.lua"/>
     <Script file="spell_template_renderer.lua"/>
     <Script file="item_client_db.lua"/>
+    <Script file="profession_client_db.lua"/>
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>
     <Script file="translation_scheduler.lua"/>
@@ -25,6 +26,8 @@
     <Script file="tooltip_map_adapter.lua"/>
     <Script file="tooltip_spell_adapter.lua"/>
     <Script file="tooltip_talent_adapter.lua"/>
+    <Script file="profession_frame_adapter.lua"/>
+    <Script file="profession_recipe_adapter.lua"/>
     <Script file="tooltip_diagnostics.lua"/>
     <Script file="strings.lua"/>
     <Script file="settings.lua"/>

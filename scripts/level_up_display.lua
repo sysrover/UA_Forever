@@ -29,7 +29,8 @@ local function translate_toast(toast)
     runtime.begin_generation(surface, instance)
     translate_toast_regions(toast, surface, instance)
     translate_toast_regions(toast.Contents, surface, instance)
-    if options.account and options.account.auto_scan_content
+    if type(auto_scan.diagnostics_enabled) == "function"
+        and auto_scan.diagnostics_enabled()
         and type(strings.capture_frame) == "function" then
         strings.capture_frame(toast)
     end

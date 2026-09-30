@@ -85,6 +85,18 @@ local function parent_of(owner)
     return ok and not is_secret(parent) and parent or nil
 end
 
+local function is_descendant_of(owner, root, max_depth)
+    if not owner or not root then return false end
+    local current = owner
+    for _ = 1, max_depth or 12 do
+        if current == root then return true end
+        local parent = parent_of(current)
+        if not parent or parent == current then break end
+        current = parent
+    end
+    return false
+end
+
 local function named_auction_tab(button)
     local name = object_name(button)
     if not name then return false end
@@ -420,6 +432,10 @@ end
 
 local function fit_button_to_text(button, region)
     if not is_button(button) or type(button.SetWidth) ~= "function" then return end
+    -- Blizzard's Settings controls have fixed build-defined geometry. Their
+    -- pooled dropdowns, buttons, steppers, and tabs must never inherit a width
+    -- calculated from translated text.
+    if is_descendant_of(button, _G.SettingsPanel, 12) then return end
     -- Page labels sit outside these arrow buttons. Widening the buttons to
     -- fit translated labels stretches the arrow artwork.
     if button == _G.MerchantPrevPageButton
