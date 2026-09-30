@@ -209,7 +209,8 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     local combat_npc_unit_detail = combat_tooltip_text
         and tooltip.uaForeverKind == "npc" and owner == "generic"
         and source and (source:match("^Level %d+$") ~= nil
-            or npc_creature_type_sources[source] == true)
+            or npc_creature_type_sources[source] == true
+            or source == "Skinnable")
     local combat_npc_quest = combat_tooltip_text
         and tooltip.uaForeverKind == "npc" and owner == "quest-tooltip"
     local combat_text_only = combat_tooltip_text
