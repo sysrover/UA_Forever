@@ -9,6 +9,7 @@ local databases = {
     descriptions_uk = addon_table.client_item_descriptions_uk,
     spell_effects = addon_table.client_item_spell_effects,
     spell_reagents = addon_table.client_spell_reagents,
+    item_classes = addon_table.client_item_classes,
     metadata = addon_table.client_item_metadata,
     skill_lines_en = addon_table.client_skill_lines_en,
     skill_lines_uk = addon_table.client_skill_lines_uk,
@@ -19,6 +20,8 @@ local required_databases = {
     { name = "names_uk", database = databases.names_uk },
     { name = "descriptions_en", database = databases.descriptions_en },
     { name = "descriptions_uk", database = databases.descriptions_uk },
+    { name = "item_classes", database = databases.item_classes },
+    { name = "metadata", database = databases.metadata },
 }
 
 local source_build
@@ -127,6 +130,17 @@ end
 
 lookup.get_metadata = function (item_id)
     return row(databases.metadata, item_id)
+end
+
+lookup.get_item_class = function (class_id)
+    return row(databases.item_classes, class_id)
+end
+
+lookup.get_item_subclass = function (class_id, subclass_id)
+    local class = lookup.get_item_class(class_id)
+    if type(class) ~= "table" or type(class.subclasses) ~= "table"
+        or type(subclass_id) ~= "number" then return nil end
+    return class.subclasses[subclass_id]
 end
 
 lookup.get_skill_line = function (skill_id)

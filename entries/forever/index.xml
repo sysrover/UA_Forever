@@ -54,6 +54,7 @@
     <Script file="cliend_db\item_descriptions_uk.lua"/>
     <Script file="cliend_db\item_spell_effects.lua"/>
     <Script file="cliend_db\spell_reagents.lua"/>
+    <Script file="cliend_db\item_classes.lua"/>
     <Script file="cliend_db\item_metadata.lua"/>
     <Script file="cliend_db\skill_lines.lua"/>
     <Script file="cliend_db\skill_lines_uk.lua"/>
