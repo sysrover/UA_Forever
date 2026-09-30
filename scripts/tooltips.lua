@@ -719,7 +719,6 @@ talent_adapter.configure({
     end,
     begin_tooltip = begin_tooltip,
     set_translation = set_tooltip_translation,
-    rewrite_generic = rewrite_generic_lines,
     max_lines = MAX_TOOLTIP_LINES,
 })
 
