@@ -468,6 +468,10 @@ local function after_real_zone_writer(region, owner)
 end
 
 local function after_widget_zone(self)
+    -- Changing an Objective Tracker FontString can synchronously dirty the
+    -- whole container. In combat that makes build 70058 re-enter the Scenario
+    -- module from addon code, where its Maw aura query is forbidden as tainted.
+    if runtime.combat_locked() then return end
     after_real_zone_writer(self and self.Header and self.Header.Text,
         "zone-widget-tracker")
 end
