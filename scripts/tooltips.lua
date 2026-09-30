@@ -153,6 +153,17 @@ local function item_name_visible_matches(visible, expected)
     return visible:sub(#expected + 1):match("^ %([^()]+%)$") ~= nil
 end
 
+local npc_creature_type_sources = {
+    Beast = true,
+    Critter = true,
+    Demon = true,
+    Dragonkin = true,
+    Elemental = true,
+    Humanoid = true,
+    Mechanical = true,
+    Undead = true,
+}
+
 local function set_tooltip_translation(tooltip, region, source, translated, slot, category, owner, source_kind, allow_fallback, adjust_layout, after_visibility, visible_matcher, catalog_source, runtime_flags)
     local source_unsafe = is_secret(source)
     translated = safe_string(translated)
@@ -195,11 +206,15 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         and tooltip.uaForeverKind == "npc" and owner == "generic"
         and source and (source == "Threat"
             or source:match("^%d+%% Threat$") ~= nil)
+    local combat_npc_unit_detail = combat_tooltip_text
+        and tooltip.uaForeverKind == "npc" and owner == "generic"
+        and source and (source:match("^Level %d+$") ~= nil
+            or npc_creature_type_sources[source] == true)
     local combat_npc_quest = combat_tooltip_text
         and tooltip.uaForeverKind == "npc" and owner == "quest-tooltip"
     local combat_text_only = combat_tooltip_text
         and (owner == "npc-tooltip" or combat_npc_threat
-            or combat_npc_quest)
+            or combat_npc_unit_detail or combat_npc_quest)
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
         if adjust_layout ~= false and not combat_tooltip_text then
