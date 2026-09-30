@@ -59,12 +59,21 @@ local function english_title(id)
     return raw and safe_string(raw.en) or nil
 end
 
+local function matching_quest_entry(id, english)
+    local entry = type(id) == "number" and entries.get_entry("quest", id)
+    if not entry then return nil end
+    if safe_string(english) and safe_string(entry.en) and entry.en ~= english then
+        return nil
+    end
+    return entry
+end
+
 local function quest_name_region(region, id, owner)
     local current = safe_text(region)
     if region then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
     local english = type(id) == "number" and english_title(id)
-    local entry = english and entries.get_entry("quest", id)
+    local entry = english and matching_quest_entry(id, english)
     local ukrainian = entry and safe_string(entry[1])
     if not current or not english or not ukrainian then return false end
     ukrainian = utils.cap(ukrainian)
@@ -115,8 +124,9 @@ local function dialog_field(region, id, field, getter, result_index)
         apply_dialog_language(region)
         return
     end
-    local entry = entries.get_entry("quest", id)
     local english = getter and original_value(getter, result_index or 1)
+    local live_title = field == 1 and english or english_title(id)
+    local entry = matching_quest_entry(id, live_title)
     local ukrainian = entry and safe_string(entry[field])
     if not current or not english or not ukrainian then return end
     if field == 1 then
@@ -245,7 +255,7 @@ local function native_quest_objective(quest_id)
     return objective
 end
 
-local function objective_region(region, slot, after_apply, quest_id)
+local function objective_region(region, slot, after_apply, quest_id, surface)
     local source = safe_text(region)
     if not source then return false end
     local previous = runtime.get(region)
@@ -262,6 +272,7 @@ local function objective_region(region, slot, after_apply, quest_id)
         owner = "quest-objective", slot = slot, source = source,
         translated = translated, option = "translate_quest",
         priority = runtime.PRIORITY.DOMAIN, after_apply = after_apply,
+        surface = surface,
     })
 end
 
@@ -282,10 +293,14 @@ local function quest_log_titles(scroll)
     for button in pool:EnumerateActive() do
         local id = button.questID
         local region = button.Text
+        local tag = button.TagText
+        if safe_text(tag) == "(Elite)" then
+            strings.translate_region(tag)
+        end
         local current = safe_text(region)
         local info = button.info
         local english = info and safe_string(info.title)
-        local entry = type(id) == "number" and entries.get_entry("quest", id)
+        local entry = matching_quest_entry(id, english)
         local ukrainian = entry and safe_string(entry[1])
         if current and english and ukrainian then
             ukrainian = utils.cap(ukrainian)
@@ -295,10 +310,11 @@ local function quest_log_titles(scroll)
                 local height_ok, old_height = pcall(region.GetStringHeight, region)
                 old_height = height_ok and safe_number(old_height)
                 runtime.invalidate(region)
-                changed = runtime.apply(region, {
+                runtime.apply(region, {
                     owner = "quest-log", slot = "quest:" .. id .. ".name",
                     source = source, translated = translated, category = "quest",
                     option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+                    surface = scroll,
                     after_apply = function ()
                         local ok, new_height = pcall(region.GetStringHeight, region)
                         new_height = ok and safe_number(new_height)
@@ -308,10 +324,13 @@ local function quest_log_titles(scroll)
                             if frame_height and new_height > frame_height then
                                 pcall(region.SetHeight, region, new_height)
                             end
-                            grow_quest_log_row(button, new_height - old_height)
+                            if math.abs(new_height - old_height) >= 0.5 then
+                                grow_quest_log_row(button, new_height - old_height)
+                                changed = true
+                            end
                         end
                     end,
-                }) or changed
+                })
             end
         elseif region then
             runtime.invalidate(region)
@@ -421,7 +440,7 @@ local function translate_quest_greeting()
         if region then runtime.invalidate(region) end
         local id = greeting_quest_id(button)
         if id and name and options.can_lookup("translate_gossip", "translate_quest") then
-            local entry = entries.get_entry("quest", id)
+            local entry = matching_quest_entry(id, english_title(id))
             local translated = entry and safe_string(entry[1])
                 or entries.get_glossary_text(name)
             local source_name = english_title(id) or name
@@ -466,7 +485,7 @@ local function translate_dialog_title()
         apply_dialog_language(region)
         return
     end
-    local entry = id and entries.get_entry("quest", id)
+    local entry = id and matching_quest_entry(id, english)
     local ukrainian = entry and safe_string(entry[1])
     if not current or not english or not ukrainian then return end
     ukrainian = utils.cap(ukrainian)
@@ -506,14 +525,8 @@ local quest_map_labels = {
     Description = true, DESCRIPTION = true, Rewards = true, REWARDS = true,
 }
 
-local quest_log_labels = {
-    Quests = true, ["Quests:"] = true,
-    ["(Elite)"] = true,
-    ["Search Quest Log"] = true,
-}
-
 local function is_quest_log_label(text)
-    if quest_log_labels[text] == true then return true end
+    if text == "Search Quest Log" then return true end
     if type(text) ~= "string" then return false end
     local plain = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     return plain:match("^Quests:%s*%d+%s*/%s*%d+$") ~= nil
@@ -521,17 +534,14 @@ end
 
 local function translate_quest_log_labels()
     local map = _G.QuestMapFrame
-    local root = map and map.QuestsFrame or _G.QuestScrollFrame
-    if not root then return end
-    walker.walk({ id = "quest-log-labels", surface = "quest",
-        owner = "quest-ui", reason = "LEGACY_REGION_DISCOVERY" },
-        root, function (region)
+    local scroll = map and map.QuestsFrame and map.QuestsFrame.ScrollFrame
+        or _G.QuestScrollFrame
+    local search = scroll and scroll.SearchBox and scroll.SearchBox.Instructions
+    for _, region in pairs({ search, _G.QuestLogQuestCount }) do
         if is_quest_log_label(safe_text(region)) then
             strings.translate_region(region)
         end
-    end, nil, { frames = 0 })
-    local count = _G.QuestLogQuestCount
-    if is_quest_log_label(safe_text(count)) then strings.translate_region(count) end
+    end
 end
 
 local function translate_quest_map_labels()
@@ -539,6 +549,8 @@ local function translate_quest_map_labels()
     local details = map and (map.DetailsFrame
         or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
     if not details then return end
+    local shown_ok, shown = pcall(details.IsShown, details)
+    if shown_ok and not shown then return end
     local back = details.BackFrame and details.BackFrame.BackButton
     for _, button in pairs({ back, details.AbandonButton,
         details.ShareButton, details.TrackButton }) do
@@ -547,13 +559,12 @@ local function translate_quest_map_labels()
             strings.translate_region(region)
         end
     end
-    walker.walk({ id = "quest-map-detail-labels", surface = "quest",
-        owner = "quest-ui", reason = "LEGACY_REGION_DISCOVERY" },
-        details, function (region)
+    for _, region in pairs({ _G.QuestInfoDescriptionHeader,
+        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header }) do
         if quest_map_labels[safe_text(region)] then
             strings.translate_region(region)
         end
-    end, nil, { frames = 0 })
+    end
 end
 
 local function translate_quest_popup_labels(popup)
@@ -655,8 +666,6 @@ local function prepare_dialog_hooks()
         -- Blizzard rewrites the quest-list heading during every list refresh.
         -- Reapply its UI translation after that final native write.
         translate_quest_log_labels()
-        scheduler.request("quest-log-static-labels", nil,
-            translate_quest_log_labels, 0.05)
         translate_quest_map_labels()
         local scroll = _G.QuestScrollFrame
         local pool = scroll and scroll.objectiveFramePool
@@ -675,9 +684,9 @@ local function prepare_dialog_hooks()
             local id = frame.questID
             if type(id) == "number" and frame.Text then
                 counters[id] = (counters[id] or 0) + 1
-                local applied = objective_region(frame.Text,
+                objective_region(frame.Text,
                     "quest:" .. id .. ":log-objective:" .. counters[id],
-                    nil, id)
+                    nil, id, scroll)
                 local old_ok, old_height = pcall(frame.GetHeight, frame)
                 local new_ok, new_height = pcall(frame.Text.GetStringHeight, frame.Text)
                 old_height = old_ok and safe_number(old_height)
@@ -690,7 +699,7 @@ local function prepare_dialog_hooks()
                         grow_quest_log_row(buttons[id], new_height - old_height)
                     end
                 end
-                changed = applied or resized or changed
+                changed = resized or changed
             end
         end
         if changed and scroll.Contents and type(scroll.Contents.Layout) == "function" then
@@ -832,18 +841,32 @@ local function after_update(self, quest)
     schedule_tracker_labels()
 end
 
+local timer_text_cache = setmetatable({}, { __mode = "k" })
+
 local function translate_quest_timer(frame)
     if not frame or not options.can_translate("translate_string") then return end
-    strings.translate_region(frame.Header and frame.Header.Text)
+    local header = frame.Header and frame.Header.Text
+    local header_text = safe_text(header)
+    if header_text and header_text:find("[A-Za-z]") then
+        strings.translate_region(header)
+    end
     for _, button in ipairs(frame.activeElements or {}) do
         local region = button and button.Name
         local source = safe_text(region)
         if source then
-            local translated = source
-            for _, unit in ipairs(surface_text.timer_units) do
-                translated = translated:gsub(
-                    "(%d+)%s+" .. unit.source .. "%f[%A]",
-                    "%1 " .. unit.translated)
+            local cached = timer_text_cache[region]
+            local translated = cached and cached.source == source
+                and cached.translated or nil
+            if not translated then
+                translated = source
+                for _, unit in ipairs(surface_text.timer_units) do
+                    translated = translated:gsub(
+                        "(%d+)%s+" .. unit.source .. "%f[%A]",
+                        "%1 " .. unit.translated)
+                end
+                timer_text_cache[region] = {
+                    source = source, translated = translated,
+                }
             end
             if translated ~= source then
                 runtime.apply(region, {
@@ -851,6 +874,7 @@ local function translate_quest_timer(frame)
                     source = source, translated = translated,
                     option = "translate_string",
                     priority = runtime.PRIORITY.CONTEXT,
+                    surface = frame, reapply_cached = true,
                 })
             end
         end

@@ -21,6 +21,20 @@ local SPELL_PASSIVE = 33
 local SPELL_DESCRIPTION = 34
 local UNTYPED_LINE = 0
 
+local function translate_right_service(contract, tooltip, line_data,
+    line_index, slot_prefix)
+    local source = contract.safe_string(line_data.rightText)
+    if not source then return false end
+    local region = contract.line_region(tooltip, "Right", line_index)
+    if not region then return false end
+    local translated, source_kind = contract.translate_static(source, region)
+    if not translated then return false end
+    return contract.set_translation(
+        tooltip, region, source, translated,
+        slot_prefix .. line_index, nil, "spell-tooltip", source_kind
+    )
+end
+
 local function owner_spellbook_item_info(tooltip)
     if not tooltip or type(tooltip.GetOwner) ~= "function" then return nil end
     local ok, owner = pcall(tooltip.GetOwner, tooltip)
@@ -90,6 +104,8 @@ adapter.add_structured_spell = function (tooltip, data)
             local source = contract.safe_string(line_data.leftText)
             if line_index then
                 max_line_index = math.max(max_line_index, line_index)
+                applied = translate_right_service(contract, tooltip, line_data,
+                    line_index, "spell.service-right:") or applied
                 local region = contract.line_region(tooltip, "Left", line_index)
                 if line_type == SPELL_NAME then
                     native_name = source or native_name
@@ -172,6 +188,8 @@ adapter.add_structured_aura = function (tooltip, data)
             local source = contract.safe_string(line_data.leftText)
             if line_index then
                 max_line_index = math.max(max_line_index, line_index)
+                applied = translate_right_service(contract, tooltip, line_data,
+                    line_index, "aura.service-right:") or applied
                 local region = contract.line_region(tooltip, "Left", line_index)
                 -- Build 70058 exposes every UnitAura row as type None (0).
                 -- Its stable structured slots are name first, description

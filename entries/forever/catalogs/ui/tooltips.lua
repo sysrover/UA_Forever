@@ -148,6 +148,29 @@ local item_resistance_names = {
     Nature = "природи", Shadow = "тіні", Holy = "світла",
 }
 
+-- BAG_FILTER_* values used by ContainerFrameSettingsManager in build
+-- 1.60.1.70058. Genitive forms fit BAG_FILTER_ASSIGNED_TO directly.
+local bag_filter_names = {
+    Equipment = "спорядження",
+    Consumables = "витратних предметів",
+    ["Profession Goods"] = "ремісничих товарів",
+    Junk = "мотлоху",
+    ["Quest Items"] = "предметів завдань",
+    Reagents = "реагентів",
+}
+
+local function translate_bag_filter_list(source)
+    local translated = {}
+    for part in source:gmatch("[^,]+") do
+        local name = part:match("^%s*(.-)%s*$")
+        local value = bag_filter_names[name]
+        if not value then return nil end
+        translated[#translated + 1] = value
+    end
+    if #translated == 0 then return nil end
+    return table.concat(translated, ", ")
+end
+
 tooltip.item_line_patterns = {
     { "^([%+%-]?%d+) Armor$", function (value)
         return value .. " броні"
@@ -184,6 +207,14 @@ tooltip.item_line_patterns = {
     end },
     { "^Item Level (%d+)$", function (level)
         return "Рівень предмета " .. level
+    end },
+    { "^(%d+) Slot Bag$", function (slots)
+        return "Сумка на " .. slots .. " комірок"
+    end },
+    { "^Assigned to: |cffffffff(.-)|r$", function (filters)
+        local translated = translate_bag_filter_list(filters)
+        return translated and ("Призначено для: |cffffffff"
+            .. translated .. "|r") or nil
     end },
     { "^<Made by (.+)>$", function (name)
         return "<Виготовлено: " .. name .. ">"

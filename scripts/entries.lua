@@ -800,24 +800,45 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
     -- Camelot's quest tracker gets its visible objective strings from the
     -- legacy GetQuestLogLeaderBoard API. Keep the live C_QuestLog objective
     -- table pristine and translate only the text after its dynamic N/N prefix.
+    local quest_surface = addon_table.forever_surface_ui
+        and addon_table.forever_surface_ui.quest or {}
+    local original_text = text
+    local complete_suffix = ""
+    local without_complete = text:match("^(.-)%s+%(Complete%)$")
+    if without_complete then
+        text = without_complete
+        complete_suffix = quest_surface.complete_suffix or " (Complete)"
+    end
+    local function finish(value)
+        if without_complete and value == without_complete then
+            return original_text
+        end
+        return value .. complete_suffix
+    end
+
     local status_prefix = text:match("^(%-%s*)Ready for turn%-in$")
-    if status_prefix then return status_prefix .. "Можна здати" end
-    if text == "Ready for turn-in" then return "Можна здати" end
+    if status_prefix then
+        return finish(status_prefix
+            .. (quest_surface.ready_for_turn_in or "Ready for turn-in"))
+    end
+    if text == "Ready for turn-in" then
+        return finish(quest_surface.ready_for_turn_in or text)
+    end
     local progress_prefix, objective_text = text:match("^(%d+%s*/%s*%d+%s+)(.+)$")
     if progress_prefix and objective_text then
-        return progress_prefix .. entries.translate_quest_objective_task(
-            objective_text, quest_id, objective_source)
+        return finish(progress_prefix .. entries.translate_quest_objective_task(
+            objective_text, quest_id, objective_source))
     end
 
     local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
         or addon_table.quest_both[tonumber(quest_id)])
     local task = quest and quest.tasks and quest.tasks[text]
-    if type(task) == "string" then return task end
+    if type(task) == "string" then return finish(make_text(task)) end
     if type(objective_source) == "string"
         and text:lower() == objective_source:lower() then
         local objective = quest and quest[3]
         if type(objective) == "string" and objective ~= "" and objective ~= text then
-            return objective
+            return finish(objective)
         end
     end
 
@@ -845,7 +866,7 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
         text = entries.get_glossary_text(text, text)
     end
 
-    return text
+    return finish(text)
 end
 
 entries.translate_taxi_node_name = function (text)

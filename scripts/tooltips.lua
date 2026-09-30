@@ -1407,6 +1407,14 @@ local function translate_generic_tooltip(tooltip)
     if tooltip.uaForeverKind == "spell" or tooltip.uaForeverKind == "aura"
         or tooltip.uaForeverKind == "npc"
         or tooltip.uaForeverKind == "quest" then
+        -- Build 70058 can append map-pin quest objectives after the structured
+        -- Quest post-call translated the title. Re-run the bounded quest
+        -- adapter during the already scheduled final pass so those late rows
+        -- receive their quest-specific task translations as well.
+        if tooltip.uaForeverKind == "quest" and tooltip.uaForeverID then
+            quest_adapter.add(tooltip, tooltip.uaForeverID,
+                tooltip.uaForeverReservedFirst == 1)
+        end
         rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2)
         if tooltip.uaForeverKind == "npc" then
             quest_adapter.translate_embedded(tooltip)
@@ -2141,11 +2149,27 @@ local function prepare_ptr_feedback_hook()
     return ptr_feedback_hooked
 end
 
+local function translate_appended_bag_tooltip_lines()
+    local tooltip = _G.GameTooltip
+    if not tooltip or tooltip.uaForeverKind ~= "item" then return end
+    local first_index = (safe_number(tooltip.uaForeverItemLineCount) or 0) + 1
+    item_adapter.translate_appended_lines(tooltip, first_index)
+end
+
+local function prepare_bag_tooltip_hooks()
+    local mixin_hooked = hooks.mixin("BaseBagSlotButtonMixin",
+        "OnEnterInternal", translate_appended_bag_tooltip_lines)
+    local portrait_hooked = hooks.global("ContainerFramePortraitButton_OnEnter",
+        translate_appended_bag_tooltip_lines)
+    return mixin_hooked or portrait_hooked
+end
+
 tooltips.prepare = function ()
     prepare_quest_map_hook()
     prepare_tooltip_frames()
     prepare_comparison_manager()
     prepare_ptr_feedback_hook()
+    prepare_bag_tooltip_hooks()
     hooks.region_script(_G.GameTooltip, "OnUpdate", after_game_tooltip_update,
         "quest-reward")
     hooks.region(_G.GameTooltipTextLeft1, "SetText", function (region)
