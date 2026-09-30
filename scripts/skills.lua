@@ -12,6 +12,8 @@ local runtime = addon_table.use("translation_runtime")
 local registry = addon_table.use("translation_registry")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("skills")
+local surface_text = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").skills
 local hook_mixin = hooks.mixin
 local hook_owner = hooks.region
 local function is_secret(value)
