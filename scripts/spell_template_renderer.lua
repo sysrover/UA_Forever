@@ -517,6 +517,14 @@ local function match_program(matcher, native_text)
             end
         elseif instruction.kind == "token" then
             for next_position = position, #native_text + 1 do
+                -- Dynamic values belong to one rendered tooltip line. Letting
+                -- a capture cross a newline makes repeated line terminators
+                -- ambiguous and can consume following optional aura rows.
+                if next_position > position then
+                    local previous = native_text:sub(
+                        next_position - 1, next_position - 1)
+                    if previous == "\r" or previous == "\n" then break end
+                end
                 local candidate = clone_match_context(context)
                 local bucket = candidate.values[instruction.identity]
                 if not bucket then
