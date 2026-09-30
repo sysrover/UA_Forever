@@ -26,9 +26,7 @@
     <Script file="catalogs\spells\shaman.lua"/>
     <Script file="catalogs\spells\warlock.lua"/>
     <Script file="catalogs\spells\warrior.lua"/>
-    <Script file="catalogs\talents\tree.lua"/>
-    <Script file="catalogs\talents\eligible.lua"/>
-    <Script file="catalogs\talents\descriptions.lua"/>
+    <Script file="catalogs\talents\ui.lua"/>
     <Script file="catalogs\ui\core.lua"/>
     <Script file="catalogs\ui\settings.lua"/>
     <Script file="catalogs\ui\skills.lua"/>

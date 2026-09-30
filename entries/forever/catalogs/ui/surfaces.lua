@@ -8,10 +8,6 @@ addonTable.forever_surface_ui = {
         selected = function (count) return "Вибрано: " .. count end,
     },
     skills = {
-        talent_labels = {
-            Primary = "Основна",
-            Secondary = "Додаткова",
-        },
         armor_category_types = {
             Cloth = "Тканинні", Leather = "Шкіряні",
             Mail = "Кольчужні", Plate = "Латні",

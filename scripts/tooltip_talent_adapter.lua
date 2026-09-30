@@ -12,6 +12,8 @@ local format = catalog.format
 local dependencies
 local trait_entries = addon_table.client_trait_entries
 local trait_overrides = addon_table.client_trait_definition_overrides_en
+local talent_ui = assert(addon_table.talent_ui,
+    "UA Forever talent UI catalog is not loaded")
 
 local SPELL_NAME = 13
 local SPELL_PASSIVE = 33
@@ -259,7 +261,7 @@ local function points_requirement(source)
     if not visible then return nil end
     local count, tree = visible:match(
         "^Spend ([%d,]+) more points? in (.-) Talents$")
-    local names = addon_table.talent_spec_names
+    local names = talent_ui.spec_names
     local translated_tree = tree and names and names[tree]
     if not count or not translated_tree then return nil end
     local digits = count:gsub(",", "")
@@ -375,6 +377,7 @@ adapter.translate = function (_, button, tooltip)
         if region and visible and visible ~= "" then
             local translated = points_requirement(source)
                 or replacement_line(button, id, entry_id, source)
+                or contract.translate_static(source, region)
             if translated and translated ~= source
                 and not translated:find("{%d+}") then
                 contract.set_translation(tooltip, region, source,
@@ -383,5 +386,4 @@ adapter.translate = function (_, button, tooltip)
             end
         end
     end
-    contract.rewrite_generic(tooltip, count, 2)
 end
