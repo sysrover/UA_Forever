@@ -502,6 +502,7 @@ quest_ui.refresh_greeting = translate_quest_greeting
 
 local quest_map_labels = {
     Back = true, Abandon = true, Share = true, Track = true, Untrack = true,
+    ["Show Map"] = true,
     Description = true, DESCRIPTION = true, Rewards = true, REWARDS = true,
 }
 
@@ -512,8 +513,10 @@ local quest_log_labels = {
 }
 
 local function is_quest_log_label(text)
-    return quest_log_labels[text] == true
-        or type(text) == "string" and text:match("^Quests:%s*%d+/%d+$") ~= nil
+    if quest_log_labels[text] == true then return true end
+    if type(text) ~= "string" then return false end
+    local plain = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return plain:match("^Quests:%s*%d+%s*/%s*%d+$") ~= nil
 end
 
 local function translate_quest_log_labels()
@@ -553,6 +556,22 @@ local function translate_quest_map_labels()
     end, nil, { frames = 0 })
 end
 
+local function translate_quest_popup_labels(popup)
+    popup = popup or _G.QuestLogPopupDetailFrame
+    if not popup then return end
+    local show_map = popup.ShowMapButton and popup.ShowMapButton.Text
+    if quest_map_labels[safe_text(show_map)] then
+        strings.translate_region(show_map)
+    end
+    for _, button in ipairs({ popup.AbandonButton, popup.ShareButton,
+        popup.TrackButton }) do
+        local ok, region = pcall(function () return button:GetFontString() end)
+        if ok and quest_map_labels[safe_text(region)] then
+            strings.translate_region(region)
+        end
+    end
+end
+
 local function translate_tracking_buttons()
     local map = _G.QuestMapFrame
     local details = map and (map.DetailsFrame
@@ -565,6 +584,7 @@ local function translate_tracking_buttons()
             strings.translate_region(region)
         end
     end
+    translate_quest_popup_labels(popup)
 end
 
 local function prepare_dialog_hooks()
@@ -864,7 +884,7 @@ quest_ui.prepare = function ()
         translate_tracker_labels, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
     -- The XML-created frame copies mixin methods during construction in client
-    -- build 70009, so hooking the mixin afterwards does not reach that frame.
+    -- build 70058, so hooking the mixin afterwards does not reach that frame.
     -- Prefer the live frame and keep the mixin as a late-load fallback.
     if not hooks.region(_G.QuestTimerFrame, "UpdateQuestTimers",
         translate_quest_timer) then

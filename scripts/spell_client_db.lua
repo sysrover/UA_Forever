@@ -59,3 +59,17 @@ end
 lookup.get_english_aura_description = function (spell_id)
     return get_row(databases.aura_descriptions_en, spell_id)
 end
+
+lookup.has_spell_translation = function (spell_id)
+    return lookup.get_name(spell_id) ~= nil
+        or lookup.get_description(spell_id) ~= nil
+end
+
+lookup.has_aura_translation = function (spell_id)
+    return lookup.get_name(spell_id) ~= nil
+        or lookup.get_aura_description(spell_id) ~= nil
+end
+
+lookup.get_english_name_rows = function ()
+    return lookup.ready and databases.spell_names_en.rows or nil
+end

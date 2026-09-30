@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local entries = addon_table.use("entries")
+local item_client_db = addon_table.use("item_client_db")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local translation = addon_table.use("translation")
@@ -120,8 +121,8 @@ adapter.translate_bag_portrait = function (button)
     link = link_ok and contract.safe_string(link) or nil
     if not link then return end
     local id = utils.item_id_from_link(link)
-    local entry = id and entries.get_entry("item", id)
-    if not entry or not entry[1] then return end
+    local translated = id and item_client_db.get_name(id)
+    if not translated then return end
     local item_api = _G.C_Item
     if not item_api or type(item_api.GetItemInfo) ~= "function" then return end
     local name_ok, native = pcall(item_api.GetItemInfo, link)
@@ -132,8 +133,8 @@ adapter.translate_bag_portrait = function (button)
     if not region or not current or current:sub(1, #native) ~= native then
         return
     end
-    local translated = contract.make_text(entry[1], tooltip)
-    if not translated or translated == native then return end
+    translated = utils.cap(translated)
+    if translated == native then return end
     if not tooltip.uaForeverSessionKey then
         contract.begin_tooltip(tooltip, "generic")
     end

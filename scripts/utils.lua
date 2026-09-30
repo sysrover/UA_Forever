@@ -247,21 +247,6 @@ utils.item_id_from_link = function (item_link)
     end
 end
 
-utils.tooltip_item_id = function (tooltip)
-    local _, item_link = tooltip:GetItem()
-    return utils.item_id_from_link(item_link)
-end
-
-utils.tooltip_item_suffix_id = function (tooltip)
-    local _, item_link = tooltip:GetItem()
-    if item_link then
-        local suffix_id = select(8, string_split(":", item_link))
-        if suffix_id then
-            return tonumber(suffix_id)
-        end
-    end
-end
-
 utils.chat_bubble_font_string_with_text = function (text)
     local function secret(value)
         if type(_G.issecretvalue) ~= "function" then return false end

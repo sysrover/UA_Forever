@@ -41,6 +41,47 @@ local tooltip = {
         Polearm = "Древкова зброя", Gun = "Рушниця",
         Bow = "Лук", Crossbow = "Арбалет", Wand = "Жезл",
     },
+    -- Item tooltip vocabulary emitted by GlobalStrings/TooltipData in client
+    -- build 1.60.1.70058. These keys are English client output, never
+    -- translated text used for recognition.
+    item_line_exact = {
+        ["Soulbound"] = "Прив’язано до персонажа",
+        ["Binds when picked up"] = "Прив’язується при отриманні",
+        ["Binds when equipped"] = "Прив’язується при спорядженні",
+        ["Binds when used"] = "Прив’язується при використанні",
+        ["Binds to account"] = "Прив’язується до облікового запису",
+        ["Quest Item"] = "Предмет завдання",
+        ["Unique"] = "Унікальний",
+        ["Unique-Equipped"] = "Унікальний споряджений",
+        ["One-Hand"] = "Одноручна",
+        ["Two-Hand"] = "Дворучна",
+        ["Main Hand"] = "Основна рука",
+        ["Off Hand"] = "Друга рука",
+        ["Held In Off-hand"] = "Тримається в другій руці",
+        ["Ranged"] = "Дальній бій",
+        ["Shield"] = "Щит",
+        ["Cloth"] = "Тканина",
+        ["Leather"] = "Шкіра",
+        ["Mail"] = "Кольчуга",
+        ["Plate"] = "Лати",
+        ["Axe"] = "Сокира",
+        ["Mace"] = "Булава",
+        ["Sword"] = "Меч",
+        ["Dagger"] = "Кинджал",
+        ["Staff"] = "Посох",
+        ["Polearm"] = "Древкова зброя",
+        ["Bow"] = "Лук",
+        ["Crossbow"] = "Арбалет",
+        ["Gun"] = "Рушниця",
+        ["Wand"] = "Жезл",
+        ["Thrown"] = "Метальна зброя",
+        ["Already Known"] = "Уже відомо",
+        ["Sell Price:"] = "Ціна продажу:",
+        ["Press F6 to submit an issue for this Item"] =
+            "F6: повідомити про помилку",
+        ["If you replace this item, the following stat changes will occur:"] =
+            "Заміна цього предмета призведе до зміни таких характеристик:",
+    },
     resistance_schools = {
         arcane = "таємної магії", fire = "вогню", frost = "криги",
         nature = "природи", shadow = "тіні", holy = "світла",
@@ -82,6 +123,79 @@ tooltip.format = {
             .. "-го рівня: |cffffffff" .. average .. "%|r"
     end,
 }
+
+local item_stat_names = {
+    Strength = "сили", Stamina = "витривалості",
+    Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
+}
+
+local item_resistance_names = {
+    Arcane = "таємної магії", Fire = "вогню", Frost = "криги",
+    Nature = "природи", Shadow = "тіні", Holy = "світла",
+}
+
+tooltip.item_line_patterns = {
+    { "^([%+%-]?%d+) Armor$", function (value)
+        return value .. " броні"
+    end },
+    { "^(%d+) Block$", function (value)
+        return value .. " блокування"
+    end },
+    { "^([%d%.,]+) %- ([%d%.,]+) Damage$", function (minimum, maximum)
+        return minimum .. "–" .. maximum .. " шкоди"
+    end },
+    { "^Speed ([%d%.,]+)$", function (value)
+        return "Швидкість " .. value
+    end },
+    { "^%(([%d%.,]+) damage per second%)$", function (value)
+        return "(" .. value .. " шкоди за секунду)"
+    end },
+    { "^([%+%-]?[%d%.,]+) damage per second$", function (value)
+        return value .. " шкоди за секунду"
+    end },
+    { "^Durability (%d+) / (%d+)$", function (current, maximum)
+        return "Міцність " .. current .. " / " .. maximum
+    end },
+    { "^Requires Level (%d+)$", function (level)
+        return "Необхідний рівень " .. level
+    end },
+    { "^Item Level (%d+)$", function (level)
+        return "Рівень предмета " .. level
+    end },
+    { "^<Made by (.+)>$", function (name)
+        return "<Виготовлено: " .. name .. ">"
+    end },
+    { "^Sell Price: (.+)$", function (price)
+        return "Ціна продажу: " .. price
+    end },
+    { "^Cooldown remaining: (.+)$", function (remaining)
+        remaining = remaining:gsub("([A-Za-z]+)", function (word)
+            return tooltip.dynamic_value_words[word:lower()] or word
+        end)
+        return "Залишилося до відновлення: " .. remaining
+    end },
+    { "^([%+%-])(%d+) ([A-Za-z]+)$",
+        function (sign, amount, stat)
+            local name = item_stat_names[stat]
+            return name and (sign .. amount .. " до " .. name) or nil
+        end },
+    { "^%+(%d+) ([A-Za-z]+) Resistance$",
+        function (amount, school)
+            local name = item_resistance_names[school]
+            return name and ("+" .. amount .. " до опору " .. name) or nil
+        end },
+}
+
+function tooltip.translate_item_line(source)
+    if type(source) ~= "string" or source == "" then return nil end
+    local translated = tooltip.item_line_exact[source]
+    if translated then return translated end
+    for _, rule in ipairs(tooltip.item_line_patterns) do
+        local captures = { source:match(rule[1]) }
+        if #captures > 0 then return rule[2](unpack(captures)) end
+    end
+    return nil
+end
 
 tooltip.talent_description_overrides = {
     [12298] = {

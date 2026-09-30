@@ -1,6 +1,8 @@
 local _, addon_table = ...
 
 local diagnostics = addon_table.use("tooltip_diagnostics")
+local item_client_db = addon_table.use("item_client_db")
+local spell_client_db = addon_table.use("spell_client_db")
 
 diagnostics.install_full_scan = function (tooltips, api)
     local is_secret = api.is_secret
@@ -264,7 +266,6 @@ diagnostics.install = function (tooltips, api)
     local each_shopping_tooltip = api.each_shopping_tooltip
     local is_shopping_tooltip = api.is_shopping_tooltip
     local public_frame_name = api.public_frame_name
-    local entries = api.entries
     local visible_tooltip_font_strings = api.visible_tooltip_font_strings
     local MAX_TOOLTIP_LINES = api.MAX_TOOLTIP_LINES
     local minimap_tooltip_owner = api.minimap_tooltip_owner
@@ -498,7 +499,17 @@ diagnostics.install = function (tooltips, api)
             return "entries/forever/catalogs/ui/tooltips.lua"
         end
         if category == "item" or owner == "item-tooltip" then
-            return "entries/forever/catalogs/items/catalog.lua"
+            if slot:find("item.name", 1, true) == 1
+                or slot:find("item.recipe%-reagents") == 1 then
+                return "entries/forever/cliend_db/item_names_uk.lua"
+            end
+            if slot:find("item.description", 1, true) == 1 then
+                return "entries/forever/cliend_db/item_descriptions_uk.lua"
+            end
+            if slot:find("item.effect", 1, true) == 1 then
+                return "entries/forever/cliend_db/spell_descriptions_uk.lua"
+            end
+            return "entries/forever/catalogs/ui/tooltips.lua"
         end
         if category == "spell" or owner == "spell-tooltip" then
             return "entries/forever/catalogs/spells/"
@@ -857,32 +868,40 @@ diagnostics.install = function (tooltips, api)
                 and result.tooltipData then
                 result.item.id = safe_number(result.tooltipData.id)
             end
-            local item_entry = result.item.id
-                and entries.get_entry("item", result.item.id) or nil
-            local translated_name = item_entry and safe_string(item_entry[1])
-                or result.item.name and safe_string(
-                    entries.lookup_name("item", result.item.name)) or nil
-            result.item.catalogFound = item_entry ~= nil
-                or translated_name ~= nil
+            local translated_name = result.item.id
+                and safe_string(item_client_db.get_name(result.item.id)) or nil
+            if not translated_name and result.item.name then
+                translated_name = safe_string(item_client_db
+                    .get_name_by_english(result.item.name))
+            end
+            result.item.catalogFound = translated_name ~= nil
             result.item.catalogName = translated_name
+            result.item.sourceBuild = item_client_db.source_build
             result.item.editTarget =
-                "entries/forever/catalogs/items/catalog.lua"
+                "entries/forever/cliend_db/item_names_uk.lua"
         end
         if result.spell then
-            if not result.spell.id and result.kind == "spell"
+            if not result.spell.id
+                and (result.kind == "spell" or result.kind == "aura")
                 and result.tooltipData then
                 result.spell.id = safe_number(result.tooltipData.id)
             end
-            local spell_entry = result.spell.id
-                and entries.get_entry("spell", result.spell.id) or nil
-            local translated_name = spell_entry and safe_string(spell_entry[1])
-                or result.spell.name and safe_string(
-                    entries.lookup_name("spell", result.spell.name)) or nil
-            result.spell.catalogFound = spell_entry ~= nil
-                or translated_name ~= nil
+            local translated_name = result.spell.id
+                and safe_string(spell_client_db.get_name(result.spell.id))
+                or nil
+            if result.spell.id and result.kind == "aura" then
+                result.spell.catalogFound =
+                    spell_client_db.has_aura_translation(result.spell.id)
+            elseif result.spell.id then
+                result.spell.catalogFound =
+                    spell_client_db.has_spell_translation(result.spell.id)
+            else
+                result.spell.catalogFound = false
+            end
             result.spell.catalogName = translated_name
+            result.spell.sourceBuild = spell_client_db.source_build
             result.spell.editTarget =
-                "entries/forever/catalogs/spells/"
+                "entries/forever/cliend_db/spell_names_uk.lua"
         end
     
         local seen_regions = {}

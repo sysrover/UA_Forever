@@ -5,6 +5,7 @@ local auto_scan = addon_table.use("auto_scan")
 local chats     = addon_table.use("chats") ---@class chats_class
 local dev_log   = addon_table.use("dev_log") ---@class dev_log_class
 local entries   = addon_table.use("entries") ---@class entries_class
+local item_client_db = addon_table.use("item_client_db")
 local options   = addon_table.use("options") ---@class options_class
 local runtime   = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
@@ -45,9 +46,6 @@ local system_chat_events = {
     CHAT_MSG_SKILL = true,
     CHAT_MSG_TRADESKILLS = true,
 }
-
--- Some server items are visible in chat before their IDs reach the client catalog.
-local observed_item_names = chat_catalog.observed_item_names
 
 local chat_addition_sequence = 0
 local chat_bubble_sequence = 0
@@ -166,11 +164,9 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
 end
 
 local function translate_item_name(name, item_id)
-    local entry = item_id and entries.get_entry("item", item_id)
-    return entry and entry[1]
-        or entries.lookup_name("item", name)
-        or observed_item_names[name]
-        or name
+    local translated = item_id and item_client_db.get_name(item_id)
+        or item_client_db.get_name_by_english(name)
+    return translated or name
 end
 
 local function translate_item_links(text)

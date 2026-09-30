@@ -729,7 +729,7 @@ local function translate_requirement_part(requirement)
     if not translated then
         local entries = addonTable.use("entries")
         translated = entries.lookup_name("spell", name)
-            or entries.lookup_name("item", name)
+            or addonTable.use("item_client_db").get_name_by_english(name)
     end
     if not translated then return nil end
     if rank then
@@ -808,8 +808,8 @@ addonTable.forever_ui_patterns = {
     {
         pattern = "^Do you want to destroy (.+)%?$",
         replace = function (name)
-            local entries = addonTable.use("entries")
-            local translated = entries.lookup_name("item", name) or name
+            local translated = addonTable.use("item_client_db")
+                .get_name_by_english(name) or name
             return "Ви хочете знищити " .. translated .. "?"
         end,
     },
@@ -1027,7 +1027,16 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
-        pattern = "^Quests: (%d+)/(%d+)$",
+        -- Camelot build 70058 colors both values in QUEST_LOG_COUNT_TEMPLATE.
+        -- Preserve those codes so an over-capacity count stays red.
+        pattern = "^Quests: (|c%x%x%x%x%x%x%x%x)(%d+)|r(|c%x%x%x%x%x%x%x%x)/(%d+)|r$",
+        replace = function (current_color, current, maximum_color, maximum)
+            return "Завдання: " .. current_color .. current .. "|r"
+                .. maximum_color .. "/" .. maximum .. "|r"
+        end,
+    },
+    {
+        pattern = "^Quests:%s*(%d+)%s*/%s*(%d+)$",
         replace = function (current, maximum)
             return "Завдання: " .. current .. "/" .. maximum
         end,
@@ -1155,16 +1164,16 @@ addonTable.forever_ui_patterns = {
     {
         pattern = "^Item Purchased: (.+)$",
         replace = function (item)
-            local entries = addonTable.use("entries")
-            return "Придбано: " .. (entries.lookup_name("item", item) or item)
+            return "Придбано: " .. (addonTable.use("item_client_db")
+                .get_name_by_english(item) or item)
         end,
     },
     {
         pattern = "^Auction won: (.+)$",
         replace = function (item)
-            local entries = addonTable.use("entries")
             return "Виграно на аукціоні: "
-                .. (entries.lookup_name("item", item) or item)
+                .. (addonTable.use("item_client_db")
+                    .get_name_by_english(item) or item)
         end,
     },
     {

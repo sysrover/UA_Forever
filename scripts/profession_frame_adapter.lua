@@ -227,13 +227,16 @@ local function sync_button_style(source, overlay)
     if not source or not overlay or type(source.GetTextColor) ~= "function"
         or type(overlay.GetTextColor) ~= "function"
         or type(overlay.SetTextColor) ~= "function" then return end
-    local source_ok, r, g, b, a = pcall(source.GetTextColor, source)
+    local source_ok, r, g, b = pcall(source.GetTextColor, source)
     local overlay_ok, old_r, old_g, old_b, old_a = pcall(
         overlay.GetTextColor, overlay)
     if not source_ok or not overlay_ok or is_secret(r) or is_secret(g)
-        or is_secret(b) or is_secret(a) then return end
-    if r ~= old_r or g ~= old_g or b ~= old_b or a ~= old_a then
-        pcall(overlay.SetTextColor, overlay, r, g, b, a)
+        or is_secret(b) then return end
+    if r ~= old_r or g ~= old_g or b ~= old_b or old_a ~= 1 then
+        pcall(overlay.SetTextColor, overlay, r, g, b, 1)
+    end
+    if type(overlay.SetAlpha) == "function" then
+        pcall(overlay.SetAlpha, overlay, 1)
     end
 end
 
@@ -241,6 +244,14 @@ local function hide_native_button_text(font_string)
     if font_string and type(font_string.SetAlpha) == "function" then
         pcall(font_string.SetAlpha, font_string, 0)
     end
+end
+
+local function clear_native_button_text(button, font_string)
+    if not button or not font_string or button.uaForeverClearingNativeText
+        or type(font_string.SetText) ~= "function" then return end
+    button.uaForeverClearingNativeText = true
+    pcall(font_string.SetText, font_string, "")
+    button.uaForeverClearingNativeText = nil
 end
 
 local function button_overlay(button, font_string)
@@ -294,6 +305,7 @@ end
 
 local function translate_create_button(button, font_string, overlay)
     if not button or not font_string or not overlay
+        or button.uaForeverClearingNativeText
         or type(font_string.GetText) ~= "function"
         or type(overlay.GetText) ~= "function"
         or type(overlay.SetText) ~= "function" then return false end
@@ -306,6 +318,12 @@ local function translate_create_button(button, font_string, overlay)
     local translated = strings.find_ui_translation(source, font_string)
     local display = options.can_translate("translate_string")
         and translated and translated ~= source and translated or source
+    -- The button template swaps Normal/Highlight/Disabled font objects in
+    -- native code. Keeping the captured source in the original FontString can
+    -- therefore make it visible again during rapid hover transitions. The
+    -- build never reads these two button labels back for gameplay logic, so
+    -- leave the native region empty after copying its final text to our layer.
+    clear_native_button_text(button, font_string)
     local current_ok, current = pcall(overlay.GetText, overlay)
     if current_ok and current == display then return true end
     if not runtime.can_write_text(overlay) then return false end
@@ -331,6 +349,12 @@ local function hook_create_button(button)
         end
     end)
     translate_create_button(button, font_string, overlay)
+end
+
+local function translate_create_controls(page)
+    if not page then return end
+    hook_create_button(page.CreateButton)
+    hook_create_button(page.CreateAllButton)
 end
 
 local function translate_form_chrome(form)
@@ -396,8 +420,7 @@ local function translate_page(page)
     translate_form_chrome(page.SchematicForm)
     hook_text_region(page.GamepadCreateMultiple and page.GamepadCreateMultiple.Text)
     hook_button(page.ViewGuildCraftersButton, true)
-    hook_create_button(page.CreateButton)
-    hook_create_button(page.CreateAllButton)
+    translate_create_controls(page)
 end
 
 local function translate_frame(frame)
@@ -422,6 +445,7 @@ local function hook_instances()
     local form = page and page.SchematicForm
     hooks.region(page, "Refresh", translate_page)
     hooks.region(page, "UpdateSearchPreview", translate_page)
+    hooks.region(page, "ValidateControls", translate_create_controls)
     hooks.region(form, "Init", translate_form_chrome)
     hooks.region(form, "Refresh", translate_form_chrome)
     hooks.region(form, "Update", translate_form_chrome)
@@ -440,6 +464,8 @@ end
 adapter.prepare = function ()
     hooks.mixin("ProfessionsCraftingPageMixin", "Refresh", translate_page)
     hooks.mixin("ProfessionsCraftingPageMixin", "UpdateSearchPreview", translate_page)
+    hooks.mixin("ProfessionsCraftingPageMixin", "ValidateControls",
+        translate_create_controls)
     hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Init",
         translate_form_chrome)
     hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Refresh",

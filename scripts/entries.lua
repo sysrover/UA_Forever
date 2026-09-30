@@ -135,8 +135,9 @@ local function prepare_glossary()
         end
     end
 
-    -- collect id-key entries: spell, item, npc, quest
-    for _, entry_type in ipairs({ "spell", "item", "npc", "quest_faction", "quest_both" }) do
+    -- collect id-key entries: spell, npc, quest. Item names are owned by the
+    -- build-validated item_client_db and must not enter the generic glossary.
+    for _, entry_type in ipairs({ "spell", "npc", "quest_faction", "quest_both" }) do
         for _, entry_value in pairs(at[entry_type]) do
             if entry_value.en then
                 local glossary_key = string_trim(entry_value.en:lower())
@@ -152,11 +153,11 @@ end
 
 local function prepare_name_lookup()
     local at = addon_table
-    local names = { item = {}, quest = {}, spell = {} }
-    local name_ids = { item = {}, quest = {}, spell = {} }
+    local names = { quest = {}, spell = {} }
+    local name_ids = { quest = {}, spell = {} }
     local quest_title_ids = {}
     for _, group in ipairs({
-        { "item", at.item }, { "spell", at.spell },
+        { "spell", at.spell },
         { "quest", at.quest_faction }, { "quest", at.quest_both },
     }) do
         for id, entry in pairs(group[2] or {}) do
@@ -793,12 +794,6 @@ entries.get_chat_text = function (npc_name, chat_text)
     end
 
     return nil, nil, chat_code
-end
-
-entries.get_item_suffix = function (item_name_en)
-    local at = addon_table
-    local item_suffix_en = item_name_en:match(".+ (of .-)$")
-    return at.item_suffix[item_suffix_en]
 end
 
 entries.translate_quest_objective_task = function (text, quest_id, objective_source)
