@@ -21,6 +21,8 @@ local tooltip = {
         Focus = "концентрації",
     },
     item_effect_prefix = {
+        learn = "Навчає:",
+        use = "Використання:",
         equip = "Екіпірування:",
         hit = "При влучанні:",
     },
@@ -58,6 +60,14 @@ tooltip.format = {
                 .. (unit == "min" and " хв.)" or " с)")
         end
         return result
+    end,
+    item_cooldown = function (amount, unit)
+        local translated_unit = tooltip.dynamic_value_words[unit:lower()]
+        if not translated_unit then return nil end
+        return " (Перезарядка: " .. amount .. " " .. translated_unit .. ")"
+    end,
+    item_skill_requirement = function (skill, rank)
+        return "Необхідно: " .. skill .. " (" .. rank .. ")"
     end,
     player_identity = function (level, race)
         return "Рівень " .. level .. ": " .. race .. " (Гравець)"

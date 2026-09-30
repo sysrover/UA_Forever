@@ -1,15 +1,13 @@
 local _, addon_table = ...
 
 local dev_log = addon_table.use("dev_log")
-local entries = addon_table.use("entries")
 local options = addon_table.use("options")
-local runtime = addon_table.use("translation_runtime")
-local scheduler = addon_table.use("translation_scheduler")
-local hooks = addon_table.use("translation_hooks").bind("tooltip-item-adapter")
+local client_db = addon_table.use("item_client_db")
+local spell_db = addon_table.use("spell_client_db")
+local renderer = addon_table.use("spell_template_renderer")
 local adapter = addon_table.use("tooltip_item_adapter")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
-local format = catalog.format
 local dependencies
 
 adapter.configure = function (value)
@@ -21,420 +19,393 @@ local function deps()
     return assert(dependencies, "tooltip item adapter is not configured")
 end
 
-local function build_snapshot(tooltip)
-    local contract = deps()
-    local ok, count = pcall(tooltip.NumLines, tooltip)
-    count = ok and contract.safe_number(count) or nil
-    if not count or count < 1 then return nil, false end
-    count = math.min(count, contract.max_lines)
-    local snapshot = {
-        count = count,
-        tooltip_height = contract.safe_dimension(tooltip, "GetHeight"),
-        tooltip_width = contract.safe_dimension(tooltip, "GetWidth"),
-    }
-    runtime.metric("line_passes", tooltip, tooltip.uaForeverGeneration)
-    for index = 1, count do
-        local left, left_region = contract.tooltip_line(tooltip, "Left", index,
-            index == 1)
-        local right, right_region = contract.tooltip_line(tooltip, "Right", index,
-            index == 1)
-        snapshot[index] = {
-            left = { source = left, region = left_region,
-                visible = contract.normalized_text(left),
-                previous_height = contract.safe_dimension(left_region,
-                    "GetStringHeight") or contract.safe_dimension(left_region,
-                    "GetHeight") },
-            right = { source = right, region = right_region,
-                visible = contract.normalized_text(right),
-                previous_height = contract.safe_dimension(right_region,
-                    "GetStringHeight") or contract.safe_dimension(right_region,
-                    "GetHeight") },
-        }
+-- Enum.TooltipDataLineType values from the Forever client UI build.
+local ITEM_NAME = 22
+local FLAVOR_TEXT = 37
+local ITEM_SPELL_LEARN = 38
+local USAGE_REQUIREMENT = 43
+local ITEM_SPELL_USE = 44
+local ITEM_SPELL_EQUIP = 45
+local ITEM_SPELL_PROC = 46
+
+local EFFECT_TRIGGER_BY_LINE = {
+    [ITEM_SPELL_LEARN] = { [6] = true },
+    [ITEM_SPELL_USE] = { [0] = true, [5] = true },
+    [ITEM_SPELL_EQUIP] = { [1] = true },
+    [ITEM_SPELL_PROC] = { [2] = true },
+}
+
+local EFFECT_PREFIX_BY_LINE = {
+    [ITEM_SPELL_LEARN] = catalog.item_effect_prefix.learn,
+    [ITEM_SPELL_USE] = catalog.item_effect_prefix.use,
+    [ITEM_SPELL_EQUIP] = catalog.item_effect_prefix.equip,
+    [ITEM_SPELL_PROC] = catalog.item_effect_prefix.hit,
+}
+
+local item_cache = {}
+local cache_order = {}
+local cache_head = 1
+local cache_tail = 0
+local cache_count = 0
+local CACHE_LIMIT = 256
+local ITEM_RUNTIME_FLAGS = {
+    record_runtime = false,
+    verify_after_apply = false,
+    reapply_cached = true,
+}
+
+local function cache_item(key, value)
+    local current = item_cache[key]
+    if current then return current end
+    while cache_count >= CACHE_LIMIT do
+        local oldest = cache_order[cache_head]
+        cache_order[cache_head] = nil
+        cache_head = cache_head + 1
+        if oldest and item_cache[oldest] then
+            item_cache[oldest] = nil
+            cache_count = cache_count - 1
+        end
     end
-    return snapshot, snapshot[1] and snapshot[1].left.region ~= nil
+    cache_tail = cache_tail + 1
+    cache_order[cache_tail] = key
+    item_cache[key] = value
+    cache_count = cache_count + 1
+    return value
 end
 
-adapter.snapshot = function (tooltip)
-    return build_snapshot(tooltip)
-end
+local function displayed_item(tooltip, data, fallback_id)
+    local contract = deps()
+    local hyperlink = type(data) == "table"
+        and contract.safe_string(data.hyperlink) or nil
+    local guid = type(data) == "table" and contract.safe_string(data.guid) or nil
+    local item_id = fallback_id
+        or type(data) == "table" and (contract.safe_number(data.id)
+            or contract.safe_number(data.itemID)) or nil
+    local native_name
 
-local function current_entry(tooltip)
     local tooltip_util = _G.TooltipUtil
     if tooltip_util and type(tooltip_util.GetDisplayedItem) == "function" then
-        local ok, _, _, id = pcall(tooltip_util.GetDisplayedItem, tooltip)
-        id = ok and deps().safe_number(id) or nil
-        if id then return entries.get_entry("item", id) end
+        local ok, found_name, found_link, found_id = pcall(
+            tooltip_util.GetDisplayedItem, tooltip)
+        if ok then
+            native_name = contract.safe_string(found_name)
+            hyperlink = contract.safe_string(found_link) or hyperlink
+            item_id = contract.safe_number(found_id) or item_id
+        end
     end
-    if type(tooltip.GetPrimaryTooltipData) ~= "function" then return nil end
-    local ok, data = pcall(tooltip.GetPrimaryTooltipData, tooltip)
-    if not ok or not data or runtime.is_secret_value(data) then return nil end
-    local fields_ok, kind, id = pcall(function () return data.type, data.id end)
-    if not fields_ok or runtime.is_secret_value(kind)
-        or not _G.Enum or not _G.Enum.TooltipDataType
-        or kind ~= _G.Enum.TooltipDataType.Item then return nil end
-    id = deps().safe_number(id)
-    return id and entries.get_entry("item", id) or nil
+
+    local key = guid and "guid:" .. guid
+        or hyperlink and "link:" .. hyperlink
+        or item_id and "id:" .. tostring(item_id) or nil
+    return item_id, key, native_name
 end
 
-local function translate_use_region(tooltip, entry, region, source)
-    local contract = deps()
-    local visible = contract.normalized_text(source)
-    if not region or not visible or not visible:match("^Use:%s*") then
-        return false
+local function make_item_state(item_id, key)
+    local effects = client_db.get_spell_effects(item_id) or {}
+    local metadata = client_db.get_metadata(item_id)
+    local buckets = {}
+    for line_type, triggers in pairs(EFFECT_TRIGGER_BY_LINE) do
+        local bucket = {}
+        for _, effect in ipairs(effects) do
+            if type(effect) == "table" and triggers[effect.triggerType]
+                and type(effect.spellID) == "number" and effect.spellID > 0 then
+                bucket[#bucket + 1] = effect
+            end
+        end
+        table.sort(bucket, function (left, right)
+            local left_slot = tonumber(left.slotIndex) or 0
+            local right_slot = tonumber(right.slotIndex) or 0
+            if left_slot == right_slot then
+                return (tonumber(left.effectID) or 0)
+                    < (tonumber(right.effectID) or 0)
+            end
+            return left_slot < right_slot
+        end)
+        buckets[line_type] = bucket
     end
-    local use_text = entry.use
-    if type(use_text) == "number" then
-        local spell_entry = entries.get_entry("spell", use_text)
-        use_text = spell_entry and spell_entry[2]
-    end
-    if type(use_text) ~= "string" then return false end
-    local translated = contract.make_text(use_text, tooltip)
-    if not translated then return false end
-    local cooldown = visible:match("%(([%d,.]+) sec Cooldown%)")
-    local unit = "sec"
-    if not cooldown then
-        cooldown = visible:match("%(([%d,.]+) min Cooldown%)")
-        unit = "min"
-    end
-    local description = format.item_use(translated, cooldown, unit)
-    return contract.set_translation(tooltip, region, source,
-        description, "item.use", nil, "item-tooltip", nil, false, false)
+    return cache_item(key, {
+        item_id = item_id,
+        english_name = client_db.get_english_name(item_id),
+        translated_name = client_db.get_name(item_id),
+        english_description = client_db.get_english_description(item_id),
+        translated_description = client_db.get_description(item_id),
+        required_skill = type(metadata) == "table"
+            and tonumber(metadata.RequiredSkill) or nil,
+        required_skill_rank = type(metadata) == "table"
+            and tonumber(metadata.RequiredSkillRank) or nil,
+        effects = buckets,
+        rendered_lines = {},
+    })
 end
 
-local function translate_use(tooltip, entry, snapshot)
-    local contract = deps()
-    local applied = false
-    local found = false
-    for index = 2, snapshot and snapshot.count or 1 do
-        local row = snapshot[index].left
-        local source, region, visible = row.source, row.region, row.visible
-        if visible and visible:match("^Use:%s*") then
-            found = true
-            hooks.region(region, "SetText", function (self)
-                if runtime.is_applying(self) then return end
-                local entry_now = current_entry(tooltip)
-                if entry_now then
-                    local ok, current = pcall(self.GetText, self)
-                    if ok then
-                        translate_use_region(tooltip, entry_now, self, current)
-                    end
-                end
+local function translated_item_name(state, native)
+    local translated = state.translated_name
+    if type(translated) ~= "string" then return nil end
+    translated = deps().capitalize(translated)
+    local english = state.english_name
+    if type(native) == "string" and type(english) == "string"
+        and native:sub(1, #english) == english then
+        local suffix = native:sub(#english + 1)
+        if suffix ~= "" then translated = translated .. suffix end
+    end
+    return translated
+end
+
+local function split_effect_source(source)
+    local body = source:match("^[^:]+:%s*(.+)$") or source
+    local core, amount, unit = body:match(
+        "^(.-)%s*%(([%d%.,]+)%s+([%a]+)%s+[Cc]ooldown%)$")
+    if core then
+        return core, catalog.format.item_cooldown(amount, unit) or ""
+    end
+    return body, ""
+end
+
+local function render_effect(effect, line_type, source)
+    if type(effect) ~= "table" or type(source) ~= "string" then return nil end
+    local spell_id = effect.spellID
+    local english = spell_db.get_english_description(spell_id)
+    local ukrainian = spell_db.get_description(spell_id)
+    local kind = "spell"
+    if not english or not ukrainian then
+        english = spell_db.get_english_aura_description(spell_id)
+        ukrainian = spell_db.get_aura_description(spell_id)
+        kind = "aura"
+    end
+    if not english or not ukrainian then return nil end
+
+    local native_core, cooldown = split_effect_source(source)
+    local translated = renderer.render(
+        spell_id, kind, english, ukrainian, native_core)
+    if not translated then return nil end
+    local prefix = EFFECT_PREFIX_BY_LINE[line_type]
+    return prefix and prefix .. " " .. translated .. cooldown
+        or translated .. cooldown
+end
+
+local function cached_line(state, line_index, line_type, source, build)
+    local cached = state.rendered_lines[line_index]
+    if cached and cached.line_type == line_type and cached.source == source then
+        return cached.translated ~= false and cached.translated or nil
+    end
+    local translated = build()
+    state.rendered_lines[line_index] = {
+        line_type = line_type,
+        source = source,
+        translated = translated or false,
+    }
+    return translated
+end
+
+local function escape_pattern(text)
+    return (text:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1"))
+end
+
+local function translate_arg_item_names(line_data, source)
+    if type(line_data) ~= "table" or type(source) ~= "string" then return nil end
+    local ok, args = pcall(function () return line_data.args end)
+    if not ok or type(args) ~= "table" then return nil end
+    local translated = source
+    local changed = false
+    for _, argument in ipairs(args) do
+        if type(argument) == "table" then
+            local fields_ok, field, item_id = pcall(function ()
+                return argument.field, argument.intVal
             end)
-            applied = translate_use_region(tooltip, entry, region, source)
-                or applied
+            field = fields_ok and type(field) == "string" and field:lower() or nil
+            item_id = fields_ok and tonumber(item_id) or nil
+            if field and item_id and (field == "item" or field == "itemid"
+                or field:match("^item%d*id$")) then
+                local english = client_db.get_english_name(item_id)
+                local ukrainian = client_db.get_name(item_id)
+                if english and ukrainian and translated:find(english, 1, true) then
+                    translated = translated:gsub(escape_pattern(english),
+                        function () return ukrainian end, 1)
+                    changed = true
+                end
+            end
         end
     end
-    return applied, found
+    return changed and translated or nil
 end
 
-local function translate_lines(tooltip, entry, snapshot)
+local function translate_structured(tooltip, data, state)
     local contract = deps()
-    if type(entry.tooltip_lines) ~= "table" then return 0, false end
-    local applied = 0
-    local found = false
-    for index = 2, snapshot and snapshot.count or 1 do
-        local row = snapshot[index].left
-        local source, region = row.source, row.region
-        local translated = entry.tooltip_lines[row.visible]
-        if translated and region and contract.set_translation(tooltip, region,
-            source, translated, "item.description:" .. index, nil,
-            "item-tooltip", nil, nil, false) then
-            applied = applied + 1
-            found = true
-        elseif translated then
-            found = true
-        end
-    end
-    return applied, found
-end
+    local lines = type(data) == "table" and data.lines or nil
+    if type(lines) ~= "table" then return false, 0 end
 
-local function field_text(value, tooltip, source_line)
-    if type(value) == "number" then
-        local spell = entries.get_entry("spell", value)
-        value = spell and spell[2]
-    end
-    return type(value) == "string"
-        and deps().make_text(value, tooltip, source_line) or nil
-end
+    local applied = false
+    local effect_indexes = {}
+    local generic_indexes = {}
+    local max_line_index = 0
 
-local function field_values(value)
-    if type(value) == "table" then return value end
-    return value and { value } or {}
-end
+    for _, line_data in ipairs(lines) do
+        if type(line_data) == "table" then
+            local line_type = contract.safe_number(line_data.type)
+            local line_index = contract.safe_number(line_data.lineIndex)
+            local source = contract.safe_string(line_data.leftText)
+            if line_index then
+                max_line_index = math.max(max_line_index, line_index)
+                local rendered_source, region = contract.tooltip_line(
+                    tooltip, "Left", line_index)
+                source = source or contract.safe_string(rendered_source)
+                local translated
+                local slot
 
-local function source_pattern(value)
-    local raw = value
-    if type(value) == "number" then
-        local spell = entries.get_entry("spell", value)
-        raw = spell and spell[2]
-    end
-    local hint = type(raw) == "string" and raw:match("#([^#]+)") or nil
-    if not hint or hint == "" then return nil end
-    return hint:lower():gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
-        :gsub("{%d+}", "[%%d,.]+")
-end
-
-local function match_effects(effect)
-    local values, lines, matched = effect.values, effect.lines, {}
-    if #values == 1 then
-        if effect.used[1] then return matched end
-        local pattern = source_pattern(values[1])
-        if pattern then
-            local found
-            for _, line in ipairs(lines) do
-                if line.visible:lower():find(pattern) then
-                    if found then return matched end
-                    found = line.index
-                end
-            end
-            if found then matched[found] = 1 end
-        elseif #lines == 1 then
-            matched[lines[1].index] = 1
-        end
-        return matched
-    end
-
-    local candidates, hints = {}, {}
-    for value_index, value in ipairs(values) do
-        local pattern = source_pattern(value)
-        hints[value_index] = pattern
-        candidates[value_index] = {}
-        if pattern and not effect.used[value_index] then
-            for _, line in ipairs(lines) do
-                if line.visible:lower():find(pattern) then
-                    local possible = candidates[value_index]
-                    possible[#possible + 1] = line.index
-                end
-            end
-        end
-    end
-    local used_values, used_count = {}, 0
-    for value_index in pairs(effect.used) do
-        used_values[value_index] = true
-        used_count = used_count + 1
-    end
-    local changed = true
-    while changed do
-        changed = false
-        local singles, conflicts = {}, {}
-        for value_index, possible in ipairs(candidates) do
-            if not used_values[value_index] then
-                local available, count
-                count = 0
-                for _, line_index in ipairs(possible) do
-                    if not matched[line_index] then
-                        available = line_index
-                        count = count + 1
+                if line_type == ITEM_NAME or line_index == 1 then
+                    translated = source and translated_item_name(state, source)
+                    slot = "item.name"
+                elseif source and state.english_name
+                    and source == state.english_name then
+                    translated = translated_item_name(state, source)
+                    slot = "item.secondary-name:" .. line_index
+                elseif line_type == FLAVOR_TEXT
+                    or source and state.english_description
+                        and source == state.english_description then
+                    translated = state.translated_description
+                    if translated and source and source:match('^".*"$') then
+                        translated = '"' .. translated .. '"'
                     end
+                    slot = "item.description:" .. line_index
+                elseif line_type == USAGE_REQUIREMENT
+                    and state.required_skill and state.required_skill > 0
+                    and state.required_skill_rank
+                    and state.required_skill_rank > 0 then
+                    local skill = client_db.get_skill_line(state.required_skill)
+                    if skill then
+                        translated = catalog.format.item_skill_requirement(
+                            skill, state.required_skill_rank)
+                    end
+                    slot = "item.requirement:" .. line_index
+                elseif EFFECT_TRIGGER_BY_LINE[line_type] then
+                    local effect_index = (effect_indexes[line_type] or 0) + 1
+                    effect_indexes[line_type] = effect_index
+                    local effect = state.effects[line_type]
+                        and state.effects[line_type][effect_index]
+                    if effect and source then
+                        translated = cached_line(state, line_index, line_type,
+                            source, function ()
+                                return render_effect(effect, line_type, source)
+                            end)
+                    end
+                    if not translated and state.translated_description then
+                        local prefix = EFFECT_PREFIX_BY_LINE[line_type]
+                        translated = prefix and prefix .. " "
+                            .. state.translated_description
+                            or state.translated_description
+                    end
+                    slot = "item.effect:" .. tostring(line_type)
+                        .. ":" .. tostring(effect_index)
+                else
+                    translated = translate_arg_item_names(line_data, source)
+                    slot = translated and "item.arguments:" .. line_index or nil
+                    if not translated then generic_indexes[line_index] = true end
                 end
-                if count == 1 then
-                    if singles[available] then conflicts[available] = true end
-                    singles[available] = value_index
+
+                if translated and source and region then
+                    applied = contract.set_translation(
+                        tooltip, region, source, translated, slot,
+                        line_index == 1 and "item" or nil,
+                        "item-tooltip", nil, false, false, nil,
+                        line_index == 1 and contract.item_name_visible_matches
+                            or nil, nil, ITEM_RUNTIME_FLAGS
+                    ) or applied
+                elseif not translated and line_index ~= 1 then
+                    generic_indexes[line_index] = true
                 end
-            end
-        end
-        for line_index, value_index in pairs(singles) do
-            if not conflicts[line_index] then
-                matched[line_index] = value_index
-                used_values[value_index] = true
-                changed = true
             end
         end
     end
-    if #lines + used_count == #values then
-        local remaining_value, remaining_line, value_count, line_count
-            = nil, nil, 0, 0
-        for value_index in ipairs(values) do
-            if not used_values[value_index] then
-                remaining_value, value_count = value_index, value_count + 1
-            end
-        end
-        for _, line in ipairs(lines) do
-            if not matched[line.index] then
-                remaining_line, line_count = line.index, line_count + 1
-            end
-        end
-        if value_count == 1 and line_count == 1
-            and not hints[remaining_value] then
-            matched[remaining_line] = remaining_value
-        end
+
+    if max_line_index > 0 then
+        applied = contract.rewrite_generic(
+            tooltip, max_line_index, 2, nil, false, nil, generic_indexes,
+            ITEM_RUNTIME_FLAGS
+        ) > 0 or applied
     end
-    return matched
+    return applied, max_line_index
 end
 
-local function translate_fields(tooltip, entry, snapshot)
+local function translate_title_fallback(tooltip, state)
     local contract = deps()
-    local count = snapshot and snapshot.count or 0
-    local effects = {
-        equip = { values = field_values(entry.equip), lines = {}, used = {},
-            prefix = catalog.item_effect_prefix.equip },
-        hit = { values = field_values(entry.hit), lines = {}, used = {},
-            prefix = catalog.item_effect_prefix.hit },
-    }
-    for index = 2, count do
-        local row = snapshot[index].left
-        local region, visible = row.region, row.visible
-        local claim = region and runtime.get(region)
-        if claim and claim.owner == "item-tooltip" then
-            local equip_index = claim.slot:match("^item%.equip:(%d+)$")
-            local hit_index = claim.slot:match("^item%.hit:(%d+)$")
-            if equip_index then effects.equip.used[tonumber(equip_index)] = true end
-            if hit_index then effects.hit.used[tonumber(hit_index)] = true end
-        end
-        local effect = visible and visible:match("^Equip:%s*")
-            and effects.equip or visible and visible:match("^Chance on hit:%s*")
-            and effects.hit or nil
-        if effect then
-            effect.lines[#effect.lines + 1] = { index = index, visible = visible }
-        end
-    end
-    effects.equip.matches = match_effects(effects.equip)
-    effects.hit.matches = match_effects(effects.hit)
-    local applied = 0
-    local found = false
-    for index = 2, count do
-        local row = snapshot[index].left
-        local source, region, visible = row.source, row.region, row.visible
-        if visible and region then
-            local value, slot
-            if visible:match("^Equip:%s*") then
-                local effect = effects.equip
-                local value_index = effect.matches[index]
-                value = value_index and field_text(
-                    effect.values[value_index], tooltip, visible)
-                if value then value = effect.prefix .. " " .. value end
-                slot = value_index and "item.equip:" .. value_index
-            elseif visible:match("^Chance on hit:%s*") then
-                local effect = effects.hit
-                local value_index = effect.matches[index]
-                value = value_index and field_text(
-                    effect.values[value_index], tooltip, visible)
-                if value then value = effect.prefix .. " " .. value end
-                slot = value_index and "item.hit:" .. value_index
-            elseif type(entry.flavor) == "string" and visible:match('^".*"$') then
-                value = field_text(entry.flavor, tooltip)
-                if value then value = '"' .. value .. '"' end
-                slot = "item.flavor"
-            elseif type(entry.desc) == "string"
-                and (visible:match("^Adds [%d.,]+ damage per second%.?$")
-                    or visible:match("^%d+ Slot Herb Bag$")) then
-                local number = entry.desc:match("[%d.,]+")
-                if number and visible:find(number, 1, true) then
-                    value = field_text(entry.desc, tooltip)
-                end
-                slot = "item.description"
-            end
-            local claim = runtime.get(region)
-            if value then found = true end
-            if value and (not claim or claim.owner ~= "item-tooltip")
-                and contract.set_translation(tooltip, region, source, value,
-                    slot, nil, "item-tooltip", nil, nil, false) then
-                applied = applied + 1
-            end
-        end
-    end
-    return applied, found
+    local source, region = contract.tooltip_line(tooltip, "Left", 1)
+    source = contract.safe_string(source)
+    if not source or not region then return false end
+    local translated = translated_item_name(state, source)
+    if not translated then return false end
+    return contract.set_translation(tooltip, region, source, translated,
+        "item.name", "item", "item-tooltip", nil, false, false, nil,
+        contract.item_name_visible_matches, nil, ITEM_RUNTIME_FLAGS) == true
 end
 
-local function translate_snapshot(tooltip, entry, snapshot)
-    local contract = deps()
-    if not snapshot then return { status = "incomplete", applied = false } end
-    local title_row = snapshot and snapshot[1] and snapshot[1].left
-    local native_title = title_row and title_row.source
-    local title_region = title_row and title_row.region
-    local title = contract.make_text(entry[1], tooltip)
-    local title_applied = false
-    if title and title_region then
-        local suffix = type(native_title) == "string" and entry.en
-            and native_title:sub(1, #entry.en + 1) == entry.en .. " "
-            and entries.get_item_suffix(native_title) or nil
-        if suffix then title = title .. " " .. suffix end
-        title_applied = contract.set_translation(tooltip, title_region,
-            native_title, title, "item.name", "item", "item-tooltip",
-            nil, nil, false, nil, contract.item_name_visible_matches)
-    end
-
-    local use_applied, use_found = translate_use(tooltip, entry, snapshot)
-    local lines_applied, lines_found = translate_lines(tooltip, entry, snapshot)
-    local fields_applied, fields_found = translate_fields(tooltip, entry, snapshot)
-    local generic_count = contract.rewrite_generic(tooltip,
-        snapshot and snapshot.count, tooltip.uaForeverReservedFirst,
-        nil, false, snapshot)
-    if type(contract.finish_layout) == "function" then
-        contract.finish_layout(tooltip, snapshot)
-    end
-
-    local expects_use = entry.use ~= nil
-    local expects_lines = type(entry.tooltip_lines) == "table"
-        and next(entry.tooltip_lines) ~= nil
-    local expects_fields = entry.equip ~= nil or entry.hit ~= nil
-        or entry.flavor ~= nil or entry.desc ~= nil
-    local incomplete = not snapshot or not title_region
-        or expects_use and not use_found
-        or expects_lines and not lines_found
-        or expects_fields and not fields_found
-    local applied = title_applied or use_applied or lines_applied > 0
-        or fields_applied > 0 or generic_count > 0
-    return {
-        status = incomplete and "incomplete"
-            or applied and "complete" or "unchanged",
-        applied = applied,
-    }
-end
-
-adapter.add = function (tooltip, id)
-    local contract = deps()
-    runtime.metric("item_adapter_runs", tooltip, tooltip.uaForeverGeneration)
-    if not options.can_lookup("translate_item") then
-        tooltip.uaForeverItemStatus = "blocked"
+adapter.add = function (tooltip, data, fallback_id)
+    if not tooltip or not options.can_lookup("translate_item") then
         return { status = "blocked", applied = false }
     end
-    local entry = entries.get_entry("item", id)
-    local name
-    if tooltip.GetItem then
-        local ok, value = pcall(tooltip.GetItem, tooltip)
-        if ok then name = value end
+
+    local item_id, key, native_name = displayed_item(tooltip, data, fallback_id)
+    if not item_id or not key then
+        return { status = "incomplete", applied = false }
     end
-    dev_log.record_id("items", id, name, entry ~= nil)
-    if not entry then
-        dev_log.missing_item(id, name)
-        tooltip.uaForeverItemStatus = "blocked"
+    local state = item_cache[key]
+    if not state or state.item_id ~= item_id then
+        state = make_item_state(item_id, key)
+    end
+
+    local has_translation = client_db.has_translation(item_id)
+    if tooltip.uaForeverItemLoggedIdentity ~= key then
+        dev_log.record_id("items", item_id, native_name, has_translation)
+        tooltip.uaForeverItemLoggedIdentity = key
+    end
+    if not has_translation then
+        dev_log.missing_item(item_id, native_name)
         return { status = "blocked", applied = false }
     end
     if not options.can_translate("translate_item") then
-        tooltip.uaForeverItemStatus = "blocked"
         return { status = "blocked", applied = false }
     end
 
     tooltip.uaForeverReservedFirst = 2
-    local snapshot, ready = build_snapshot(tooltip)
-    local result = translate_snapshot(tooltip, entry, snapshot)
-    if not ready then result.status = "incomplete" end
+    tooltip.uaForeverItemIdentity = key
+    local applied, line_count = translate_structured(tooltip, data, state)
+    if line_count == 0 then applied = translate_title_fallback(tooltip, state) end
+    local result = {
+        status = applied and "complete" or "unchanged",
+        applied = applied,
+    }
     tooltip.uaForeverItemStatus = result.status
-    if result.status ~= "incomplete" then
-        tooltip.uaForeverItemCompleteGeneration = tooltip.uaForeverGeneration
-        return result
-    end
-
-    local generation = tooltip.uaForeverGeneration
-    scheduler.request({
-        id = "tooltip-item-late:" .. tostring(tooltip),
-        generation = generation,
-        surface = tooltip,
-        instance = "item-pipeline",
-        task_kind = "item-retry",
-        delay = 0.2,
-        callback = function ()
-            local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
-            if not shown_ok or not shown then return end
-            local retry_snapshot, retry_ready = build_snapshot(tooltip)
-            local retry_result = translate_snapshot(tooltip, entry, retry_snapshot)
-            if not retry_ready then retry_result.status = "incomplete" end
-            tooltip.uaForeverItemStatus = retry_result.status
-            if retry_result.status ~= "incomplete" then
-                tooltip.uaForeverItemCompleteGeneration = generation
-            end
-        end,
-    })
+    tooltip.uaForeverItemCompleteGeneration = tooltip.uaForeverGeneration
     return result
+end
+
+adapter.get_translated_name = function (item_id, native)
+    if type(item_id) ~= "number" then return nil end
+    local key = "id:" .. tostring(item_id)
+    local state = item_cache[key] or make_item_state(item_id, key)
+    return translated_item_name(state, native)
+end
+
+adapter.replace_known_name = function (item_id, source)
+    if type(item_id) ~= "number" or type(source) ~= "string" then return nil end
+    local key = "id:" .. tostring(item_id)
+    local state = item_cache[key] or make_item_state(item_id, key)
+    local english = state.english_name
+    local translated = state.translated_name
+    if type(english) ~= "string" or english == ""
+        or type(translated) ~= "string" or translated == ""
+        or not source:find(english, 1, true) then return nil end
+    translated = deps().capitalize(translated)
+    return (source:gsub(escape_pattern(english), function ()
+        return translated
+    end, 1))
+end
+
+adapter.has_translation = client_db.has_translation
+
+adapter.clear_cache = function ()
+    item_cache = {}
+    cache_order = {}
+    cache_head = 1
+    cache_tail = 0
+    cache_count = 0
 end
