@@ -264,27 +264,42 @@ local function translate_description(form)
     end
 end
 
-local function reagent_item_id(slot)
+local function reagent_context(slot)
     if type(slot.GetReagent) == "function" then
         local ok, reagent = pcall(slot.GetReagent, slot)
         local item_id = ok and type(reagent) == "table" and number(reagent.itemID)
-        if item_id then return item_id end
+        if item_id then return item_id, reagent end
     end
     if type(slot.GetReagentSlotSchematic) ~= "function" then return nil end
     local ok, schematic = pcall(slot.GetReagentSlotSchematic, slot)
     local reagent = ok and type(schematic) == "table"
         and type(schematic.reagents) == "table" and schematic.reagents[1]
-    return type(reagent) == "table" and number(reagent.itemID) or nil
+    return type(reagent) == "table" and number(reagent.itemID) or nil,
+        reagent
+end
+
+local function native_reagent_name(reagent, item_id)
+    if type(reagent) == "table" and _G.Professions
+        and type(_G.Professions.GetReagentName) == "function" then
+        local ok, value = pcall(_G.Professions.GetReagentName, reagent)
+        if ok and type(value) == "string" and value ~= ""
+            and not is_secret(value) then return value end
+    end
+    return item_id and item_db.get_english_name(item_id) or nil
 end
 
 local function translate_reagent(slot)
-    local item_id = slot and reagent_item_id(slot)
+    local item_id, reagent
+    if slot then item_id, reagent = reagent_context(slot) end
     local region = slot and slot.Name
     local source = text_from(region)
     local translated = item_id and item_db.get_name(item_id)
-    local english = item_id and item_db.get_english_name(item_id)
+    translated = translated and utils.cap(translated)
+    if not source or not translated
+        or source:find(translated, 1, true) then return end
+    local english = native_reagent_name(reagent, item_id)
     local replacement = replace_id_name(source, english,
-        translated and utils.cap(translated))
+        translated)
     if replacement then
         apply(region, replacement, "profession.reagent.name",
             "translate_item", "item")
