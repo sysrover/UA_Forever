@@ -191,8 +191,12 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         combat_tooltip_text = ok and not is_secret(in_combat)
             and in_combat == true
     end
+    local combat_npc_threat = combat_tooltip_text
+        and tooltip.uaForeverKind == "npc" and owner == "generic"
+        and source and (source == "Threat"
+            or source:match("^%d+%% Threat$") ~= nil)
     local combat_text_only = combat_tooltip_text
-        and owner == "npc-tooltip"
+        and (owner == "npc-tooltip" or combat_npc_threat)
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
         if adjust_layout ~= false and not combat_tooltip_text then
