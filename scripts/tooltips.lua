@@ -191,6 +191,8 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         combat_tooltip_text = ok and not is_secret(in_combat)
             and in_combat == true
     end
+    local combat_text_only = combat_tooltip_text
+        and owner == "npc-tooltip"
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
         if adjust_layout ~= false and not combat_tooltip_text then
@@ -233,6 +235,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             source_unsafe = source_unsafe,
             unsafe_context = "tooltip:" .. (owner or "generic"),
             combat_tooltip_text = combat_tooltip_text,
+            combat_text_only = combat_text_only,
             after_apply = after_apply,
             after_visibility = visibility_callback,
             visible_matches = visible_matcher,
