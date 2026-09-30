@@ -1,4 +1,5 @@
 local addon_name, addon_table = ...
+local addon_version = "0.13.0-beta"
 
 local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
@@ -459,7 +460,7 @@ end
 local function show_status()
     local status = string.format(
         "v%s; WoW %s; Interface %s; переклад %s; автоскан %s; dev %s",
-        tostring(utils.addon_version()),
+        addon_version,
         tostring(utils.build_version),
         tostring(utils.interface_version),
         options.account.enabled and "увімкнено" or "вимкнено",
