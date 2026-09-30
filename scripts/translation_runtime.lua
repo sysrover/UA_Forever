@@ -438,7 +438,7 @@ local function protected_frame_state(region)
     return protected
 end
 
-runtime.can_write_text = function (region)
+runtime.can_write_text = function (region, combat_text_only)
     local protected, detail = protected_frame_state(region)
     if protected == nil then return false, "PROTECTED_REGION", detail end
     if not protected then return true end
@@ -449,6 +449,13 @@ runtime.can_write_text = function (region)
     end
     if is_secret_value(in_combat) then
         return false, "PROTECTED_REGION", "SECRET_COMBAT_STATE"
+    end
+    if in_combat == true and combat_text_only == true then
+        -- A protected parent prevents structural changes during combat, but
+        -- public text can still be written to an existing FontString. Callers
+        -- opting into this path must skip font and layout mutations and rely
+        -- on the guarded SetText call below as the final authority.
+        return true
     end
     if in_combat == true then
         return false, "PROTECTED_REGION", "IN_COMBAT_LOCKDOWN"
@@ -691,7 +698,8 @@ runtime.apply = function (region, spec)
     if cached_native_overwrite
         and not (spec.tooltip and spec.tooltip.uaForeverShowOriginal) then
         local method_ok, set_text = pcall(function () return region.SetText end)
-        local write_allowed = runtime.can_write_text(region)
+        local write_allowed = runtime.can_write_text(region,
+            spec.combat_text_only == true)
         if method_ok and type(set_text) == "function" and write_allowed then
             writing[region] = true
             local ok = pcall(set_text, region, display)
@@ -725,7 +733,8 @@ runtime.apply = function (region, spec)
         and previous.owner == spec.owner and previous.slot == spec.slot then
         source = previous.source or source
     end
-    if not source and (spec.tooltip or not spec.allow_unknown_source) then return false end
+    if not source and (not spec.allow_unknown_source
+        or spec.tooltip and spec.combat_text_only ~= true) then return false end
     if source == display then return false end
     if spec.tooltip and spec.tooltip.uaForeverShowOriginal then return false end
 
@@ -736,7 +745,8 @@ runtime.apply = function (region, spec)
         end
         return false
     end
-    local write_allowed, write_reason, write_detail = runtime.can_write_text(region)
+    local write_allowed, write_reason, write_detail = runtime.can_write_text(region,
+        spec.combat_text_only == true)
     if not write_allowed then
         if allowed then
             record_runtime_result(region, spec, source, translated,
@@ -758,7 +768,9 @@ runtime.apply = function (region, spec)
     clear_deferred(region)
 
     local font_ready = not options.can_translate("override_system_fonts")
-    if options.can_translate("override_system_fonts") then
+        or spec.combat_text_only == true
+    if options.can_translate("override_system_fonts")
+        and spec.combat_text_only ~= true then
         local font_ok = runtime.ensure_font(region)
         if not font_ok and display:find("[\208\209]") then
             record_runtime_result(region, spec, source, translated, "шрифт не застосувався")
