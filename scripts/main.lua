@@ -457,16 +457,19 @@ local function missing_count()
 end
 
 local function show_status()
-    message(string.format(
-        "v%s; WoW %s; Interface %s; переклад %s; автоскан %s; dev %s; пропусків %d",
+    local status = string.format(
+        "v%s; WoW %s; Interface %s; переклад %s; автоскан %s; dev %s",
         tostring(utils.addon_version()),
         tostring(utils.build_version),
         tostring(utils.interface_version),
         options.account.enabled and "увімкнено" or "вимкнено",
         options.account.auto_scan_content and "увімкнено" or "вимкнено",
-        options.account.dev_mode and "увімкнено" or "вимкнено",
-        missing_count()
-    ))
+        options.account.dev_mode and "увімкнено" or "вимкнено"
+    )
+    if options.account.auto_scan_content then
+        status = status .. string.format("; пропусків %d", missing_count())
+    end
+    message(status)
 end
 
 local manual_capture_sequence = 0
