@@ -184,11 +184,13 @@ end
 local function prepare_extra_tracker_hooks()
     prepare_method_hook(_G.AutoQuestPopupBlockMixin, "Update",
         function (block, _, id)
+            if runtime.combat_locked() then return end
             local contents = block and block.Contents
             quest_name_region(contents and contents.QuestName, id, "auto-quest-popup")
         end)
     local banner = _G.ObjectiveTrackerTopBannerFrame or _G.ObjectiveTrackerTopBannerMixin
     prepare_method_hook(banner, "PlayBanner", function (self)
+        if runtime.combat_locked() then return end
         quest_name_region(self and self.Title, self and self.questID, "quest-banner")
     end)
     prepare_method_hook(_G.QuestObjectiveTrackerMixin, "OnBlockHeaderClick",
@@ -755,6 +757,7 @@ end
 -- Reconcile only numeric progress from the live journal; static objective
 -- text and the rest of the tracker remain owned by Blizzard's layout pass.
 quest_ui.refresh_tracker_progress = function ()
+    if runtime.combat_locked() then return end
     local module = _G.QuestObjectiveTracker
     local blocks = module and module.usedBlocks and module.usedBlocks[module.blockTemplate]
     local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
@@ -798,6 +801,7 @@ end
 local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
 
 local function translate_tracker_labels()
+    if runtime.combat_locked() then return end
     local tracker = _G.ObjectiveTrackerFrame
     if not tracker or not options.can_translate("translate_string") then return end
     walker.walk({ id = "objective-tracker-static-labels", surface = "quest",
@@ -819,6 +823,7 @@ local function schedule_tracker_labels()
 end
 
 local function after_update(self, quest)
+    if runtime.combat_locked() then return end
     if not self or not quest then return end
     local method_ok, get_id = pcall(function () return quest.GetID end)
     if not method_ok or type(get_id) ~= "function" then return end

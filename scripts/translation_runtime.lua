@@ -204,6 +204,12 @@ end
 
 local is_secret_value = runtime.is_secret_value
 
+runtime.combat_locked = function ()
+    if type(_G.InCombatLockdown) ~= "function" then return false end
+    local ok, locked = pcall(_G.InCombatLockdown)
+    return not ok or is_secret_value(locked) or locked == true
+end
+
 runtime.is_applying = function (region)
     return writing[region] == true
 end

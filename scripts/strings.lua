@@ -388,6 +388,10 @@ local function capture_frame(frame, seen, depth, stats, allow_protected)
 end
 
 local function scan_frame(frame, seen, stats, allow_protected, surface, walk_metadata)
+    -- Text writes below ObjectiveTrackerFrame can mark its container dirty.
+    -- Never start that Blizzard layout chain from addon code while aura data
+    -- is secret; PLAYER_REGEN_ENABLED refreshes open surfaces afterwards.
+    if frame == _G.ObjectiveTrackerFrame and runtime.combat_locked() then return end
     walker.walk(walk_metadata, frame, function (region)
         local skip = type(surface) == "table" and surface.skip_region
             or type(walk_metadata) == "table" and walk_metadata.skip_region
