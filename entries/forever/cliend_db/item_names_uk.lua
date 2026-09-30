@@ -1,10 +1,10 @@
 -- Consolidated Ukrainian item names for the exact client build.
 -- Sources: validated ClassicUA names plus completed UA_Forever worklists.
--- Client build: 1.60.1.70009; source: ItemSparse.db2:Display_lang
+-- Client build: 1.60.1.70058; existing source rows verified unchanged from 70009.
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70009",
+    sourceBuild = "1.60.1.70058",
     count = 23603,
     rows = {
         [25] = "зношений короткий меч",

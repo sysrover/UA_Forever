@@ -451,6 +451,30 @@ diagnostics.install = function (tooltips, api)
         local ok, value = pcall(function () return object[key] end)
         return ok and diagnostic_scalar(value) or nil
     end
+
+    local function diagnostic_tooltip_args(line)
+        if not line or is_secret(line) then return nil end
+        local ok, args = pcall(function () return line.args end)
+        if not ok or type(args) ~= "table" or is_secret(args) then return nil end
+        local result = {}
+        local count_ok, count = pcall(function () return #args end)
+        if not count_ok then return nil end
+        for index = 1, math.min(count, 32) do
+            local arg_ok, argument = pcall(function () return args[index] end)
+            if arg_ok and type(argument) == "table"
+                and not is_secret(argument) then
+                result[#result + 1] = {
+                    field = diagnostic_field(argument, "field"),
+                    stringVal = diagnostic_field(argument, "stringVal"),
+                    intVal = diagnostic_field(argument, "intVal"),
+                    floatVal = diagnostic_field(argument, "floatVal"),
+                    boolVal = diagnostic_field(argument, "boolVal"),
+                    guidVal = diagnostic_field(argument, "guidVal"),
+                }
+            end
+        end
+        return #result > 0 and result or nil
+    end
     
     local diagnostic_catalog_paths = {
         classic_string = "entries/string.lua",
@@ -815,9 +839,11 @@ diagnostics.install = function (tooltips, api)
                     if ok_line and type(line) == "table" and not is_secret(line) then
                         result.tooltipData.lines[#result.tooltipData.lines + 1] = {
                             index = index,
+                            lineIndex = diagnostic_field(line, "lineIndex"),
                             type = diagnostic_field(line, "type"),
                             leftText = diagnostic_field(line, "leftText"),
                             rightText = diagnostic_field(line, "rightText"),
+                            args = diagnostic_tooltip_args(line),
                         }
                     end
                 end

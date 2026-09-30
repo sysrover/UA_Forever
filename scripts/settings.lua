@@ -7,6 +7,7 @@ local settings_ui = addon_table.use("settings_ui")
 local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")
+local resolver = addon_table.use("translation_resolver")
 local scheduler = addon_table.use("translation_scheduler")
 local tooltips = addon_table.use("tooltips")
 local map_labels = addon_table.use("map_labels")
@@ -25,6 +26,10 @@ local auto_scan_diagnostics_button
 local export_window
 local form_link_window
 local FORM_URL = "https://forms.gle/b2oGGebJGTxZsnfn8"
+local SETTINGS_DROPDOWN_WIDTH = 220
+local SETTINGS_BUTTON_WIDTH = 200
+local SETTINGS_CHROME_BUTTON_WIDTH = 96
+local MINIMAL_TAB_PADDING = 40
 
 local function show_form_link()
     if not form_link_window then
@@ -394,9 +399,6 @@ local function register_addon_settings()
     runtime.set_fallback_text(auto_scan_button.text, addon_locale.auto_scan)
     auto_scan_button:SetScript("OnClick", function (self)
         options.account.auto_scan_content = self:GetChecked() == true
-        if options.account.auto_scan_content then
-            options.account.auto_scan_menus = false
-        end
     end)
 
     auto_scan_diagnostics_button = CreateFrame("CheckButton", nil, page,
@@ -475,15 +477,98 @@ local function translate_region(region, slot, instance)
         "dynamic", tostring(instance or region))
 end
 
-local function translate_static_region(region, slot)
-    if region then
-        strings.translate_region(region, nil, slot or "ui.text",
-            registry.get("settings"), "static")
+local function safe_method(owner, method, ...)
+    if not owner then return nil end
+    local ok_method, callback = pcall(function () return owner[method] end)
+    if not ok_method or type(callback) ~= "function" then return nil end
+    local ok, value = pcall(callback, owner, ...)
+    local secret = type(runtime.is_secret_value) == "function"
+        and runtime.is_secret_value(value)
+    if ok and not secret then return value end
+end
+
+local function safe_source(value)
+    if type(runtime.safe_string_or_nil) == "function" then
+        return runtime.safe_string_or_nil(value)
     end
+    return type(value) == "string" and value ~= "" and value or nil
+end
+
+local function frame_initializer(frame, supplied)
+    local supplied_type = type(supplied)
+    if supplied_type == "table" or supplied_type == "userdata" then
+        return supplied
+    end
+    return safe_method(frame, "GetElementData")
+end
+
+local function initializer_data(initializer)
+    local data = safe_method(initializer, "GetData")
+    if data ~= nil then return data end
+    local ok, direct = pcall(function () return initializer and initializer.data end)
+    return ok and direct or nil
+end
+
+local function initializer_name(frame, supplied)
+    return safe_method(frame_initializer(frame, supplied), "GetName")
+end
+
+local function translate_source_region(region, source, slot, instance, override)
+    if not region then return false end
+    source = safe_source(source)
+    if not source then return translate_region(region, slot, instance) end
+
+    local translated, _, source_kind, category, inferred_slot,
+        inferred_option, provenance
+    if type(override) == "string" and override ~= "" then
+        translated = override
+        source_kind = "context"
+    elseif type(resolver.find_ui) ~= "function" then
+        return translate_region(region, slot, instance)
+    else
+        translated, _, source_kind, category, inferred_slot,
+            inferred_option, provenance = resolver.find_ui(source, region, {
+                slot = slot or "ui.text",
+            })
+    end
+    if not translated or translated == source then
+        return translate_region(region, slot, instance)
+    end
+
+    local surface = ensure_settings_generation()
+    return runtime.apply(region, {
+        owner = "settings", slot = slot or inferred_slot or "ui.text",
+        source = source, translated = translated,
+        category = category, option = inferred_option,
+        lookup_tier = source_kind,
+        catalog_source = provenance and provenance.source,
+        surface = surface, phase = "dynamic",
+        generation = surface and runtime.generation(surface) or nil,
+        instance = tostring(instance or region),
+        priority = type(runtime.priority_for_source) == "function"
+            and runtime.priority_for_source(source_kind)
+            or runtime.PRIORITY.STATIC_UI or runtime.PRIORITY.CONTEXT,
+    })
+end
+
+local function set_width(frame, width)
+    if frame and type(frame.SetWidth) == "function" then
+        pcall(frame.SetWidth, frame, width)
+    end
+end
+
+local function hook_native_region(region, slot, instance)
+    if not region then return end
+    hooks.region(region, "SetText", function (self, source)
+        if type(runtime.is_applying) == "function"
+            and runtime.is_applying(self) then return end
+        translate_source_region(self, source, slot, instance)
+    end)
 end
 
 local function translate_dropdown(frame, dropdown)
     if not dropdown then return end
+    set_width(dropdown, SETTINGS_DROPDOWN_WIDTH)
     local setting_ok, setting = pcall(function () return frame:GetSetting() end)
     local variable_ok, variable = setting_ok and setting and pcall(function ()
         return setting:GetVariable()
@@ -507,16 +592,21 @@ local function translate_dropdown(frame, dropdown)
                 priority = runtime.PRIORITY.CONTEXT,
             })
         end
-        pcall(dropdown.SetWidth, dropdown, 220)
         return
     end
-    translate_region(dropdown.Text, "ui.value", frame)
+    translate_source_region(dropdown.Text,
+        source_ok and source or nil, "ui.value", frame)
+    hook_native_region(dropdown.Text, "ui.value", frame)
 end
 
-local function translate_row(frame)
+local function translate_row(frame, supplied_initializer)
     if not frame then return end
-    translate_region(frame.Text, "ui.label", frame)
+    local initializer = frame_initializer(frame, supplied_initializer)
+    translate_source_region(frame.Text,
+        initializer_name(frame, initializer), "ui.label", frame)
     translate_region(frame.Title, "ui.title", frame)
+    translate_region(frame.Label, "ui.label", frame)
+    translate_region(frame.text, "ui.text", frame)
     local control = frame.Control
     translate_region(control and control.Label, "ui.label", frame)
     local dropdown = control and control.Dropdown
@@ -535,33 +625,117 @@ local function translate_row(frame)
     local button = frame.Button
     if button and type(button.GetFontString) == "function" then
         local ok, region = pcall(button.GetFontString, button)
-        if ok then translate_region(region, "ui.action", frame) end
+        if ok and region then
+            set_width(button, SETTINGS_BUTTON_WIDTH)
+            local source = safe_method(frame, "EvaluateName")
+            translate_source_region(region, source, "ui.action", frame)
+            hook_native_region(region, "ui.action", frame)
+            hooks.region(button, "SetText", function (self, native_source)
+                local font_string = safe_method(self, "GetFontString")
+                translate_source_region(font_string, native_source,
+                    "ui.action", frame)
+            end)
+        end
+    end
+
+    local sub_text = frame.SubTextContainer and frame.SubTextContainer.SubText
+    translate_region(sub_text, "ui.text", frame)
+    translate_region(frame.PreviewFontString, "ui.label", frame)
+    translate_region(frame.PreviewFrame and frame.PreviewFrame.PreviewFontString,
+        "ui.label", frame)
+    for _, color_frame in ipairs(frame.colorOverrideFrames or {}) do
+        translate_region(color_frame and color_frame.Text, "ui.label", color_frame)
     end
 end
 
-local function translate_category_button(frame)
-    translate_region(frame and frame.Label, "ui.category", frame)
+local function translate_category_button(frame, supplied_initializer)
+    if not frame then return end
+    local initializer = frame_initializer(frame, supplied_initializer)
+    local data = initializer_data(initializer)
+    local category = data and data.category
+    translate_source_region(frame.Label, safe_method(category, "GetName"),
+        "ui.category", frame)
+    if type(runtime.ensure_font) == "function" then
+        runtime.ensure_font(frame.Label)
+    end
 end
 
-local function translate_category_header(frame)
-    translate_region(frame and frame.Label, "ui.category-header", frame)
+local function translate_category_header(frame, supplied_initializer)
+    if not frame then return end
+    local data = initializer_data(frame_initializer(frame, supplied_initializer))
+    translate_source_region(frame.Label, data and data.label,
+        "ui.category-header", frame)
 end
 
-local function translate_search_category(frame)
-    translate_region(frame and frame.Title, "ui.search-category", frame)
+local function translate_search_category(frame, supplied_initializer)
+    if not frame then return end
+    local data = initializer_data(frame_initializer(frame, supplied_initializer))
+    translate_source_region(frame.Title,
+        safe_method(data and data.category, "GetQualifiedName"),
+        "ui.search-category", frame)
 end
 
-local function translate_section_header(frame)
-    translate_region(frame and frame.Title, "ui.section", frame)
+local function translate_section_header(frame, supplied_initializer)
+    if not frame then return end
+    translate_source_region(frame.Title,
+        initializer_name(frame, supplied_initializer), "ui.section", frame)
+    if frame.Title and type(frame.Title.SetTextToFit) == "function" then
+        local text = safe_method(frame.Title, "GetText")
+        if text then pcall(frame.Title.SetTextToFit, frame.Title, text) end
+    end
 end
 
-local function translate_list_element(frame)
-    translate_region(frame and frame.Text, "ui.label", frame)
+local function translate_list_element(frame, supplied_initializer)
+    if not frame then return end
+    translate_source_region(frame.Text,
+        initializer_name(frame, supplied_initializer), "ui.label", frame)
 end
 
-local function translate_expandable_section(frame)
-    translate_region(frame and frame.Button and frame.Button.Text,
-        "ui.section", frame)
+local function translate_expandable_section(frame, supplied_initializer)
+    if not frame then return end
+    translate_source_region(frame.Button and frame.Button.Text,
+        initializer_name(frame, supplied_initializer), "ui.section", frame)
+end
+
+local function translate_keybinding(frame, supplied_initializer)
+    if not frame then return end
+    local initializer = frame_initializer(frame, supplied_initializer)
+    local data = initializer_data(initializer)
+    local source
+    if data and type(data.bindingIndex) == "number"
+        and type(_G.GetBinding) == "function"
+        and type(_G.GetBindingName) == "function" then
+        local ok, action = pcall(_G.GetBinding, data.bindingIndex)
+        if ok and action then
+            local name_ok, name = pcall(_G.GetBindingName, action)
+            if name_ok then source = name end
+        end
+    end
+    translate_source_region(frame.Label, source, "ui.label", frame)
+end
+
+local function translate_keybinding_preface(frame, source_key)
+    if not frame then return end
+    local source = type(source_key) == "string" and _G[source_key] or nil
+    translate_source_region(frame.text, source, "ui.text", frame)
+end
+
+local function translate_minimal_tab(tab, slot, instance, override, source_override)
+    if not tab then return end
+    local region = tab.Text
+    translate_source_region(region, source_override or tab.tabText,
+        slot, instance or tab, override)
+    if region then
+        if type(runtime.ensure_font) == "function" then runtime.ensure_font(region) end
+        local width = safe_method(region, "GetStringWidth")
+        if type(width) == "number" then set_width(tab, width + MINIMAL_TAB_PADDING) end
+    end
+    for _, method in ipairs({ "OnSelected", "OnEnter", "OnLeave" }) do
+        hooks.region(tab, method, function (self)
+            translate_minimal_tab(self, slot, instance or self,
+                override, source_override)
+        end)
+    end
 end
 
 local function translate_advanced_quality_section(section)
@@ -576,18 +750,9 @@ local function translate_advanced_quality_section(section)
     end
     local base_tab = section.BaseTab
     local raid_tab = section.RaidTab
-    local base_label = base_tab and base_tab.Text
-    if base_label then
-        local surface = ensure_settings_generation()
-        runtime.apply(base_label, { owner = "settings-graphics",
-            slot = "graphics.base-tab", source = "Base",
-            translated = surface_text.base_tab,
-            surface = surface, phase = "dynamic",
-            generation = surface and runtime.generation(surface) or nil,
-            instance = tostring(section),
-            priority = runtime.PRIORITY.CONTEXT })
-    end
-    translate_region(raid_tab and raid_tab.Text, "graphics.raid-tab", section)
+    translate_minimal_tab(base_tab, "graphics.base-tab", section,
+        surface_text.base_tab, "Base")
+    translate_minimal_tab(raid_tab, "graphics.raid-tab", section)
 
     for _, controls in ipairs({ section.BaseQualityControls,
         section.RaidQualityControls }) do
@@ -596,9 +761,13 @@ local function translate_advanced_quality_section(section)
                 translate_region(control and control.Text, "ui.label", control)
                 local dropdown = control and control.Control and control.Control.Dropdown
                 if dropdown then
-                    translate_region(dropdown.Text, "ui.value", control)
+                    set_width(dropdown, SETTINGS_DROPDOWN_WIDTH)
+                    translate_source_region(dropdown.Text, dropdown.text,
+                        "ui.value", control)
                     hooks.region(dropdown, "UpdateText", function (self)
-                        translate_region(self.Text, "ui.value", control)
+                        set_width(self, SETTINGS_DROPDOWN_WIDTH)
+                        translate_source_region(self.Text, self.text,
+                            "ui.value", control)
                     end)
                 end
             end
@@ -608,21 +777,52 @@ end
 
 local function translate_panel_chrome(panel)
     if not panel then return end
-    translate_static_region(panel.NineSlice and panel.NineSlice.Text, "ui.title")
-    translate_static_region(panel.CloseButton and panel.CloseButton.Text, "ui.action")
-    translate_static_region(panel.ApplyButton and panel.ApplyButton.Text, "ui.action")
+    translate_source_region(panel.NineSlice and panel.NineSlice.Text,
+        _G.SETTINGS_TITLE, "ui.title", panel)
+    set_width(panel.CloseButton, SETTINGS_CHROME_BUTTON_WIDTH)
+    set_width(panel.ApplyButton, SETTINGS_CHROME_BUTTON_WIDTH)
+    translate_source_region(panel.CloseButton and panel.CloseButton.Text,
+        _G.SETTINGS_CLOSE, "ui.action", panel)
+    translate_source_region(panel.ApplyButton and panel.ApplyButton.Text,
+        _G.SETTINGS_APPLY, "ui.action", panel)
+    translate_minimal_tab(panel.GameTab, "ui.tab", panel)
+    translate_minimal_tab(panel.AddOnsTab, "ui.tab", panel)
+    local instructions = panel.SearchBox and panel.SearchBox.Instructions
+    translate_source_region(instructions,
+        panel.SearchBox and panel.SearchBox.instructionText,
+        "ui.search-placeholder", panel)
 
     local container = panel.Container
     local list = container and container.SettingsList
     local header = list and list.Header
-    translate_static_region(header and header.Title, "ui.title")
-    translate_static_region(header and header.DefaultsButton
-        and header.DefaultsButton.Text, "ui.action")
+    translate_region(header and header.Title, "ui.title", panel)
+    hook_native_region(header and header.Title, "ui.title", panel)
+    local defaults = header and header.DefaultsButton
+    set_width(defaults, SETTINGS_CHROME_BUTTON_WIDTH)
+    translate_source_region(defaults and defaults.Text,
+        _G.SETTINGS_DEFAULTS, "ui.action", panel)
+end
+
+local function translate_visible_categories(panel)
+    local category_list = panel and panel.CategoryList
+    local scroll_box = category_list and category_list.ScrollBox
+    local frames = safe_method(scroll_box, "GetFrames")
+    if type(frames) ~= "table" then return end
+    for _, frame in ipairs(frames) do
+        local initializer = frame_initializer(frame)
+        local data = initializer_data(initializer)
+        if data and data.category then
+            translate_category_button(frame, initializer)
+        elseif data and data.label then
+            translate_category_header(frame, initializer)
+        end
+    end
 end
 
 local function translate_visible_settings(panel)
     if not panel then return end
     translate_panel_chrome(panel)
+    translate_visible_categories(panel)
     local list = type(panel.GetSettingsList) == "function"
         and panel:GetSettingsList() or nil
     local scroll_box = list and list.ScrollBox
@@ -647,7 +847,6 @@ local function schedule_visible_settings(panel)
 end
 
 local function displayed_category(panel)
-    begin_settings_generation(panel)
     translate_panel_chrome(panel)
     schedule_visible_settings(panel)
 end
@@ -662,7 +861,7 @@ local function declare_settings_hook(id, kind, target, method, callback)
         method = method,
         required = true,
         fallbackEvent = "SettingsPanel.DisplayCategory",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = callback,
     })
 end
@@ -696,7 +895,10 @@ local function declare_settings_hooks()
             translate_row },
         { "checkbox.color", "SettingsCheckboxWithColorSwatchControlMixin",
             translate_row },
-        { "keybinding", "KeyBindingFrameBindingTemplateMixin", translate_row },
+        { "keybinding", "KeyBindingFrameBindingTemplateMixin",
+            translate_keybinding },
+        { "keybinding.preface", "SettingsKeybindingPrefaceMixin",
+            translate_keybinding_preface },
     }
     for _, definition in ipairs(init_hooks) do
         declare_settings_hook(definition[1] .. ".init", "mixin",
@@ -707,8 +909,24 @@ local function declare_settings_hooks()
         translate_advanced_quality_section)
     declare_settings_hook("dropdown.control.init-dropdown", "mixin",
         "SettingsDropdownControlMixin", "InitDropdown", translate_row)
+    declare_settings_hook("category.button.state", "mixin",
+        "SettingsCategoryListButtonMixin", "UpdateStateInternal",
+        translate_category_button)
+    declare_settings_hook("checkbox.button.state", "mixin",
+        "SettingsCheckboxWithButtonControlMixin", "EvaluateState", translate_row)
+    declare_settings_hook("auto-loot.label", "mixin",
+        "AutoLootDropdownControlMixin", "UpdateLabel", translate_row)
     declare_settings_hook("list.display", "mixin", "SettingsListMixin",
         "Display", function () schedule_visible_settings(_G.SettingsPanel) end)
+    declare_settings_hook("panel.current-category", "frame", "SettingsPanel",
+        "SetCurrentCategory", function (panel)
+            begin_settings_generation(panel)
+        end)
+    declare_settings_hook("panel.output", "frame", "SettingsPanel",
+        "SetOutputText", function (panel, source)
+            translate_source_region(panel.OutputText, source,
+                "ui.status", panel)
+        end)
     declare_settings_hook("panel.show", "frame", "SettingsPanel", "OnShow",
         displayed_category)
     declare_settings_hook("panel.category", "frame", "SettingsPanel",

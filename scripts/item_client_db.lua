@@ -8,6 +8,7 @@ local databases = {
     descriptions_en = addon_table.client_item_descriptions_en,
     descriptions_uk = addon_table.client_item_descriptions_uk,
     spell_effects = addon_table.client_item_spell_effects,
+    spell_reagents = addon_table.client_spell_reagents,
     metadata = addon_table.client_item_metadata,
     skill_lines_en = addon_table.client_skill_lines_en,
     skill_lines_uk = addon_table.client_skill_lines_uk,
@@ -46,11 +47,22 @@ elseif source_build and effects.sourceBuild ~= source_build then
     effects_error = "sourceBuild mismatch: spell_effects"
 end
 
+local reagents = databases.spell_reagents
+local reagents_error
+if type(reagents) ~= "table" or type(reagents.rows) ~= "table"
+    or type(reagents.sourceBuild) ~= "string" then
+    reagents_error = "invalid database: spell_reagents"
+elseif source_build and reagents.sourceBuild ~= source_build then
+    reagents_error = "sourceBuild mismatch: spell_reagents"
+end
+
 lookup.source_build = source_build
 lookup.validation_error = validation_error
 lookup.ready = validation_error == nil
 lookup.effects_error = effects_error
 lookup.effects_ready = effects_error == nil
+lookup.reagents_error = reagents_error
+lookup.reagents_ready = reagents_error == nil
 
 local function row(database, item_id)
     if type(database) ~= "table" or type(database.rows) ~= "table"
@@ -76,6 +88,11 @@ end
 
 lookup.get_spell_effects = function (item_id)
     return row(databases.spell_effects, item_id)
+end
+
+lookup.get_spell_reagents = function (spell_id)
+    if not lookup.reagents_ready then return nil end
+    return row(databases.spell_reagents, spell_id)
 end
 
 lookup.get_metadata = function (item_id)

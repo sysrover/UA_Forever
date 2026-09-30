@@ -15,6 +15,8 @@ local level_up_display = addon_table.use("level_up_display")
 local map_labels = addon_table.use("map_labels")
 local menus_ui = addon_table.use("menus_ui")
 local options = addon_table.use("options")
+local profession_frame_adapter = addon_table.use("profession_frame_adapter")
+local profession_recipe_adapter = addon_table.use("profession_recipe_adapter")
 local quest_switcher = addon_table.use("quest_switcher")
 local quest_ui = addon_table.use("quest_ui")
 local scanner = addon_table.use("scanner")
@@ -141,7 +143,8 @@ local function refresh_open_panels()
         for id in pairs(dirty) do registry.refresh(id) end
     end
     quest_switcher.refresh()
-    if options.account.auto_scan_content then
+    if type(auto_scan.diagnostics_enabled) == "function"
+        and auto_scan.diagnostics_enabled() then
         if refresh_all then
             strings.capture_visible_ui()
         else
@@ -205,7 +208,10 @@ local function opened_panel(frame)
         -- refresh handles static labels; pooled rows have domain post-hooks.
         local surface = registry.find_frame(frame)
         if surface then registry.refresh(surface.id) end
-        if options.account.auto_scan_content then strings.capture_frame(frame) end
+        if type(auto_scan.diagnostics_enabled) == "function"
+            and auto_scan.diagnostics_enabled() then
+            strings.capture_frame(frame)
+        end
     end
 end
 
@@ -213,7 +219,10 @@ local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
     if surface then registry.refresh(surface.id) end
-    if options.account.auto_scan_content then strings.capture_frame(frame) end
+    if type(auto_scan.diagnostics_enabled) == "function"
+        and auto_scan.diagnostics_enabled() then
+        strings.capture_frame(frame)
+    end
 end
 
 local function translate_character_subframe(_, subframe_name)
@@ -315,7 +324,8 @@ local function quest_greeting_shown()
 end
 
 local function schedule_transient_capture(frame)
-    if not frame or not options.account.auto_scan_content then return end
+    if not frame or type(auto_scan.diagnostics_enabled) ~= "function"
+        or not auto_scan.diagnostics_enabled() then return end
     scheduler.request("auto-alert:" .. tostring(frame), nil, function ()
         local shown_ok, shown = pcall(frame.IsShown, frame)
         if shown_ok and shown then
@@ -488,7 +498,6 @@ local function register_slash_command()
             message("режим розробки " .. (options.account.dev_mode and "увімкнено" or "вимкнено"))
         elseif command == "autoscan" and (value == "on" or value == "off") then
             options.account.auto_scan_content = value == "on"
-            options.account.auto_scan_menus = false
             message("автоскан контенту " .. (options.account.auto_scan_content and "увімкнено" or "вимкнено"))
         elseif command == "menus" then
             message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
@@ -769,6 +778,8 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 settings_ui.prepare()
                 menus_ui.prepare()
                 items.prepare()
+                profession_frame_adapter.prepare()
+                profession_recipe_adapter.prepare()
                 skills.prepare()
                 prepare_nameplates()
                 prepare_target_frame()
@@ -812,6 +823,8 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         settings_ui.prepare()
         menus_ui.prepare()
         items.prepare()
+        profession_frame_adapter.prepare()
+        profession_recipe_adapter.prepare()
         quest_switcher.prepare()
         quest_ui.prepare()
         gossip_ui.prepare()

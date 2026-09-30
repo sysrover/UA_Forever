@@ -123,6 +123,37 @@ local function make_item_state(item_id, key)
         end)
         buckets[line_type] = bucket
     end
+    local recipe_reagent_lines = {}
+    for _, effect in ipairs(buckets[ITEM_SPELL_LEARN] or {}) do
+        local reagents = client_db.get_spell_reagents(effect.spellID)
+        if type(reagents) == "table" then
+            local english_parts = {}
+            local translated_parts = {}
+            local complete = true
+            for _, reagent in ipairs(reagents) do
+                local reagent_id = type(reagent) == "table"
+                    and tonumber(reagent.itemID) or nil
+                local count = type(reagent) == "table"
+                    and tonumber(reagent.count) or nil
+                local english = reagent_id
+                    and client_db.get_english_name(reagent_id) or nil
+                local translated = reagent_id
+                    and client_db.get_name(reagent_id) or nil
+                if not english or not translated or not count or count <= 0 then
+                    complete = false
+                    break
+                end
+                english_parts[#english_parts + 1] = english
+                    .. " (" .. tostring(count) .. ")"
+                translated_parts[#translated_parts + 1] = deps().capitalize(
+                    translated) .. " (" .. tostring(count) .. ")"
+            end
+            if complete and #english_parts > 0 then
+                recipe_reagent_lines[table.concat(english_parts, ", ")] =
+                    table.concat(translated_parts, ", ")
+            end
+        end
+    end
     return cache_item(key, {
         item_id = item_id,
         english_name = client_db.get_english_name(item_id),
@@ -134,6 +165,7 @@ local function make_item_state(item_id, key)
         required_skill_rank = type(metadata) == "table"
             and tonumber(metadata.RequiredSkillRank) or nil,
         effects = buckets,
+        recipe_reagent_lines = recipe_reagent_lines,
         rendered_lines = {},
     })
 end
@@ -155,6 +187,15 @@ local function split_effect_source(source)
     local body = source:match("^[^:]+:%s*(.+)$") or source
     local core, amount, unit = body:match(
         "^(.-)%s*%(([%d%.,]+)%s+([%a]+)%s+[Cc]ooldown%)$")
+    if not core then
+        local singular, plural
+        core, amount, singular, plural = body:match(
+            "^(.-)%s*%(([%d%.,]+)%s+|4([^:;]+):([^;]+);%s+[Cc]ooldown%)$")
+        if core then
+            unit = tonumber((amount:gsub(",", "."))) == 1
+                and singular or plural
+        end
+    end
     if core then
         return core, catalog.format.item_cooldown(amount, unit) or ""
     end
@@ -229,6 +270,22 @@ local function translate_arg_item_names(line_data, source)
     return changed and translated or nil
 end
 
+local function translate_skill_requirement(state, source)
+    if type(source) ~= "string" or not state.required_skill
+        or state.required_skill <= 0 or not state.required_skill_rank
+        or state.required_skill_rank <= 0 then return nil end
+    local english_skill = client_db.get_english_skill_line(state.required_skill)
+    local translated_skill = client_db.get_skill_line(state.required_skill)
+    if not english_skill or not translated_skill then return nil end
+    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local skill, rank = clean:match("^Requires (.-) %((%d+)%)$")
+    if skill ~= english_skill or tonumber(rank) ~= state.required_skill_rank then
+        return nil
+    end
+    return catalog.format.item_skill_requirement(
+        translated_skill, state.required_skill_rank)
+end
+
 local function translate_structured(tooltip, data, state)
     local contract = deps()
     local lines = type(data) == "table" and data.lines or nil
@@ -267,16 +324,10 @@ local function translate_structured(tooltip, data, state)
                         translated = '"' .. translated .. '"'
                     end
                     slot = "item.description:" .. line_index
-                elseif line_type == USAGE_REQUIREMENT
-                    and state.required_skill and state.required_skill > 0
-                    and state.required_skill_rank
-                    and state.required_skill_rank > 0 then
-                    local skill = client_db.get_skill_line(state.required_skill)
-                    if skill then
-                        translated = catalog.format.item_skill_requirement(
-                            skill, state.required_skill_rank)
-                    end
-                    slot = "item.requirement:" .. line_index
+                elseif line_type == USAGE_REQUIREMENT then
+                    translated = translate_skill_requirement(state, source)
+                    slot = translated
+                        and "item.requirement:" .. line_index or nil
                 elseif EFFECT_TRIGGER_BY_LINE[line_type] then
                     local effect_index = (effect_indexes[line_type] or 0) + 1
                     effect_indexes[line_type] = effect_index
@@ -297,8 +348,15 @@ local function translate_structured(tooltip, data, state)
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
                 else
-                    translated = translate_arg_item_names(line_data, source)
-                    slot = translated and "item.arguments:" .. line_index or nil
+                    translated = source
+                        and state.recipe_reagent_lines[source] or nil
+                    if translated then
+                        slot = "item.recipe-reagents:" .. line_index
+                    else
+                        translated = translate_arg_item_names(line_data, source)
+                        slot = translated
+                            and "item.arguments:" .. line_index or nil
+                    end
                     if not translated then generic_indexes[line_index] = true end
                 end
 

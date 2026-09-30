@@ -167,43 +167,6 @@ resolver.normalize = function (text)
         :gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
-local function translate_reagents(text)
-    local prefix, reagents = text:match("^(Reagents:%s*|n)(.+)$")
-    if not prefix then
-        prefix, reagents = text:match("^(Reagents:%s*\n)(.+)$")
-    end
-    if not prefix then return nil end
-
-    local translated = reagents:gsub("[^,]+", function (part)
-        local leading, value, trailing = part:match("^(%s*)(.-)(%s*)$")
-        local color, name, reset = value:match("^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
-        name = name or value
-        local item, count = name:match("^(.-)%s+(%(%d+%))$")
-        local replacement = entries.lookup_name("item", item or name)
-        if not replacement then return part end
-        return leading .. (color or "") .. replacement
-            .. (count and " " .. count or "") .. (reset or "") .. trailing
-    end)
-    return "Реагенти:" .. prefix:sub(#"Reagents:" + 1) .. translated
-end
-
-local function translate_recipe_title(text)
-    local profession, recipe = text:match("^([^:]+): (.+)$")
-    if not profession then return nil end
-    local translated_profession = entries.lookup_name("spell", profession)
-    local translated_recipe = entries.lookup_name("spell", recipe)
-        or entries.lookup_name("item", recipe)
-    if translated_profession and translated_recipe then
-        return translated_profession .. ": " .. translated_recipe
-    end
-end
-
-local function translate_recipe_output(text)
-    local name = text:match("^\n([^\n]+)$")
-    local translated = name and entries.lookup_name("item", name)
-    return translated and "\n" .. translated or nil
-end
-
 resolver.find_ui = function (text, region, context)
     if type(text) ~= "string" or text == "" then return nil end
     if type(_G.issecretvalue) == "function" then
@@ -250,12 +213,6 @@ resolver.find_ui = function (text, region, context)
         translated = compiled.generated[text] or compiled.generated[normalized]
         if translated then return translated, normalized, "generated_fallback" end
     end
-    translated = translate_reagents(text)
-    if translated then return translated, normalized, "domain" end
-    translated = translate_recipe_title(text)
-    if translated then return translated, normalized, "domain", "skill", "skill.name" end
-    translated = translate_recipe_output(text)
-    if translated then return translated, normalized, "domain", "item", "item.name" end
     local cache_key = pattern_cache_key(text, normalized, frame_name, context)
     if cache_key then
         local positive = cache_get(positive_cache, cache_key)

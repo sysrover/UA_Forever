@@ -5,8 +5,14 @@ local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
 local auto_scan = addon_table.use("auto_scan")
 
-local missing
-local scanned_ids
+local translation_groups = {
+    quests = true,
+    gossips = true,
+    npcs = true,
+    books = true,
+    chats = true,
+    objects = true,
+}
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -47,9 +53,11 @@ local function notify(text)
 end
 
 local function put(group, key, value)
-    if not missing then
-        return
-    end
+    local diagnostics = options.account
+        and options.account.auto_scan_diagnostics == true
+    if not translation_groups[group] and not diagnostics then return end
+    local missing = UA_ForeverDB and UA_ForeverDB.missing
+    if not missing then return end
     if is_secret(group) or is_secret(key) then return end
     missing[group] = missing[group] or {}
     if missing[group][key] == nil then
@@ -62,31 +70,32 @@ end
 dev_log.prepare = function ()
     UA_ForeverDB.missing = UA_ForeverDB.missing or {}
     UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-    UA_ForeverDB.scan.ids = UA_ForeverDB.scan.ids or {}
-    UA_ForeverDB.scan.menus = UA_ForeverDB.scan.menus or {}
-    missing = UA_ForeverDB.missing
-    scanned_ids = UA_ForeverDB.scan.ids
 end
 
 dev_log.record_id = function (group, id, name, translated)
     id = tonumber(id)
-    if not scanned_ids or not group or not id or id <= 0 then return end
+    if not group or not id or id <= 0 then return end
 
-    scanned_ids[group] = scanned_ids[group] or {}
-    local record = scanned_ids[group][id]
-    local is_new = type(record) ~= "table"
-    if is_new then record = {} end
     local clean_name = safe_name(name)
-    local translated_value = translated ~= nil and translated and true
-        or translated ~= nil and false or nil
-    local changed = is_new or clean_name and record.name ~= clean_name
-        or translated ~= nil and record.translated ~= translated_value
-    if changed then
-        if clean_name then record.name = clean_name end
-        if translated ~= nil then record.translated = translated_value end
-        record.lastSeen = type(_G.date) == "function"
-            and _G.date("!%Y-%m-%dT%H:%M:%SZ") or nil
-        scanned_ids[group][id] = record
+    if options.account and options.account.auto_scan_diagnostics == true
+        and UA_ForeverDB and UA_ForeverDB.scan then
+        local scanned_ids = UA_ForeverDB.scan.ids or {}
+        UA_ForeverDB.scan.ids = scanned_ids
+        scanned_ids[group] = scanned_ids[group] or {}
+        local record = scanned_ids[group][id]
+        local is_new = type(record) ~= "table"
+        if is_new then record = {} end
+        local translated_value = translated ~= nil and translated and true
+            or translated ~= nil and false or nil
+        local changed = is_new or clean_name and record.name ~= clean_name
+            or translated ~= nil and record.translated ~= translated_value
+        if changed then
+            if clean_name then record.name = clean_name end
+            if translated ~= nil then record.translated = translated_value end
+            record.lastSeen = type(_G.date) == "function"
+                and _G.date("!%Y-%m-%dT%H:%M:%SZ") or nil
+            scanned_ids[group][id] = record
+        end
     end
 
     if translated == false then
@@ -100,32 +109,37 @@ end
 
 dev_log.record_quest_text = function (id, fields, missing_fields)
     id = tonumber(id)
-    if not scanned_ids or not id or id <= 0 or type(fields) ~= "table" then return end
+    if not id or id <= 0 or type(fields) ~= "table" then return end
 
-    scanned_ids.quests = scanned_ids.quests or {}
-    local record = scanned_ids.quests[id] or {}
-    local safe_fields = safe_saved_value(fields)
-    if type(safe_fields) == "table" then
-        record.text = record.text or {}
-        for key, value in pairs(safe_fields) do
-            record.text[key] = value
-        end
-    end
-
-    if type(missing_fields) == "table" then
-        record.missingFields = record.missingFields or {}
-        for key, is_missing in pairs(missing_fields) do
-            if is_missing then
-                record.missingFields[key] = true
-            else
-                record.missingFields[key] = nil
+    if options.account and options.account.auto_scan_diagnostics == true
+        and UA_ForeverDB and UA_ForeverDB.scan then
+        local scanned_ids = UA_ForeverDB.scan.ids or {}
+        UA_ForeverDB.scan.ids = scanned_ids
+        scanned_ids.quests = scanned_ids.quests or {}
+        local record = scanned_ids.quests[id] or {}
+        local safe_fields = safe_saved_value(fields)
+        if type(safe_fields) == "table" then
+            record.text = record.text or {}
+            for key, value in pairs(safe_fields) do
+                record.text[key] = value
             end
         end
-        if next(record.missingFields) == nil then
-            record.missingFields = nil
+
+        if type(missing_fields) == "table" then
+            record.missingFields = record.missingFields or {}
+            for key, is_missing in pairs(missing_fields) do
+                if is_missing then
+                    record.missingFields[key] = true
+                else
+                    record.missingFields[key] = nil
+                end
+            end
+            if next(record.missingFields) == nil then
+                record.missingFields = nil
+            end
         end
+        scanned_ids.quests[id] = record
     end
-    scanned_ids.quests[id] = record
     auto_scan.record_quest(id, fields, missing_fields)
 end
 
