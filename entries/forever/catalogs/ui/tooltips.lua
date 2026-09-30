@@ -82,6 +82,18 @@ local tooltip = {
         ["If you replace this item, the following stat changes will occur:"] =
             "Заміна цього предмета призведе до зміни таких характеристик:",
     },
+    -- Class/subclass IDs from ItemClass.db2 and ItemSubClass.db2 in build
+    -- 1.60.1.70058. Runtime verifies the visible English label against the
+    -- corresponding build row before using these translations.
+    item_class_names = {
+        [6] = "Снаряд",
+    },
+    item_subclass_names = {
+        [6] = {
+            [2] = "Стріла",
+            [3] = "Куля",
+        },
+    },
     resistance_schools = {
         arcane = "таємної магії", fire = "вогню", frost = "криги",
         nature = "природи", shadow = "тіні", holy = "світла",
@@ -153,6 +165,15 @@ tooltip.item_line_patterns = {
     { "^([%+%-]?[%d%.,]+) damage per second$", function (value)
         return value .. " шкоди за секунду"
     end },
+    { "^Adds ([%d%.,]+) damage per second$", function (value)
+        return "Додає " .. value .. " шкоди за секунду"
+    end },
+    { "^Adds ([%d%.,]+) ([A-Za-z]+) damage per second$",
+        function (value, school)
+            local name = item_resistance_names[school]
+            return name and ("Додає " .. value .. " шкоди від "
+                .. name .. " за секунду") or nil
+        end },
     { "^Durability (%d+) / (%d+)$", function (current, maximum)
         return "Міцність " .. current .. " / " .. maximum
     end },

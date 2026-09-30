@@ -160,6 +160,7 @@ local function make_item_state(item_id, key)
         translated_name = client_db.get_name(item_id),
         english_description = client_db.get_english_description(item_id),
         translated_description = client_db.get_description(item_id),
+        metadata = metadata,
         required_skill = type(metadata) == "table"
             and tonumber(metadata.RequiredSkill) or nil,
         required_skill_rank = type(metadata) == "table"
@@ -286,6 +287,26 @@ local function translate_skill_requirement(state, source)
         translated_skill, state.required_skill_rank)
 end
 
+local function translate_classification(state, source)
+    if type(source) ~= "string" or type(state.metadata) ~= "table" then
+        return nil
+    end
+    local class_id = tonumber(state.metadata.ClassID)
+    local subclass_id = tonumber(state.metadata.SubclassID)
+    local class = class_id and client_db.get_item_class(class_id) or nil
+    if type(class) == "table" and source == class.ClassName_lang then
+        return catalog.item_class_names
+            and catalog.item_class_names[class_id] or nil
+    end
+    local subclass = class_id and subclass_id
+        and client_db.get_item_subclass(class_id, subclass_id) or nil
+    if type(subclass) == "table" and source == subclass.DisplayName_lang then
+        local names = catalog.item_subclass_names
+            and catalog.item_subclass_names[class_id]
+        return names and names[subclass_id] or nil
+    end
+end
+
 local function translate_structured(tooltip, data, state)
     local contract = deps()
     local lines = type(data) == "table" and data.lines or nil
@@ -362,6 +383,11 @@ local function translate_structured(tooltip, data, state)
                             and "item.arguments:" .. line_index or nil
                     end
                     if not translated and source then
+                        translated = translate_classification(state, source)
+                        slot = translated
+                            and "item.classification:" .. line_index or nil
+                    end
+                    if not translated and source then
                         translated = catalog.translate_item_line(source)
                         slot = translated and "item.line:" .. line_index or nil
                     end
@@ -383,7 +409,9 @@ local function translate_structured(tooltip, data, state)
                 local right_source = contract.safe_string(rendered_right)
                     or structured_right
                 local right_translated = right_source
-                    and catalog.translate_item_line(right_source) or nil
+                    and translate_classification(state, right_source) or nil
+                right_translated = right_translated or (right_source
+                    and catalog.translate_item_line(right_source) or nil)
                 if right_translated and right_region then
                     applied = contract.set_translation(
                         tooltip, right_region, right_source, right_translated,
