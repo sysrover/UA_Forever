@@ -1,5 +1,5 @@
 local addon_name, addon_table = ...
-local addon_version = "0.13.1-beta"
+local addon_version = "0.13.2-beta"
 
 local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
