@@ -897,6 +897,20 @@ translate_object_tooltip_title = function (tooltip)
 end
 
 local function prepare_quest_map_hook()
+    hooks.once("event:MapCanvas.QuestPin.OnEnter", function ()
+        local registry = _G.EventRegistry
+        if not registry or type(registry.RegisterCallback) ~= "function" then
+            return false
+        end
+        return pcall(registry.RegisterCallback, registry,
+            "MapCanvas.QuestPin.OnEnter",
+            function (_, _, quest_id)
+                quest_id = safe_number(quest_id)
+                if quest_id and _G.GameTooltip then
+                    safe_process(_G.GameTooltip, { id = quest_id }, "quest")
+                end
+            end, tooltips)
+    end)
     hooks.global("GameTooltip_AddQuest", function (self)
             local id = self and self.questID
             if type(id) == "number" then
@@ -1428,12 +1442,18 @@ local function translate_generic_tooltip(tooltip)
         return
     end
 
-    local left_title = safe_string(tooltip_line(tooltip, "Left", 1))
+    local left_title, left_title_region = tooltip_line(tooltip, "Left", 1)
+    left_title = safe_string(left_title)
     if not left_title then return end
 
     -- Quest blob tooltips can be built without a public quest ID on the pin.
-    -- Resolve their visible English title from the prepared quest catalog.
-    local quest_id = entries.lookup_id and entries.lookup_id("quest", left_title)
+    -- A build-70058 map refresh can also leave the translated title claim on a
+    -- generic session. Recover its native source before resolving the quest so
+    -- objectives appended by that refresh still use the quest-task catalog.
+    local title_claim = left_title_region and runtime.get(left_title_region)
+    local quest_source = title_claim and title_claim.owner == "quest-tooltip"
+        and title_claim.slot == "quest.name" and title_claim.source or left_title
+    local quest_id = entries.lookup_id and entries.lookup_id("quest", quest_source)
     if quest_id and safe_process(tooltip, { id = quest_id }, "quest") then return end
 
     local ok_count, line_count = pcall(tooltip.NumLines, tooltip)
