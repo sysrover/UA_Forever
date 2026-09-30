@@ -291,6 +291,10 @@ local function collect_quest_log_ids()
         title = fields_ok and safe_string(title) or nil
         if quest_id and quest_id > 0 and not is_header then
             local entry = entries.get_entry("quest", quest_id)
+            if entry and title and type(entry.en) == "string"
+                and entry.en ~= title then
+                entry = nil
+            end
             dev_log.record_id("quests", quest_id, title, entry ~= nil)
             local fields = {}
             if type(get_text) == "function" then
@@ -491,8 +495,8 @@ scanner.capture_quest_greeting = function (snapshot, verify)
         local id = quest.id or greeting_quest_id(quest.button)
         if id and quest.source and title then
             local entry = entries.get_entry("quest", id)
-            local source_title = entry and entry.en or quest.source
-            local translated = entry and entry[1]
+            local source_title = quest.source
+            local translated = entry and entry.en == source_title and entry[1]
             local expected = options.can_translate("translate_gossip", "translate_quest")
                 and options.translate_name("quest")
             auto_scan.record_visible_quest_title(id, source_title, title, expected)
@@ -568,11 +572,18 @@ scanner.capture_current_quest = function (event)
     local captured = {}
     local missing_fields = {}
     local visible_translation_missing = entry == nil
+    local catalog_matches = true
     local title
 
     for _, field in ipairs(current_quest_fields) do
         local source = original_quest_text(field.getter)
-        local translated_value = entry and safe_string(entry[field.index])
+        if field.key == "title" and entry and source
+            and type(entry.en) == "string" and entry.en ~= source then
+            catalog_matches = false
+            visible_translation_missing = true
+        end
+        local translated_value = catalog_matches and entry
+            and safe_string(entry[field.index])
         local translated = translated_value and translated_value ~= source
 
         if field.key == "title" then

@@ -430,6 +430,34 @@ adapter.translate_line = function (source)
     return catalog.translate_item_line(source)
 end
 
+-- Blizzard can append build-owned bag metadata after SetInventoryItem() has
+-- completed and the Item TooltipData post-call has already run. Translate
+-- only those newly appended rows when their owning OnEnter method finishes.
+adapter.translate_appended_lines = function (tooltip, first_index)
+    local contract = deps()
+    if not tooltip or tooltip.uaForeverShowOriginal
+        or not options.can_translate("translate_item") then return false end
+    local count_ok, count = pcall(tooltip.NumLines, tooltip)
+    count = count_ok and contract.safe_number(count) or nil
+    first_index = contract.safe_number(first_index)
+    if not count or not first_index or first_index > count then return false end
+
+    local applied = false
+    for index = first_index, count do
+        local source, region = contract.tooltip_line(tooltip, "Left", index)
+        source = contract.safe_string(source)
+        local translated = source and catalog.translate_item_line(source) or nil
+        if translated and region then
+            applied = contract.set_translation(
+                tooltip, region, source, translated,
+                "item.appended:" .. index, nil, "item-tooltip",
+                nil, false, false, nil, nil, nil, ITEM_RUNTIME_FLAGS
+            ) or applied
+        end
+    end
+    return applied
+end
+
 local function translate_title_fallback(tooltip, state)
     local contract = deps()
     local source, region = contract.tooltip_line(tooltip, "Left", 1)

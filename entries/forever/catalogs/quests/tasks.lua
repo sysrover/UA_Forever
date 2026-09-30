@@ -385,6 +385,7 @@ local questTasks = {
         ["Bottle of Moonshine (Provided)"] = "пляшка сивухи (видано)",
         ["Cask of Merlot"] = "барильце Мерло",
         ["Cask of Merlot (Provided)"] = "барильце Мерло (видано)",
+        ["Keg of Thunderbrew"] = "бочечка громузвару",
         ["Keg of Thunderbrew Lager"] = "Кег лагеру Thunderbrew",
         ["Keg of Thunderbrew Lager (Provided)"] = "Кег лагеру Thunderbrew (видано)",
         ["Keg of Thunderbrew Lager slain"] = "Кег лагеру Thunderbrew: убито",

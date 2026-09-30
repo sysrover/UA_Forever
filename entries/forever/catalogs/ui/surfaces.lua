@@ -54,6 +54,8 @@ addonTable.forever_surface_ui = {
         end,
     },
     quest = {
+        ready_for_turn_in = "Можна здати",
+        complete_suffix = " (виконано)",
         timer_units = {
             { source = "Day", translated = "дн" },
             { source = "Hr", translated = "год" },
