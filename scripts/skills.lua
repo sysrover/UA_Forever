@@ -443,17 +443,7 @@ skills.prepare = function ()
         "trainer-scroll")
     translate_trainer_rows()
 
-    -- The alert system stores a direct reference to its setup function, so
-    -- hook that stored field rather than only the global function name.
-    -- Cast bars can write the spell name directly without HandleCastStart.
-    -- Watch the displayed text so each new cast receives its own translation.
-    for _, frame in pairs({
-        _G.PlayerCastingBarFrame, _G.OverlayPlayerCastingBarFrame,
-        _G.CastingBarFrame, _G.TargetFrameSpellBar, _G.FocusFrameSpellBar,
-        _G.PetCastingBarFrame,
-    }) do
-        hook_cast_bar(frame)
-    end
+    -- Cast-bar translation overlays are disabled: keep native cast text.
     -- Forever uses pooled ScrollBox rows for character statistics. Translate
     -- each row in its native Init callback so recycled rows never spend a
     -- rendered frame in English. ClassicUA's older static-frame lifecycle is
