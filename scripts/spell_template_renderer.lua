@@ -535,6 +535,27 @@ local function cache_rendered(key, value)
     rendered_count = rendered_count + 1
 end
 
+local function expand_description_references(text, getter, seen, depth)
+    if type(text) ~= "string" or type(getter) ~= "function" then return text end
+    if (depth or 0) >= 8 then return text end
+    seen = seen or {}
+    return (text:gsub("%$@spelldesc(%d+)", function (raw_id)
+        local spell_id = tonumber(raw_id)
+        if not spell_id or seen[spell_id] then
+            return "$@spelldesc" .. raw_id
+        end
+        local referenced = getter(spell_id)
+        if type(referenced) ~= "string" or referenced == "" then
+            return "$@spelldesc" .. raw_id
+        end
+        seen[spell_id] = true
+        local expanded = expand_description_references(
+            referenced, getter, seen, (depth or 0) + 1)
+        seen[spell_id] = nil
+        return expanded
+    end))
+end
+
 renderer.render = function (
     spell_id, kind, english_raw, ukrainian_raw, native_text
 )
@@ -546,6 +567,11 @@ renderer.render = function (
         or type(english_raw) ~= "string" or english_raw == ""
         or type(ukrainian_raw) ~= "string" or ukrainian_raw == ""
         or type(native_text) ~= "string" or native_text == "" then return nil end
+
+    english_raw = expand_description_references(
+        english_raw, client_db.get_english_description)
+    ukrainian_raw = expand_description_references(
+        ukrainian_raw, client_db.get_description)
 
     local rendered_key = kind .. ":" .. spell_id .. "\031" .. native_text
     local cached = rendered_cache[rendered_key]

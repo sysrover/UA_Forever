@@ -295,6 +295,107 @@ local function translate_button(button)
     if ok then strings.translate_region(font_string) end
 end
 
+local function sync_crafting_button_style(source, overlay)
+    if not source or not overlay or type(source.GetTextColor) ~= "function"
+        or type(overlay.GetTextColor) ~= "function"
+        or type(overlay.SetTextColor) ~= "function" then return end
+    local source_ok, r, g, b, a = pcall(source.GetTextColor, source)
+    local overlay_ok, old_r, old_g, old_b, old_a = pcall(overlay.GetTextColor,
+        overlay)
+    if not source_ok or not overlay_ok or is_secret(r) or is_secret(g)
+        or is_secret(b) or is_secret(a) then return end
+    if r ~= old_r or g ~= old_g or b ~= old_b or a ~= old_a then
+        pcall(overlay.SetTextColor, overlay, r, g, b, a)
+    end
+end
+
+local function crafting_button_overlay(button, font_string)
+    local overlay = button and button.uaForeverTextOverlay
+    if overlay then return overlay end
+    if not button or not font_string
+        or type(button.CreateFontString) ~= "function" then return nil end
+
+    local ok, created = pcall(button.CreateFontString, button, nil, "OVERLAY")
+    if not ok or not created then return nil end
+    overlay = created
+    button.uaForeverTextOverlay = overlay
+
+    if type(font_string.GetFontObject) == "function"
+        and type(overlay.SetFontObject) == "function" then
+        local font_ok, font = pcall(font_string.GetFontObject, font_string)
+        if font_ok and font then pcall(overlay.SetFontObject, overlay, font) end
+    end
+    if type(overlay.SetAllPoints) == "function" then
+        pcall(overlay.SetAllPoints, overlay, button)
+    end
+    if type(overlay.SetJustifyH) == "function" then
+        pcall(overlay.SetJustifyH, overlay, "CENTER")
+    end
+    if type(overlay.SetJustifyV) == "function" then
+        pcall(overlay.SetJustifyV, overlay, "MIDDLE")
+    end
+    if type(overlay.SetWordWrap) == "function" then
+        pcall(overlay.SetWordWrap, overlay, false)
+    end
+    if type(font_string.SetAlpha) == "function" then
+        pcall(font_string.SetAlpha, font_string, 0)
+    end
+    runtime.ensure_font(overlay)
+
+    local function sync_style()
+        sync_crafting_button_style(font_string, overlay)
+    end
+    for _, script in ipairs({
+        "OnEnable", "OnDisable", "OnEnter", "OnLeave",
+        "OnMouseDown", "OnMouseUp", "OnShow",
+    }) do
+        hooks.region_script(button, script, sync_style,
+            "profession-create-button-style")
+    end
+    sync_style()
+    return overlay
+end
+
+local function translate_crafting_button(button, font_string, overlay)
+    if not button or not font_string or not overlay
+        or type(font_string.GetText) ~= "function"
+        or type(overlay.GetText) ~= "function"
+        or type(overlay.SetText) ~= "function" then return false end
+    local ok, source = pcall(font_string.GetText, font_string)
+    if not ok or type(source) ~= "string" or source == "" or is_secret(source) then
+        return false
+    end
+    local translated = strings.find_ui_translation(source, font_string)
+    local display = options.can_translate("translate_string")
+        and translated and translated ~= source and translated or source
+    local current_ok, current = pcall(overlay.GetText, overlay)
+    if current_ok and current == display then return true end
+    local writable = runtime.can_write_text(overlay)
+    if not writable then return false end
+    if display:find("[\208\209]") then runtime.ensure_font(overlay) end
+    local applied = pcall(overlay.SetText, overlay, display)
+    if applied then strings.fit_button_to_text(button, overlay) end
+    return applied
+end
+
+local function hook_crafting_button(button)
+    if not button or type(button.GetFontString) ~= "function" then return end
+    local ok, font_string = pcall(button.GetFontString, button)
+    if not ok or not font_string then return end
+    local overlay = crafting_button_overlay(button, font_string)
+    if not overlay then return end
+
+    -- ValidateControls rewrites the native label through SetTextToFit every
+    -- second. Keep that label hidden and update the visible addon-owned layer
+    -- only when its translated value actually changes.
+    hook_owner(font_string, "SetText", function (self)
+        if not runtime.is_applying(self) then
+            translate_crafting_button(button, self, overlay)
+        end
+    end)
+    translate_crafting_button(button, font_string, overlay)
+end
+
 local translate_tab_label
 
 local function translate_element(frame, seen, depth, category, max_depth, labels,
@@ -929,8 +1030,8 @@ local function translate_crafting_page()
         layout.fit_profession_output_text(form.RecraftingOutputText)
     end
 
-    translate_button(page.CreateButton)
-    translate_button(page.CreateAllButton)
+    hook_crafting_button(page.CreateButton)
+    hook_crafting_button(page.CreateAllButton)
 end
 
 local function schedule_crafting_page()
@@ -1245,6 +1346,8 @@ skills.prepare = function ()
 
     local crafting_page = professions_frame and professions_frame.CraftingPage
     local schematic_form = crafting_page and crafting_page.SchematicForm
+    hook_crafting_button(crafting_page and crafting_page.CreateButton)
+    hook_crafting_button(crafting_page and crafting_page.CreateAllButton)
     if professions_frame and type(professions_frame.GetTitleText) == "function" then
         local ok, title = pcall(professions_frame.GetTitleText, professions_frame)
         if ok and title then

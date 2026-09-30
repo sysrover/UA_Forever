@@ -487,6 +487,10 @@ local ui = {
     ["Damage dealt versus Beasts increased by 5%."] = "Шкоду звірам збільшено на 5%.",
     ["Gives a chance to block enemy melee and ranged attacks."] = "Надає шанс блокувати ворожі атаки ближнього та дальнього бою.",
     ["Sell Price:"] = "Ціна продажу:",
+    ["Materials"] = "Матеріали",
+    ["Materials:"] = "Матеріали:",
+    ["Mining pick"] = "Шахтарське кайло",
+    ["Mining Pick"] = "Шахтарське кайло",
     ["Press F6 to submit an issue for this Spell"] = "F6: повідомити про помилку",
     ["You retain up to 10 Rage when you change Stances."] = "Ви зберігаєте до 10 люті при зміні стійки.",
     ["Slams the opponent, causing weapon damage plus 16."] = "Трощить ворога, завдаючи шкоди зброєю плюс 16.",
@@ -929,6 +933,18 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
+        pattern = "^Quantity: (%d+)$",
+        replace = function (count)
+            return "Кількість: " .. count
+        end,
+    },
+    {
+        pattern = "^Total: (.+)$",
+        replace = function (total)
+            return "Разом: " .. total
+        end,
+    },
+    {
         pattern = "^Requires Level (%d+)$",
         replace = function (level)
             return "Необхідний рівень " .. level
@@ -1235,6 +1251,17 @@ addonTable.forever_ui_patterns = {
         replace = function (prefix, location)
             local translated = ui[location]
             return translated and (prefix .. translated) or nil
+        end,
+    },
+    {
+        pattern = "^([%+%-])(%d+) (.+)$",
+        replace = function (sign, amount, stat)
+            local names = {
+                Strength = "сили", Stamina = "витривалості",
+                Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
+            }
+            local name = names[stat]
+            return name and (sign .. amount .. " до " .. name) or nil
         end,
     },
     {

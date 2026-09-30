@@ -8,6 +8,7 @@
     <Script file="utils.lua"/>
     <Script file="spell_client_db.lua"/>
     <Script file="spell_template_renderer.lua"/>
+    <Script file="item_client_db.lua"/>
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>
     <Script file="translation_scheduler.lua"/>
@@ -39,6 +40,7 @@
     <Script file="translation.lua"/>
     <Script file="quest_switcher.lua"/>
     <Script file="tooltips.lua"/>
+    <Script file="target_aura_overlay.lua"/>
     <Script file="chats.lua"/>
     <Script file="scanner.lua"/>
     <Script file="skills.lua"/>

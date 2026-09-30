@@ -58,9 +58,12 @@ session.reset = function (tooltip, on_invalidate)
         "uaForeverUnitRefreshAt", "uaForeverUpdateBudget",
         "uaForeverAuraTooltip", "uaForeverAuraUnit",
         "uaForeverItemStatus", "uaForeverItemCompleteGeneration",
+        "uaForeverItemIdentity", "uaForeverItemLoggedIdentity",
         "uaForeverComparisonManagedPending",
         "uaForeverComparisonCompleteGeneration",
         "uaForeverComparisonFallbackGeneration",
+        "uaForeverComparisonData", "uaForeverItemID",
+        "uaForeverSellPriceLine",
         "uaForeverTalentLines", "uaForeverTalentEntries",
         "uaForeverTalentEntryID",
     }) do
