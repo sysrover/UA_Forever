@@ -328,21 +328,24 @@ end
 
 local function spellbook_item_spell_id(info)
     if type(info) ~= "table" then return nil end
-    local spell_id = info.spellID
-    if type(spell_id) == "number" and not is_secret(spell_id) then
-        return spell_id
-    end
-
     local action_id = info.actionID
     local pet_action = Enum and Enum.SpellBookItemType
         and info.itemType == Enum.SpellBookItemType.PetAction
-    if not pet_action or type(action_id) ~= "number" or is_secret(action_id)
-        or not C_PetInfo
-        or type(C_PetInfo.GetSpellForPetAction) ~= "function" then return nil end
+    if pet_action then
+        if type(action_id) ~= "number" or is_secret(action_id)
+            or not C_PetInfo
+            or type(C_PetInfo.GetSpellForPetAction) ~= "function" then return nil end
 
-    local ok, resolved_id = pcall(C_PetInfo.GetSpellForPetAction, action_id)
-    if ok and type(resolved_id) == "number" and not is_secret(resolved_id) then
-        return resolved_id
+        local ok, resolved_id = pcall(C_PetInfo.GetSpellForPetAction, action_id)
+        if ok and type(resolved_id) == "number" and not is_secret(resolved_id) then
+            return resolved_id
+        end
+        return nil
+    end
+
+    local spell_id = info.spellID
+    if type(spell_id) == "number" and not is_secret(spell_id) then
+        return spell_id
     end
 end
 
