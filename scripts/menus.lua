@@ -3,8 +3,8 @@ local _, addon_table = ...
 local menus_ui = addon_table.use("menus_ui")
 local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").menus
+local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
-local options = addon_table.use("options")
 local strings = addon_table.use("strings")
 local tooltips = addon_table.use("tooltips")
 local registry = addon_table.use("translation_registry")
@@ -172,7 +172,7 @@ local function declare_inbox_hook()
         blizzardAddon = "Blizzard_MailFrame",
         required = true,
         fallbackEvent = "MAIL_INBOX_UPDATE",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = update_inbox_controls,
     })
 end
@@ -187,7 +187,7 @@ local function declare_game_menu_hook()
         method = "InitButtons",
         required = true,
         fallbackEvent = "GameMenuFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = translate_game_menu,
     })
 end
@@ -223,7 +223,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = translate_auction_category_button,
     })
     registry.declare_hook({
@@ -235,7 +235,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.AuctionsFrame.SetTab",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = translate_auction_summary_line,
     })
     registry.declare_hook({
@@ -247,7 +247,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.AuctionsFrame.SetTab",
-        verifiedBuild = 70009,
+        verifiedBuild = 70058,
         callback = translate_auction_table_header,
     })
 end

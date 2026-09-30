@@ -70,12 +70,42 @@ local function row(database, item_id)
     return database.rows[item_id]
 end
 
+-- English text is the only text-based key accepted by the client-build item
+-- database. Build this index once at load time; runtime callers never scan the
+-- item table and never try to identify an item from translated text.
+local item_id_by_english_name = {}
+if lookup.ready then
+    for item_id, english_name in pairs(databases.names_en.rows) do
+        if type(item_id) == "number" and type(english_name) == "string"
+            and english_name ~= "" then
+            local known_id = item_id_by_english_name[english_name]
+            if not known_id or item_id < known_id then
+                item_id_by_english_name[english_name] = item_id
+            end
+        end
+    end
+end
+
 lookup.get_name = function (item_id)
     return row(databases.names_uk, item_id)
 end
 
 lookup.get_english_name = function (item_id)
     return row(databases.names_en, item_id)
+end
+
+lookup.get_id_by_english_name = function (english_name)
+    if type(english_name) ~= "string" or english_name == "" then return nil end
+    return item_id_by_english_name[english_name]
+end
+
+lookup.get_name_by_english = function (english_name)
+    local item_id = lookup.get_id_by_english_name(english_name)
+    return item_id and lookup.get_name(item_id) or nil, item_id
+end
+
+lookup.get_english_name_rows = function ()
+    return lookup.ready and databases.names_en.rows or nil
 end
 
 lookup.get_description = function (item_id)

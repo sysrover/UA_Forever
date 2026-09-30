@@ -367,15 +367,28 @@ local function fit_quest_map_button_group(button)
     local quest_map = _G.QuestMapFrame
     local details = quest_map and (quest_map.DetailsFrame
         or (quest_map.QuestsFrame and quest_map.QuestsFrame.DetailsFrame))
-    if not details then return false end
-
-    local abandon = details.AbandonButton
-    local share = details.ShareButton
-    local track = details.TrackButton
-    if not abandon or not share or not track
-        or (button ~= abandon and button ~= share and button ~= track) then
-        return false
+    local group, left_inset, right_inset, bottom_offset
+    for _, candidate in ipairs({
+        { owner = details, left = 0, right = 0, bottom = -2 },
+        { owner = _G.QuestLogPopupDetailFrame,
+            left = 4, right = 8, bottom = 5 },
+    }) do
+        local owner = candidate.owner
+        if owner and (button == owner.AbandonButton
+            or button == owner.ShareButton or button == owner.TrackButton) then
+            group = owner
+            left_inset = candidate.left
+            right_inset = candidate.right
+            bottom_offset = candidate.bottom
+            break
+        end
     end
+    if not group then return false end
+
+    local abandon = group.AbandonButton
+    local share = group.ShareButton
+    local track = group.TrackButton
+    if not abandon or not share or not track then return false end
 
     -- These three buttons share one fixed-width row. Expanding each button
     -- independently makes the Ukrainian Track label escape the quest panel.
@@ -386,7 +399,10 @@ local function fit_quest_map_button_group(button)
         return true
     end
 
-    local available_width = safe_dimension(details, "GetWidth")
+    local available_width = safe_dimension(group, "GetWidth")
+    if available_width then
+        available_width = available_width - left_inset - right_inset
+    end
     if not available_width or available_width < QUEST_BUTTON_MIN_WIDTH * 3 then
         return true
     end
@@ -421,9 +437,11 @@ local function fit_quest_map_button_group(button)
     pcall(track.SetWidth, track, track_width)
 
     pcall(abandon.ClearAllPoints, abandon)
-    pcall(abandon.SetPoint, abandon, "BOTTOMLEFT", details, "BOTTOMLEFT", 0, -2)
+    pcall(abandon.SetPoint, abandon, "BOTTOMLEFT", group, "BOTTOMLEFT",
+        left_inset, bottom_offset)
     pcall(track.ClearAllPoints, track)
-    pcall(track.SetPoint, track, "BOTTOMRIGHT", details, "BOTTOMRIGHT", 0, -2)
+    pcall(track.SetPoint, track, "BOTTOMRIGHT", group, "BOTTOMRIGHT",
+        -right_inset, bottom_offset)
     pcall(share.ClearAllPoints, share)
     pcall(share.SetPoint, share, "LEFT", abandon, "RIGHT", 0, 0)
     pcall(share.SetPoint, share, "RIGHT", track, "LEFT", 0, 0)

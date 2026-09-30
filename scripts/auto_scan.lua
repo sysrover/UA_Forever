@@ -3,6 +3,7 @@ local addon_name, addon_table = ...
 local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
 local entries = addon_table.use("entries")
+local spell_client_db = addon_table.use("spell_client_db")
 local tooltips = addon_table.use("tooltips")
 local strings = addon_table.use("strings")
 local utils = addon_table.use("utils")
@@ -109,6 +110,11 @@ for _, descriptor in ipairs(groups) do
     if not content_groups[group] then diagnostic_groups[group] = true end
 end
 
+local technical_scan_fields = {
+    "ui", "ids", "menus", "mouseProbe", "tooltipProbe", "auraProbe",
+    "windowProbe", "fullObjectScan", "mapTextureProbe", "auraCapture",
+}
+
 local function diagnostics_enabled()
     return options.account and options.account.auto_scan_diagnostics == true
 end
@@ -137,6 +143,14 @@ local domains = {
 }
 
 local function translated_name(group, id, name)
+    local numeric_id = tonumber(id)
+    if group == "spells" then
+        return numeric_id
+            and spell_client_db.has_spell_translation(numeric_id) or false
+    elseif group == "auras" then
+        return numeric_id
+            and spell_client_db.has_aura_translation(numeric_id) or false
+    end
     local domain = domains[group]
     local entry = domain and entries.get_entry and entries.get_entry(domain, id)
     local source = entry and type(entry.en) == "string" and entry.en or name
@@ -581,9 +595,6 @@ auto_scan.discard_ui = function (source)
             and utils.get_text_hash(source) or source
         records[key] = nil
     end
-    local legacy = UA_ForeverDB and UA_ForeverDB.scan
-        and UA_ForeverDB.scan.ui
-    if type(legacy) == "table" then legacy[source] = nil end
 end
 
 auto_scan.record_ui = function (source, translated, slot, surface, owner)
@@ -1015,7 +1026,6 @@ auto_scan.capture_tooltip = function (tooltip, kind, id, missing_entry)
     if kind == "trainer" and (key or title) then
         key = "trainer:" .. tostring(key or title)
     end
-    if not key and kind == "aura" then key = title end
     if not key then return end
 
     local record = records[key] or {}
@@ -1500,9 +1510,7 @@ auto_scan.clear_diagnostics = function ()
         for group in pairs(diagnostic_groups) do store[group] = nil end
     end
     if type(scan) == "table" then
-        scan.mouseProbe = nil
-        scan.ids = nil
-        scan.menus = nil
+        for _, field in ipairs(technical_scan_fields) do scan[field] = nil end
     end
     local missing = UA_ForeverDB and UA_ForeverDB.missing
     if type(missing) == "table" then
@@ -1516,10 +1524,10 @@ end
 
 auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
+        for field in pairs(UA_ForeverDB.scan) do
+            UA_ForeverDB.scan[field] = nil
+        end
         UA_ForeverDB.scan.auto = {}
-        UA_ForeverDB.scan.mouseProbe = nil
-        UA_ForeverDB.scan.ids = nil
-        UA_ForeverDB.scan.menus = nil
     end
     if UA_ForeverDB then UA_ForeverDB.missing = {} end
     surface_states = {}

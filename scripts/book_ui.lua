@@ -2,6 +2,7 @@ local _, addon_table = ...
 
 local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
+local item_client_db = addon_table.use("item_client_db")
 local runtime = addon_table.use("translation_runtime")
 local utils = addon_table.use("utils")
 local book_ui = addon_table.use("book_ui")
@@ -143,8 +144,8 @@ book_ui.note = function (...)
         end
     end
 
-    if not current_book_id and current_book_name and entries.lookup_id then
-        current_book_id = entries.lookup_id("item", current_book_name)
+    if not current_book_id and current_book_name then
+        current_book_id = item_client_db.get_id_by_english_name(current_book_name)
     end
 
     local legacy_id = utils.get_currently_viewed_book_id

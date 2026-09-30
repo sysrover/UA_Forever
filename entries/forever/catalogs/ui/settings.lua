@@ -30,7 +30,7 @@ local settings = {
     ["<Shift-Click to Automatically Enable This Setting>"] =
         "<Shift + клацання — автоматично ввімкнути цей параметр>",
 
-    -- Edit Mode (build 1.60.1.70009). The generated GlobalStrings catalog
+    -- Edit Mode (build 1.60.1.70058). The generated GlobalStrings catalog
     -- contains several literal or machine-translated labels for this surface.
     ["Archaeology Bar"] = "Смуга археології",
     ["Arena Frames"] = "Рамки арени",

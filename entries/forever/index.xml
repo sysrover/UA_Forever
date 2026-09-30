@@ -8,7 +8,6 @@
     <Script file="catalogs\books\catalog.lua"/>
     <Script file="catalogs\chat\npc.lua"/>
     <Script file="catalogs\gossip\catalog.lua"/>
-    <Script file="catalogs\items\catalog.lua"/>
     <Script file="catalogs\npcs\catalog.lua"/>
     <Script file="catalogs\objects\catalog.lua"/>
     <Script file="catalogs\quests\alliance.lua"/>
@@ -35,10 +34,8 @@
     <Script file="catalogs\ui\skills.lua"/>
     <Script file="catalogs\ui\client_verified.lua"/>
     <Script file="catalogs\spells\client_verified.lua"/>
-    <Script file="catalogs\items\client_verified.lua"/>
     <Script file="catalogs\zones\client_verified.lua"/>
     <Script file="catalogs\spells\client_additions.lua"/>
-    <Script file="catalogs\items\client_additions.lua"/>
     <Script file="catalogs\zones\client_additions.lua"/>
     <Script file="catalogs\ui\client_skills.lua"/>
     <Script file="catalogs\npcs\client_additions.lua"/>

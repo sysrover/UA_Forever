@@ -2,6 +2,7 @@ local _, addon_table = ...
 
 local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
+local item_client_db = addon_table.use("item_client_db")
 local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
@@ -34,11 +35,8 @@ end
 
 local function item_name(id)
     if type(id) ~= "number" then return nil end
-    local entry = entries.get_entry("item", id)
-    if not entry or not safe_string(entry[1]) then return nil end
-    local ok, value = pcall(entries.make_entry_text, entry[1])
-    if not ok or not safe_string(value) or value:find("{%d+}") then return nil end
-    return utils.cap(value)
+    local value = item_client_db.get_name(id)
+    return safe_string(value) and utils.cap(value) or nil
 end
 
 local function apply_row(region, id, owner)
@@ -211,14 +209,9 @@ local function refresh_reward_button(button)
     end
     link = link_ok and safe_string(link) or nil
     local id = link and safe_id(utils.item_id_from_link(link))
-    local entry = id and entries.get_entry("item", id)
-    local translated
-    if entry and entry.en == current then translated = item_name(id) end
-    if not translated then
-        translated = entries.lookup_name("item", current)
-        if translated then translated = utils.cap(translated) end
-    end
-    if id then dev_log.record_id("items", id, current, entry ~= nil) end
+    local translated = id and item_name(id) or nil
+    if id then dev_log.record_id("items", id, current,
+        item_client_db.has_translation(id)) end
     if not translated then return end
     runtime.apply(region, {
         owner = "quest-reward", slot = "item:" .. tostring(id or current) .. ".name",
@@ -257,10 +250,9 @@ local function refresh_required_item(button, index)
         "required", index)
     local id = link_ok and safe_string(link)
         and safe_id(utils.item_id_from_link(link)) or nil
-    local entry = id and entries.get_entry("item", id)
-    local translated = entry and entry.en == current and item_name(id)
-        or entries.lookup_name("item", current)
-    if id then dev_log.record_id("items", id, current, entry ~= nil) end
+    local translated = id and item_name(id) or nil
+    if id then dev_log.record_id("items", id, current,
+        item_client_db.has_translation(id)) end
     if not translated then return end
     runtime.apply(region, {
         owner = "quest-required", slot = "item:" .. tostring(id or current) .. ".name",

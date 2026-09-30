@@ -293,19 +293,23 @@ local function translate_structured(tooltip, data, state)
 
     local applied = false
     local effect_indexes = {}
-    local generic_indexes = {}
     local max_line_index = 0
 
     for _, line_data in ipairs(lines) do
         if type(line_data) == "table" then
             local line_type = contract.safe_number(line_data.type)
             local line_index = contract.safe_number(line_data.lineIndex)
-            local source = contract.safe_string(line_data.leftText)
+            local structured_source = contract.safe_string(line_data.leftText)
             if line_index then
                 max_line_index = math.max(max_line_index, line_index)
                 local rendered_source, region = contract.tooltip_line(
                     tooltip, "Left", line_index)
-                source = source or contract.safe_string(rendered_source)
+                -- TooltipData can retain unresolved build tokens (for example
+                -- $1308027d) after Blizzard has already rendered "1 hour".
+                -- Claims and numeric extraction must target the actual native
+                -- FontString, with structured text only as a fallback.
+                local source = contract.safe_string(rendered_source)
+                    or structured_source
                 local translated
                 local slot
 
@@ -357,7 +361,10 @@ local function translate_structured(tooltip, data, state)
                         slot = translated
                             and "item.arguments:" .. line_index or nil
                     end
-                    if not translated then generic_indexes[line_index] = true end
+                    if not translated and source then
+                        translated = catalog.translate_item_line(source)
+                        slot = translated and "item.line:" .. line_index or nil
+                    end
                 end
 
                 if translated and source and region then
@@ -368,20 +375,31 @@ local function translate_structured(tooltip, data, state)
                         line_index == 1 and contract.item_name_visible_matches
                             or nil, nil, ITEM_RUNTIME_FLAGS
                     ) or applied
-                elseif not translated and line_index ~= 1 then
-                    generic_indexes[line_index] = true
+                end
+
+                local structured_right = contract.safe_string(line_data.rightText)
+                local rendered_right, right_region = contract.tooltip_line(
+                    tooltip, "Right", line_index)
+                local right_source = contract.safe_string(rendered_right)
+                    or structured_right
+                local right_translated = right_source
+                    and catalog.translate_item_line(right_source) or nil
+                if right_translated and right_region then
+                    applied = contract.set_translation(
+                        tooltip, right_region, right_source, right_translated,
+                        "item.right:" .. line_index, nil, "item-tooltip",
+                        nil, false, false, nil, nil, nil,
+                        ITEM_RUNTIME_FLAGS
+                    ) or applied
                 end
             end
         end
     end
-
-    if max_line_index > 0 then
-        applied = contract.rewrite_generic(
-            tooltip, max_line_index, 2, nil, false, nil, generic_indexes,
-            ITEM_RUNTIME_FLAGS
-        ) > 0 or applied
-    end
     return applied, max_line_index
+end
+
+adapter.translate_line = function (source)
+    return catalog.translate_item_line(source)
 end
 
 local function translate_title_fallback(tooltip, state)

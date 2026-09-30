@@ -10,7 +10,6 @@ comparison_adapter.install = function (api)
     local item_adapter = api.item_adapter
     local MAX_TOOLTIP_LINES = api.MAX_TOOLTIP_LINES
     local options = api.options
-    local rewrite_generic_lines = api.rewrite_generic_lines
     local runtime = api.runtime
     local safe_number = api.safe_number
     local safe_string = api.safe_string
@@ -274,13 +273,12 @@ comparison_adapter.install = function (api)
             owner = cached.owner
         else
             translated = comparison_condition_translation(source)
-            owner = translated and "item-tooltip" or "generic"
             if not translated then
-                local provenance
-                translated, _, source_kind, _, _, _, provenance =
-                    strings.find_ui_translation(source, region)
-                catalog_source = provenance and provenance.source
+                local clean_source = source:gsub("|c%x%x%x%x%x%x%x%x", "")
+                    :gsub("|r", "")
+                translated = item_adapter.translate_line(clean_source)
             end
+            owner = translated and "item-tooltip" or nil
             translated = restore_comparison_markup(source, translated)
             cached = {
                 source = source,
@@ -378,8 +376,6 @@ comparison_adapter.install = function (api)
         end
     
         translate_comparison_conditions(tooltip, snapshot)
-        rewrite_generic_lines(tooltip, snapshot.count, 2, false, false,
-            snapshot)
         if snapshot.count > 1 then
             for index = 2, snapshot.count do
                 for _, side in ipairs({ "Left", "Right" }) do

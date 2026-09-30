@@ -1,7 +1,7 @@
 local _, addon_table = ...
 
 local level_up_display = addon_table.use("level_up_display")
-local options = addon_table.use("options")
+local auto_scan = addon_table.use("auto_scan")
 local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")

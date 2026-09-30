@@ -88,6 +88,37 @@ local function parse_template(text)
             end
         end
 
+        -- The client also emits compact elseif chains without repeating the
+        -- leading '$', for example:
+        --   $?PL<24[6]?PL<38[11]?PL<52[20][$s1]
+        -- Represent every following condition as the false branch of the
+        -- previous one so English matching decisions can be reused verbatim
+        -- while rendering the Ukrainian template.
+        local parse_conditional_false
+        parse_conditional_false = function (chain_position)
+            if text:sub(chain_position, chain_position) == "?" then
+                local open = text:find("[", chain_position + 1, true)
+                if not open then return nil end
+                local selector = "$" .. text:sub(chain_position, open - 1)
+                local first, after_first, closed = parse_sequence(open + 1, "]")
+                if not first or not closed then return nil end
+                local second, after_second = parse_conditional_false(after_first)
+                if not second then return nil end
+                local key = make_key("conditional", selector)
+                return { {
+                    kind = "conditional", key = key,
+                    identity = selector, branches = { first, second },
+                } }, after_second
+            end
+            if text:sub(chain_position, chain_position) == "[" then
+                local second, after_second, closed =
+                    parse_sequence(chain_position + 1, "]")
+                if not second or not closed then return nil end
+                return second, after_second
+            end
+            return {}, chain_position
+        end
+
         while position <= length do
             local character = text:sub(position, position)
             if stop_character and character == stop_character then
@@ -126,17 +157,11 @@ local function parse_template(text)
                     local selector = text:sub(position, open - 1)
                     local first, after_first, closed = parse_sequence(open + 1, "]")
                     if not first or not closed then return nil end
-                    local branches = { first }
-                    position = after_first
-                    if text:sub(position, position) == "[" then
-                        local second, after_second, second_closed =
-                            parse_sequence(position + 1, "]")
-                        if not second or not second_closed then return nil end
-                        branches[2] = second
-                        position = after_second
-                    else
-                        branches[2] = {}
-                    end
+                    local second, after_second =
+                        parse_conditional_false(after_first)
+                    if not second then return nil end
+                    local branches = { first, second }
+                    position = after_second
                     local key = make_key("conditional", selector)
                     nodes[#nodes + 1] = {
                         kind = "conditional", key = key,

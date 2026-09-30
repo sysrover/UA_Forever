@@ -4,8 +4,10 @@ local dev_log = addon_table.use("dev_log")
 local auto_scan = addon_table.use("auto_scan")
 local book_ui = addon_table.use("book_ui")
 local entries = addon_table.use("entries")
+local item_client_db = addon_table.use("item_client_db")
 local options = addon_table.use("options")
 local scanner = addon_table.use("scanner")
+local spell_client_db = addon_table.use("spell_client_db")
 local strings = addon_table.use("strings")
 local scheduler = addon_table.use("translation_scheduler")
 local translation = addon_table.use("translation")
@@ -62,10 +64,11 @@ local function safe_key_part(value)
     return nil
 end
 
-local function menu_store()
-    if not UA_ForeverDB then return nil end
+local function menu_store(create)
+    if not UA_ForeverDB or type(auto_scan.diagnostics_enabled) ~= "function"
+        or not auto_scan.diagnostics_enabled() then return nil end
     UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-    UA_ForeverDB.scan.menus = UA_ForeverDB.scan.menus or {}
+    if create then UA_ForeverDB.scan.menus = UA_ForeverDB.scan.menus or {} end
     return UA_ForeverDB.scan.menus
 end
 
@@ -178,7 +181,7 @@ scanner.schedule_menu_capture = function (key, callback, frame)
 
         local stats = frame and strings.capture_frame(frame, frame == _G.SettingsPanel)
             or strings.capture_visible_ui()
-        local menus = menu_store()
+        local menus = menu_store(true)
         if not menus then return end
         menus[key] = {
             firstSeen = type(_G.date) == "function" and _G.date("!%Y-%m-%dT%H:%M:%SZ") or nil,
@@ -227,19 +230,21 @@ local function sample_table(report, kind, source, get_name, limit)
 
     for id, entry in pairs(source) do
         if result.checked >= limit then break end
-        if type(id) == "number" and type(entry) == "table" and type(entry.en) == "string" then
+        local expected = type(entry) == "string" and entry
+            or type(entry) == "table" and entry.en or nil
+        if type(id) == "number" and type(expected) == "string" then
             local ok, actual = pcall(get_name, id)
             if ok and note_unsafe("catalog-sample", actual) then actual = nil end
             actual = ok and safe_string(actual) or nil
             result.checked = result.checked + 1
             if not actual then
                 result.unavailable = result.unavailable + 1
-            elseif normalize(actual) == normalize(entry.en) then
+            elseif normalize(actual) == normalize(expected) then
                 result.matched = result.matched + 1
             else
                 result.mismatched = result.mismatched + 1
                 if #result.examples < 8 then
-                    result.examples[#result.examples + 1] = { id = id, expected = entry.en, actual = actual }
+                    result.examples[#result.examples + 1] = { id = id, expected = expected, actual = actual }
                 end
             end
         end
@@ -630,8 +635,8 @@ local function collect_current_quest_rewards()
             if not link then break end
             local id = utils.item_id_from_link(link)
             if id then
-                local entry = entries.get_entry("item", id)
-                dev_log.record_id("items", id, link:match("%[(.-)%]"), entry ~= nil)
+                dev_log.record_id("items", id, link:match("%[(.-)%]"),
+                    item_client_db.has_translation(id))
                 found = found + 1
             end
         end
@@ -724,8 +729,10 @@ scanner.run = function (capture_ui)
     local original_quest_title = translation.original["C_QuestLog.GetTitleForQuestID"]
         or (C_QuestLog and C_QuestLog.GetTitleForQuestID)
 
-    sample_table(report, "items", addon_table.item, item_name, 40)
-    sample_table(report, "spells", addon_table.spell, spell_name, 40)
+    sample_table(report, "items", item_client_db.get_english_name_rows(),
+        item_name, 40)
+    sample_table(report, "spells", spell_client_db.get_english_name_rows(),
+        spell_name, 40)
     sample_table(report, "quests", quest_source(), original_quest_title, 40)
 
     report.ids = scanned_id_counts()

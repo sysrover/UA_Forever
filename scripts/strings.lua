@@ -371,26 +371,11 @@ local function capture_font_string(region, stats)
     if type(auto_scan.record_ui) == "function" then
         auto_scan.record_ui(normalized, false, frame_name)
     end
-
-    if #normalized > 1000 then normalized = normalized:sub(1, 1000) end
-    local scan = UA_ForeverDB and UA_ForeverDB.scan
-    if not scan then return end
-    scan.ui = scan.ui or {}
-
-    local record = scan.ui[normalized]
-    if not record then
-        record = { count = 0, frames = {} }
-        scan.ui[normalized] = record
+    stats.sources = stats.sources or {}
+    if not stats.sources[normalized] then
+        stats.sources[normalized] = true
         stats.new = stats.new + 1
-    end
-    record.count = (record.count or 0) + 1
-    record.frames = record.frames or {}
-    if #record.frames < 8 then
-        local exists = false
-        for _, value in ipairs(record.frames) do
-            if value == frame_name then exists = true break end
-        end
-        if not exists then record.frames[#record.frames + 1] = frame_name end
+        stats.unique = stats.unique + 1
     end
     stats.captured = stats.captured + 1
 end
@@ -591,10 +576,7 @@ strings.capture_visible_ui = function ()
     for _, frame in ipairs(visible_safe_roots()) do
         capture_frame(frame, seen, 1, stats, allows_protected_children(frame))
     end
-    -- Historical scan.ui entries are re-evaluated during export/catalog
-    -- refresh, not on every panel event. Gameplay capture is scoped to the
-    -- currently visible roots above.
-    stats.unique = stats.new
+    stats.sources = nil
     return stats
 end
 
@@ -602,5 +584,6 @@ strings.capture_frame = function (frame, allow_protected)
     local stats = { frames = 0, captured = 0, new = 0, unique = 0 }
     if not frame or not UA_ForeverDB or not UA_ForeverDB.scan then return stats end
     capture_frame(frame, {}, 1, stats, allow_protected == true)
+    stats.sources = nil
     return stats
 end

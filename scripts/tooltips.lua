@@ -17,6 +17,7 @@ local npc_adapter = addon_table.use("tooltip_npc_adapter")
 local quest_adapter = addon_table.use("tooltip_quest_adapter")
 local map_adapter = addon_table.use("tooltip_map_adapter")
 local spell_adapter = addon_table.use("tooltip_spell_adapter")
+local spell_client_db = addon_table.use("spell_client_db")
 local talent_adapter = addon_table.use("tooltip_talent_adapter")
 local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
 local hooks = addon_table.use("translation_hooks").bind("tooltips")
@@ -125,21 +126,6 @@ local function first_template_part(text)
     return text:match("^(.-)#") or text
 end
 
-local function resolve_item_placeholders(text)
-    if type(text) ~= "string" or not text:find("{bindLocation}", 1, true) then
-        return text
-    end
-    if type(_G.GetBindLocation) ~= "function" then return text end
-
-    local ok, bind_location = pcall(_G.GetBindLocation)
-    bind_location = ok and safe_string(bind_location) or nil
-    if not bind_location then return text end
-
-    local translated_location = addon_table.zone
-        and addon_table.zone[bind_location] or bind_location
-    return text:gsub("{bindLocation}", function () return translated_location end)
-end
-
 local function make_text(text, tooltip, source_line)
     if type(text) ~= "string" then
         return nil
@@ -147,7 +133,6 @@ local function make_text(text, tooltip, source_line)
 
     local ok, result = pcall(entries.make_entry_text, text, tooltip, nil, source_line)
     result = ok and result or first_template_part(text)
-    result = resolve_item_placeholders(result)
     if type(result) ~= "string" or result:find("{%d+}") then
         return nil
     end
@@ -662,7 +647,10 @@ local function process(tooltip, data, kind, native_rebuild)
     if should_auto_scan then
         local missing_entry = kind == "item"
             and not item_client_db.has_translation(id)
-            or kind ~= "item" and not entries.get_entry("spell", id)
+            or kind == "spell"
+                and not spell_client_db.has_spell_translation(id)
+            or kind == "aura"
+                and not spell_client_db.has_aura_translation(id)
         local capture_id = id
         if missing_entry or kind == "aura" then
             auto_scan.capture_tooltip(tooltip, kind, capture_id, missing_entry)
@@ -1411,8 +1399,12 @@ local function translate_generic_tooltip(tooltip)
         return
     end
 
-    if tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell"
-        or tooltip.uaForeverKind == "aura"
+    -- Item tooltips are fully owned by tooltip_item_adapter. Running the
+    -- generic UI-string pass here would rescan and overwrite cached item
+    -- claims on every Blizzard refresh.
+    if tooltip.uaForeverKind == "item" then return end
+
+    if tooltip.uaForeverKind == "spell" or tooltip.uaForeverKind == "aura"
         or tooltip.uaForeverKind == "npc"
         or tooltip.uaForeverKind == "quest" then
         rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2)
@@ -1786,7 +1778,7 @@ after_aura_tooltip_rendered = function (tooltip, aura_data)
     if options.account and options.account.auto_scan_content and metadata_ok then
         local capture_id = observed_spell_id or safe_number(tooltip_id)
         local missing_entry = capture_id
-            and not entries.get_entry("spell", capture_id) or nil
+            and not spell_client_db.has_aura_translation(capture_id) or nil
         pcall(auto_scan.capture_tooltip, tooltip, "aura",
             capture_id, missing_entry)
     end
@@ -1811,7 +1803,6 @@ tooltip_diagnostics.install(tooltips, {
     each_shopping_tooltip = each_shopping_tooltip,
     is_shopping_tooltip = is_shopping_tooltip,
     public_frame_name = public_frame_name,
-    entries = entries,
     visible_tooltip_font_strings = visible_tooltip_font_strings,
     MAX_TOOLTIP_LINES = MAX_TOOLTIP_LINES,
     minimap_tooltip_owner = minimap_tooltip_owner,
@@ -2321,6 +2312,13 @@ tooltips.prepare = function ()
     if types.Object then
         TooltipDataProcessor.AddTooltipPostCall(types.Object, function (tooltip, data)
             safe_process(tooltip, data, "object")
+            -- Build 70058 can clear and rebuild a world-object tooltip while
+            -- GameTooltip stays shown. Its Left1 SetText hook then runs before
+            -- the Object post-call and schedules work against the previous
+            -- generation. Schedule again here, after process() has established
+            -- the current object session, so the final visible rebuild keeps
+            -- its translation on repeated mouseover.
+            schedule_tooltip_finalize(tooltip)
         end)
     end
     if types.MinimapMouseover then
