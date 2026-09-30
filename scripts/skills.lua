@@ -193,26 +193,9 @@ local function translate_element(frame, seen, depth, category, max_depth)
 end
 
 local function spellbook_item_spell_id(info)
-    if type(info) ~= "table" then return nil end
-    local action_id = info.actionID
-    local pet_action = Enum and Enum.SpellBookItemType
-        and info.itemType == Enum.SpellBookItemType.PetAction
-    if pet_action then
-        if type(action_id) ~= "number" or is_secret(action_id)
-            or not C_PetInfo
-            or type(C_PetInfo.GetSpellForPetAction) ~= "function" then return nil end
-
-        local ok, resolved_id = pcall(C_PetInfo.GetSpellForPetAction, action_id)
-        if ok and type(resolved_id) == "number" and not is_secret(resolved_id) then
-            return resolved_id
-        end
-        return nil
-    end
-
-    local spell_id = info.spellID
-    if type(spell_id) == "number" and not is_secret(spell_id) then
-        return spell_id
-    end
+    local spell_id = client_db.resolve_spellbook_item_id(info,
+        type(info) == "table" and info.name or nil)
+    return spell_id
 end
 
 local function spellbook_item_is_pet_action(info)
@@ -228,18 +211,11 @@ end
 
 local function translate_spellbook_item(frame)
     local info = frame and frame.spellBookItemInfo
-    local text
-    if spellbook_item_is_pet_action(info) then
-        -- Pet commands and stances are GlobalStrings, not regular spells.
-        -- Their spellID/actionID fields can contain small service values such
-        -- as 1, 3 and 4, which are unrelated rows in SpellName.db2. Prefer
-        -- the native build label (Attack, Stay, Move To, Passive, etc.) and
-        -- use the spell database only for real pet abilities such as Growl.
-        local native_name = info.name
-        if type(native_name) == "string" and not is_secret(native_name) then
-            text = strings.find_ui_translation(native_name, frame.Name)
-        end
-    end
+    local native_name = type(info) == "table" and info.name or nil
+    local known_pet_action = spellbook_item_is_pet_action(info)
+        and type(native_name) == "string" and not is_secret(native_name)
+        and surface_text.pet_actions[native_name] or nil
+    local text = known_pet_action
     if not text then
         local spell_id = spellbook_item_spell_id(info)
         text = spell_id and client_db.get_name(spell_id)
@@ -247,7 +223,16 @@ local function translate_spellbook_item(frame)
     if text and options.translate_name("skill") then
         apply_skill_text(frame.Name, text, "skill", "skill.name")
     end
-    strings.translate_region(frame and frame.SubName)
+    local sub_name = type(info) == "table" and info.subName or nil
+    local pet_sub_name = spellbook_item_is_pet_action(info)
+        and type(sub_name) == "string" and not is_secret(sub_name)
+        and surface_text.pet_actions[sub_name] or nil
+    if pet_sub_name then
+        apply_skill_text(frame.SubName, pet_sub_name, nil,
+            "pet-action.subtext")
+    else
+        strings.translate_region(frame and frame.SubName)
+    end
     strings.translate_region(frame and frame.RequiredLevel)
     -- Blizzard sizes the text container before UA Forever replaces the native
     -- name. Recalculate it from the database-backed Ukrainian text so the

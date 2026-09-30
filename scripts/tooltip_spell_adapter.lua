@@ -5,6 +5,8 @@ local options = addon_table.use("options")
 local client_db = addon_table.use("spell_client_db")
 local renderer = addon_table.use("spell_template_renderer")
 local adapter = addon_table.use("tooltip_spell_adapter")
+local pet_actions = assert(addon_table.forever_surface_ui,
+    "UA Forever surface UI catalog is not loaded").skills.pet_actions
 local dependencies
 
 adapter.configure = function (value)
@@ -58,23 +60,25 @@ adapter.resolve_structured_spell_id = function (tooltip, data)
 
     local info = owner_spellbook_item_info(tooltip)
     if info then
+        local expected_name
+        if type(data.lines) == "table" then
+            for _, line_data in ipairs(data.lines) do
+                if type(line_data) == "table"
+                    and contract.safe_number(line_data.type) == SPELL_NAME then
+                    expected_name = contract.safe_string(line_data.leftText)
+                    if expected_name then break end
+                end
+            end
+        end
         local item_type = contract.safe_number(info.itemType)
         local pet_action_type = Enum and Enum.SpellBookItemType
             and Enum.SpellBookItemType.PetAction
-        if item_type and pet_action_type and item_type == pet_action_type then
-            local action_id = contract.safe_number(info.actionID)
-            if action_id and _G.C_PetInfo
-                and type(_G.C_PetInfo.GetSpellForPetAction) == "function" then
-                local ok, spell_id = pcall(
-                    _G.C_PetInfo.GetSpellForPetAction, action_id)
-                spell_id = ok and contract.safe_number(spell_id) or nil
-                return spell_id, true
-            end
+        local native_name = expected_name or contract.safe_string(info.name)
+        if item_type and pet_action_type and item_type == pet_action_type
+            and native_name and pet_actions[native_name] then
             return nil, true
         end
-
-        local spell_id = contract.safe_number(info.spellID)
-        if spell_id then return spell_id, false end
+        return client_db.resolve_spellbook_item_id(info, expected_name)
     end
 
     return contract.safe_number(data.spellID)
@@ -155,6 +159,51 @@ adapter.add_structured_spell = function (tooltip, data)
         translated_name ~= nil or ukrainian_raw ~= nil)
     if not translated_name and not ukrainian_raw then
         dev_log.missing_spell(spell_id, native_name or tostring(spell_id))
+    end
+    if options.can_translate("translate_spell") and max_line_index > 0 then
+        applied = contract.rewrite_generic(
+            tooltip, max_line_index, 1, nil, nil, nil, service_indexes
+        ) > 0 or applied
+    end
+    return applied
+end
+
+adapter.add_structured_pet_action = function (tooltip, data)
+    local contract = deps()
+    if not tooltip or type(data) ~= "table" or type(data.lines) ~= "table"
+        or not options.can_lookup("translate_spell") then return false end
+
+    local applied = false
+    local max_line_index = 0
+    local service_indexes = {}
+    tooltip.uaForeverReservedFirst = 2
+    for _, line_data in ipairs(data.lines) do
+        if type(line_data) == "table" then
+            local line_type = contract.safe_number(line_data.type)
+            local line_index = contract.safe_number(line_data.lineIndex)
+            local source = contract.safe_string(line_data.leftText)
+            if line_index then
+                max_line_index = math.max(max_line_index, line_index)
+                applied = translate_right_service(contract, tooltip, line_data,
+                    line_index, "pet-action.service-right:") or applied
+                local region = contract.line_region(tooltip, "Left", line_index)
+                local translated = source and pet_actions[source]
+                if region and translated then
+                    local slot = line_type == SPELL_NAME
+                        and "pet-action.name"
+                        or line_type == SPELL_DESCRIPTION
+                            and "pet-action.description:" .. line_index
+                            or "pet-action.text:" .. line_index
+                    applied = contract.set_translation(
+                        tooltip, region, source, translated, slot, nil,
+                        "pet-action-tooltip", "surface"
+                    ) or applied
+                elseif line_type ~= SPELL_NAME
+                    and line_type ~= SPELL_DESCRIPTION then
+                    service_indexes[line_index] = true
+                end
+            end
+        end
     end
     if options.can_translate("translate_spell") and max_line_index > 0 then
         applied = contract.rewrite_generic(
