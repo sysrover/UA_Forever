@@ -543,7 +543,7 @@ end
 local function process(tooltip, data, kind, native_rebuild)
     if not tooltip or is_secret(data) or not data then return end
 
-    local id
+    local id, is_pet_action
     if kind == "npc" then
         id = safe_number(data.uaForeverID) or id_from_guid(data.guid)
         if not id and tooltip.GetUnit then
@@ -554,7 +554,7 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "object" then
         id = safe_number(data.uaForeverID) or id_from_guid(data.guid, true) or safe_number(data.id)
     elseif kind == "spell" then
-        id = spell_adapter.resolve_structured_spell_id(tooltip, data)
+        id, is_pet_action = spell_adapter.resolve_structured_spell_id(tooltip, data)
     elseif kind == "aura" then
         -- Only public IDs already present in Blizzard's structured aura data
         -- may identify an aura. ShowAuraTooltip receives AuraData.spellId,
@@ -582,6 +582,15 @@ local function process(tooltip, data, kind, native_rebuild)
         return translated
     end
     if not id then
+        if kind == "spell" and is_pet_action then
+            begin_tooltip(tooltip, "pet-action")
+            tooltip.uaForeverKind = "spell"
+            local translated = spell_adapter.add_structured_pet_action(
+                tooltip, data)
+            scheduler.cancel("tooltip:" .. tostring(tooltip))
+            scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+            return translated
+        end
         if kind == "object" then
             if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
             tooltip.uaForeverKind = "object"
@@ -2131,6 +2140,14 @@ local function prepare_ptr_feedback_hook()
         function (tooltip)
             if not tooltip or tooltip.uaForeverShowOriginal
                 or not options.can_translate() then return end
+            -- Build 70058 appends every talent rank through GetTraitEntry and
+            -- the PTR reporter checks its still-English partial text to avoid
+            -- adding the same F6 line again. Translating that line here makes
+            -- Blizzard's following rank pass miss its own duplicate. Leave it
+            -- intact while the talent tooltip is assembled; the final
+            -- TalentDisplay.TooltipCreated adapter translates the single line.
+            if tooltip.uaForeverKind == "talent"
+                or talent_adapter.is_processing_trait(tooltip) then return end
             local count_ok, count = pcall(tooltip.NumLines, tooltip)
             count = count_ok and safe_number(count) or nil
             if not count or count < 1 then return end
@@ -2322,6 +2339,12 @@ tooltips.prepare = function ()
                 safe_process(tooltip, data, "spell", true)
             end
         end)
+    end
+    if types.PetAction then
+        TooltipDataProcessor.AddTooltipPostCall(types.PetAction,
+            function (tooltip, data)
+                safe_process(tooltip, data, "spell", true)
+            end)
     end
     if types.UnitAura then
         TooltipDataProcessor.AddTooltipPostCall(types.UnitAura,
