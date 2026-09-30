@@ -309,15 +309,26 @@ local function translate_player_cast_bar(frame)
     local source = text_from(region)
     if not source then return end
     local cast_status = source == "Channeling"
-    local translated = cast_status and addon_table.forever_ui[source]
-        or entries.lookup_name("spell", source)
+    local translated
+    if cast_status then
+        translated = addon_table.forever_ui[source]
+    else
+        local id_ok, spell_id = pcall(function () return frame.spellID end)
+        spell_id = id_ok and not is_secret(spell_id)
+            and type(spell_id) == "number" and spell_id > 0 and spell_id or nil
+        local native_name = spell_id and client_db.get_english_name(spell_id)
+        if native_name == source then
+            translated = client_db.get_name(spell_id)
+        end
+        translated = translated or entries.lookup_name("spell", source)
+    end
     if not translated or translated == source then return end
     runtime.apply(region, {
         owner = "player-cast-bar", slot = cast_status and "cast.status" or "spell.name",
         source = source, translated = utils.cap(translated),
         category = not cast_status and "spell" or nil,
         option = "translate_spell", priority = runtime.PRIORITY.DOMAIN,
-        combat_cast_bar_text = true,
+        combat_text_only = true,
     })
 end
 
