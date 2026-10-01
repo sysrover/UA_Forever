@@ -605,6 +605,269 @@ diagnostics.install = function (tooltips, api)
         }
     end
     
+    local function diagnostic_has_method(object, method)
+        local ok, value = pcall(function () return object and object[method] end)
+        return ok and type(value) == "function"
+    end
+
+    -- Snapshot the outer panel under the pointer, never refresh or alter its UI.
+    tooltips.capture_panel = function (save)
+        local report = {
+            version = 1, status = "no_panel", roots = {}, objects = {},
+            itemBuild = diagnostic_scalar(item_client_db.source_build),
+            spellBuild = diagnostic_scalar(spell_client_db.source_build),
+            skillLineBuild = diagnostic_field(addon_table.client_skill_lines_uk,
+                "sourceBuild"),
+            limits = { objects = 6000, depth = 24, dataDepth = 3, dataFields = 64 },
+        }
+        if type(_G.GetBuildInfo) == "function" then
+            local ok, version, build = pcall(_G.GetBuildInfo)
+            if ok then
+                report.clientVersion = diagnostic_scalar(version)
+                report.clientBuild = diagnostic_scalar(build)
+            end
+        end
+
+        local function public_field(object, key)
+            if not object or is_secret(object) then return nil end
+            local ok, value = pcall(function () return object[key] end)
+            return ok and not is_secret(value) and value or nil
+        end
+
+        -- Do not serialize frame references, functions, metatables or secret values.
+        local function public_data(value, depth, seen_data)
+            if is_secret(value) then return nil end
+            local scalar = diagnostic_scalar(value)
+            if scalar ~= nil then return scalar end
+            if type(value) ~= "table" then return nil end
+            if public_field(value, "GetObjectType") then return nil end
+            if depth >= 3 or seen_data[value] then
+                return { truncated = true }
+            end
+            seen_data[value] = true
+            local result, count = {}, 0
+            local ok = pcall(function ()
+                for key, item in pairs(value) do
+                    count = count + 1
+                    if count > 64 then result.truncated = true; break end
+                    local safe_key = diagnostic_scalar(key)
+                    if type(safe_key) == "string" or type(safe_key) == "number" then
+                        result[safe_key] = public_data(item, depth + 1, seen_data)
+                    end
+                end
+            end)
+            seen_data[value] = nil
+            if not ok then result.unreadable = true end
+            return result
+        end
+
+        local function panel_root(focus)
+            if not focus or is_secret(focus) then return nil end
+            if focus == _G.UIParent or focus == _G.WorldFrame then return nil end
+            local visited, current, selected = {}, focus, nil
+            for _ = 1, 40 do
+                if not current or is_secret(current) or visited[current] then break end
+                if current == _G.UIParent or current == _G.WorldFrame then break end
+                if public_object_value(current, "IsForbidden") == true then return nil end
+                visited[current] = true
+                if public_object_value(current, "IsVisible") == true then
+                    selected = current
+                end
+                local parent = public_object_value(current, "GetParent")
+                if parent == _G.UIParent or parent == _G.WorldFrame then
+                    return selected
+                end
+                current = parent
+            end
+            return selected
+        end
+
+        local function is_tooltip_focus(focus)
+            return public_object_value(focus, "GetObjectType") == "GameTooltip"
+                or focus == _G.GameTooltip
+        end
+
+        local function skill_lookup(id)
+            id = safe_number(id)
+            if not id or id <= 0 then return nil end
+            local ok_en, english = pcall(item_client_db.get_english_skill_line, id)
+            local ok_uk, ukrainian = pcall(item_client_db.get_skill_line, id)
+            return {
+                id = id, english = ok_en and safe_string(english) or nil,
+                ukrainian = ok_uk and safe_string(ukrainian) or nil,
+                lookupOK = ok_en and ok_uk,
+            }
+        end
+
+        local function id_lookups(data)
+            if type(data) ~= "table" then return nil end
+            local result = {}
+            for _, key in ipairs({ "skillLine", "skillLineID", "professionID",
+                "parentProfessionID" }) do
+                result[key] = skill_lookup(diagnostic_field(data, key))
+            end
+            for _, route in ipairs({
+                { "spellID", spell_client_db }, { "recipeID", spell_client_db },
+                { "itemID", item_client_db }, { "outputItemID", item_client_db },
+            }) do
+                local key, db = route[1], route[2]
+                local id = safe_number(diagnostic_field(data, key))
+                if id and id > 0 then
+                    local ok_en, english = pcall(db.get_english_name, id)
+                    local ok_uk, ukrainian = pcall(db.get_name, id)
+                    result[key] = { id = id,
+                        english = ok_en and safe_string(english) or nil,
+                        ukrainian = ok_uk and safe_string(ukrainian) or nil,
+                        lookupOK = ok_en and ok_uk }
+                end
+            end
+            return next(result) and result or nil
+        end
+
+        local function profession_info(info)
+            if type(info) ~= "table" or is_secret(info) then return nil end
+            local result = {}
+            for _, key in ipairs({ "professionID", "parentProfessionID",
+                "professionName", "parentProfessionName", "displayName",
+                "skillLevel", "maxSkillLevel", "skillModifier", "expansionName" }) do
+                result[key] = diagnostic_field(info, key)
+            end
+            result.skillLine = skill_lookup(result.professionID)
+            result.parentSkillLine = skill_lookup(result.parentProfessionID)
+            return result
+        end
+
+        local seen = {}
+        local function visit(object, path, parent_id, depth)
+            if not object or is_secret(object) or seen[object] then return end
+            if #report.objects >= 6000 then report.truncated = true; return end
+            if public_object_value(object, "IsForbidden") == true then
+                report.skippedForbidden = (report.skippedForbidden or 0) + 1
+                return
+            end
+            local row = {
+                id = #report.objects + 1, parent = parent_id, path = path,
+                name = object_label(object),
+                kind = public_object_value(object, "GetObjectType"),
+                shown = public_object_value(object, "IsShown") == true,
+                visible = public_object_value(object, "IsVisible") == true,
+                widgetID = diagnostic_scalar(public_object_value(object, "GetID")),
+            }
+            seen[object] = row.id
+            report.objects[row.id] = row
+            for _, key in ipairs({ "skillLine", "skillName", "spellOffset",
+                "spellOffsetIndex", "specializationIndex", "specializationOffset",
+                "tooltipText", "professionInitialized", "ownerManagesEvents",
+                "spellID", "itemID", "recipeID", "categoryID", "questID",
+                "skillLineID", "professionID", "parentProfessionID", "unit",
+                "entryID", "nodeID", "isHeader", "isSelected", "isCollapsed" }) do
+                row[key] = diagnostic_field(object, key)
+            end
+            for _, measure in ipairs({ "GetLeft", "GetTop", "GetWidth", "GetHeight" }) do
+                row[measure] = safe_number(public_object_value(object, measure))
+            end
+            row.protected = public_object_value(object, "IsProtected") == true
+            row.texture = diagnostic_scalar(public_object_value(object, "GetTexture"))
+            row.atlas = diagnostic_scalar(public_object_value(object, "GetAtlas"))
+            row.skillLineLookup = skill_lookup(row.skillLine or row.skillLineID
+                or row.professionID)
+            row.professionInfo = profession_info(public_field(object, "professionInfo"))
+            row.data = {}
+            for _, key in ipairs({ "data", "info", "elementData", "recipeInfo",
+                "recipeSchematic", "categoryInfo", "categoryData", "skillInfo",
+                "skillLineInfo", "questInfo" }) do
+                row.data[key] = public_data(public_field(object, key), 0, {})
+            end
+            if diagnostic_has_method(object, "GetElementData") then
+                row.data.GetElementData = public_data(
+                    public_object_value(object, "GetElementData"), 0, {})
+            end
+            row.idLookups = id_lookups(row)
+            row.dataLookups = {}
+            for key, data in pairs(row.data) do
+                row.dataLookups[key] = id_lookups(data)
+            end
+            if row.skillLine and C_TradeSkillUI
+                and type(C_TradeSkillUI.GetProfessionInfoBySkillLineID) == "function" then
+                local ok, info = pcall(C_TradeSkillUI.GetProfessionInfoBySkillLineID,
+                    row.skillLine)
+                row.professionInfoAPI = { ok = ok,
+                    info = ok and profession_info(info) or nil }
+            end
+            if diagnostic_has_method(object, "GetText") then
+                row.text = diagnostic_region(object, path)
+            end
+            if depth >= 24 then report.truncated = true; return end
+            for index, region in ipairs(object_list(object, "GetRegions")) do
+                visit(region, path .. "/region:" .. index, row.id, depth + 1)
+            end
+            for index, child in ipairs(object_list(object, "GetChildren")) do
+                visit(child, path .. "/child:" .. index, row.id, depth + 1)
+            end
+        end
+
+        local foci = {}
+        if type(_G.GetMouseFoci) == "function" then
+            local ok, values = pcall(_G.GetMouseFoci)
+            if ok and not is_secret(values) and type(values) == "table" then
+                foci = values
+            end
+        end
+        if #foci == 0 and type(_G.GetMouseFocus) == "function" then
+            local ok, focus = pcall(_G.GetMouseFocus)
+            if ok and not is_secret(focus) then foci = { focus } end
+        end
+        local root
+        for _, focus in ipairs(foci) do
+            if not is_secret(focus) then
+                local candidate = panel_root(focus)
+                if is_tooltip_focus(candidate) then
+                    candidate = panel_root(public_object_value(candidate, "GetOwner"))
+                end
+                if candidate then
+                    root = candidate
+                    report.mouseFocus = object_label(focus)
+                    break
+                end
+            end
+        end
+        if root then
+            report.status = "captured"
+            report.root = object_label(root)
+            report.roots[1] = { name = report.root, shown = true,
+                visible = public_object_value(root, "IsVisible") == true }
+            visit(root, report.root, nil, 0)
+        end
+        local profession_frame = _G.ProfessionsFrame
+        local profession_book = _G.ProfessionsBookFrame
+        if (seen[profession_frame] or seen[profession_book])
+            and Professions and type(Professions.GetProfessionInfo) == "function" then
+            local ok, info = pcall(Professions.GetProfessionInfo)
+            report.currentProfession = { ok = ok,
+                info = ok and profession_info(info) or nil }
+        end
+        local tooltip = _G.GameTooltip
+        local owner = tooltip and public_object_value(tooltip, "GetOwner")
+        report.tooltipOwner = owner and object_label(owner) or nil
+        report.tooltipOwnerSkillLine = skill_lookup(diagnostic_field(owner, "skillLine"))
+        if type(tooltips.capture_visible_tooltips) == "function" then
+            report.tooltips = tooltips.capture_visible_tooltips(false)
+        end
+        if save ~= false and UA_ForeverDB then
+            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+            local history = UA_ForeverDB.scan.panelProbe
+            if type(history) ~= "table" or type(history.snapshots) ~= "table" then
+                history = { version = 1, snapshots = {}, totalCaptures = 0 }
+                UA_ForeverDB.scan.panelProbe = history
+            end
+            history.totalCaptures = (tonumber(history.totalCaptures) or 0) + 1
+            report.sequence = history.totalCaptures
+            history.snapshots[#history.snapshots + 1] = report
+            if #history.snapshots > 12 then table.remove(history.snapshots, 1) end
+        end
+        return report
+    end
+
     local function diagnostic_method(tooltip, method, fields)
         local ok_method, callback = pcall(function () return tooltip[method] end)
         if not ok_method or type(callback) ~= "function" then return nil end
@@ -615,11 +878,6 @@ diagnostics.install = function (tooltips, api)
             result[field] = diagnostic_scalar(values[index])
         end
         return result
-    end
-    
-    local function diagnostic_has_method(object, method)
-        local ok, value = pcall(function () return object and object[method] end)
-        return ok and type(value) == "function"
     end
     
     local function diagnostic_target_aura_children()
