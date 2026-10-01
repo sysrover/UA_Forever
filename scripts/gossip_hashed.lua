@@ -169,6 +169,28 @@ local function compile_template(text, actor, row, id, choices)
         literals = signature(literal_text, actor) }
 end
 
+local common_scope = "!common"
+
+local function add_scoped(target, row, key, candidate)
+    local scopes = row.npcs or {}
+    if #scopes == 0 then scopes = { common_scope } end
+    local added = {}
+    for _, scope in ipairs(scopes) do
+        if not added[scope] then
+            target[scope] = target[scope] or {}
+            local bucket = target[scope][key] or {}
+            bucket[#bucket + 1] = candidate
+            target[scope][key] = bucket
+            added[scope] = true
+        end
+    end
+end
+
+local function scoped_bucket(target, scope, key)
+    local scoped = target[scope]
+    return scoped and scoped[key] or nil
+end
+
 local function rebuild(actor)
     index, anchors, identities, source_templates = {}, {}, {}, {}
     local database = addon_table.gossip_hashed
@@ -178,18 +200,16 @@ local function rebuild(actor)
         if type(row) ~= "table" then return end
         for _, identity in ipairs(row.identities or {}) do
             local key = utils.string_hash(identity.kind .. "\031" .. tostring(identity.value))
-            identities[key] = identities[key] or {}
-            identities[key][#identities[key] + 1] = { row = row, id = id, identity = identity }
+            add_scoped(identities, row, key, { row = row, id = id, identity = identity })
         end
         if type(row) == "table" and safe_string(row.text) and type(row.english) == "table" then
             for _, english in ipairs(row.english) do
                 for _, variant in ipairs(conditional_variants(english, actor.sex)) do
                     local template = source_template(variant.text)
                     local template_hash = utils.string_hash(template)
-                    source_templates[template_hash] = source_templates[template_hash] or {}
-                    source_templates[template_hash][#source_templates[template_hash] + 1] = {
+                    add_scoped(source_templates, row, template_hash, {
                         row = row, id = id, template = template, raw_source = exact_text(variant.text),
-                    }
+                    })
                     local candidate = compile_template(variant.text, actor, row, id, variant.choices)
                     if candidate then
                         compiled[#compiled + 1] = candidate
@@ -208,7 +228,7 @@ local function rebuild(actor)
     end
     for _, candidate in ipairs(compiled) do
         local hash = utils.string_hash(candidate.signature)
-        index[hash] = index[hash] or {}; index[hash][#index[hash] + 1] = candidate
+        add_scoped(index, candidate.row, hash, candidate)
         -- Rare literal anchors cover formatted duration captures and harmless numeric formatting.
         if #candidate.tokens > 0 then
             local anchor
@@ -217,8 +237,7 @@ local function rebuild(actor)
             end
             if anchor then
                 local anchor_hash = utils.string_hash(anchor)
-                anchors[anchor_hash] = anchors[anchor_hash] or {}
-                anchors[anchor_hash][#anchors[anchor_hash] + 1] = candidate
+                add_scoped(anchors, candidate.row, anchor_hash, candidate)
             end
         end
     end
@@ -252,11 +271,9 @@ local function find_identity(npc_id, source, role, actor, raw_translation)
     local function query(kind, value, scope)
         local key = utils.string_hash(kind .. "\031" .. tostring(value))
         local best, best_id, best_priority, ambiguous
-        for _, candidate in ipairs(identities[key] or {}) do
+        for _, candidate in ipairs(scoped_bucket(identities, scope or common_scope, key) or {}) do
             local row, identity = candidate.row, candidate.identity
-            local scoped = not scope and #(row.npcs or {}) == 0
-            for _, id in ipairs(row.npcs or {}) do if id == scope then scoped = true; break end end
-            if scoped and identity.kind == kind and identity.value == value
+            if identity.kind == kind and identity.value == value
                 and (not role or (row.roles and row.roles[role])) then
                 local translated = raw_translation and row.text
                     or substitute(row.text, actor, { choices = {} }, {})
@@ -306,23 +323,28 @@ lookup.find = function(npc_id, source, role, raw_translation)
     local actor = lookup.prepare()
     local normalized = signature(source, actor)
     local candidates, seen = {}, {}
-    local function add(bucket)
+    local function add(bucket, rank)
         for _, candidate in ipairs(bucket or {}) do
-            if not seen[candidate] then candidates[#candidates + 1] = candidate; seen[candidate] = true end
+            if not seen[candidate] then candidates[#candidates + 1] = candidate; seen[candidate] = rank end
         end
     end
-    add(index[utils.string_hash(normalized)])
-    for word in normalized:gmatch("%S+") do add(anchors[utils.string_hash(word)]) end
+    local scope = tonumber(npc_id)
+    local hash = utils.string_hash(normalized)
+    local words = {}
+    for word in normalized:gmatch("%S+") do words[#words + 1] = utils.string_hash(word) end
+    for _, entry in ipairs({ { scope or false, 4 }, { common_scope, 2 } }) do
+        add(scoped_bucket(index, entry[1], hash), entry[2])
+        for _, word_hash in ipairs(words) do
+            add(scoped_bucket(anchors, entry[1], word_hash), entry[2])
+        end
+    end
     local rendered_source = canonical(source)
     local raw_source = exact_text(source)
     local best, best_rank, best_id, ambiguous
     for _, candidate in ipairs(candidates) do
         local row = candidate.row
         if not role or (row.roles and row.roles[role]) then
-            local scoped = false
-            for _, id in ipairs(row.npcs or {}) do if id == tonumber(npc_id) then scoped = true; break end end
-            -- Text-only matching remains available for records whose server links are absent.
-            local rank = scoped and 4 or (#(row.npcs or {}) == 0 and 2 or nil)
+            local rank = seen[candidate]
             if rank then
                 rank = rank + (row.priority or 2) * 100
                 if candidate.raw_source == raw_source then rank = rank + 1 end
@@ -362,12 +384,18 @@ lookup.find_source = function(npc_id, source, role)
     lookup.prepare()
     local template, raw_source = source_template(source), exact_text(source)
     local best, best_id, best_rank, ambiguous
-    for _, candidate in ipairs(source_templates[utils.string_hash(template)] or {}) do
+    local candidates = {}
+    local hash = utils.string_hash(template)
+    for _, entry in ipairs({ { tonumber(npc_id) or false, 4 }, { common_scope, 2 } }) do
+        for _, candidate in ipairs(scoped_bucket(source_templates, entry[1], hash) or {}) do
+            candidates[#candidates + 1] = { candidate = candidate, rank = entry[2] }
+        end
+    end
+    for _, entry in ipairs(candidates) do
+        local candidate = entry.candidate
         local row = candidate.row
         if candidate.template == template and (not role or (row.roles and row.roles[role])) then
-            local scoped = false
-            for _, id in ipairs(row.npcs or {}) do if id == tonumber(npc_id) then scoped = true; break end end
-            local rank = scoped and 4 or (#(row.npcs or {}) == 0 and 2 or nil)
+            local rank = entry.rank
             if rank then
                 rank = rank + (row.priority or 2) * 100
                     + (candidate.raw_source == raw_source and 1 or 0)
