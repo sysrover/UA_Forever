@@ -363,6 +363,17 @@ local function fit_profession_output_text(region)
     return true
 end
 
+local function fit_profession_requirement_text(region)
+    if not runtime.can_write_text(region) then return false end
+    if type(_G.InCombatLockdown) == "function" then
+        local ok, in_combat = pcall(_G.InCombatLockdown)
+        if not ok or is_secret(in_combat) or in_combat then return false end
+    end
+    -- RequiredTools uses the same SetTextToFit helper as the recipe output in
+    -- client 70124. Recalculate after translation, not from the native width.
+    return fit_profession_output_text(region)
+end
+
 local function fit_quest_map_button_group(button)
     local quest_map = _G.QuestMapFrame
     local details = quest_map and (quest_map.DetailsFrame
@@ -493,5 +504,6 @@ layout.fit_bag_tooltip_width = fit_bag_tooltip_width
 layout.fit_tooltip_snapshot = fit_tooltip_snapshot
 layout.fit_profession_recipe_label = fit_profession_recipe_label
 layout.fit_profession_output_text = fit_profession_output_text
+layout.fit_profession_requirement_text = fit_profession_requirement_text
 layout.fit_auction_tab = fit_auction_tab
 layout.fit_button_to_text = fit_button_to_text

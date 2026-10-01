@@ -113,6 +113,7 @@ end
 local technical_scan_fields = {
     "ui", "ids", "menus", "mouseProbe", "tooltipProbe", "auraProbe",
     "windowProbe", "fullObjectScan", "mapTextureProbe", "auraCapture",
+    "panelProbe", "panelProbeError",
 }
 
 local function diagnostics_enabled()

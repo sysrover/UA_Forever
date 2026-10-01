@@ -1,10 +1,10 @@
 -- Consolidated Ukrainian spell descriptions for the exact client build.
 -- Includes safe token-aware imports from ClassicUA.
--- Client build: 1.60.1.70009; source: Spell.db2:Description_lang
+-- Client build: 1.60.1.70124; source: Spell.db2:Description_lang
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70009",
+    sourceBuild = "1.60.1.70124",
     count = 17585,
     rows = {
         [5] = "Миттєво вбиває ціль.  Сподіваюся, тепер ти задоволений собою.....",

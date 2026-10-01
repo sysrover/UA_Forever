@@ -319,8 +319,18 @@ local function translate_enchant_slot(slot)
     end
 end
 
-local function requirement_name(name)
+local function requirement_name(name, requirement_type)
     if type(name) ~= "string" or is_secret(name) then return nil end
+    local types = Enum and Enum.RecipeRequirementType
+    -- The client supplies name/type/met, not an item or object ID. Keep the
+    -- exact native name in its own domain rather than treating tools as UI.
+    local translated
+    if types and requirement_type == types.SpellFocus then
+        translated = addon_table.object and addon_table.object[name]
+    elseif types and requirement_type == types.Totem then
+        translated = item_db.get_name_by_english(name)
+    end
+    if type(translated) == "string" and translated ~= "" then return translated end
     return surface_text.requirement_names[name]
         or strings.find_ui_translation(name)
 end
@@ -341,11 +351,12 @@ local function translate_requirements(form)
     end
     local parts = {}
     for _, requirement in ipairs(requirements) do
+        if is_secret(requirement) then return end
         local fields_ok, name, requirement_type, met = pcall(function ()
             return requirement.name, requirement.type, requirement.met
         end)
         if not fields_ok or is_secret(requirement_type) then return end
-        local translated = requirement_name(name)
+        local translated = requirement_name(name, requirement_type)
         local link_type = names[requirement_type]
         if not translated or not link_type then return end
         local part = "|H" .. link_type .. "|h" .. translated .. "|h"
@@ -356,8 +367,10 @@ local function translate_requirements(form)
     end
     if #parts == 0 then return end
     local region = form.isRecraft and form.RecraftingRequiredTools or form.RequiredTools
-    apply(region, surface_text.requirements(table.concat(parts, ", ")),
-        "profession.required-tools")
+    if apply(region, surface_text.requirements(table.concat(parts, ", ")),
+        "profession.required-tools") then
+        layout.fit_profession_requirement_text(region)
+    end
 end
 
 local function translate_form(form)

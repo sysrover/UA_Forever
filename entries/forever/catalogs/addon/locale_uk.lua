@@ -6,6 +6,14 @@ local _, addonTable = ...
 addonTable.addon_locale_uk = {
     chat_style_replacement = "Заміна",
     chat_style_addition = "Доповнення",
+    panel_probe = {
+        error = "Probe панелі завершився помилкою; її записано в SavedVariables",
+        summary = "Probe панелі: %s; об'єктів %d; знімок %d%s",
+        truncated = "; знімок обрізано",
+        saved = "Зробіть /reload; результат: UA_ForeverDB.scan.panelProbe",
+        delayed = "Probe панелі через %.1f с — наведіть курсор на потрібну панель",
+        help = "; /uaf panel [секунди]",
+    },
     settings = {
         form_title = "Форма для надсилання даних",
         form_help = "Скопіюйте адресу, відкрийте її в браузері та вставте зібрані дані у форму.",

@@ -1,10 +1,10 @@
 -- Ukrainian aura descriptions with incomplete English rows separated.
 -- Preserve every spellID and WoW $ token when editing this file.
--- Client build: 1.60.1.70009; source: Spell.db2:AuraDescription_lang
+-- Client build: 1.60.1.70124; source: Spell.db2:AuraDescription_lang
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70009",
+    sourceBuild = "1.60.1.70124",
     count = 7740,
     rows = {
         [10] = "$1279976s1 шкоди від криги кожні $t3 $lsecond:seconds;.",
@@ -7577,7 +7577,7 @@ local database = {
         [1309380] = "$?j1g[Збільшує наземну швидкість на $j1g%.][]",
         [1309381] = "$?j1g[Збільшує наземну швидкість на $j1g%.][]",
         [1309405] = "$?j1g[Збільшує наземну швидкість на $j1g%.][]",
-        [1309410] = "Освітлено смолоскипом Нічного вартового.\r\n\r\nЕфект завершиться, якщо ви вступите в бій.",
+        [1309410] = "Тримає смолоскип Нічного вартового.\r\n\r\nЕфект завершиться, якщо ви вступите в бій.",
         [1309549] = "Ви має $s1% імовірність до опиратися Страх.",
         [1309551] = "шкода від вогню отримано збільшено на $w1%.\r\nШвидкість руху збільшено на $w2%.",
         [1309718] = "Оглушення.",

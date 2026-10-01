@@ -1,5 +1,7 @@
 local addon_name, addon_table = ...
 local addon_version = "0.13.2-beta"
+local panel_probe_text = assert(addon_table.addon_locale_uk,
+    "UA Forever addon locale is not loaded").panel_probe
 
 local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
@@ -710,6 +712,30 @@ local function register_slash_command()
             else
                 capture_window()
             end
+        elseif command == "panel" then
+            local function capture_panel()
+                local ok, report = pcall(tooltips.capture_panel)
+                if not ok then
+                    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+                    UA_ForeverDB.scan.panelProbeError = tostring(report)
+                    message(panel_probe_text.error)
+                    return
+                end
+                message(string.format(panel_probe_text.summary,
+                    report.status, #report.objects, report.sequence or 0,
+                    report.truncated and panel_probe_text.truncated or ""))
+                message(panel_probe_text.saved)
+            end
+            local delay = tonumber(value)
+            scheduler.cancel("manual-panel-capture")
+            if delay and delay > 0 then
+                delay = math.min(delay, 30)
+                message(string.format(panel_probe_text.delayed, delay))
+                scheduler.request("manual-panel-capture", nil,
+                    capture_panel, delay)
+            else
+                capture_panel()
+            end
         elseif command == "ui" then
             local stats = strings.translate_visible_ui()
             message(string.format("UI: перевірено %d фреймів, перекладено %d написів", stats.frames, stats.translated))
@@ -740,7 +766,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off")
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help)
         end
     end
 end
