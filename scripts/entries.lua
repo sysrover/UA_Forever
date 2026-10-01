@@ -634,67 +634,14 @@ entries.get_glossary_text = function (entry_key, fallback, hint_type)
     return fallback
 end
 
-local function get_legacy_gossip_text(npc_id, gossip_text)
-    local at = addon_table
-
-    if not npc_id or type(gossip_text) ~= "string" or #gossip_text < 1 or type(at.gossip) ~= "table" then
-        return nil, nil
-    end
-
-    npc_id = tonumber(npc_id)
-
-    -- Reviewed in-game scan codes are authoritative for these dialogues.
-    local gossip_codes, _, _, _, template_code = utils.get_gossip_lookup_codes(gossip_text)
-    local gossip_code = gossip_codes[1]
-    if #gossip_codes > 0 then
-        for _, gossip_key in ipairs({ npc_id, '!common' }) do
-            local npc_strings = at.gossip[gossip_key]
-            for _, code in ipairs(gossip_codes) do
-                if npc_strings and npc_strings[code] then
-                    return make_text(npc_strings[code]), code
-                end
-            end
-        end
-    end
-
-    -- check text hash hit
-
-    local gossip_text_hash = utils.get_text_hash(gossip_text)
-
-    for _, gossip_key in ipairs({ npc_id, '!common' }) do
-        local npc_strings = at.gossip[gossip_key]
-        if npc_strings and npc_strings[gossip_text_hash] then
-            return make_text(npc_strings[gossip_text_hash]), nil
-        end
-    end
-
-    -- check text code hit
-
-    if #gossip_codes > 0 then
-        for _, gossip_key in ipairs({ npc_id, '!common' }) do
-            local npc_strings = at.gossip[gossip_key]
-            if npc_strings and npc_strings['!code'] then
-                local known_gossip_keys = utils.table_string_keys(npc_strings['!code'])
-                for _, code in ipairs(gossip_codes) do
-                    local gossip_key = utils.match_text_code(code, known_gossip_keys)
-                    if gossip_key then
-                        local hash = npc_strings['!code'][gossip_key]
-                        return make_text(npc_strings[hash]), code
-                    end
-                end
-            end
-        end
-    end
-
-    return nil, template_code or gossip_code
-end
-
 local function get_gossip_text(npc_id, gossip_text, role)
     if type(gossip_hashed.find) == "function" then
         local translated = gossip_hashed.find(npc_id, gossip_text, role)
         if translated then return translated, nil end
     end
-    return get_legacy_gossip_text(npc_id, gossip_text)
+    if type(gossip_text) ~= "string" then return nil end
+    local codes, _, _, _, template_code = utils.get_gossip_lookup_codes(gossip_text)
+    return nil, template_code or codes[1]
 end
 
 -- Shared read-only lookup for autoscan; never records another missing entry.

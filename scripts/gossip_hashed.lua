@@ -3,7 +3,7 @@ local _, addon_table = ...
 local lookup = addon_table.use("gossip_hashed")
 local utils = addon_table.use("utils")
 
-local index, anchors, actor_key
+local index, anchors, identities, source_templates, actor_key
 local max_captures = 24
 lookup.version = 1
 
@@ -47,6 +47,14 @@ local function exact_text(text)
     return utils.lower(text:gsub("\r\n", "\n"):gsub("\194\160", " "):gsub(" +", " "))
 end
 
+local function source_template(text)
+    text = text:gsub("<[nN][aA][mM][eE]>", "$n")
+        :gsub("<[cC][lL][aA][sS][sS]>", "$c")
+        :gsub("<[rR][aA][cC][eE]>", "$r")
+        :gsub("%$[bB]", "\n")
+    return canonical(text)
+end
+
 local function escape(text)
     return (text:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1"))
 end
@@ -88,6 +96,8 @@ local function signature(text, actor)
 end
 
 local function conditional_variants(text, sex)
+    text = text:gsub("<hero/heroine>", "$ghero:heroine;")
+        :gsub("<sir/ma'am>", "$gsir:ma'am;")
     local variants = { { text = text, choices = {} } }
     for _ = 1, 32 do
         local expanded, changed = {}, false
@@ -119,6 +129,9 @@ end
 
 local function actor_source(text, actor)
     local missing = false
+    text = text:gsub("<[nN][aA][mM][eE]>", "$n")
+        :gsub("<[cC][lL][aA][sS][sS]>", "$c")
+        :gsub("<[rR][aA][cC][eE]>", "$r")
     text = text:gsub("%$([nNcCrR])", function(token)
         local kind = token:lower() == "n" and "name" or token:lower() == "c" and "class" or "race"
         if not actor[kind] then missing = true; return "" end
@@ -157,14 +170,26 @@ local function compile_template(text, actor, row, id, choices)
 end
 
 local function rebuild(actor)
-    index, anchors = {}, {}
+    index, anchors, identities, source_templates = {}, {}, {}, {}
     local database = addon_table.gossip_hashed
     if type(database) ~= "table" or database.version ~= lookup.version then return end
     local compiled, frequencies = {}, {}
-    for id, row in pairs(database.rows or {}) do
+    local function compile_row(id, row)
+        if type(row) ~= "table" then return end
+        for _, identity in ipairs(row.identities or {}) do
+            local key = utils.string_hash(identity.kind .. "\031" .. tostring(identity.value))
+            identities[key] = identities[key] or {}
+            identities[key][#identities[key] + 1] = { row = row, id = id, identity = identity }
+        end
         if type(row) == "table" and safe_string(row.text) and type(row.english) == "table" then
             for _, english in ipairs(row.english) do
                 for _, variant in ipairs(conditional_variants(english, actor.sex)) do
+                    local template = source_template(variant.text)
+                    local template_hash = utils.string_hash(template)
+                    source_templates[template_hash] = source_templates[template_hash] or {}
+                    source_templates[template_hash][#source_templates[template_hash] + 1] = {
+                        row = row, id = id, template = template, raw_source = exact_text(variant.text),
+                    }
                     local candidate = compile_template(variant.text, actor, row, id, variant.choices)
                     if candidate then
                         compiled[#compiled + 1] = candidate
@@ -176,6 +201,10 @@ local function rebuild(actor)
                 end
             end
         end
+        for _, alternative in ipairs(row.alternatives or {}) do compile_row(id, alternative) end
+    end
+    for id, row in pairs(database.rows or {}) do
+        compile_row(id, row)
     end
     for _, candidate in ipairs(compiled) do
         local hash = utils.string_hash(candidate.signature)
@@ -216,6 +245,54 @@ local function substitute(text, actor, candidate, captures)
     return text
 end
 
+-- Source-less imports retain their original discriminator inside this same index.
+-- Hash collisions are checked against the full identity and NPC scope.
+local function find_identity(npc_id, source, role, actor, raw_translation)
+    local codes = utils.get_gossip_lookup_codes(source)
+    local function query(kind, value, scope)
+        local key = utils.string_hash(kind .. "\031" .. tostring(value))
+        local best, best_id, best_priority, ambiguous
+        for _, candidate in ipairs(identities[key] or {}) do
+            local row, identity = candidate.row, candidate.identity
+            local scoped = not scope and #(row.npcs or {}) == 0
+            for _, id in ipairs(row.npcs or {}) do if id == scope then scoped = true; break end end
+            if scoped and identity.kind == kind and identity.value == value
+                and (not role or (row.roles and row.roles[role])) then
+                local translated = raw_translation and row.text
+                    or substitute(row.text, actor, { choices = {} }, {})
+                if translated and translated ~= source then
+                    local priority = row.priority or 2
+                    if not best_priority or priority > best_priority then
+                        best, best_id, best_priority, ambiguous = translated, candidate.id, priority, false
+                    elseif priority == best_priority and best ~= translated then ambiguous = true end
+                end
+            end
+        end
+        if ambiguous then return nil end
+        return best, best_id
+    end
+    local scopes = { tonumber(npc_id) or false, false }
+    for _, scope in ipairs(scopes) do
+        for _, code in ipairs(codes) do
+            local text, id = query("code", code, scope)
+            if text then return text, id end
+        end
+    end
+    local hash = utils.get_text_hash(source)
+    for _, scope in ipairs(scopes) do
+        local text, id = query("hash", hash, scope)
+        if text then return text, id end
+    end
+    for _, scope in ipairs(scopes) do
+        for _, code in ipairs(codes) do
+            if #code >= 42 then
+                local text, id = query("prefix", code:sub(1, 42), scope)
+                if text then return text, id end
+            end
+        end
+    end
+end
+
 lookup.prepare = function()
     local actor = actors()
     local key = table.concat({ actor.name or "", actor.class or "", actor.race or "", tostring(actor.sex) }, "\031")
@@ -223,7 +300,7 @@ lookup.prepare = function()
     return actor
 end
 
-lookup.find = function(npc_id, source, role)
+lookup.find = function(npc_id, source, role, raw_translation)
     source = safe_string(source)
     if not source or source == "" then return nil end
     local actor = lookup.prepare()
@@ -247,6 +324,7 @@ lookup.find = function(npc_id, source, role)
             -- Text-only matching remains available for records whose server links are absent.
             local rank = scoped and 4 or (#(row.npcs or {}) == 0 and 2 or nil)
             if rank then
+                rank = rank + (row.priority or 2) * 100
                 if candidate.raw_source == raw_source then rank = rank + 1 end
                 local matches = { rendered_source:match(candidate.pattern) }
                 if #matches > 0 then
@@ -257,7 +335,8 @@ lookup.find = function(npc_id, source, role)
                         captured[token] = value
                     end
                     if valid then
-                        local translated = substitute(row.text, actor, candidate, captured)
+                        local translated = raw_translation and row.text
+                            or substitute(row.text, actor, candidate, captured)
                         if translated and translated ~= source then
                             if not best_rank or rank > best_rank then
                                 best, best_rank, best_id, ambiguous = translated, rank, candidate.id, false
@@ -268,6 +347,36 @@ lookup.find = function(npc_id, source, role)
             end
         end
     end
+    if best_rank and best_rank >= 200 and not ambiguous then return best, best_id end
+    local identified, identified_id = find_identity(npc_id, source, role, actor, raw_translation)
+    if identified then return identified, identified_id end
     if ambiguous then return nil end
     return best, best_id
+end
+
+-- Offline catalog tooling supplies source templates rather than a live player.
+-- Return original dictionary wording; the game-only substitutions stay in find().
+lookup.find_source = function(npc_id, source, role)
+    source = safe_string(source)
+    if not source or source == "" then return nil end
+    lookup.prepare()
+    local template, raw_source = source_template(source), exact_text(source)
+    local best, best_id, best_rank, ambiguous
+    for _, candidate in ipairs(source_templates[utils.string_hash(template)] or {}) do
+        local row = candidate.row
+        if candidate.template == template and (not role or (row.roles and row.roles[role])) then
+            local scoped = false
+            for _, id in ipairs(row.npcs or {}) do if id == tonumber(npc_id) then scoped = true; break end end
+            local rank = scoped and 4 or (#(row.npcs or {}) == 0 and 2 or nil)
+            if rank then
+                rank = rank + (row.priority or 2) * 100
+                    + (candidate.raw_source == raw_source and 1 or 0)
+                if not best_rank or rank > best_rank then
+                    best, best_id, best_rank, ambiguous = row.text, candidate.id, rank, false
+                elseif rank == best_rank and best ~= row.text then ambiguous = true end
+            end
+        end
+    end
+    if best and not ambiguous then return best, best_id end
+    return lookup.find(npc_id, source, role, true)
 end
