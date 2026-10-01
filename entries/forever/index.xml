@@ -15,6 +15,7 @@
     <Script file="catalogs\gossip\hashed_005.lua"/>
     <Script file="catalogs\gossip\hashed_006.lua"/>
     <Script file="catalogs\gossip\hashed_007.lua"/>
+    <Script file="catalogs\gossip\hashed_008.lua"/>
     <Script file="catalogs\npcs\catalog.lua"/>
     <Script file="catalogs\objects\catalog.lua"/>
     <Script file="catalogs\quests\alliance.lua"/>
