@@ -352,6 +352,7 @@ local function translate_structured(tooltip, data, state)
                     slot = "item.description:" .. line_index
                 elseif line_type == USAGE_REQUIREMENT then
                     translated = translate_skill_requirement(state, source)
+                        or catalog.translate_item_line(source)
                     slot = translated
                         and "item.requirement:" .. line_index or nil
                 elseif EFFECT_TRIGGER_BY_LINE[line_type] then

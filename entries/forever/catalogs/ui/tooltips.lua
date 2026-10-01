@@ -234,6 +234,17 @@ tooltip.item_line_patterns = {
             local name = item_stat_names[stat]
             return name and (sign .. amount .. " до " .. name) or nil
         end },
+    { "^Equip: Increases damage and healing done by magical spells and effects by up to (%d+)%.$",
+        function (amount)
+            return "Екіпірування: збільшує шкоду та зцілення від магічних заклять і ефектів на "
+                .. amount .. "."
+        end },
+    { "^Enchanted: ([A-Za-z ]+) ([%+%-])(%d+)$",
+        function (stat, sign, amount)
+            local name = item_stat_names[stat]
+            return name and ("Зачарування: " .. sign .. amount
+                .. " до " .. name) or nil
+        end },
     { "^%+(%d+) ([A-Za-z]+) Resistance$",
         function (amount, school)
             local name = item_resistance_names[school]
