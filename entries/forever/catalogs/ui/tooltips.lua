@@ -256,12 +256,38 @@ local function translate_modification_part(source)
     if amount then return "Отрута (миттєво " .. amount .. ")" end
 end
 
+local function translate_modification_duration(source)
+    local remaining = source
+    local result = {}
+    -- Native duration only, including compound day/hour/minute/second text.
+    -- Preserve displayed values; never calculate time from an effect's DB row.
+    for _ = 1, 4 do
+        local amount, unit, tail = remaining:match(
+            "^([%d%.,]+)%s+([A-Za-z]+)(.*)$")
+        local translated_unit = unit
+            and tooltip.dynamic_value_words[unit:lower()]
+        if not translated_unit then return nil end
+        result[#result + 1] = amount .. " " .. translated_unit
+        if tail == "" then return table.concat(result, " ") end
+        remaining = tail:match("^,?%s+(.+)$")
+        if not remaining then return nil end
+    end
+    return nil
+end
+
 function tooltip.translate_item_modification(source)
     if type(source) ~= "string" or source == "" then return nil end
     local color, body = source:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
     body = body or source
     local enchanted = body:match("^Enchanted: (.+)$")
     body = enchanted or body
+    local duration
+    if body:sub(-1) == ")" then
+        local name, native_duration = body:match("^(.+) %(([^()]*)%)$")
+        duration = native_duration
+            and translate_modification_duration(native_duration)
+        if duration then body = name end
+    end
     local translated = translate_modification_part(body)
     if not translated then
         if not body:find(" and ", 1, true)
@@ -287,6 +313,7 @@ function tooltip.translate_item_modification(source)
         if not translated then return nil end
     end
     if enchanted then translated = "Зачарування: " .. translated end
+    if duration then translated = translated .. " (" .. duration .. ")" end
     if color then translated = color .. translated .. "|r" end
     return translated
 end
