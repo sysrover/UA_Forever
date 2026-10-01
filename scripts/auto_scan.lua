@@ -728,31 +728,10 @@ local function gossip_records_for_export(records)
 end
 
 local function translated_gossip(record)
-    local catalog = addon_table.gossip
-    if type(catalog) ~= "table" or not record.npcID or not record.text then return false end
-    local codes = utils.get_gossip_lookup_codes(record.text)
-    local hash = utils.get_text_hash(record.text)
-    for _, key in ipairs({ record.npcID, "!common" }) do
-        local values = catalog[key]
-        if type(values) == "table" then
-            local translation
-            for _, code in ipairs(codes) do
-                translation = translation or values[code]
-            end
-            translation = translation or values[hash]
-            if not translation and type(values["!code"]) == "table" then
-                local known_codes = utils.table_string_keys(values["!code"])
-                for _, code in ipairs(codes) do
-                    local pattern = utils.match_text_code(code, known_codes)
-                    translation = pattern and values[values["!code"][pattern]]
-                    if translation then break end
-                end
-            end
-            if type(translation) == "string" and translation ~= record.text then
-                return translation
-            end
-        end
-    end
+    if not record.npcID or not record.text
+        or type(entries.find_gossip_translation) ~= "function" then return false end
+    local translation = entries.find_gossip_translation(record.npcID, record.text, record.reply)
+    if type(translation) == "string" and translation ~= record.text then return translation end
     return false
 end
 

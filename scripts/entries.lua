@@ -4,6 +4,7 @@ local dev_log   = addon_table.use("dev_log") ---@class dev_log_class
 local entries   = addon_table.use("entries") ---@class entries_class
 local options   = addon_table.use("options") ---@class options_class
 local utils     = addon_table.use("utils") ---@class utils_class
+local gossip_hashed = addon_table.use("gossip_hashed")
 
 local pcall         = _G.pcall
 local string_format = _G.string.format
@@ -195,6 +196,7 @@ entries.prepare = function ()
     prepare_codes(name, options.character.name_cases, race, class, is_male)
     prepare_glossary()
     prepare_name_lookup()
+    if type(gossip_hashed.prepare) == "function" then gossip_hashed.prepare() end
     entries.prepared = true
 end
 
@@ -632,7 +634,7 @@ entries.get_glossary_text = function (entry_key, fallback, hint_type)
     return fallback
 end
 
-local function get_gossip_text(npc_id, gossip_text)
+local function get_legacy_gossip_text(npc_id, gossip_text)
     local at = addon_table
 
     if not npc_id or type(gossip_text) ~= "string" or #gossip_text < 1 or type(at.gossip) ~= "table" then
@@ -687,12 +689,25 @@ local function get_gossip_text(npc_id, gossip_text)
     return nil, template_code or gossip_code
 end
 
+local function get_gossip_text(npc_id, gossip_text, role)
+    if type(gossip_hashed.find) == "function" then
+        local translated = gossip_hashed.find(npc_id, gossip_text, role)
+        if translated then return translated, nil end
+    end
+    return get_legacy_gossip_text(npc_id, gossip_text)
+end
+
+-- Shared read-only lookup for autoscan; never records another missing entry.
+entries.find_gossip_translation = function (npc_id, text, is_reply)
+    return get_gossip_text(npc_id, text, is_reply and "reply" or "greeting")
+end
+
 entries.get_gossip_text_for_npc_talk = function (npc_id, gossip_text)
     if not npc_id or type(gossip_text) ~= "string" then
         return
     end
 
-    local text_uk, gossip_code = get_gossip_text(npc_id, gossip_text)
+    local text_uk, gossip_code = get_gossip_text(npc_id, gossip_text, "greeting")
     if text_uk then
         return text_uk
     end
@@ -707,9 +722,14 @@ entries.get_gossip_text_for_player_reply = function (npc_id, gossip_text)
         return
     end
 
+    local new_text = gossip_hashed.find(npc_id, gossip_text, "reply")
+    if new_text then
+        return new_text
+    end
+
     local match_list = utils.get_match_list_of_equal_meaning_english_texts_for_phrase(gossip_text)
     for _, text_en in pairs(match_list) do
-        local text_uk = get_gossip_text(npc_id, text_en)
+        local text_uk = get_gossip_text(npc_id, text_en, "reply")
         if text_uk then
             return text_uk
         end
