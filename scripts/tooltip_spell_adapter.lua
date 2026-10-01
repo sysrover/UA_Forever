@@ -85,11 +85,11 @@ adapter.resolve_structured_spell_id = function (tooltip, data)
         or contract.safe_number(data.id), false
 end
 
-adapter.add_structured_spell = function (tooltip, data)
+adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     local contract = deps()
     if not tooltip or type(data) ~= "table"
         or not options.can_lookup("translate_spell") then return false end
-    local spell_id = adapter.resolve_structured_spell_id(tooltip, data)
+    local spell_id = confirmed_id or adapter.resolve_structured_spell_id(tooltip, data)
     if not spell_id or type(data.lines) ~= "table" then return false end
 
     local translated_name = client_db.get_name(spell_id)
@@ -166,6 +166,31 @@ adapter.add_structured_spell = function (tooltip, data)
         ) > 0 or applied
     end
     return applied
+end
+
+-- A trainer service index identifies a session, never a spell database row.
+-- Return handled separately from applied: a confirmed spell with no matching
+-- translation must not fall through to generic translation of its description.
+adapter.add_trainer = function (tooltip, data)
+    local contract = deps()
+    if not tooltip then return false, false end
+    if data == nil and type(tooltip.GetPrimaryTooltipData) == "function" then
+        local ok, value = pcall(tooltip.GetPrimaryTooltipData, tooltip)
+        if ok and not contract.is_secret(value) then data = value end
+    end
+    if type(data) ~= "table" or contract.is_secret(data) then return false, false end
+    local spell_type = _G.Enum and _G.Enum.TooltipDataType and _G.Enum.TooltipDataType.Spell
+    local data_type = contract.safe_number(data.type)
+    local id = contract.safe_number(data.id)
+    if not spell_type or data_type ~= spell_type or not id or id <= 0
+        or type(data.lines) ~= "table" or contract.is_secret(data.lines) then
+        return false, false
+    end
+    tooltip.uaForeverID = id
+    if tooltip.uaForeverShowOriginal then return true, false end
+    -- Pass only the confirmed public ID. Do not resolve the trainer owner as
+    -- a spellbook item or accidentally treat serviceIndex as spellID.
+    return true, adapter.add_structured_spell(tooltip, data, id)
 end
 
 adapter.add_structured_pet_action = function (tooltip, data)

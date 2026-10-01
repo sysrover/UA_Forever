@@ -5,6 +5,7 @@ local options = addon_table.use("options")
 local client_db = addon_table.use("item_client_db")
 local spell_db = addon_table.use("spell_client_db")
 local renderer = addon_table.use("spell_template_renderer")
+local strings = addon_table.use("strings")
 local adapter = addon_table.use("tooltip_item_adapter")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
@@ -364,12 +365,6 @@ local function translate_structured(tooltip, data, state)
                                 return render_effect(effect, line_type, source)
                             end)
                     end
-                    if not translated and state.translated_description then
-                        local prefix = EFFECT_PREFIX_BY_LINE[line_type]
-                        translated = prefix and prefix .. " "
-                            .. state.translated_description
-                            or state.translated_description
-                    end
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
                 else
@@ -390,6 +385,14 @@ local function translate_structured(tooltip, data, state)
                     if not translated and source then
                         translated = catalog.translate_item_line(source)
                         slot = translated and "item.line:" .. line_index or nil
+                    end
+                    if not translated and source and line_type == 0 then
+                        -- The live 70124 client emits some equip effects and
+                        -- appearance notices as generic lines, without a spell
+                        -- ID. Reuse an existing UI translation of this exact
+                        -- rendered line, never the item's general description.
+                        translated = strings.find_ui_translation(source, region)
+                        slot = translated and "item.ui-line:" .. line_index or nil
                     end
                 end
 

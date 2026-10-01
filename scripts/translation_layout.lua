@@ -335,12 +335,12 @@ local function fit_profession_recipe_label(row)
     return true
 end
 
-local function fit_profession_output_text(region)
+local function fit_profession_output_text(region, form)
     if not region or type(region.SetWidth) ~= "function"
         or type(region.SetHeight) ~= "function" then return false end
 
     -- Mirror the local SetTextToFit helper used by
-    -- ProfessionsRecipeSchematicFormMixin:UpdateOutputItem in build 70009.
+    -- ProfessionsRecipeSchematicFormMixin:UpdateOutputItem in build 70124.
     -- Blizzard runs it for the native item name before UA_Forever replaces
     -- the text, so a longer Ukrainian name otherwise keeps the English width.
     local minimized = false
@@ -352,15 +352,36 @@ local function fit_profession_output_text(region)
     end
 
     local max_width = minimized and 250 or 800
+    local text_width = unbounded_text_width(region)
+    if form then
+        if not runtime.can_write_text(region) or is_protected_frame(form) then
+            return false
+        end
+        local right = safe_dimension(form, "GetRight")
+        local left = safe_dimension(region, "GetLeft")
+        if not right or not left or right - left <= 24 then return false end
+        -- Leave room at the panel edge (including the favorite button).
+        max_width = math.min(max_width, right - left - 24)
+        if type(region.SetWordWrap) == "function" then
+            pcall(region.SetWordWrap, region, true)
+        end
+        if type(region.SetMaxLines) == "function" then
+            pcall(region.SetMaxLines, region, 2)
+        end
+    end
     pcall(region.SetHeight, region, 200)
     pcall(region.SetWidth, region, max_width)
     if not minimized then
-        local text_width = safe_dimension(region, "GetStringWidth")
-        if text_width then pcall(region.SetWidth, region, text_width) end
+        local fitted_width = form and text_width
+            or safe_dimension(region, "GetStringWidth")
+        if fitted_width then
+            pcall(region.SetWidth, region,
+                form and math.min(max_width, fitted_width) or fitted_width)
+        end
     end
     local text_height = safe_dimension(region, "GetStringHeight")
     if text_height then pcall(region.SetHeight, region, text_height) end
-    return true
+    return true, form and text_width and text_width > max_width or false
 end
 
 local function fit_profession_requirement_text(region)

@@ -5,6 +5,7 @@ local auto_scan = addon_table.use("auto_scan")
 local hooks = addon_table.use("translation_hooks").bind("profession-recipes")
 local item_db = addon_table.use("item_client_db")
 local layout = addon_table.use("translation_layout")
+local options = addon_table.use("options")
 local profession_db = addon_table.use("profession_client_db")
 local runtime = addon_table.use("translation_runtime")
 local spell_db = addon_table.use("spell_client_db")
@@ -231,7 +232,22 @@ local function translate_output_region(form, region, exact_name)
     if replacement then
         apply(region, replacement, "profession.output.name",
             option, category)
-        layout.fit_profession_output_text(region)
+        local fitted, overflow = layout.fit_profession_output_text(region, form)
+        if fitted and overflow and text_from(region) == replacement then
+            -- Keep the catalog name intact; the line break belongs only to
+            -- this bounded output header, not tooltips or recipe-list rows.
+            local multiline, count = replacement:gsub(" (–) ", " %1\n", 1)
+            if count == 0 then
+                multiline, count = replacement:gsub(" (—) ", " %1\n", 1)
+            end
+            if count == 0 then
+                multiline, count = replacement:gsub(" (%-) ", " %1\n", 1)
+            end
+            if count > 0 then
+                apply(region, multiline, "profession.output.name", option, category)
+                layout.fit_profession_output_text(region, form)
+            end
+        end
     end
 end
 
@@ -335,7 +351,10 @@ local function requirement_name(name, requirement_type)
         or strings.find_ui_translation(name)
 end
 
-local function translate_requirements(form)
+local requirement_updates = setmetatable({}, { __mode = "k" })
+
+local function update_translated_requirements(form)
+    if not options.can_translate() then return false end
     local info = form_recipe_info(form)
     local recipe_id = info and number(info.recipeID)
     if not recipe_id or not C_TradeSkillUI
@@ -349,7 +368,7 @@ local function translate_requirements(form)
         if link_types.Totem then names[link_types.Totem] = "TotemRequirement" end
         if link_types.Area then names[link_types.Area] = "AreaRequirement" end
     end
-    local parts = {}
+    local parts, native_parts = {}, {}
     for _, requirement in ipairs(requirements) do
         if is_secret(requirement) then return end
         local fields_ok, name, requirement_type, met = pcall(function ()
@@ -360,17 +379,62 @@ local function translate_requirements(form)
         local link_type = names[requirement_type]
         if not translated or not link_type then return end
         local part = "|H" .. link_type .. "|h" .. translated .. "|h"
+        local native_part = "|H" .. link_type .. "|h" .. name .. "|h"
         if not is_secret(met) and met == false then
             part = "|cffff2020" .. part .. "|r"
+            native_part = "|cffff2020" .. native_part .. "|r"
         end
         parts[#parts + 1] = part
+        native_parts[#native_parts + 1] = native_part
     end
     if #parts == 0 then return end
     local region = form.isRecraft and form.RecraftingRequiredTools or form.RequiredTools
-    if apply(region, surface_text.requirements(table.concat(parts, ", ")),
-        "profession.required-tools") then
-        layout.fit_profession_requirement_text(region)
+    local before = text_from(region)
+    local template = _G.PROFESSIONS_REQUIRED_TOOLS
+    if not before or type(template) ~= "string" or is_secret(template) then return end
+    local native = template:format(table.concat(native_parts, ", "))
+    local translated = surface_text.requirements(table.concat(parts, ", "))
+    local applied = runtime.apply(region, {
+        owner = OWNER, slot = "profession.required-tools", source = native,
+        translated = translated, priority = runtime.PRIORITY.DOMAIN,
+        -- A changed recipe or met/color state needs a fresh native source.
+        instance = recipe_id .. ":" .. native,
+    })
+    if applied then
+        local state = requirement_updates[form]
+        local minimized
+        if ProfessionsUtil and type(ProfessionsUtil.IsCraftingMinimized) == "function" then
+            local mode_ok, value = pcall(ProfessionsUtil.IsCraftingMinimized)
+            if mode_ok and not is_secret(value) then minimized = value == true end
+        end
+        if before ~= text_from(region) or not state or state.region ~= region
+            or state.display ~= translated or state.minimized ~= minimized then
+            if layout.fit_profession_requirement_text(region) and state then
+                state.region, state.display, state.minimized = region, translated, minimized
+            end
+        end
     end
+    return applied
+end
+
+local function translate_requirements(form)
+    if not form then return end
+    local callback = form.UpdateRequiredTools
+    local state = requirement_updates[form]
+    if type(callback) == "function" and (not state or callback ~= state.wrapper) then
+        -- Init installs a new private callback for every recipe. Wrap only this
+        -- callback, not Update itself or any protected/shared Blizzard method.
+        state = { native = callback }
+        state.wrapper = function (...)
+            if not update_translated_requirements(form) then
+                state.region, state.display, state.minimized = nil, nil, nil
+                return state.native(...)
+            end
+        end
+        requirement_updates[form] = state
+        form.UpdateRequiredTools = state.wrapper
+    end
+    update_translated_requirements(form)
 end
 
 local function translate_form(form)
