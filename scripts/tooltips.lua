@@ -426,6 +426,7 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
 end
 
 spell_adapter.configure({
+    is_secret = is_secret,
     safe_number = safe_number,
     safe_string = safe_string,
     normalized_text = normalized_tooltip_text,
@@ -719,6 +720,12 @@ quest_adapter.configure({
     set_translation = set_tooltip_translation,
     rewrite_generic = rewrite_generic_lines,
     process = safe_process,
+    begin_session = begin_tooltip,
+    session_key = tooltip_key,
+    cancel_finalize = function (tooltip)
+        scheduler.cancel("tooltip:" .. tostring(tooltip))
+        scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+    end,
     max_lines = MAX_TOOLTIP_LINES,
 })
 
@@ -930,99 +937,8 @@ translate_object_tooltip_title = function (tooltip)
     return applied
 end
 
-local function prepare_quest_map_hook()
-    hooks.once("event:MapCanvas.QuestPin.OnEnter", function ()
-        local registry = _G.EventRegistry
-        if not registry or type(registry.RegisterCallback) ~= "function" then
-            return false
-        end
-        return pcall(registry.RegisterCallback, registry,
-            "MapCanvas.QuestPin.OnEnter",
-            function (_, _, quest_id)
-                quest_id = safe_number(quest_id)
-                if quest_id and _G.GameTooltip then
-                    safe_process(_G.GameTooltip, { id = quest_id }, "quest")
-                end
-            end, tooltips)
-    end)
-    hooks.global("GameTooltip_AddQuest", function (self)
-            local id = self and self.questID
-            if type(id) == "number" then
-                safe_process(_G.GameTooltip, { id = id }, "quest")
-            end
-        end)
-    hooks.global("QuestMapLogTitleButton_OnEnter",
-        quest_adapter.translate_map_button)
-    hooks.region(_G.QuestPinMixin, "OnMouseEnter", function (self)
-            local get_id = self and self.GetQuestID
-            if type(get_id) ~= "function" then return end
-            local id_ok, id = pcall(get_id, self)
-            id = id_ok and safe_number(id) or nil
-            if id then
-                safe_process(_G.GameTooltip, { id = id }, "quest")
-            end
-        end)
-    hooks.region(_G.QuestBlobPinMixin, "UpdateTooltip", function (self)
-            local tooltip = _G.GameTooltip
-            if not tooltip or type(tooltip.GetOwner) ~= "function" then return end
-            local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-            if not owner_ok or owner ~= self then return end
-            local shown_title = tooltip_line(tooltip, "Left", 1)
-            shown_title = safe_string(shown_title)
-            if not shown_title then return end
-            local current_getter = _G.C_QuestLog and _G.C_QuestLog.GetTitleForQuestID
-            if type(current_getter) ~= "function" then return end
-            local original_getter = translation.original
-                and translation.original["C_QuestLog.GetTitleForQuestID"]
-            local candidates = {}
-            local function add_candidate(id)
-                if not is_secret(id) and type(id) == "number" and id > 0 then
-                    candidates[#candidates + 1] = id
-                end
-            end
-            add_candidate(self.questID)
-            add_candidate(self.focusedQuestID)
-            add_candidate(self.highlightedQuestID)
-            add_candidate(self.highlightedQuestPOI)
-            local highlight = _G.POIButtonHighlightManager
-            if highlight and type(highlight.GetQuestID) == "function" then
-                local id_ok, id = pcall(highlight.GetQuestID, highlight)
-                if id_ok then add_candidate(id) end
-            end
-            local seen = {}
-            for _, id in ipairs(candidates) do
-                if not seen[id] then
-                    seen[id] = true
-                    local title_ok, title = pcall(current_getter, id)
-                    local original_ok, original
-                    if type(original_getter) == "function" then
-                        original_ok, original = pcall(original_getter, id)
-                    end
-                    title = title_ok and safe_string(title) or nil
-                    original = original_ok and safe_string(original) or nil
-                    if title == shown_title or original == shown_title then
-                        safe_process(tooltip, { id = id }, "quest")
-                        return
-                    end
-                end
-            end
-        end)
-    hooks.region(_G.WorldMapBountyBoardMixin, "ShowBountyTooltip",
-        function (self, index)
-                local data = self.bounties and self.bounties[index]
-                local id = data and data.questID
-                if type(id) == "number" then
-                    safe_process(_G.GameTooltip, { id = id }, "quest")
-                end
-        end)
-    hooks.region(_G.WorldMapBountyBoardMixin, "ShowLockedByQuestTooltip",
-        function (self)
-                local id = self.lockedQuestID
-                if type(id) == "number" then
-                    safe_process(_G.GameTooltip,
-                        { id = id, uaForeverSkipTitle = true }, "quest")
-                end
-        end)
+local function prepare_map_surface_hooks()
+    quest_adapter.prepare()
     hooks.region(_G.FlightMap_ZoneSummaryDataProvider, "CheckMouse",
         map_adapter.translate_flight_map)
     hooks.global("Minimap_SetTooltip", map_adapter.translate_minimap_zone)
@@ -1033,37 +949,6 @@ local function prepare_quest_map_hook()
         map_adapter.translate_guild_news)
     hooks.region(_G.AdventureMap_ZoneSummaryPinMixin, "OnMouseEnter",
         map_adapter.translate_adventure_pin)
-    hooks.region(_G.RecruitActivityButtonMixin, "OnEnter",
-        function (self)
-                local id = self and self.activityInfo
-                    and self.activityInfo.rewardQuestID
-                local tooltip = _G.EmbeddedItemTooltip
-                if is_secret(id) or type(id) ~= "number" or not tooltip
-                    or type(tooltip.GetOwner) ~= "function" then return end
-                local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-                if owner_ok and owner == self
-                    and quest_adapter.visible_title_matches(
-                        tooltip, id, self.questName) then
-                    safe_process(tooltip, { id = id }, "quest")
-                end
-        end)
-    hooks.global("CallingPOI_OnEnter", function (pin)
-                local id = pin and pin.questID
-                if not is_secret(id) and type(id) == "number" and _G.GameTooltip
-                    and quest_adapter.visible_title_matches(
-                        _G.GameTooltip, id) then
-                    safe_process(_G.GameTooltip, { id = id }, "quest")
-                end
-        end)
-    hooks.region(_G.CovenantCallingQuestMixin, "UpdateTooltipQuestActive",
-        function (self)
-                local id = self and self.calling and self.calling.questID
-                if not is_secret(id) and type(id) == "number" and _G.GameTooltip
-                    and quest_adapter.visible_title_matches(
-                        _G.GameTooltip, id) then
-                    safe_process(_G.GameTooltip, { id = id }, "quest")
-                end
-        end)
     hooks.region(_G.TalentFrameBaseMixin, "AddConditionsToTooltip",
         talent_adapter.translate_quest_conditions)
 end
@@ -1412,6 +1297,16 @@ end
 -- Forever uses one display style for every tooltip: replace known visible
 -- FontStrings in place. Domain post-calls run after Blizzard has populated the
 -- tooltip, while this generic pass covers ordinary SetText tooltips.
+local function translate_trainer_tooltip(tooltip, data)
+    if tooltip.uaForeverShowOriginal then return false end
+    local handled, applied = spell_adapter.add_trainer(tooltip, data)
+    if not handled then
+        applied = rewrite_generic_lines(tooltip) > 0
+    end
+    if applied then tooltip.uaForeverKey = tooltip.uaForeverSessionKey end
+    return applied
+end
+
 local function translate_generic_tooltip(tooltip)
     if not tooltip then return end
     note_tooltip_event(tooltip, "finalize")
@@ -1443,7 +1338,7 @@ local function translate_generic_tooltip(tooltip)
     end
 
     if tooltip.uaForeverKind == "trainer" then
-        rewrite_generic_lines(tooltip)
+        translate_trainer_tooltip(tooltip)
         return
     end
 
@@ -1943,21 +1838,26 @@ local function prepare_tooltip_frames()
                     if is_secret(index) then return end
                     begin_tooltip(self, "trainer:" .. tostring(index))
                     self.uaForeverKind = "trainer"
-                    rewrite_generic_lines(self)
+                    self.uaForeverID = nil
+                    translate_trainer_tooltip(self)
                     auto_scan.capture_tooltip(self, "trainer")
                     local generation = self.uaForeverGeneration
                     scheduler.request("tooltip-trainer:" .. tostring(self), generation,
                         function ()
                             local ok, shown = pcall(self.IsShown, self)
-                            if ok and shown and self.uaForeverKind == "trainer" then
-                                rewrite_generic_lines(self)
+                            if ok and not is_secret(shown) and shown
+                                and self.uaForeverGeneration == generation
+                                and self.uaForeverKind == "trainer" then
+                                translate_trainer_tooltip(self)
                                 auto_scan.capture_tooltip(self, "trainer")
                             end
                         end, nil, self)
                     scheduler.request("auto-tooltip-trainer:" .. tostring(self),
                         generation, function ()
                             local ok, shown = pcall(self.IsShown, self)
-                            if ok and shown and self.uaForeverKind == "trainer" then
+                            if ok and not is_secret(shown) and shown
+                                and self.uaForeverGeneration == generation
+                                and self.uaForeverKind == "trainer" then
                                 auto_scan.capture_tooltip(self, "trainer")
                             end
                         end, 0.15, self)
@@ -2227,7 +2127,7 @@ local function prepare_bag_tooltip_hooks()
 end
 
 tooltips.prepare = function ()
-    prepare_quest_map_hook()
+    prepare_map_surface_hooks()
     prepare_tooltip_frames()
     prepare_comparison_manager()
     prepare_ptr_feedback_hook()
@@ -2358,6 +2258,10 @@ tooltips.prepare = function ()
     end
     if types.Spell then
         TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
+            if tooltip.uaForeverKind == "trainer" then
+                translate_trainer_tooltip(tooltip, data)
+                return
+            end
             local trait_handled = talent_adapter.translate_structured_data(
                 tooltip, data)
             if trait_handled then return end

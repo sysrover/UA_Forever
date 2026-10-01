@@ -60,6 +60,12 @@ addonTable.forever_surface_ui = {
         },
         required_prefix = "Потрібно:",
         requirements = function (value) return "Потрібно: " .. value end,
+        trainer_requirements = function (source, translate_skills)
+            local body = source:match("^Requires: (.+)$")
+            if not body then return nil end
+            body = body:gsub("Level ", "Рівень ")
+            return "Потрібно: " .. translate_skills(body)
+        end,
     },
     menus = {
         quit_countdown = function (count)

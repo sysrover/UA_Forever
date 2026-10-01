@@ -268,6 +268,30 @@ local function translate_character_element(frame)
     translate_element(frame, nil, 1)
 end
 
+local function translate_trainer_region(region, category, slot)
+    if not region or runtime.is_applying(region) then return end
+    local source = text_from(region)
+    local claim = runtime.get(region)
+    if source and claim and source == claim.source then
+        -- Selecting a service reinitializes both old and new buttons. Restore
+        -- only the claim for this exact native text, retaining its policy and
+        -- lifecycle rather than looking up a different pooled row's name.
+        return runtime.apply(region, {
+            owner = claim.owner, slot = claim.slot, source = source,
+            translated = claim.translated, category = claim.category,
+            option = claim.option, options = claim.options,
+            priority = claim.priority, surface = claim.surface,
+            generation = claim.generation, instance = claim.instance,
+            phase = claim.phase, name_original = claim.name_original,
+            reapply_cached = true,
+        })
+    end
+    if source and claim and source ~= claim.translated then
+        runtime.invalidate(region)
+    end
+    return strings.translate_region(region, category, slot)
+end
+
 local function translate_trainer_row(row)
     if not row or type(row.GetRegions) ~= "function" then return end
     local ok, regions = pcall(function () return { row:GetRegions() } end)
@@ -275,29 +299,99 @@ local function translate_trainer_row(row)
     for _, region in ipairs(regions) do
         local type_ok, object_type = pcall(region.GetObjectType, region)
         if type_ok and object_type == "FontString" then
+            local is_name = region == row.name
+            local category = is_name and "skill" or nil
+            local slot = is_name and "skill.name" or nil
             hooks.region(region, "SetText", function (self)
                 if not runtime.is_applying(self) then
-                    strings.translate_region(self)
+                    translate_trainer_region(self, category, slot)
                 end
             end)
-            strings.translate_region(region)
+            translate_trainer_region(region, category, slot)
         end
     end
 end
 
 local function translate_trainer_static_region(region)
     if not region then return end
+    local function translate(current)
+        return translate_trainer_region(current,
+            current == _G.ClassTrainerFrameSkillStepButtonName and "skill" or nil,
+            current == _G.ClassTrainerFrameSkillStepButtonName and "skill.name" or nil)
+    end
     hook_owner(region, "SetText", function (current)
         if runtime.is_applying(current) then return end
         auto_scan.surface_attempt("trainer", "trainer-region.SetText")
-        strings.translate_region(current)
+        translate(current)
     end)
-    if not runtime.is_applying(region) then strings.translate_region(region) end
+    if not runtime.is_applying(region) then translate(region) end
+end
+
+local function translate_trainer_requirements(region)
+    local source = text_from(region)
+    if not source or runtime.is_applying(region) then return end
+    local translated = surface_text.trainer_requirements(source, function (body)
+        local english = addon_table.client_skill_lines_en
+        local ukrainian = addon_table.client_skill_lines_uk
+        if not english or not ukrainian or english.sourceBuild ~= ukrainian.sourceBuild then
+            return body
+        end
+        for id, name in pairs(english.rows or {}) do
+            local replacement = ukrainian.rows and ukrainian.rows[id]
+            if type(name) == "string" and type(replacement) == "string" then
+                local first, last = body:find(name, 1, true)
+                if first then
+                    body = body:sub(1, first - 1) .. utils.cap(replacement)
+                        .. body:sub(last + 1)
+                end
+            end
+        end
+        return body
+    end)
+    if translated then
+        runtime.apply(region, {
+            owner = "skills", slot = "trainer.requirements", source = source,
+            translated = translated, priority = runtime.PRIORITY.DOMAIN,
+            option = "translate_string", reapply_cached = true,
+        })
+    end
+end
+
+local function translate_trainer_title()
+    local frame = _G.ClassTrainerFrame
+    if not frame or not options.translate_name("npc") then return end
+    -- Pet trainers display the player's pet name, not an NPC catalog entry.
+    if C_Trainer and type(C_Trainer.GetTrainerType) == "function"
+        and Enum and Enum.TrainerType then
+        local type_ok, trainer_type = pcall(C_Trainer.GetTrainerType)
+        if not type_ok or is_secret(trainer_type)
+            or trainer_type == Enum.TrainerType.Pet then return end
+    end
+    local ok, id = pcall(utils.npc_id_from_unit_id, "npc")
+    if not ok or is_secret(id) then return end
+    local entry = ok and id and addon_table.npc and addon_table.npc[id]
+    local region = frame.GetTitleText and frame:GetTitleText()
+        or _G.ClassTrainerFrameTitleText
+    local source = text_from(region)
+    if entry and type(entry[1]) == "string" and source
+        and (source == entry.en or source == entry[1]) then
+        runtime.apply(region, {
+            owner = "skills", slot = "trainer.npc.name", source = entry.en,
+            translated = utils.cap(entry[1]), category = "npc",
+            option = "translate_npc",
+            instance = id, priority = runtime.PRIORITY.DOMAIN,
+            reapply_cached = true,
+        })
+    end
 end
 
 local function translate_trainer_rows()
     translate_trainer_static_region(_G.ClassTrainerFrameSubText)
     translate_trainer_static_region(_G.ClassTrainerFrameSkillStepButtonName)
+    local requirements = _G.ClassTrainerFrameSkillStepButtonSubText
+    hook_owner(requirements, "SetText", translate_trainer_requirements)
+    translate_trainer_requirements(requirements)
+    translate_trainer_title()
     local frame = _G.ClassTrainerFrame
     local scroll_box = frame and frame.ScrollBox
     if not scroll_box or type(scroll_box.ForEachFrame) ~= "function" then return end
@@ -436,6 +530,14 @@ skills.prepare = function ()
     local trainer_frame = _G.ClassTrainerFrame
     local trainer_scroll_box = trainer_frame and trainer_frame.ScrollBox
     hooks.global("ClassTrainerFrame_Update", translate_trainer_rows)
+    hooks.global("ClassTrainerFrame_InitServiceButton", function (button)
+        translate_trainer_row(button)
+        if trainer_frame and button == trainer_frame.skillStepButton then
+            translate_trainer_static_region(button.name)
+            translate_trainer_requirements(button.subText)
+        end
+    end)
+    hook_owner(trainer_frame, "SetTitle", translate_trainer_title)
     hooks.region_script(trainer_frame, "OnShow", translate_trainer_rows,
         "trainer-rows")
     hook_owner(trainer_scroll_box, "Update", translate_trainer_rows)

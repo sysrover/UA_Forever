@@ -564,6 +564,8 @@ diagnostics.install = function (tooltips, api)
             category = safe_string(claim.category),
             lookupTier = safe_string(claim.lookup_tier),
             catalogSource = safe_string(claim.catalog_source),
+            current = claim.visible_original ~= true
+                and claim.generation == runtime.generation(claim.surface),
         }
         result.editTarget = diagnostic_edit_target(claim)
         result.visibleMatchesSource = visible ~= nil and visible == result.source
@@ -598,6 +600,7 @@ diagnostics.install = function (tooltips, api)
             side = side,
             region = object_label(region),
             shown = public_object_value(region, "IsShown") == true,
+            isVisible = public_object_value(region, "IsVisible") == true,
             secret = secret,
             visible = visible,
             claim = diagnostic_claim(runtime.get(region), visible),
@@ -1036,7 +1039,7 @@ diagnostics.install = function (tooltips, api)
             id = safe_number(tooltip.uaForeverID),
             generation = safe_number(tooltip.uaForeverGeneration),
             sessionKey = diagnostic_scalar(tooltip.uaForeverSessionKey),
-            translated = tooltip.uaForeverKey ~= nil,
+            translated = false,
             showOriginal = tooltip.uaForeverShowOriginal == true,
             hasSession = tooltip.uaForeverSessionKey ~= nil,
             events = {}, lines = {}, extraRegions = {},
@@ -1188,6 +1191,24 @@ diagnostics.install = function (tooltips, api)
             if not seen_regions[region] then
                 result.extraRegions[#result.extraRegions + 1] = diagnostic_region(
                     region, "FontString" .. tostring(index))
+            end
+        end
+        local function has_visible_translation(row)
+            local claim = row and row.claim
+            return row and row.shown and row.isVisible and not row.secret
+                and claim and claim.current and claim.state == "translation_visible"
+                and claim.visibleMatchesTranslation and not claim.visibleMatchesSource
+        end
+        if result.visible and not result.showOriginal then
+            result.translated = has_visible_translation(result.compareHeader) == true
+            for _, rows in ipairs({ result.lines, result.extraRegions }) do
+                for _, row in ipairs(rows) do
+                    if has_visible_translation(row) then
+                        result.translated = true
+                        break
+                    end
+                end
+                if result.translated then break end
             end
         end
         return result

@@ -141,6 +141,7 @@ tooltip.format = {
 local item_stat_names = {
     Strength = "сили", Stamina = "витривалості",
     Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
+    ["Spell Power"] = "сили заклинань",
 }
 
 local item_resistance_names = {
@@ -228,7 +229,7 @@ tooltip.item_line_patterns = {
         end)
         return "Залишилося до відновлення: " .. remaining
     end },
-    { "^([%+%-])(%d+) ([A-Za-z]+)$",
+    { "^([%+%-])(%d+) ([A-Za-z ]+)$",
         function (sign, amount, stat)
             local name = item_stat_names[stat]
             return name and (sign .. amount .. " до " .. name) or nil
@@ -243,6 +244,7 @@ tooltip.item_line_patterns = {
 function tooltip.translate_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
     local translated = tooltip.item_line_exact[source]
+        or tooltip.comparison_item_labels[source]
     if translated then return translated end
     for _, rule in ipairs(tooltip.item_line_patterns) do
         local captures = { source:match(rule[1]) }

@@ -4,8 +4,15 @@ local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local translation = addon_table.use("translation")
+local hooks = addon_table.use("translation_hooks").bind("quest-tooltips")
 local adapter = addon_table.use("tooltip_quest_adapter")
 local dependencies
+local blob_cache = setmetatable({}, { __mode = "k" })
+local BLOB_RUNTIME_FLAGS = {
+    record_runtime = false,
+    verify_after_apply = false,
+    reapply_cached = true,
+}
 
 adapter.configure = function (value)
     assert(type(value) == "table", "tooltip quest dependencies are required")
@@ -14,6 +21,85 @@ end
 
 local function deps()
     return assert(dependencies, "tooltip quest adapter is not configured")
+end
+
+adapter.resolve_blob_id = function (tooltip)
+    local contract = deps()
+    if not options.can_translate("translate_quest") then return nil end
+    local title, region = contract.tooltip_line(tooltip, "Left", 1)
+    local claim = region and runtime.get(region)
+    if claim and claim.owner == "quest-tooltip" and title == claim.translated then
+        title = claim.source
+    end
+    title = contract.safe_string(title)
+    if not title or not entries.quest_title_ids
+        or not entries.quest_title_ids[title] then return nil end
+    local ok, count = pcall(tooltip.NumLines, tooltip)
+    count = ok and contract.safe_number(count) or nil
+    if not count then return nil end
+    -- Resolve the hovered quest, not the tracked/highlighted quest on the pin.
+    -- A title can be ambiguous; its native task disambiguates it in the catalog.
+    for index = 2, math.min(count, contract.max_lines) do
+        local source = contract.tooltip_line(tooltip, "Left", index)
+        source = contract.safe_string(source)
+        local task = source and source:match("^%s*%-?%s*%d+%s*/%s*%d+%s+(.+)$")
+        if task then
+            local id = entries.lookup_quest_id_for_task(title, task)
+            if id then return id, title end
+        end
+    end
+    return entries.lookup_quest_id_for_task(title), title
+end
+
+adapter.translate_blob = function (tooltip, id, native_title)
+    local contract = deps()
+    if tooltip.uaForeverShowOriginal or not options.can_translate("translate_quest") then
+        return false
+    end
+    local entry = entries.get_entry("quest", id)
+    if not entry then return false end
+    local cache = blob_cache[tooltip]
+    if not cache or cache.id ~= id then
+        cache = { id = id, title = contract.make_text(entry[1], tooltip), rows = {} }
+        blob_cache[tooltip] = cache
+    end
+    local ok, count = pcall(tooltip.NumLines, tooltip)
+    count = ok and contract.safe_number(count) or nil
+    if not count then return false end
+    local applied = false
+    for index = 1, math.min(count, contract.max_lines) do
+        local source, region = contract.tooltip_line(tooltip, "Left", index)
+        source = contract.safe_string(source)
+        if index == 1 then source = contract.safe_string(native_title) or source end
+        local claim = region and runtime.get(region)
+        if claim and claim.owner == "quest-tooltip" and source == claim.translated then
+            source = claim.source
+        end
+        if source and region then
+            local row = cache.rows[index]
+            if not row or row.source ~= source then
+                local translated = index == 1 and cache.title or nil
+                if index > 1 then
+                    local dash, objective = source:match("^(%s*%-%s*)(.+)$")
+                    local raw = objective or source
+                    local task_ok, value = pcall(entries.translate_quest_objective_task, raw, id)
+                    if task_ok and type(value) == "string" and value ~= raw then
+                        translated = (dash or "") .. value
+                    end
+                end
+                -- One cache entry per visible row, including a failed lookup.
+                row = { source = source, translated = translated or false }
+                cache.rows[index] = row
+            end
+            if row.translated then
+                applied = contract.set_translation(tooltip, region, source,
+                    row.translated, index == 1 and "quest.name" or "quest.objective:" .. index,
+                    index == 1 and "quest" or nil, "quest-tooltip",
+                    nil, false, true, nil, nil, nil, BLOB_RUNTIME_FLAGS) or applied
+            end
+        end
+    end
+    return applied
 end
 
 adapter.translate_embedded = function (tooltip)
@@ -200,4 +286,108 @@ adapter.translate_map_button = function (button)
     local id = button and button.questID
     if not tooltip or type(id) ~= "number" then return end
     deps().process(tooltip, { id = id }, "quest")
+end
+
+local function after_blob_tooltip(pin)
+    local contract = deps()
+    local tooltip = _G.GameTooltip
+    if not tooltip or type(tooltip.GetOwner) ~= "function" then return end
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or owner ~= pin then return end
+    local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
+    if not shown_ok or runtime.is_secret_value(shown) or not shown then return end
+    local id, native_title = adapter.resolve_blob_id(tooltip)
+    if not id then return end
+    local key = contract.session_key("quest", id)
+    contract.begin_session(tooltip, key)
+    tooltip.uaForeverKind = "quest"
+    tooltip.uaForeverID = id
+    tooltip.uaForeverReservedFirst = 2
+    contract.cancel_finalize(tooltip)
+    if adapter.translate_blob(tooltip, id, native_title) then
+        tooltip.uaForeverKey = key
+    end
+end
+
+local function hook_blob_pins(map)
+    if not map or type(map.EnumeratePinsByTemplate) ~= "function" then return false end
+    return pcall(function ()
+        -- 70124 uses a single permanent blob pin. Never walk other templates
+        -- or canvas descendants, and never enumerate from OnUpdate.
+        for pin in map:EnumeratePinsByTemplate("QuestBlobPinTemplate") do
+            hooks.region(pin, "UpdateTooltip", after_blob_tooltip)
+        end
+    end)
+end
+
+adapter.prepare = function ()
+    local contract = deps()
+    local map = _G.WorldMapFrame
+    if map then
+        -- XML mixins are copied onto frames: hook existing and future pins,
+        -- not only the prototype. Hook registration is deduplicated.
+        hooks.region(map, "AcquirePin", function (self, template)
+            if not runtime.is_secret_value(template) and template == "QuestBlobPinTemplate" then
+                hook_blob_pins(self)
+            end
+        end)
+        hooks.once("quest-blob-existing:" .. tostring(map), function ()
+            return hook_blob_pins(map)
+        end)
+    end
+    hooks.once("event:MapCanvas.QuestPin.OnEnter", function ()
+        local registry = _G.EventRegistry
+        if not registry or type(registry.RegisterCallback) ~= "function" then return false end
+        return pcall(registry.RegisterCallback, registry, "MapCanvas.QuestPin.OnEnter",
+            function (_, _, id)
+                id = contract.safe_number(id)
+                if id and _G.GameTooltip then
+                    contract.process(_G.GameTooltip, { id = id }, "quest")
+                end
+            end, adapter)
+    end)
+    hooks.global("GameTooltip_AddQuest", function (self)
+        local id = self and contract.safe_number(self.questID)
+        if id then contract.process(_G.GameTooltip, { id = id }, "quest") end
+    end)
+    hooks.global("QuestMapLogTitleButton_OnEnter", adapter.translate_map_button)
+    hooks.region(_G.QuestPinMixin, "OnMouseEnter", function (self)
+        local getter = self and self.GetQuestID
+        if type(getter) ~= "function" then return end
+        local ok, id = pcall(getter, self)
+        id = ok and contract.safe_number(id) or nil
+        if id then contract.process(_G.GameTooltip, { id = id }, "quest") end
+    end)
+    hooks.region(_G.WorldMapBountyBoardMixin, "ShowBountyTooltip", function (self, index)
+        local data = self.bounties and self.bounties[index]
+        local id = data and contract.safe_number(data.questID)
+        if id then contract.process(_G.GameTooltip, { id = id }, "quest") end
+    end)
+    hooks.region(_G.WorldMapBountyBoardMixin, "ShowLockedByQuestTooltip", function (self)
+        local id = contract.safe_number(self.lockedQuestID)
+        if id then
+            contract.process(_G.GameTooltip, { id = id, uaForeverSkipTitle = true }, "quest")
+        end
+    end)
+    hooks.region(_G.RecruitActivityButtonMixin, "OnEnter", function (self)
+        local id = self and self.activityInfo and contract.safe_number(self.activityInfo.rewardQuestID)
+        local tooltip = _G.EmbeddedItemTooltip
+        if not id or not tooltip or type(tooltip.GetOwner) ~= "function" then return end
+        local ok, owner = pcall(tooltip.GetOwner, tooltip)
+        if ok and owner == self and adapter.visible_title_matches(tooltip, id, self.questName) then
+            contract.process(tooltip, { id = id }, "quest")
+        end
+    end)
+    hooks.global("CallingPOI_OnEnter", function (pin)
+        local id = pin and contract.safe_number(pin.questID)
+        if id and _G.GameTooltip and adapter.visible_title_matches(_G.GameTooltip, id) then
+            contract.process(_G.GameTooltip, { id = id }, "quest")
+        end
+    end)
+    hooks.region(_G.CovenantCallingQuestMixin, "UpdateTooltipQuestActive", function (self)
+        local id = self and self.calling and contract.safe_number(self.calling.questID)
+        if id and _G.GameTooltip and adapter.visible_title_matches(_G.GameTooltip, id) then
+            contract.process(_G.GameTooltip, { id = id }, "quest")
+        end
+    end)
 end
