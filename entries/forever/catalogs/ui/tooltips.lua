@@ -149,6 +149,148 @@ local item_resistance_names = {
     Nature = "природи", Shadow = "тіні", Holy = "світла",
 }
 
+-- Rendered SpellItemEnchantment names in 1.60.1.70124. The client can
+-- emit these without an enchantment ID, including on inspected equipment.
+-- Recognition is whole-name only; this is not a substring/glossary search.
+local item_modification_names = {
+    Sharpened = "Загострення", Weighted = "Обтяження",
+    Beastslaying = "Винищення звірів",
+    ["Fishing Lure"] = "Рибальська приманка",
+    Rockbiter = "Каменолом", Frostbrand = "Крижане тавро",
+    Flametongue = "Язик полум'я", Windfury = "Буревій",
+    ["Flametongue Totem"] = "Тотем язика полум'я",
+    ["Windfury Totem"] = "Тотем буревію",
+    Windwrath = "Гнів вітру", Feedback = "Відгомін",
+    Firestone = "Камінь вогню", Spellstone = "Камінь чарів",
+    ["Earthliving Weapon"] = "Зброя життя землі",
+    ["Deadly Poison"] = "Смертельна отрута",
+    ["Instant Poison"] = "Миттєва отрута",
+    ["Crippling Poison"] = "Травматична отрута",
+    ["Wound Poison"] = "Агонічна отрута",
+    ["Mind Numbing Poison"] = "Задурлива отрута",
+    ["Mind-numbing Poison"] = "Задурлива отрута",
+    ["Mind-Numbing Poison"] = "Задурлива отрута",
+    ["Numbing Poison"] = "Онімлива отрута",
+    ["Atrophic Poison"] = "Атрофічна отрута",
+    ["Occult Poison"] = "Окультна отрута",
+    ["Sebacious Poison"] = "Сальна отрута",
+    ["Venomhide Poison"] = "Отрута отрутошкіра",
+    ["Shadow Oil"] = "Тіньова олія", ["Frost Oil"] = "Крижана олія",
+    ["Wizard Oil"] = "Чарівна олія",
+    ["Minor Wizard Oil"] = "Слабка чарівна олія",
+    ["Lesser Wizard Oil"] = "Проста чарівна олія",
+    ["Brilliant Wizard Oil"] = "Блискуча чарівна олія",
+    ["Minor Mana Oil"] = "Слабка олія мани",
+    ["Lesser Mana Oil"] = "Проста олія мани",
+    ["Brilliant Mana Oil"] = "Блискуча олія мани",
+    ["Blackfathom Mana Oil"] = "Олія мани Чорноводдя",
+    ["Conductive Shield Coating"] = "Провідне покриття щита",
+    ["Enchanted Repellent"] = "Зачарований відлякувач",
+    ["Magnificent Trollshine"] = "Чудовий тролячий блиск",
+    ["Omen of Clarity"] = "Знамення ясності",
+    ["Wild Strikes"] = "Дикі удари",
+    Accuracy = "Влучність", Precision = "Точність",
+    Quickening = "Прискорення", Striking = "Удар",
+    Sundered = "Розколювання", Cleaned = "Очищення",
+    Flame = "Полум'я", ["Lesser Flame"] = "Слабке полум'я",
+    ["Greater Flame"] = "Велике полум'я",
+    Frost = "Крига", ["Greater Frost"] = "Велика крига",
+    Spark = "Іскра", Baleflame = "Зловісне полум'я",
+    Balefrost = "Зловісна крига", Iceknife = "Крижаний ніж",
+    Manablade = "Лезо мани",
+}
+
+local item_modification_stats = {
+    Armor = "броні", Damage = "шкоди", HP = "здоров'я",
+    ["Attack Power"] = "сили атаки", ["Spell Damage"] = "шкоди заклинань",
+    ["Healing Power"] = "сили зцілення", ["All Resistances"] = "всіх опорів",
+    ["Defense Skill"] = "навички захисту", Defense = "захисту",
+    Critical = "критичного удару", ["Critical Strike"] = "критичного удару",
+    Hit = "влучності", Dodge = "ухилення", Block = "блокування",
+    Haste = "швидкості",
+}
+
+local function modification_stat_name(stat)
+    local name = item_stat_names[stat] or item_modification_stats[stat]
+    if name then return name end
+    local school = stat:match("^([A-Za-z]+) Resistance$")
+    if school and item_resistance_names[school] then
+        return "опору " .. item_resistance_names[school]
+    end
+    school = stat:match("^([A-Za-z]+) Spell Damage$")
+    if school and item_resistance_names[school] then
+        return "шкоди заклинань " .. item_resistance_names[school]
+    end
+end
+
+local function translate_modification_part(source)
+    local translated = item_modification_names[source]
+    if translated then return translated end
+    local name, sign, amount, percent = source:match(
+        "^([A-Za-z '%-]+) ([%+%-])(%d+)(%%?)$")
+    if not name then
+        sign, amount, percent, name = source:match(
+            "^([%+%-])(%d+)(%%?) ([A-Za-z '%-]+)$")
+    end
+    if name then
+        translated = item_modification_names[name]
+        if translated then
+            return translated .. " " .. sign .. amount .. percent
+        end
+        translated = modification_stat_name(name)
+        return translated and (sign .. amount .. percent .. " до " .. translated)
+            or nil
+    end
+    local rank
+    name, rank = source:match("^([A-Za-z '%-]+) (%d+)$")
+    if not name then name, rank = source:match("^([A-Za-z '%-]+) ([IVX]+)$") end
+    translated = name and item_modification_names[name]
+    if translated then return translated .. " " .. rank end
+    amount = source:match("^Scope %(%+(%d+) Damage%)$")
+    if amount then return "Приціл (+" .. amount .. " до шкоди)" end
+    amount = source:match("^Absorption %((%d+)%)$")
+    if amount then return "Поглинання (" .. amount .. ")" end
+    amount = source:match("^Poison %((%d+) Dmg%)$")
+    if amount then return "Отрута (" .. amount .. " шкоди)" end
+    amount = source:match("^Poison %(Instant (%d+)%)$")
+    if amount then return "Отрута (миттєво " .. amount .. ")" end
+end
+
+function tooltip.translate_item_modification(source)
+    if type(source) ~= "string" or source == "" then return nil end
+    local color, body = source:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    body = body or source
+    local enchanted = body:match("^Enchanted: (.+)$")
+    body = enchanted or body
+    local translated = translate_modification_part(body)
+    if not translated then
+        if not body:find(" and ", 1, true)
+            and not body:find(" / ", 1, true)
+            and not body:find(" & ", 1, true) then return nil end
+        -- Bounded, all-or-nothing compound bonuses. Never drop an unknown
+        -- component, reinterpret client tokens or manufacture numeric values.
+        local parts = body:gsub(" / ", " and "):gsub(" & ", " and ")
+        local result = {}
+        local start = 1
+        while #result < 3 do
+            local boundary = parts:find(" and ", start, true)
+            local part = parts:sub(start, boundary and boundary - 1 or #parts)
+            local value = translate_modification_part(part)
+            if not value then return nil end
+            result[#result + 1] = value
+            if not boundary then
+                translated = table.concat(result, " та ")
+                break
+            end
+            start = boundary + 5
+        end
+        if not translated then return nil end
+    end
+    if enchanted then translated = "Зачарування: " .. translated end
+    if color then translated = color .. translated .. "|r" end
+    return translated
+end
+
 -- BAG_FILTER_* values used by ContainerFrameSettingsManager in build
 -- 1.60.1.70058. Genitive forms fit BAG_FILTER_ASSIGNED_TO directly.
 local bag_filter_names = {
@@ -239,12 +381,6 @@ tooltip.item_line_patterns = {
             return "Екіпірування: збільшує шкоду та зцілення від магічних заклять і ефектів на "
                 .. amount .. "."
         end },
-    { "^Enchanted: ([A-Za-z ]+) ([%+%-])(%d+)$",
-        function (stat, sign, amount)
-            local name = item_stat_names[stat]
-            return name and ("Зачарування: " .. sign .. amount
-                .. " до " .. name) or nil
-        end },
     { "^%+(%d+) ([A-Za-z]+) Resistance$",
         function (amount, school)
             local name = item_resistance_names[school]
@@ -256,6 +392,8 @@ function tooltip.translate_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
     local translated = tooltip.item_line_exact[source]
         or tooltip.comparison_item_labels[source]
+    if translated then return translated end
+    translated = tooltip.translate_item_modification(source)
     if translated then return translated end
     for _, rule in ipairs(tooltip.item_line_patterns) do
         local captures = { source:match(rule[1]) }
