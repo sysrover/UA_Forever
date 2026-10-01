@@ -7,7 +7,6 @@
     <Script file="catalogs\ui\surfaces.lua"/>
     <Script file="catalogs\books\catalog.lua"/>
     <Script file="catalogs\chat\npc.lua"/>
-    <Script file="catalogs\gossip\catalog.lua"/>
     <Script file="catalogs\gossip\hashed_001.lua"/>
     <Script file="catalogs\gossip\hashed_002.lua"/>
     <Script file="catalogs\gossip\hashed_003.lua"/>
@@ -16,6 +15,7 @@
     <Script file="catalogs\gossip\hashed_006.lua"/>
     <Script file="catalogs\gossip\hashed_007.lua"/>
     <Script file="catalogs\gossip\hashed_008.lua"/>
+    <Script file="catalogs\gossip\catalog.lua"/>
     <Script file="catalogs\npcs\catalog.lua"/>
     <Script file="catalogs\objects\catalog.lua"/>
     <Script file="catalogs\quests\alliance.lua"/>

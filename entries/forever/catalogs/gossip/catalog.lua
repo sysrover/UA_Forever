@@ -1,1103 +1,4910 @@
+-- Approved older gossip translations, migrated without changing wording.
+-- Original evidence and compatibility identities are retained in each row.
 local _, addonTable = ...
-
-local gossip = { -- [npc_id] = { [hash]=translation, ..., [!code]={...} (optional) }, ... }
-["!common"] = {
--- A Horde Commendation Signet is awarded to a hero who goes above and beyond the call of duty to the Horde. Various Commendation Officers for the factions of the Horde are located in all of the major cities; speak with the one with whom you'd like to raise your reputation, and give them the number of signets they ask for!
---
--- By the way, during the war effort here, if you'd rather receive a material reward for your signets instead of reputation, seek out Warlord Gorchuk.
-[752987331] = [===[Відзнака подяки Орди вручається героям, що діють понад обов'язок на благо Орди. У всіх великих містах Орди можна знайти офіцерів, що приймають відзнаки подяки в обмін на репутацію своєї фракції.
-
-До речі, поки йде військова кампанія, якщо бажаєш отримати матеріальну винагороду за свої відзнаки замість репутації — звернися до воєводи Ґорчука.]===],
--- A Hunter is it? Well, then you will want to speak with Thorfin Stoneshield over in the Dwarven District.
---
--- Oh, and you be sure to tell him that if I step in his pet's business one more time, he's going to be training other hunters from behind bars in the Stockade!
-[933707458] = [===[Мисливець, так? Ну, тоді вам варто поговорити з Торфіном Камнещитом у Дворфійському районі.
-
-О, і обов'язково передайте йому, що якщо я ще раз втраплю в відходи його звіра, йому доведеться тренувати мисливців з-за ґрат в'язниці!]===],
--- A rogue? Hmmm... well, I've heard that Keryn Sylvius hangs around those shady types. You might want to talk to her and see what you can learn.
-[964758132] = [===[Пройдисвіти? Хмм... ну, здається, Керін Сільвія крутиться з цих підозрілими типами. Можете поговорити з нею і дізнатися, чого вона може навчити.]===],
--- A tailor is it? Well, if you hang out here long enough you'll eventually hear word of mouth about Georgio Bolero. He's been setting the trends for some months now. If you wish to learn from him, you can find him over in the Mage Quarter in the outer rim.
-[727289260] = [===[Кравця шукаєте? Ну, якщо ви пройдетесь містом, то не раз почуєте ім'я Джорджіо Болеро. Він певно найкращий кравець Штормовію. Якщо хочете повчитися у нього, то ви знайдете його у кварталі Магів, на зовнішньому колі.]===],
--- Actually I prefer traditional medicines... leeches, maggots, bonesaws... that sort of thing. Well to each their own. You can find the our local Herbalism Trainer, Faruza, standing out front near the stables in Brill.
-[3108562334] = [===[Мені більше до вподоби традиційна медицина... п'явки, черви... такі от речі. Ну, кожному своє. Ти знайдеш нашу місцеву тренерку травництва, Фарузу, біля стайні у Бріллі.]===],
--- Ah yes, Skinning. There is no one finer in wielding a skinning knife than Yonn Deepcut. You can find him in the great tent at the northwest corner of the village.
-[986764953] = [===[Так, шкуродерство. Ніхто не вміє так вправно володіти ножем для зняття шкур, як Йонн Глибокоріз. Його можна знайти у великому наметі на північному заході селища.]===],
--- Ah yes, it is Seikwa that you must find. I believe I saw her last standing out in front of the inn.
-[2253063944] = [===[Так, тобі потрібна Сейква. Зазвичай її можна знайти неподалік від таверни.]===],
--- Ah, The Gilded Rose... with its soft down beds and warm baths... just thinking about that Inn makes me want to... ::yawn:: Lucky you if you're heading over there... you will find it in the west side of the Trade District. ...nice soft pillows, warm blankets. ::yawn::
-[3433932922] = [===[Ах, «Позолочена Троянда»... там такі м'які ліжка та теплі ванни... просто думаю про цю таверну, і вже хочеться... <позіхає> Заздрю вам, якщо ви туди прямуєте... вона знаходиться на західній стороні Торгового району. ...приємні пухові подушки, теплі ковдри... <позіхає>]===],
--- Ah, you must go to the great heights of Thunder Bluff to visit one of those. Follow the path north out of Bloodhoof Village. At the base of the bluffs is an elevator that will take you to the top. When you get there ask for further directions from one of the Bluffwatchers.
-[1948027994] = [===[Хм, для цього тобі потрібно піднятися до Громового Бескиду. Йди дорогою на північ з селища Криваве Копито, а біля підніжжя бескидів скористайся підйомником. Як дістанешся туди — запитай в одного з вартових бескиду.]===],
--- Ah, you're looking for Lucan Cordell. He runs a shop on the outside of the Magic Quarter on your way to the Stockade.
-[2640812024] = [===[А, то вам потрібен Люкан Корделл. Він тримає крамницю на околиці кварталу Магії, по дорозі до в'язниці.]===],
--- Ahhh, Stormwind Visitor's Center is what you are looking for then. It's the first building on the left as you walk through the front gates from the Valley of Heroes.
-[4106002766] = [===[Ага, тоді вам потрібен центр пригодників Штормовію. Це перша будівля зліва, як заходите через головні ворота з Долини Героїв.]===],
--- Ahhh, you are looking for Dungar Longdrink. He has some of the fastest gryphons this side of Khaz Modan! You can find him up on the ramparts in the Trade District.
-[4154475320] = [===[Вам потрібен Дунґар Довгопий. У нього найшвидші грифони по цей бік Каз-Модану! Ви знайдеш його на стіні у Торговому районі.]===],
--- All of a sudden you're a 'Defender of the Alliance' are you?! Well, I suppose you'll be wanting to head to the Champions' Hall now. It's over in Old Town, but they won't let you in unless you're an officer, so you might just have to settle for talking to Officer Areyn outside. Move along now.
-[2261101872] = [===[Раптом стали "{стать:Захисником:Захисницею} Альянсу"? Що ж, гадаю, тепер ви хочете потрапити до зали Чемпіонів. Це в Старому Місті, але якщо ви не офіцер, то вас не пропустять і доведеться обмежитись розмовою з офіцером Арейн зовні.]===],
--- An Alliance Commendation Signet is awarded to a <hero/heroine> who goes above and beyond the call of duty to the Alliance. Various Commendation Officers for the factions of the Alliance are located in all of the major cities; speak with the one with whom you'd like to raise your reputation, and give them the number of signets they ask for!
---
--- By the way, during the war effort here, if you'd rather receive a material reward for your signets in lieu of reputation, seek out Field Marshal Snowfall.
-[2874125285] = [===[Відзнака подяки Альянсу вручається героям, що діють понад обов'язок на благо Альянсу. У всіх столицях Альянсу можна знайти офіцерів, що приймають відзнаки подяки в обмін на репутацію своєї фракції.
-
-До речі, поки йде військова кампанія, якщо бажаєш отримати матеріальну винагороду за свої відзнаки замість репутації — звернися до воєводи фельдмаршала Снігопада.]===],
--- And I wish I could join you <name>. Head over to Stormwind Keep. You'll find Thelman Slatefist in the King's audience chamber. He will aid you in getting to Alterac Valley.
-[2184089775] = [===[Ех, хотілось би мені приєднатися до вас, {ім'я:к}. Прямуйте до фортеці Штормовія. Там ви знайдете Тельмана Шиферука в тронній залі короля. Він допоможе вам дістатися до Альтерацької долини.]===],
--- Another entrepreneur, eh? Well, the Auction House can be found in the Trade District. Not far from the bank.
-[1158430877] = [===[Любите торги, так? Ну, Аукціонний дім знаходиться в Торговому районі, зовсім поруч із банком.]===],
--- Are you here for training? Or are you just here to waste a warrior's time.
-[1801687685] = [===[Ти {стать:прийшов:прийшла} на тренування? Чи просто марнуєш мій час?]===],
--- Are you interested in exploring one of these dungeons?
-[4158578474] = [===[Хочеш дослідити одне з цих підземель?]===],
--- As a mage, you are one of a select group that can conjure a portal to transport you back to this very place. I can teach you if you are ready.
-[1463077307] = [===[Як {клас:н}, ти належиш до небагатьох, хто може створити портал, що перенесе тебе сюди. Я можу навчити тебе, якщо ти {стать:готовий:готова}.]===],
--- As the wind on the plains, you are always welcome here.
-[2208953291] = [===[Тут завжди раді тобі, як вітру на рівнинах.]===],
--- At the southeast edge of town is the Gallows' End Tavern. Go there and head upstairs, and you'll find Dark Cleric Beryl inside the reading room.
-[881297538] = [===[На південно-східній околиці міста знаходиться таверна «Край шибениці». Йди туди та підіймайся нагору — в читальній залі ти знайдеш темного священника Берила.]===],
--- Auction House
-[3408769971] = [===[Аукціонний дім]===],
--- Away to Thunder Bluff to the north is where your journey takes you then friend. Once there seek out the wisdom of one of the Bluffwatchers who can tell you directly where to find whom you seek.
-[3302415773] = [===[Твій шлях лежить до Громового Бескиду, {стать:друже:подруго}. Опинившись там, звернися за порадою до одного з вартових бескиду, які зможуть точніше вказати, кого саме ти шукаєш.]===],
--- Axe
-[3029114566] = [===[Сокири]===],
--- Balai Lok'Wein of Brackenwall Village in Dustwallow Marsh sells a manual that you will need to study in order to improve your skills!
-[2542725402] = [===[Балая Лок'Вейн з селища Папорохащі, що в Бруднолипкій трясовині, продає посібник, який тобі варто прочитати, щоб покращити свої навички!]===],
--- Bandages, anti-venoms and such things, these are the inevitable necessities of life on the plains. Vira Younghoof can teach you this knowledge. You can find her in the long house on the west side of Bloodhoof Village.
-[1474051238] = [===[Бинти, протиотрути та подібні речі — це необхідність для виживання на рівнинах. Віра Молоде Копито може розповісти тобі про них більше. Ти знайдеш її у довгому будинку на західному боці селища Криваве Копито.]===],
--- Bank
-[410675714] = [===[Банк]===],
--- Bank of Stormwind
-[3371581698] = [===[Банк Штормовію]===],
--- Battlemaster
-[253322801] = [===[Воєначальник]===],
--- Besides the Grunts outside, my brothers and I fought at the battle of Hyjal. Any who seek to steal from the bank must face us first.
-[2858302175] = [===[Мало того, що ззовні стоять бугаї, ми з братами — ветерани битви під Гіджалом. Якщо хтось захоче пограбувати банк — доведеться спершу здолати нас.]===],
--- Best deals in all of Stormwind my friend, won't find any better. Now, what can I help you with?
-[2598353272] = [===[Найкращі ціни у всьому Штормовії, {стать:друже:подруго}, кращих не знайдеш. Ну, чим можу допомогти?]===],
--- Blackrock Mountain lies between Searing Gorge in the north and Burning Steppes in the south.
-[2051475275] = [===[Чорноскельна гора лежить між Випаленою ущелиною на півночі та Палаючим степом на півдні.]===],
--- Blacksmith? Nope, our last one turned back into one of those mindless Scourge. There's one in the Undercity though to the south of town though. Undercity is underneath the Ruins of Lordaeron, clever name, huh? Just take the elevators down at the back of the ruins and then you can talk to one of the Undercity Guardians. They should be able to point you in the right direction.
-[2517430149] = [===[Тобі потрібен коваль? Ну, наш останній знову втратив розум і приєднався до Скари. Проте є ще один в Підмісті, що на південь звідси. Підмістя знаходиться під руїнами Лордерона, логічно, ге ж? Просто спустить туди в задній частині руїн і поговори з одним із вартових Підмістя. Вони вкажуть тобі правильний напрямок.]===],
--- Bow
-[3041319677] = [===[Луки]===],
--- Built twelve thousand years ago by a covert sect of night elf sorcerers, the ancient city of Eldre'Thalas was used to protect Queen Azshara's most prized arcane secrets. Though it was ravaged by the Great Sundering of the world, much of the wondrous city still stands as the imposing Dire Maul. The ruins' three distinct districts have been overrun by all manner of creatures - especially the spectral highborne, foul satyr and brutish ogres.
-[2387865313] = [===[Стародавнє місто Ельдре'Талас, збудоване дванадцять тисяч років тому таємним орденом нічних ельфів-чаклунів, було призначене для захисту найцінніших магічних таємниць королеви Азшари. Хоча воно зазнало руйнування внаслідок Великого Розколу, більша частина цього дивовижного міста все ще стоїть, і нині відома як Грізний Молот. Три окремі райони руїн заполонили всілякі істоти — здебільшого примарні високородні, сатири та огри.]===],
--- Butcher you say? Oh, First Aid Trainer! Same thing. When you see Nurse Neela standing just inside the Gallows' End Tavern on the southeast side of town you'll know why.
-[1463998933] = [===[М'ясник, кажеш? А, тренер першої допомоги! Одне й те ж. Як побачиш санітарку Нілу, то зрозумієш чому. Вона стоїть одразу біля входу до таверни «Край шибениці», що на південно-східній околиці міста.]===],
--- Can you tell me more about this place?
-[57088927] = [===[Можеш розповісти більше про це місце?]===],
--- Check around Old Town at the Barracks or the Pig and Whistle Tavern. If you go to the tavern, be sure to sample some of the fine brews. Puts the dwarven ales to shame, I tell ya.
-[2872006923] = [===[Погляньте в Старому Місті — біля казарм або у таверні «Свиня і Свисток». Якщо підете в таверну, обов'язково спробуйте тамтешнє пиво. Кажу вам, дворфійський ель і поруч не стояв.]===],
--- Class Trainer
-[3462538363] = [===[Класовий тренер]===],
--- Clyde Kellen, the local bass master, has his favorite fishing spot just east of Brill at Brightwater Lake.
-[1776223672] = [===[Клайд Келлен, наш місцевий майстер риболовлі, зазвичай проводить час на Ясноводному озері, що на схід від Брілля.]===],
--- Crossbow
-[3505225165] = [===[Арбалети]===],
--- Dagger
-[431157885] = [===[Кинджали]===],
--- Dem other ogres was dumb to attack you, boss! Dat's why I'm still alive - I'm smart and stuff!
-[3796778485] = [===[Ті другі огри нападали на тебе, бо були дурні, бос! Того я ше живий — бо я умний, ага!]===],
--- Dirge Quikcleave of Gadgetzan is a master of the culinary arts. To better yourself you will need to seek him out.
-[399754343] = [===[Могиль Хуткоріз з Пристробляху — визнаний майстер кулінарного мистецтва. Тобі варто поговорити з ним, щоб вдосконалити свої навички.]===],
--- Do I look to you like I cast spells? Well, I did hear that Cain Firesong was hanging out on the upstairs landing of the Gallows' End Tavern at the southeast end of town. Odd how he just stands there outside of Gretchen's room like that.
-[2351748723] = [===[Хіба схоже, що я вмію чаклувати? Ну, я чув, що Каїн Вогнеспів зависає на другому поверсі таверни «Край шибениці», що на південному сході міста. Дивно, що він просто стоїть там, біля кімнати Ґретхен.]===],
--- Do not turn your back on the Light, <class>, it may be the one thing that saves you some day.
-[2507475128] = [===[Не повертайся спиною до Світла, {клас:к}, можливо це єдине, що колись тебе врятує.]===],
--- Don't let the jingle of the bells take away from the jingle in your pocket! Buy Smokywood Pastures treats for your Winter Veil festivities!
-[633971117] = [===[Не дозволяй святковим дзвоникам затьмарити дзвін твого гаманця! Купуй ласощі від Пасовищ Димного Лісу для святкування Зимової Покрови!]===],
--- Duncan's Textiles employs one of the finest tailors in Stormwind, Georgio Bolero. Look for the shop over in the Mage Quarter.
-[3556568180] = [===[Один з найкращих кравців Штормовію, Джорджіо Болеро, працює у крамниці «Текстиль Дункана». Це у кварталі Магів.]===],
--- During the War of the Ancients, the demigod Agamaggan came forth to battle the Burning Legion. The colossal boar was defeated, and over time in the areas where his blood fell, massive thorn-ridden vines sprouted to life. The quilboar came to occupy these regions and hold them sacred. The heart of these massive thorn-colonies is the Razorfen. Razorfen Kraul was conquered by the crone, Charlga Razorflank, who some speculate has been negotiating with agents of the Scourge for some insidious purpose.
-[2680698699] = [===[Під час Війни Древніх напівбог Аґамаґґан вийшов на бій проти Палаючого Легіону. Гігантський кнур був переможений, і згодом там, де пролилася його кров, проросли величезні колючі лози. Свинобрази племені Бритвоболотих оселились в цих місцях і стали вважати їх священними. Крааль Бритвоболотих був захоплений відьмою Чарлґою Бритвобокою, яка, як дехто припускає, веде переговори з агентами Скари з якоюсь лихою метою.]===],
--- Fancy yourself a chef? Head to the Undercity south of town for your training. You can catch the elevators heading down at the back of the Ruins of Lordaeron. Talk to one of those lumbering Undercity Guardians for further assistance once you arrive.
-[2138320769] = [===[Хочеш стати {стать:шеф-кухарем:шеф-кухаркою}? Тоді тобі слід йти до Підмістя, що на південь звідси. Ти зможеш спуститись туди на одному з підйомників, що в глибині руїн Лордерона. Як будеш там — запитай одного з тих величезних вартових Підмістя.]===],
--- Fill yer tankard and pull up a chair. We've stories to tell and kegs to empty.
-[3334331673] = [===[Наповнюй кружку і си влаштовуй зручніше. Ми тут любим розказувать історії, а в коморі ще купа випивки.]===],
--- Fist Weapon
-[860462721] = [===[Кулачна зброя]===],
--- Gelman Stonehand would be the one to talk to. I think he has a house over in the Dwarven District but I can't remember exactly. I would check over there.
-[2705099054] = [===[Ґелман Камнерук знається на цьому. Здається, у нього є будинок у Дворфійському районі, але я точно не пам'ятаю. Раджу пошукати там.]===],
--- Give a bull a fish and feed him for a day. Teach a bull to fish and feed him for life. Uthan Stillwater can teach you how to fish. Seek his wisdom west of Bloodhoof Village along the banks of Stonebull Lake.
-[4174888839] = [===[Дай таурену рибу, і він буде ситий один день. Навчи його ловити рибу, і він буде ситий все життя. Утан Тиха Вода може навчити тебе рибалити. Шукай його на заході від селища Криваве Копито на березі озера Кам'яного Бика.]===],
--- Gnomeregan can be found in western Dun Morogh.
-[2281661873] = [===[Гномреґан можна знайти на заході Дун-Морога.]===],
--- Gonna make a guild, are ya? Good luck to ya then!
---
--- Talk to Aldwin Laughlin in the Stormwind Vistor's Center. It's in the Trade District right as you come in from the Valley of Heroes.
-[805390248] = [===[Збираєтесь створити гільдію, так? Ну, хай щастить!
-
-Поговоріть з Олдвіном Сміхтом у центрі пригодників Штормовію. Це в Торговому районі, одразу як заходите з Долини Героїв.]===],
--- Greetings <class>. Shall I provide you with further insight into the world of magic?
-[668730150] = [===[Вітаю, {клас:к}. Бажаєш дізнатись більше про світ магії?]===],
--- Greetings and salutations, hero! I have the latest news from both continents and points beyond for your consideration.
-[4181975356] = [===[Вітаю тебе, {стать:герою:героїне}! Маю для тебе найсвіжіші новини з обох континентів і не тільки.]===],
--- Greetings, traveler.
-[3398832840] = [===[Вітаю, {стать:мандрівниче:мандрівнице}.]===],
--- Greetings. I'm an undead mage trainer, and you're a mage.
-[1815762675] = [===[Вітаю. Я навчаю магів, а ти, здається, маг.]===],
--- Gryphon Master
-[199682921] = [===[Приборкувач грифонів]===],
--- Gryphons, eh? Never really cared for the beasts but to each their own.
---
--- You can find Dungar Longdrink on the rampart in the Trade District.
-[1779945546] = [===[Грифони, ге? Мені ніколи не подобалися ці звірі, але кожному своє.
-
-Ви можете знайти Дунґара Довгопия на стіні в Торговому районі.]===],
--- Guild Master
-[837930098] = [===[Розпорядник гільдій]===],
--- Gun
-[3140044522] = [===[Рушниці]===],
--- Hail to da new king!
-[1901002890] = [===[Слава новому королю!]===],
--- Hey, that reminds me, I need to have my rocket boots repaired. Word to the wise my friend, rocket boots and gryphons don't mix.
---
--- Oh, but you need directions... just head on over to the Dwarven District, you'll find Lilliam Sparkspindle towards the back.
-[383475913] = [===[Хм, а мені саме потрібно відремонтувати мої реактивні черевики. Невеличка порада — не намагайтеся використовувати їх верхи на грифоні.
-
-Але вам потрібні вказівки... просто прямуйте до Дворфійського району, ви знайдете Ліліама Іскрошпинделя в дальній частині.]===],
--- Hippogryph Master
-[2666662603] = [===[Приборкувач гіпогрифів]===],
--- Hmmm, I think you will need to go up to Thunder Bluff to learn that. Head north on the road out of Bloodhoof Village. It will take you to the base of Thunder Bluff. Ride the elevator to the top and you should be able to ask any of the Bluffwatchers there for further assistance.
-[598856713] = [===[Хм... Думаю, тобі доведеться йти до Громового Бескиду. Вирушай на північ з селища Криваве Копито. Дорога приведе тебе до підніжжя Громового Бескиду. Піднімись на вершину і зможеш запитати в будь-якого вартового бескиду.]===],
--- How do I form a guild?
-[2178875214] = [===[Як створити гільдію?]===],
--- I am interested in mage training.
-[2633380395] = [===[Мене цікавить вивчення магії.]===],
--- I am so smart! S-M-R-T!
-[3291783132] = [===[Я такий вумний! ВУМНИЙ!!]===],
--- I can not train you, <class>.
-[596497898] = [===[Я не можу навчати тебе, {клас:к}.]===],
--- I can not train you. You need to talk to your class trainer.
-[1475993360] = [===[Я не можу тебе навчати. Тобі слід поговорити з тренером свого класу.]===],
--- I can teach you fishing skills.
-[3788223572] = [===[Я можу навчити тебе навичок рибальства.]===],
--- I can teach you how to cook!
-[2353007902] = [===[Я можу навчити тебе готувати!]===],
--- I can train you in First Aid techniques.
-[575566740] = [===[Я можу навчити тебе технік першої допомоги.]===],
--- I cause you no trouble, boss.
-[3172668669] = [===[Від мене не буде проблем, бос.]===],
--- I do not have the knowledge you seek.
-[3395417804] = [===[Я не володію знаннями, які ти шукаєш.]===],
--- I don't know how they do it... those mailboxes must be magic portals or something. Why I see people gathered around the mailbox next to the bank all day pulling swords and shields and various armor all from that small box!
-[3356973826] = [===[Я не знаю, як вони це роблять... в цих поштових скриньках, мабуть, магічні портали чи щось подібне. Я постійно бачу, як зі скриньки, що поруч з банком люди витягують мечі, щити та всілякі обладунки!]===],
--- I don't train your kind <class>.
-[431079844] = [===[Я не навчаю таких, як ти, {клас:к}.]===],
--- I guarantee this bank's security with my own blood, is that good enough for you?
-[3685220376] = [===[Я гарантую безпеку цього банку власною кров'ю. Тобі цього достатньо?]===],
--- I have no time to waste on the likes of you <class>.
-[845416524] = [===[Я не бажаю марнувати час на таких, як ти, {клас:к}.]===],
--- I hear that they have a Mining Trainer in Thunder Bluff to the north. Take the road out of the village and when you get there ride the elevator to the top of the rise. Any of the Bluffwatchers should be able to help you from there.
-[1271606688] = [===[У Громовому Бескиді, що на півночі, є тренер гірництва. Вирушай дорогою з селища, а коли дістанешся туди — скористайся підйомником. Будь-який вартовий бескиду зможе допомогти тобі.]===],
--- I hear that they have a Mining Trainer in the Undercity. All you have to do to get there is head south out of town and go to the back of the Ruins of Lordaeron. Then take the elevator down into the Undercity itself and ask an Undercity Guardian for further directions.
-[2912798431] = [===[Кажуть, що у Підмісті є тренер гірництва. Щоб потрапити туди — вирушай на південь з міста і йди до задньої частини руїн Лордерона. Там спуститися в саме Підмістя та запитай в одного вартових.]===],
--- I kinnae help ye with trainin'. Ye should look fer a <class> trainer.
-[666770767] = [===[Я не можу помогти тобі з тренуванням. Тобі треба тренер {клас:мр}.]===],
--- I need a ride.
-[3956547599] = [===[Мені потрібно летіти.]===],
--- I require <class> training.
-[3729571731] = [===[Я хочу навчитися навичок {клас:мр}.]===],
--- I require training.
-[2578858571] = [===[Мені потрібне навчання.]===],
--- I seek training as a <class>.
-[2847917833] = [===[Я хочу навчитися навичок {клас:мр}.]===],
--- I seek training to ride a steed.
-[4058836045] = [===[Я хочу навчитись їздити верхи.]===],
--- I sell only the best gear, tested and true. And the prices are set, so if you want to haggle then go find a Goblin.
-[4181239680] = [===[Я продаю лише найкраще спорядження, випробуване і якісне. І ціни фіксовані, тож якщо хочеш поторгуватися — йди до гоблінів.]===],
--- I sell only the finest arcane gear, made by the crafters and mages here in the city of Stormwind.
-[716595721] = [===[Я продаю лише найкраще магічне спорядження, виготовлене майстрами та магами Штормовію.]===],
--- I trust the Light is with you, <name>. Is there something that I can I help you with?
-[2722278334] = [===[Бережи тебе Світло, {ім'я:к}. Чи можу я чимось тобі допомогти?]===],
--- I want to ask you about something else.
-[900518594] = [===[Я хочу запитати про щось інше.]===],
--- I want to browse your goods.
-[789255659] = [===[Я хочу переглянути товари.]===],
--- I want to create a guild crest.
-[2070578652] = [===[Я хочу створити герб гільдії.]===],
--- I wish to browse your wares.
-[43845290] = [===[Я хочу переглянути товари.]===],
--- I wish to make a purchase.
-[959732348] = [===[Я хочу щось придбати.]===],
--- I wish to unlearn my talents.
-[792537735] = [===[Я хочу забути свої таланти.]===],
--- I wish to untrain my pet.
-[795867403] = [===[Я хочу перевчити свого вихованця.]===],
--- I would like to buy from you.
-[3219197346] = [===[Я хочу щось купити.]===],
--- I would like to check my deposit box.
-[837558441] = [===[Я хочу перевірити свою банківську скриньку.]===],
--- I would like to go to the battleground.
-[1233882911] = [===[Я хочу піти на поле бою.]===],
--- I would like to train.
-[3808875460] = [===[Я хочу тренуватися.]===],
--- I would suggest looking in the Cathedral of Light in Cathedral Square.
-[1745904651] = [===[Раджу шукати в соборі Світла, що на Соборній площі.]===],
--- I'd like some weapon training
-[2242737969] = [===[Я хочу навчитись користуватись зброєю]===],
--- I'd like you better if you would apply some perfume.
-[1931840696] = [===[Ти мені {стать:сподобався:сподобалася} би більше, якби {стать:користувався:користувалася} парфумами.]===],
--- I'd wager Keryn Sylvius knows the type you're looking for. The company Keryn keeps is less than honorable. She usually hangs out in the Lion's Pride Inn.
-[3728150709] = [===[Б'юся об заклад, що Керін Сільвія зможе вам з цим допомогти. Вона постійно вештається з не надто благородними людьми. Зазвичай її можна знайти в таверні «Гордість лева».]===],
--- If I had some chestnuts, you'd better believe I'd have them roasting over an open fire. Mmmm!
-[3140085236] = [===[Ех, були б каштани — можна було б посмажити їх на вогнищі... Це така смакота!]===],
--- If it is the way of the Warrior that you crave then you must seek out Krang Stonehoof. You will find him in the southeast corner of the village at his training circle, often instructing his other students.
-[990036718] = [===[Якщо тобі до вподоби шлях воїнів — тобі слід поговорити з Кранґом Кам'яним Копитом. Його можна знайти на південно-східному краю селища біля тренувального кола, де він часто навчає інших учнів.]===],
--- If we are to make these new lands ours then we must have places to rest our battle weary bodies. Lay your axe by the fire and share the stories of your mighty battles.
-[4079025104] = [===[Якщо ми хочемо, щоб ці землі стали нашим новим домом, нам потрібні місця, де ми могли б відпочити після виснажливих битв. Поклади свою зброю, сядь біля вогнища та розкажи про свої славні битви.]===],
--- If you are looking to become a great cook, venture over to the Pig and Whistle Tavern in Old Town and talk to Stephen Ryback. That man knows how to cook up a rack of ribs like no other.
---
--- Man... now you got me hungry for some of his famous ribs. Don't count on him teaching you that recipe though!
-[1898560686] = [===[Якщо ви хочете навчитись гарно готувати — вирушайте до таверни «Свиня і Свисток» у Старому Місті та поговоріть зі Стівеном Райбеком. Він готує найкращі реберця в місті!
-
-Ох... тепер мені хочеться поласувати його знаменитими реберцями. Але не сподівайтеся, що він поділиться з вами цим рецептом!]===],
--- If you are looking to become a mighty paladin, there is no better teacher then Lord Grayson Shadowbreaker. He can be found in the Cathedral of Light in Cathedral Square.
-[576578790] = [===[Якщо ви хочете стати {стать:могутнім:могутньою} {клас:о}, то немає кращого вчителя, ніж лорд Сивенко Тінелом. Його можна знайти в соборі Світла, що на Соборній площі.]===],
--- If you desire to learn the ways of Herbalism then it is to Thunder Bluff that you must go. Follow the road north out of Bloodhoof Village and take the elevator to the top of the rise. You can ask a Bluffwatcher there for further assistance.
-[2707060632] = [===[Якщо ти бажаєш опанувати травництво, тобі слід вирушати до Громового Бескиду. Прямуй дорогою на північ від селища Криваве Копито та скористайся підйомником, щоб піднятися на вершину. Там тобі допоможуть вартові бескиду.]===],
--- If you desire, in addition to training, I have it within my power to erase the knowledge of your talents from your mind. Be warned that every time you undergo this procedure the more difficult it is to perform, and therefore the more expensive it becomes.
-[3988384690] = [===[Якщо бажаєш, окрім навчання, я можу також стерти з твоєї пам'яті набуті тобою таланти. Але попереджаю, що з кожним разом ця процедура стає все складнішою, а отже і дорожчою.]===],
--- If you need to house your pet while you're training another, then you should talk to Jenova Stoneshield over in the Dwarven District.
-[975191646] = [===[Якщо вам потрібно прихистити свого вихованця, поки ви тренуєте іншого — зверніться до Дженови Камнещит у Дворфійському районі.]===],
--- If you need training in alchemy, there is only one place in Stormwind you need to go... Alchemy Needs. You can find it in the Mage Quarter along the outer rim of shops.
-[298463633] = [===[Якщо бажаєте навчатися алхімії, є лише одне місце в Штормовії, куди вам варто звернутись... крамничка "Все для алхімії"! Ви знайдете її у кварталі Магів уздовж зовнішнього кола крамниць.]===],
--- If you put on cologne or perfume, then you'll see who is amorous. Those are the ones who accept love tokens... and offer a gift in return.
---
--- But remember: to give someone a love token, you have to smell just right! Men like the scent of perfume, while women prefer cologne.
-[3266023309] = [===[Якщо ти нанесеш одеколон або парфуми, то побачиш тих, хто закоханий. Вони приймають знаки кохання, а натомість пропонують подарунок.
-
-Але пам'ятай: щоб подарувати комусь знак кохання, ти маєш пахнути саме так, як треба! Чоловіки люблять запах парфумів, а жінки віддають перевагу одеколону.]===],
--- In the King's audience chamber you will find the Lady Hoteshem. She can assist you in getting to Arathi Basin where The League of Arathor is in need of assistance against The Defilers.
-[3894461271] = [===[У тронній залі короля ви знайдете леді Готшем. Вона допоможе вам дістатися до низини Араті, де Ліга Аратора бореться проти Труїтелів.]===],
--- Indeed, Silverwing Hold is in need of your assistance. Speak with Elfarran in the audience chamber at Stormwind Keep.
-[1696649627] = [===[Так, фортеці Срібнокрилих не завадить ваша допомога. Поговоріть з Ельфарран в тронній залі короля, що у фортеці Штормовію.]===],
--- Inn
-[3114991326] = [===[Таверна]===],
--- Innkeeper Kauth can see to your needs. He can be found on the west side of the village in one of the long houses.
-[2123491325] = [===[Корчмар Каут радо прийме тебе. Його можна знайти в одному з довгих будинків на західній стороні селища.]===],
--- Inside the great tent at the northwest corner of the village is where Chaw Stronghide resides. He will teach you what you must know of Leatherworking for now.
-[97165450] = [===[У великому наметі на північно-західному боці селища мешкає Чау Дужа Шкура. Він навчить тебе усього, що ти маєш знати про шкірництво.]===],
--- It is Bowen Brisboise that you seek then. You'll find him inside his house southwest of Brill just on the other side of the bridge at Cold Hearth Manor.
-[1106987076] = [===[Тобі потрібен Боуен Брібуа. Ти знайдеш його в будинку на південний захід від Брілля одразу за мостом біля садиби Холодне Вогнище.]===],
--- It is Gennia Runetotem's counsel that you seek. You will find her in the large tent on the east side of the village.
-[637948054] = [===[Ти шукаєш Ґеннію Рунний Тотем. Її можна знайти у великому наметі на східному боці селища.]===],
--- It is located in the Trade District citizen. It is nearly straight on from the entrance of Stormwind.
-[274812311] = [===[Він розташований у Торговому районі, {стать:громадянине:громадянко}. Практично навпроти входу до Штормовію.]===],
--- It's admirable what The League of Arathor is attempting to do in Arathi Basin. Too bad those undead abominations and their Horde friends are standing in the way. Head over to Stormwind Keep. Lady Hoteshem awaits you in the King's audience chamber. She can help you to get to Arathi Basin.
-[4207070741] = [===[Звершення Ліги Аратора в низині Араті справді викликають захоплення. Шкода, що їм перешкоджають невмерлі потвори та їхні друзі з Орди. Вирушайте до фортеці Штормовія. Леді Готшем чекатиме в тронній залі короля. Вона допоможе вам дістатися до низини Араті.]===],
--- Jenova Stoneshield over in the Dwarven District is the one you're looking for. She tends to hunters' pets while they seek training from her father.
-[4160782058] = [===[Вам потрібна Дженова Камнещит з Дворфійського району. Поки її батько тренує мисливців, вона піклується про їхніх вихованців.]===],
--- Join a group going to this dungeon. <This choice will place you in a meetingstone queue>
-[4263658357] = [===[Приєднатися до групи, що йде до цього підземелля. <Цей вибір додасть вас у чергу каменю зустрічі>]===],
--- Just browsing my wares or is there something specific I can help you find today?
-[2764111522] = [===[Просто розглядаєш мої товари чи хочеш знайти щось конкретне?]===],
--- Krang Stonehoof stands astride his training circle at the southeast corner of the village.
-[2500330050] = [===[Кранґ Кам'яне Копито стоїть біля тренувального кола на південному сході селища.]===],
--- Laurena is the High Priestess of Stormwind. You can find her in the Catheral of Light in Cathedral Square.
-[883098760] = [===[Лорена — верховна жриця Штормовію. Ви можете знайти її у Соборі Світла на Соборній площі.]===],
--- Leave it to the dwarves to send a mining specialist from Ironforge to tell us how to mine. How hard is it to take a pick and chip away at some rock? Well, since he's here, he's probably the one you should see anyhow. His name is Gelman and he resides over in the Dwarven District.
-[4091499529] = [===[Уявляєте, до нас з Залізогарту відправили цілого спеціаліста, щоб він розповів нам, як правильно займатися гірництвом! Наскільки важко взяти кирку і відколоти шматок каменю? Ну, раз він тут, то саме до нього вам і слід звернутися. Його звати Ґелман, і він мешкає у Дворфійському районі.]===],
--- Let me browse your goods.
-[3929971245] = [===[Дозволь мені переглянути товари.]===],
--- Located in Dun Morogh, Gnomeregan has been the gnomes' capital city for generations, though it was recently infested by mutant troggs. In a desperate attempt to retaliate, High Tinker Mekkatorque ordered the emergency venting of the city's radioactive waste tanks. Though the troggs became irradiated, their siege continued unabated and the gnomes were forced to seek refuge in the dwarven city of Ironforge, where the High Tinker now enlists brave souls to help his people reclaim their beloved city.
-[3218607412] = [===[Розташований у Дун-Морозі, Гномреґан був столицею гномів протягом багатьох поколінь, але нещодавно його захопили троги-мутанти. У відчайдушній спробі помсти, верховний штукар Меккакруть наказав відкрити резервуари з радіоактивними відходами. Хоча троги опромінилися, їх натиск не припинився, і гноми були змушені шукати притулку у дворфійському місті Залізогарт, де верховний штукар тепер шукає сміливців, що допоможуть його народу повернути своє рідне місто.]===],
--- Look for Faruza. Last I saw she was standing out front between the stables and the house on the northwest end of town.
-[737697102] = [===[Тобі потрібна Фаруза. Востаннє мені доводилось бачити її між стайнею та будинком на північному заході містечка.]===],
--- Look inside the Gallows' End Tavern's main dining room for Austil de Mon. The tavern is on the southeast edge of Brill.
-[2966166576] = [===[Ти знайдеш Остіля де Мона у головній залі таверни «Край шибениці». Таверна розташована на південно-східній околиці Брілля.]===],
--- Looking for some training, eh? I could train you better then anyone in Stormwind but the guard prohibits it. I guess you will have to settle for one of those has beens hanging out around the Barracks or at the Pig and Whistle Tavern in Old Town.
-[257144037] = [===[Хочете тренуватись? Я можу тренувати краще за будь-кого в Штормовії, але варта забороняє це. Мабуть, вам доведеться звернутися до когось зі старожилів біля Казарм або в таверні «Свиня і Свисток» у Старому Місті.]===],
--- Love tokens are small messages of affection you can give to amorous town and city folk. Such people will reward you with a gift of adoration.
---
--- Or, if you are already adored by another, then at the least they'll give you a gift of friendship.
-[233166321] = [===[Знаки кохання — це маленькі послання прихильності, які можна подарувати закоханим містянам. Вони своєю чергою віддячать даром обожнювання.
-
-Або, якщо тебе вже обожнює хтось інший, то вони подарують тобі дар дружби.]===],
--- Lucan Cordell has a small shop on the canal by the Stockade. I am sure he will be able to teach you the art of enchanting.
-[1729072959] = [===[Люкан Корделл має невеличку крамницю біля каналу неподалік в'язниці. Думаю, він зможе навчити вас накладання чарів.]===],
--- Make this inn your home.
-[722140911] = [===[Зупинитися в цій таверні.]===],
--- Many are the paths of the Earth Mother. May your ancestors watch over you <class>.
-[2526844877] = [===[Шляхи Матері-Землі незліченні. Нехай предки оберігають тебе, {клас:к}.]===],
--- Marion Call is keeping Dark Cleric Beryl company in the reading room upstairs at the Gallows' End Tavern on the southeast edge of Brill. I'm just dying to see who wins that staring contest.
-[962416749] = [===[Маріон Призов проводить час з темним священником Берилом у читальні на другому поверсі таверни «Край шибениці», що на південно-східній околиці Брілля. Цікаво, чому вони постійно витріщаються одне на одного.]===],
--- Master Woo Ping has mastered nearly every weapon known to man. He is especially deadly with his sword techniques. He spends a good deal of time over in the Weller's Arsenal waiting on new shipments of weapons to arrive if you need some training.
-[1662785119] = [===[Майстер Ву Пінь володіє майже всіма відомими видами зброї. Він особливо небезпечний своїми техніками володіння мечем. Якщо ви хочете у нього вчитись — можете знайти його в арсеналі Колодязників. Він проводить багато часу там, чекаючи на нову зброю.]===],
--- May the Light protect you this day.
-[4100779666] = [===[Нехай Світло береже тебе.]===],
--- May the light guide your path and aid you in your journeys. If you need any assistance browsing, I will be right over here.
-[2791983483] = [===[Нехай світло веде тебе і допомагає у твоїх мандрівках. Якщо знадобиться допомога — я буду тут.]===],
--- May the spirits be with you.
-[1787114019] = [===[Нехай духи бережуть тебе.]===],
--- Morganus the stable master can be found out in front of the stables strangely enough.
-[3334844378] = [===[Як не дивно, доглядача стайні Морґануса можна зустріти перед стайнями.]===],
--- My mouth waters just to think on it. Pyall Silentstride is the finest cook in Bloodhoof Village. You will find him in the great tent at the northwest corner of the village.
-[565023908] = [===[П'ял Тихобіг — найкращий кухар у селищі Криваве Копито. Ти знайдеш його у великому наметі на північно-західному краю селища. У мене вже слина тече від одної лиш думки про його страви.]===],
--- No better place to learn First Aid than under the watchful eye of Shaina Fuller at the Cathedral of Light.
---
--- To get there, just look for the yellow rooftops, or the towering spire of the Cathedral itself which you can see from almost anywhere in the city.
-[1972986016] = [===[Немає кращого місця для вивчення першої допомоги, ніж під пильним наглядом Шайни Валюшник у соборі Світла.
-
-Щоб дістатися туди, просто шукайте жовті дахи або шпиль самого собору, який можна побачити майже з будь-якої точки міста.]===],
--- No one's ever stolen anything out of here. Not in the whole history of... the whole history!
-[3931980287] = [===[Ніхто ще звідси нічого не крав. З часів... та ніколи!]===],
--- No, I'm not, but lots of others are looking for love. You should buy my love tokens, put on some cologne or perfume, and then pass them around!
-[4087015541] = [===[Ні, я не з таких, але багато хто шукає кохання. Тобі слід намаститися парфумами чи одеколоном, придбати мої знаки кохання і роздати їх!]===],
--- Not too clever are you? Hmm, if I were a stable master perhaps I might be in the vicinity of say, the stable? Look for Morganus over there.
-[4028126087] = [===[А ти не дуже {стать:кмітливий:кмітлива}, еге ж? Хм, якби я був доглядачем стайні, де б я був? Може, біля стайні? Шукай Морґануса там.]===],
--- Nothing frees the spirit like soaring through the sky. There is such a place in our great tribal center Thunder Bluff. The road north out of Bloodhoof Village will guide you there. Once you ride the elevator to the top speak with one of the Bluffwatchers who can give you further directions.
-[1632451446] = [===[Ніщо так не звільняє дух, як ширяння в небі. Таке місце є в нашому великому місті, Громовому Бескиді. Тебе приведе туди дорога, що веде на північ з селища Криваве Копито. Піднявшись на вершину, звернись за допомогою до одного з вартових бескиду.]===],
--- Nothing like spending a day down at Crystal Lake fishing. Arnold Leland is the man that taught me. You can usually find him out on the dock in the Canal District just fishing the day away.
---
--- Oh, and don't believe any of the stories he tells you about monsters in the canals either.
-[4174992640] = [===[Немає нічого кращого, ніж провести день на Кришталевому озері, рибалячи. Мене цього навчив Арнольд Ліланд. Його зазвичай можна знайти на причалі у районі каналів, де він рибалить увесь день.
-
-О, і не вірте жодним його історіям про монстрів, що водяться в каналах.]===],
--- Now if I were Innkeeper Renee where might I be? Hmmm? Oh, perhaps inside the Gallows' End Tavern. Yes, that's it, I'm sure of it. Try the southeast end of Brill... think you can find that?
-[2147471617] = [===[Хм... Якби я був корчмаркою Рені, де ж я міг би бути? Хм? О, можливо, в таверні «Край шибениці». Так, точно, саме там. Це на південному сході від Брілля... ти ж розумієш, в якому це напрямку?]===],
--- Now is the time when the year is new and the moon shines bright.
---
--- It is our time... when the ancients awake.
-[3022226889] = [===[Це пора нового року, коли молодий місяць сяє вперше.
-
-Це наш час... час, коли пробуджуються предки.]===],
--- Nurse Neela greets all of her future customers as they enter the Gallows' End Tavern at the southeast end of town.
-[67215632] = [===[Санітарка Ніла радо вітає всіх своїх майбутніх клієнтів, коли вони заходять до таверни «Край шибениці», що на південному сході міста.]===],
--- Officers' Lounge
-[4272071823] = [===[Офіцерська зала]===],
--- Oh, looking for some arcane enlightenment are you? No place better then then Wizard's Sanctum in the Mage Quarter.
-[1416635900] = [===[О, то ви шукаєте магічного просвітлення, так? Для цього немає кращого місця за святилище чарівників, що у кварталі Магів.]===],
--- Old king got dead? That's unpossible!
-[3038229974] = [===[Старий король мертвий? Це не може бути!]===],
--- Once the capital city of the Dark Iron dwarves, this volcanic labyrinth now serves as the seat of power for Ragnaros the Firelord. Ragnaros has uncovered the secret to creating life from stone and plans to build an army of unstoppable golems to aid him in conquering the whole of Blackrock Mountain. Obsessed with defeating Nefarian and his draconic minions, Ragnaros will go to any extreme to achieve final victory.
-[4187685329] = [===[Колишня столиця дворфів Темного Заліза тепер служить Раґнаросу, лорду вогню. Раґнарос відкрив секрет створення життя з каменю і планує створити армію непереможних големів, які допоможуть йому завоювати всю Чорноскельну гору. Одержимий бажанням перемогти Нефаріана та його драконічних підданих, Раґнарос не зупиниться ні перед чим, щоб досягти остаточної перемоги.]===],
--- Once the jewel of northern Lordaeron, the city of Stratholme is where Prince Arthas turned against his mentor, Uther Lightbringer, and slaughtered hundreds of his own subjects who were believed to have contracted the plague of undeath. Arthas' surrender to the Lich King soon followed. The broken city is now inhabited by the undead Scourge - led by the powerful lich, Kel'Thuzad, and a contingent of Scarlet Crusaders, led by Grand Crusader Dathrohan. The two sides are locked in constant, violent combat.
-[1631233284] = [===[Колишня перлина північного Лордерону, місто Стратгольм — це місце, де принц Артас відвернувся від свого наставника, Утера Світлоносця, та вбив сотні своїх підданих, які, як вважалося, були заражені чумою невмерлих. Незабаром після цього Артас скорився Королю-лічу. Зруйноване місто тепер заповнене Скарою, якою керує могутній ліч, Кел'Тузад, та загонами Багряного Походу на чолі з верховним лицарем Датроганом. Обидві сторони безупинно ведуть жорстокі бої.]===],
--- Our Alchemist's name is Carolai Anise. You'll find her in a house at the northwest end of Brill.
-[1128185429] = [===[Нашу майстриню алхімії звати Каролая Аніс. Ти знайдеш її в будинку на північно-західному краю Брілля.]===],
--- Over a thousand years ago a group of troll priests known as the Atal'ai attempted to bring back an ancient blood god named Hakkar the Soulflayer. After the resulting civil war the priests were defeated and exiled to the Swamp of Sorrows. There they erected a temple to Hakkar to prepare for his arrival into the physical world. The dragon Aspect Ysera soon learned of the Atal'ai's plans and smashed the temple beneath the marshes. To this day, the temple's ruins are guarded by the mighty green dragons.
-[3723630804] = [===[Більше тисячі років тому група тролів-жерців, відомих як Атал'ай, намагалася повернути до життя древнього бога крові, на ім'я Гаккар-Здирач душ. Після громадянської війни жерці були переможені й вигнані до болота Скорбот. Там вони спорудили храм Гаккару, готуючись до його прибуття в матеріальний світ. Дракон-аспект Ізера швидко дізналася про плани Атал'ай і зруйнувала храм, затопивши його в болотах. Донині руїни храму охороняють могутні зелені дракони.]===],
--- Please teach me.
-[1829526179] = [===[Будь ласка, навчіть мене.]===],
--- Please train me.
-[1687375698] = [===[Будь ласка, навчіть мене.]===],
--- Polearm
-[974624469] = [===[Держакова зброя]===],
--- Profession Trainer
-[1221755545] = [===[Тренер професії]===],
--- Rand Rhobart is fairly good at skinning felbats and the like. You can find him at a camp along the road to the southeast of Brill. Take the road southeast out of town and then head east at the intersection.
-[1648758132] = [===[Ренд Робарт досить непогано вміє знімати шкури з кажанів і подібних тварин. Ти знайдеш його в придорожньому таборі на південний схід від Брілля. Іди дорогою на південний схід з міста, а на перехресті поверни наліво.]===],
--- Razorfen Downs can be found on the very southern tip of the Barrens on the east side of the road.
-[2470543870] = [===[Нори Бритвоболотих можна знайти на самому південному краю Степів зі східного боку дороги.]===],
--- Razorfen Kraul can be found on the very southern tip of the Barrens on the west side of the road.
-[551578166] = [===[Крааль Бритвоболотих можна знайти на самому півдні Степів з західного боку дороги.]===],
--- Rest your weary bones for a spell.
-[28114999] = [===[Дай своїм змученим кісткам трохи відпочити.]===],
--- Rifles, dynamite, bombs, exploding sheep... what's not to love? To learn how to make these and many other exciting tools of the trade head to the Undercity, under the Ruins of Lordaeron to the south of Brill. Take the elevators down at the back of the ruins. Once you arrive speak to one of the Undercity Guardians about where the trainer is exactly.
-[699855350] = [===[Гвинтівки, динаміт, бомби, вибухові вівці... гарні штуки, ге ж? Щоб дізнатись, як зробити їх та багато інших захопливих речей, прямуй до Підмістя, під руїни Лордерона, що на південь від Брілля. Спустись туди в задній частині руїн. Коли будеш там — запитай в одного з вартових Підмістя про те, де саме знаходиться тренер.]===],
--- Rupert Boch is his name. I hear that he's upstairs in one of the rooms at the Gallows' End Tavern on the southeast end of town.
-[4202082863] = [===[Тобі потрібен Руперт Бох. Я чув, що він мешкає в одній із кімнат таверни «Край шибениці», що на південно-східному краю міста.]===],
--- Rut'theran Ferry
-[3985347023] = [===[Рут'Теранська переправа]===],
--- Scarlet Monastery lies in the hills northeast of Tirisfal Glades.
-[2462972856] = [===[Багряний монастир розташований у пагорбах на північний схід від Тірісфальського перелісся.]===],
--- Seikwa can take care of your animal friends when you have the need. Seek her out in front of the inn.
-[1190610084] = [===[Сейква може подбати про твоїх друзів-тварин, якщо виникне така потреба. Шукай її поруч з таверною.]===],
--- Show me where I can fly.
-[3288848329] = [===[Покажи куди я можу полетіти.]===],
--- Since the fall of Dalaran and the destruction of Quel'Thalas, wares of this sort have been hard to come by. But Lucan Cordell and some of our other Tradesman have been doing a fine job of filling our orders with quality merchandise.
-[1417749096] = [===[Після падіння Даларану та знищення Квел'Таласу такі речі важко знайти. Але Люкан Корделл та деякі інші наші торговці чудово справляються з постачаннями якісних товарів.]===],
--- So long as you stay here with us, you da king. You take off, and some other ogre will take your place. That's da way of da Gordok!
-[1287374594] = [===[Поки ти з нами — ти король. Ти підеш — інший огр займе твоє місце. Так живуть Ґордоки!]===],
--- Sorry friend, we don't have one of those here in Brill. You'll have to head to the Undercity for that. The Undercity is underneath the Ruins of Lordaeron to the south of Brill. From the back of the ruins take the elevator down and then speak to one of the Undercity Guardians to find your way further.
-[875224270] = [===[Вибачай, {стать:друже:подруго}, але у Бріллі такого немає. Тобі доведеться вирушити до Підмістя. Воно знаходиться під руїнами Лордерона на південь від Брілля. В дальній частині руїн спустися вниз на підйомнику, а потім поговори з одним із вартових Підмістя, щоб дізнатися, куди йти далі.]===],
--- Sorry, but I only train rogues.
-[130610742] = [===[Вибач, я навчаю лише пройдисвітів.]===],
--- Sounds like you want to talk to Maginor Dumas! You can usually find him in the Wizard's Sanctum in the Mage Quarter. Course, you never know when or where those magi will portal off to.
-[1306819016] = [===[Схоже, що вам потрібен Маґінор Дюма! Зазвичай його можна знайти у Святилищі чарівників, що у кварталі Магів. Ніколи не вгадаєш, куди ці маги відкриють черговий портал, еге ж?]===],
--- Stable Master
-[1214104245] = [===[Доглядач стайні]===],
--- Staff
-[3488418310] = [===[Посохи]===],
--- Stormwind Counting House is located by the front gates in the Trade District of Stormwind. And when you get tired of counting your money, be sure to stop by the Gilded Rose for a drink.
-[4191392836] = [===[Рахункова палата Штормовію розташована неподалік головних воріт у Торговому районі. А як втомитеся рахувати гроші, обов'язково зайдіть до «Позолоченої троянди» на кухлик.]===],
--- Stormwind is the pillar of the human race, maintained through strength of will and the edge of a sturdy blade.
-[2471265741] = [===[Штормовій — опора людської раси, яка підтримується силою волі та вістрям міцного клинка.]===],
--- Stormwind's resident engineer trainer is an ingenious gnome by the name of Lilliam Sparkspindle. He can be found in the back of the Dwarven District.
-[2527203566] = [===[Найкращий тренер інженерії в Штормовії — це геніальний гном на імʼя Ліліам Іскрошпиндель. Його можна знайти в глибині Дворфійського району.]===],
--- Such wisdom is steeped in a mystery that can only be found in great Thunder Bluff. Follow the path north out of Bloodhoof Village until you come to an elevator at the base of the bluffs. Ride it to the top and ask one of the Bluffwatchers for further assistance.
-[2081111865] = [===[Таку таємничу мудрість можна знайти лише у величному Громовому Бескиді. Йди стежкою на північ з селища Криваве Копито, поки не дійдеш до підйомника біля підніжжя бескидів. Піднімися на вершину і запитай у когось з вартових бескиду.]===],
--- Sword
-[785669301] = [===[Мечі]===],
--- Tailoring you say? Hmmm. Ah yes, of course. You'll need to head to Thunder Bluff, up north. Take the path out of the village to get there. When you arrive at the base of the bluffs ride the elevator to the top of the rise and speak with one of the Bluffwatchers.
-[1773952457] = [===[Кравецтво, кажеш? Хмм. Так, звісно. Тобі слід відправитися до Громового Бескиду, на північ. Йди туди дорогою з селища, а як дістанешся підніжжя — скористайся підйомником. Нагорі ти зможеш запитати дорогу у вартових бескиду.]===],
--- Tell me about dungeons I could explore.
-[2492432873] = [===[Розкажи мені про підземелля, які я можу відвідати.]===],
--- That bum Leland... all he does is sit out on the dock outside the Trade District and fish all day. I sure hope he's good at it for all the time he spends fishing. If you want to learn, why don't you go talk to him?
-[2143395055] = [===[Цей нероба Ліланд... він днями сидить на причалі зовні Торгового району і рибалить. Сподіваюся, у нього це хоча б добре виходить, зважаючи на те, скільки часу він цим займається. Якщо теж хочете навчитися, чому б вам не звернутися до нього?]===],
--- That would be Shelene Rhobart. Take the road southeast out of Brill then head east at the intersection. She's at a camp along the side of the road.
-[3119328017] = [===[Тобі потрібна Шелен Робарт. Їди дорогою на південний схід з Брілля, а на перехресті поверни ліворуч. Вона в таборі на узбіччі.]===],
--- That's Rupert Boch you're looking for. He and his entourage have a room upstairs at the Gallows' End Tavern on the southeast end of Brill.
-[488759158] = [===[Тобі потрібен Руперт Бох. Він і йому подібні розмістилися в кімнаті на верхньому поверсі таверни «Край шибениці», що на південному сході Брілля.]===],
--- The Bank of Stormwind is located in the Trade District just northwest of the city gates. Here, let me show you on your map.
-[3052515204] = [===[Банк Штормовію розташований у Торговому районі на північний захід від міських воріт. Дозвольте, я покажу вам на мапі.]===],
--- The Cathedral of Light in Cathedral Square is home to the priests of Stormwind. There you will find High Priestess Laurena.
-[107874079] = [===[Собор Світла, що розташований на Соборній площі, служить домівкою для жерців Штормовія. Саме там ви знайдете верховну жрицю Лорену.]===],
--- The Cathedral of Light is the center of all the healing practices of Stormwind. There you can find Shaina Fuller to help you learn this craft.
-[2646012415] = [===[У Соборі Світла вивчають усі лікувальні практики Штормовія. Там ви можете знайти Шайну Валюшник, яка допоможе вам навчитися цього ремесла.]===],
--- The Dual Talent Specialization allows you to keep two active talent sets. You will be able to easily switch between these two specializations. When you switch between sets, you will also gain access to a second set of action bars. Switching cannot be performed while in combat, and will consume your available resources.
-[2855043518] = [===[Подвійна спеціалізація дозволяє мати два активних набори талантів. Ти зможеш легко перемикатися між цими двома спеціалізаціями. При перемиканні між ними ти також отримаєш доступ до другого набору панелей дій. Перемикання не можна виконати під час бою і воно витратить всі доступні ресурси.]===],
--- The Light protect you, <class>.
-[3948734958] = [===[Нехай Світло береже тебе, {клас:к}.]===],
--- The Park is where you want to go if you are looking for druid trainers. Theridan and Maldryn can usually be found by the moonwell in the center of the district.
-[3374114541] = [===[Якщо ви шукаєте тренерів-друїдів, вам варто піти до парку. Терідрана та Малдріна зазвичай можна знайти біля місячного колодязя в центрі району.]===],
--- The Rogue Trainer's name is Marion Call. You can find her upstairs in the reading room at the Gallows' End Tavern at the town's southeast edge.
-[3779169238] = [===[Тренерку пройдисвітів звуть Маріон Призов. Ти можеш знайти її нагорі в читальній залі таверни «Край шибениці», що на південно-східному краю міста.]===],
--- The Scholomance is housed in crypts beneath the Caer Darrow keep. Once owned by the noble Barov family, the keep fell to ruin after the Second War. As the wizard Kel'Thuzad enlisted followers for his Cult of the Damned, he often promised immortality for those who served his Lich King. The Barovs fell to his influence and donated their keep, but the cultists killed the family and turned the crypts into a school of necromancy. Though Kel'Thuzad no longer resides there, cultists and instructors still remain.
-[3018548165] = [===[Некроситет розташований у склепах під Тверджею Дарроу. Колись цей замок належав шляхетній родині Барових, але після Другої війни він був зруйнований. Коли чаклун Кел'Тузад вербував послідовників для свого культу Проклятих, він часто обіцяв безсмертя тим, хто служив Королю-лічу. Барови підпали під його вплив і пожертвували свою фортецю, але культисти вбили їх і перетворили склепи на школу некромантії. Хоча Кел'Тузад більше не мешкає там, культисти та викладачі досі лишаються всередині.]===],
--- The School for Necromancy known as Scholomance is on the ruined island of Caer Darrow in the Western Plaguelands.
-[981571142] = [===[Школа Некромантії, відома як Некроситет, розташована на зруйнованому острові Тверджа Дарроу у Західних Зачумлених землях.]===],
--- The School of Necromancy known as Scholomance is on the ruined island of Caer Darrow in the Western Plaguelands.
-[14556452] = [===[Школа Некромантії, відома як Некроситет, розташована на зруйнованому острові Тверджа Дарроу у Західних Зачумлених землях.]===],
--- The Silverwing Sentinels can use all the help they can get in their fight against the Warsong Outriders. <name>, go to Stormwind Keep and speak with Elfarran if you wish to assist them.
-[3230762823] = [===[Срібнокрилим стражам потрібна будь-яка можлива допомога у боротьбі проти авангарду Пісні Війни. {Ім'я:к}, вирушайте до фортеці Штормовія та поговоріть з Ельфарран, якщо бажаєте допомогти їм.]===],
--- The Stars of this time are bent on new paths, beacons of hope and strength for the coming ages.
-[1113658956] = [===[Цієї пори зорі прямують новими шляхами, стаючи маяками надії та сили для прийдешніх поколінь.]===],
--- The Sunken Temple can be found in the center of a great lake in eastern Swamp of Sorrows.
-[2591657221] = [===[Затонулий храм можна знайти в центрі великого озера на сході болота Скорбот.]===],
--- The bat handler
-[1039490946] = [===[Приборкувач кажанів]===],
--- The magi congregate in the Wizard's Sanctum in the Mage Quarter. Quite a tower they have there. Makes our barracks look like peasant hovels.
-[3795015972] = [===[Маги збираються у святилищі чарівників у кварталі Магів. Так, башта в них там неабияка. Наші казарми в порівнянні з нею виглядають як селянські халупи.]===],
--- The mighty fortress carved within the fiery bowels of Blackrock Mountain was held by the sinister Dark Iron dwarves for centuries until Nefarian - the cunning son of the dragon, Deathwing - took control of the upper Spire and made war on the dwarves' holdings in the mountain's volcanic depths. Realizing that the dwarves were led by the mighty fire elemental, Ragnaros - Nefarian vowed to crush his enemies and claim the whole of Blackrock mountain for himself.
-[1219406897] = [===[Могутню фортецю, висічену у вогняних надрах Чорноскельної гори, століттями утримували зловісні дворфи Темного Заліза, доки Нефаріан — хитрий син дракона Смертекрила — не захопив верхній Шпиль і не розпочав війну проти володінь дворфів у вулканічних глибинах гори. Усвідомивши, що дворфами керує могутній вогняний елементаль, Раґнарос, Нефаріан поклявся розгромити своїх ворогів та завоювати всю Чорноскельну гору.]===],
--- The monastery was once a center for learning and enlightenment. With the rise of the undead Scourge during the Third War, the peaceful Monastery was converted into a stronghold of the fanatical Scarlet Crusade. The Crusaders are intolerant of all non-human races, regardless of alliance or affiliation. They believe that any and all outsiders are potential carriers of the undead plague - and must be destroyed.
-[3595565728] = [===[Колись монастир був центром навчання та просвітництва. З появою Скари під час Третьої війни, мирний монастир був перетворений на фортецю фанатичного Багряного Походу. Його члени не терплять будь-які нелюдські раси, незалежно від альянсу чи приналежності. Вони вважають, що всі чужинці є потенційними носіями чуми невмерлих і мають бути знищені.]===],
--- The ruined city of Stratholme lies in the Eastern Plaguelands to the north of the Plaguewood.
-[692722891] = [===[Зруйноване місто Стратгольм розташоване у Східних Зачумлених землях на північ від Чумолісся.]===],
--- The ruins of Dire Maul stand in central Ferelas.
-[2546276561] = [===[Руїни Грізного Молота стоять у центрі Фераласу.]===],
--- The spirits have guided you to me. How may I be of service?
-[2601883962] = [===[Духи привели тебе до мене. Чим я можу допомогти?]===],
--- The way of the Druid is sibling to the Shaman. Gennia Runetotem is steeped in such knowledge. Seek her out in the large tent on the east side of Bloodhoof Village.
-[1946954940] = [===[Шлях друїдів тісно пов'язаний зі шляхом шаманів. Ґеннія Рунний Тотем досконало володіє такими знаннями. Розшукай її у великому наметі на східному боці селища Криваве Копито.]===],
--- The zeppelin master
-[1252443735] = [===[Провідник дирижабля]===],
--- Then it is Thelman Slatefist that you wish to speak to. You can find him in the presence of the King at Stormwind Keep.
-[2343698065] = [===[Це вам потрібен Тельман Шиферук. Його можна знайти неподалік від короля у фортеці Штормовію.]===],
--- There are many establishments where you can get a drink in Stormwind, but only one will let you spend the night. Head over to the Gilded Rose in the Trade District. I've heard the cost of a room is reasonable and the sheets are clean.
-[1065012391] = [===[У Штормовії є багато закладів, де можна випити, але лише в одному з них можна залишитися на ніч. Завітайте до «Позолоченої троянди» в Торговому районі. Кімнати там недорогі, а постіль завжди чиста.]===],
--- There are those that would teach you of Herbalism in the great home of Thunder Bluff away to the north. Follow the road out of the village to get there and at the base of the bluff ride the elevator to the top of the rise. There are many Bluffwatchers there who can direct you further.
-[2865447560] = [===[У нашому великому домі, Громовому Бескиді, що далеко на півночі, є ті, хто можуть навчити тебе травництва. Прямуй дорогою з селиша, щоб дістатися туди, і підіймись на вершину. Там багато вартових бескиду, що зможуть направити тебе далі.]===],
--- There is a Blacksmithing Trainer in our great home Thunder Bluff to the north. If you seek such knowledge then head there and ask one of the Bluffwatchers for directions.
-[201661583] = [===[Тренер ковальства є в нашому великому домі, Громовому Бескиді на півночі. Якщо ти шукаєш таких знань, вирушай туди та запитай в одного з вартових бескиду, куди йти далі.]===],
--- There is a Wind Rider Master in the great city of Thunder Bluff to the north. Ride the elevator from the base of Thunder Bluff to the top and ask one of the Bluffwatchers there for further instructions.
-[2599863918] = [===[У великому місті Громовий Бескид, що на півночі, є приборкувач виверн. Піднімися туди, скориставшись підйомником біля підніжжя бескиду та звернись до одного з тамтешніх вартових.]===],
--- There is a large tent on the east side of Bloodhoof Village. You will find Narm Skychaser awaiting you there.
-[1477951151] = [===[На східному боці селища Криваве Копито стоїть великий намет. Там ти знайдеш Нарма Небесного Мисливця.]===],
--- There is a mailbox located conveniently right between the Stormwind Bank and The Gilded Rose Inn in the Trade District.
-[3431578091] = [===[Ви знайдете поштову скриньку прямо між банком Штормовія та таверною "Позолочена троянда" у Торговому районі.]===],
--- There is a time and a place for all things, including relaxation. On the west side of Bloodhoof Village Innkeeper Kauth maintains a long house for those who seek to rest. You will find him there.
-[2069983304] = [===[Для всього є свій час і місце, зокрема й для відпочинку. На західній стороні селища Криваве Копито корчмар Каут тримає довгий будинок для тих, хто бажає відпочити. Ти знайдеш його там.]===],
--- There is a wise one in the village who goes by the name Narm Skychaser. He can continue your learning along the path of the Shaman.
-[270638949] = [===[Є один мудрець у селищі, на ім'я Нарм Небесний Мисливець. Він може продовжити твоє навчання шляху шаманів.]===],
--- There's a Bat Handler inside the Undercity. Head south down the road out of Brill, then west at the T-intersection. The Ruins of Lordaeron will be on your left. Go into them and then down into the Undercity. You can ask an Undercity Guardian there for further assistance.
-[3688895151] = [===[У Підмісті є приборкувач кажанів. Прямуй на південь дорогою з Брілля, потім на роздоріжжі йди на захід. Руїни Лордерона будуть ліворуч. Заходь в них і потім спускайся в Підмістя. Там ти зможеш розпитати вартових Підмістя.]===],
--- There's a great cook who works at the Pig and Whistle Tavern in Old Town. I've watched him use a knife when he cooks and just between you and me, I don't think he's always been a cook. Don't get me wrong... if you still want to learn, he's the best we have.
-[1005494488] = [===[У таверні «Свиня і Свисток», що у Старому Місті, працює талановитий кухар. Враховуючи те, як майстерно він володіє ножем, думаю, він не завжди був кухарем. Але якщо ви все ще бажаєте навчатися, то краще за нього не знайдете.]===],
--- There's nothing quite like communing with nature... or at least that's what the night elves tell me. I'm not much for talking to flowers and trees, but I'm sure Tannysa could help you out. She's over in the Mage Quarter outside of Alchemy Needs.
-[1238993775] = [===[Немає нічого подібного на спілкування з природою... принаймні так кажуть нічні ельфи. Я не дуже люблю розмовляти з квітами та деревами, але я певен, що Танніса може вам допомогти. Вона знаходиться у кварталі Магів біля крамниці "Все для алхімії".]===],
--- Therum Deepforge is the dwarf you want to talk to. One of the finest blacksmiths around if you ask me. You can find him in the heart of the Dwarven District.
-[2509190657] = [===[Терум Ковоглиб — це дворф, якого ви шукаєте. Один з найкращих ковалів у місті, як на мене. Ви знайдете його в самому серці Дворфійського району.]===],
--- Thorfin Stoneshield came to us all the way from Ironforge to bring us his expertise in hunting. If you don't mind breathing the smoke filled air of the Dwarven District then you'll find him at his house in the northeast area of the district.
-[955403082] = [===[Торфін Камнещит приїхав до нас аж із Залізогарта, щоб поділитися своїм мисливським досвідом. Якщо ви не проти подихати кіптявою у Дворфійському районі, то знайдете його у його будинку на північному сході району.]===],
--- Through rigorous retraining I have had to break many students of all they had previously learned so that I might teach them anew. The service I offer becomes increasingly difficult to perform each time it is done. It is for that reason that it becomes increasingly expensive with each retraining. Do you desire that I break you of the talents you have learned?
-[464103300] = [===[Через сувору перепідготовку мені довелося позбавити багатьох студентів усього, чого вони раніше навчилися, щоб навчати їх заново. Послугу, яку я пропоную, з кожним разом стає все важче виконувати. Саме тому вона буде дорожчати з кожним перенавчанням. Ти справді хочеш забути свої таланти?]===],
--- To learn to be one with Nature in the eyes of the Earth Mother, this is a matter of pride. If your will is to learn the ways of the Hunter you must seek out Yaw Sharpmane at the north end of Bloodhoof Village.
-[2444686558] = [===[Навчитися бути одним цілим з природою в очах Матері Землі — це велика гордість. Якщо ти хочеш опанувати шляхи мисливців, ти маєш знайти Йова Гострогрива на північному краю селища Криваве Копито.]===],
--- Train me in the ways of the beast.
-[4194210259] = [===[Навчіть мене шляхам звіра.]===],
--- Train me.
-[448462128] = [===[Навчіть мене.]===],
--- Tucked away in the Mage Quarter, there is a little shop called Alchemy Needs. You're bound to see all sort of strange shops on your way through the Mage Quarter, but if you stick to the outer rim you'll be sure to find it.
-[915178722] = [===[У кварталі Магів є невеличка крамниця під назвою "Все для алхімії". Ви побачите багато дивних крамниць на шляху через квартал Магів, але якщо проходитиме зовнішнім кільцем, то обов'язково її знайдете.]===],
--- Unfortunately we do not have one who teaches Tailoring here in Bloodhoof Village, but you can find a trainer in Thunder Bluff. Follow the path north out of the village until you come to a set of elevators. Take one up to the top of the rise and ask one of the Bluffwatchers there for directions.
-[204348992] = [===[На жаль, у селищі Криваве Копито немає тренера кравецтва, але його можна знайти в Громовому Бескиді. Йди стежкою на північ від селища, поки не дійдеш до підйомників. Скористайся одним з них і запитай у когось з вартових бескиду нагорі.]===],
--- Using the fruits of the Earth Mother to create potions to aid us in our eternal struggle is an honorable endeavor. To learn of this you must travel north to our great home of Thunder Bluff. When you arrive at the top seek out the assistance of one of the Bluffwatchers for more specific directions.
-[2037919567] = [===[Використання плодів Матері-Землі для створення зіллів, що допомагають у нашій вічній боротьбі — почесна справа. Щоб навчитися цього, тобі слід вирушити на північ до нашого великого дому, Громового Бескиду. Як піднімешся на вершину, звернись за допомогою до одного з вартових бескиду.]===],
--- Vira Younghoof keeps her practice inside the long house on the west side of the village.
-[1580652653] = [===[Шукай Віру Молоде Копито у довгому будинку на західній стороні селища.]===],
--- Want to learn leatherworking, eh? Simon Tanner would be able to teach you. He can be found in Old Town at the Protective Hide.
-[684979652] = [===[Хочете навчитись шкірництва, так? Вам слід звернутись до Симона Кожум'яки. Його можна знайти в Старому Місті у крамниці "Міцна шкура".]===],
--- Warlocks, eh. Well, you didn't hear it from me, but I've heard rumors that those types gather at a bar called the Slaughtered Lamb in the Mage Quarter.
-[3476046583] = [===[Що, чорнокнижники? Якщо що — я вам цього не казав, але подейкують, що вони збираються у барі під назвою «Зарізане ягня» у кварталі Магів.]===],
--- Warriors can usually be found either at the Pig and Whistle Tavern or the Barracks in Old Town. Tell ya though, the tavern is probably a better place look.
-[2692130417] = [===[Воїнів зазвичай можна знайти або в таверні «Свиня і Свисток», або в казармах у Старому Місті. Але певно краще все ж шукати в таверні.]===],
--- We a lot cleaner than da ogres in Tanaris. All over da desert as far as da eye can see - ogre poo. Not here, no sir!
-[3117392399] = [===[Ми не такі брудні як огри в Танарісі. Вся пустеля, де не глянь, в огрячих кізяках. В нас такого нема!]===],
--- We don't have a bank here in Brill, you'll have to go to the Undercity for that. At the back of the Ruins of Lordaeron to the south are elevators that will take you down into the Undercity. Once there ask one of the Undercity Guardians for more precise directions.
-[2046059292] = [===[У нас в Бріллі немає банку, тому тобі доведеться вирушити до Підмістя. У дальній частині руїн Лордерона є підйомники, якими можна спуститись у Підмістя. Як будеш там — запитай одного з вартових Підмістя.]===],
--- We have no such place in the village. The soaring heights of Thunder Bluff does though. Head north up the road out of Bloodhoof Village until you come to the base of the bluffs. There ride the elevator to the top and speak with a Bluffwatcher. May your ancestors watch over you.
-[751604591] = [===[У нашому селищі такого місця немає. Але воно є у Громовому Бескиді. Вирушай на північ по дорозі з селища Криваве Копито, доки не дійдеш до підніжжя бескиду. Там скористайся підйомником і поговори з вартовим бескиду. Нехай предки оберігають тебе.]===],
--- Weapon Master
-[2984198724] = [===[Знавець зброї]===],
--- Weapons Trainer
-[79040106] = [===[Тренер володіння зброєю]===],
--- Welcome to my Inn, weary traveler. What can I do for you?
-[1816071830] = [===[Ласкаво прошу до моєї таверни, {стать:стомлений мандрівниче:стомлена мандрівнице}. Що я можу для тебе зробити?]===],
--- Welcome to the Bank of Stormwind. We offer financial accounts and safety deposit boxes for valuable items. Do you already have an account with us <sir/ma'am>?
-[4280290942] = [===[Ласкаво просимо до Банку Штормовію. Ми пропонуємо фінансові рахунки та сейфи для зберігання цінних речей. Ви вже маєте рахунок у нас, {стать:пане:пані}?]===],
--- Well met, <class>. My advice to you is this: as you travel the world, be wary of magic for it will burn the untrained.
-[400623288] = [===[Вітаю, {клас:к}. Моя порада тобі: подорожуючи світом, остерігайся магії, бо вона нищить непідготовлених.]===],
--- Well met, <class>. You want some advice? Befriend a mage! We have a trick or two up our sleeves, we do...
-[172630567] = [===[Радий зустріти тебе, {клас:к}. Хочеш пораду? Подружись з магом! У нас завжди є в запасі кілька хитрощів, о так...]===],
--- Well, well, moving up in the world are we? You're looking for the Champions' Hall, and you'll find it on the southeast end of Old Town. If you're an officer you can enter the hall, otherwise you can still speak to Officer Areyn standing outside. Good luck!
-[182484818] = [===[Що, просуваєтесь по кар'єрних сходах? Тоді вам до зали Чемпіонів, вона знаходиться в південно-східній частині Старого Міста. Якщо ви офіцер, то зможете увійти до зали, а якщо ні, то можете поспілкуватися з офіцером Арейн, що стоїть зовні. Щасти вам!]===],
--- Well, you can find Theridan or Maldryn by the moonwell in the Park. Just head to the western area of Stormwind, north of the Mage District, but west of the Cathedral Square.
-[2669215490] = [===[Ну, ви можете знайти Терідрана чи Малдріна поруч із місячним колодязем у Парку. Просто прямуйте до західної частини Штормовію, на північ від кварталу Магів та на захід від Соборної площі.]===],
--- What are the Paragons of Power?
-[4045865235] = [===[Що таке взірці могутності?]===],
--- What are you looking for?
-[3127536296] = [===[Чого ти шукаєш?]===],
--- What can I do at an inn?
-[2439012089] = [===[Чим я можу зайнятися в таверні?]===],
--- What can other weapon masters teach?
-[3823556983] = [===[Чого можуть навчити інші знавці зброї?]===],
--- What could you possibly need a bank for? Very well, you'll need to go through the Ruins of Lordaeron to the south of Brill. In the back are a set of elevators leading down into the Undercity. When you get there stop any of those lumbering Abominations they like to call an Undercity Guardian and ask it for better directions.
-[426785215] = [===[Навіщо тобі може знадобитися банк? Ну добре, тобі потрібно пройти крізь руїни Лордерона, що на південь від Брілля. Позаду знаходяться підйомники, що ведуть до Підмістя. Як будеш там, зупини будь-яку з тих велетенських потвор, яких вони називають вартовими Підмістя, і запитай у них.]===],
--- What do you have for sale?
-[2613206497] = [===[Що ти продаєш?]===],
--- What do you need directions to?
-[315240381] = [===[Що ви хочете знайти?]===],
--- What is a Horde Commendation Signet?
-[2970795463] = [===[Що таке відзнака подяки Орди?]===],
--- What is an Alliance Commendation Signet?
-[919263168] = [===[Що таке відзнака подяки Альянсу?]===],
--- What?
-[1712914435] = [===[Що?]===],
--- What? I don't know of any warlock trainers in Stormwind.
---
--- Although... There have been some sightings of demonic activity over by The Slaughtered Lamb in the Mage Quarter. I suppose you could check there.
-[3476830926] = [===[Що? Не знаю я ні про яких тренерів чорнокнижників у Штормовії.
-
-Хоча... Було кілька випадків демонічної активності біля таверни "Зарізане ягня" у кварталі Магів. Гадаю, варто поглянути там.]===],
--- When I scowled at you before you became da new king... um... I was just joking.
---
--- Yeah!
-[685663900] = [===[Коли я злитися на тебе коли ти не бути новий король... ем... це я так жартувати.
-
-Ага!]===],
--- When we use the hides of the animals we must fell for food or protection we give honor to the Earth Mother and respect to the animal. Chaw Stronghide can teach you of such things. You will find him in the great tent at the northwest corner of Bloodhoof Village.
-[2784213492] = [===[Коли ми використовуємо шкуру тварини, вбитої задля їжі чи захисту, ми віддаємо шану Матері-Землі та тварині. Чау Дужа Шкура може навчити тебе таких речей. Ти знайдеш його у великому наметі з північно-західного краю селища Криваве Копито.]===],
--- When you give love tokens to townsfolk, you'll receive different gifts in return. Some of those you'll want to keep and use, but others can be bundled together and given to your favorite hero! Visit Kwee Q. Peddlefeet to turn them in.
---
--- Kwee can be found near Cairne, Sylvanas and Thrall.
-[2218003595] = [===[Коли ти даруєш містянам знаки кохання, то отримуєш у відповідь різні подарунки. Деякі з них ти захочеш залишити собі, інші можна об'єднати разом та подарувати улюбленому герою! Звернись до Купі С.В. Купайла, щоб віддати їх.
-
-Купі можна знайти поруч з Керном, Сильваною та Траллом.]===],
--- Where would you like to fly to?
-[4139945412] = [===[Куди бажаєш полетіти?]===],
--- Which battleground are you interested in?
-[3650936074] = [===[Який поле бою вас цікавить?]===],
--- Which class trainer are you looking for?
-[3070143212] = [===[Тренера якого класу ви шукаєте?]===],
--- Which profession trainer are you looking for?
-[1990326142] = [===[Тренера якої професії ви шукаєте?]===],
--- Which profession?
-[2893777626] = [===[Якої професії?]===],
--- Which trainer do you seek?
-[242532920] = [===[Якого тренера ти шукаєш?]===],
--- While there's no Engineering Trainer in Brill, there is one down in the Undercity. To get there head to the back of the Ruins of Lordaeron to the south of town and take the elevator down. Once you get there ask an Undercity Guardian for more specific directions.
-[162957638] = [===[У Бріллі немає тренера інженерії, але він є у Підмісті. Щоб дістатися туди, іди до задньої частини руїн Лордерона, що на південь звідси, і спускайся вниз. Як будеш там — запитай одного з вартових Підмістя.]===],
--- While we have no Alchemy Trainer here in Bloodhoof Village, there is one in Thunder Bluff to the north. Follow the road there and ask one of the Bluffwatchers for directions when you get to the top.
-[3684095597] = [===[Хоча у нас в селищі Криваве Копито немає тренера алхімії, та він є в Громовому Бескиді. Прямуй туди дорогою на північ та, діставшись вершини, запитай дорогу у вартових бескиду.]===],
--- Wind Rider Master
-[1433933426] = [===[Приборкувач виверн]===],
--- With the sanction of Lord Varimathras, the Deathstalkers' numbers grow. More blades to strike at our enemies when they least expect it.
-[1379987604] = [===[З санкції лорда Варіматраса ряди Смертоловів зростають. Тепер у нас ще більше клинків, готових вразити наших ворогів в будь-який момент.]===],
--- Woo Ping's stamina is simply astounding. Watching him practice his weapon techniques for hours on end, I felt sorry for the practice dummy afterward. I can't think of anyone better suited to train you in armed combat.
-[434962902] = [===[Витривалість Ву Піня просто вражає. Спостерігаючи, як він годинами відпрацьовує свої техніки бою, мені стає шкода тренувальний манекен. Не можу уявити когось, хто б краще підходив для навчання володіння зброєю.]===],
--- Word is that Vance Undergloom has taken a permanent room upstairs at the Gallows' End Tavern at the southeast end of town. I think he's just off the reading room.
-[861260030] = [===[Кажуть, Венс Підцвіт оселився в кімнаті нагорі таверни «Край шибениці», що на південному сході міста. Думаю, він десь біля кімнати з книжками.]===],
--- Would you rather trust your goods with a goblin?
-[1632820229] = [===[Чи {стать:довірив би:довірила б} ти свої речі гоблінам?]===],
--- Ya may not follow the ways of the Light like a Knight of the Silver Hand, but ya can always ask us for aid.
-[1262318310] = [===[Хай може ти й не слідуєш шляхом Світла, як лицарі Сріблястої Десниці, але ти завжди можеш розраховувати на нашу допомогу.]===],
--- Yaw Sharpmane awaits you on the north edge of the village. He can teach you the ways of the Hunter.
-[799167212] = [===[Йов Гострогрив знаходиться на північному краю селища. Він зможе навчити тебе шляху мисливців.]===],
--- Yeah, that would be Austil de Mon. He's always hanging out in the tavern at the southeast end of town. It's called the Gallows' End Tavern, you can't miss it.
-[3857457011] = [===[Тобі потрібен Остіль де Мон. Він постійно зависає у таверні на південному сході міста. Її назва — «Край шибениці», ти не пропустиш.]===],
--- Yes, <class>?
-[3563799772] = [===[Так, {клас:к}?]===],
--- Yes, I do
-[1760627075] = [===[Так, хочу]===],
--- Yes, I do.
-[1438770179] = [===[Так.]===],
--- Yes. I do
-[703743365] = [===[Так, хочу]===],
--- Yes. I do.
-[505109101] = [===[Так.]===],
--- Yonn Deepcut can be found inside the great tent at the northwest corner of Bloodhoof Village.
-[409230663] = [===[Йонна Глибокоріза можна знайти у великому наметі на північному заході селища Криваве Копито.]===],
--- You aiming to be a taxidermist? I don't like people who think they can stuff and mount me because they think I'm dead. No? Good! Look for Rand Rhobart at a camp to the southeast of town. To get to him take the road southeast out of Brill and hang a left at the intersection.
-[4219891144] = [===[Хочеш зайнятись таксидермією? Не люблю тих, хто вважає, що з мене можна зробити ляльку лише тому, що я мертвий. Ні? Добре! Тоді шукай Ренда Робарта у таборі на південний схід від міста. Щоб дістатися до нього, рушай дорогою на південний схід з Брілля і на перехресті поверни ліворуч.]===],
--- You are gonna want to head over to Old Town and drop by the Protective Hide if you are lookin' to learn skinning.
-[1176383274] = [===[Якщо хочете навчитися знімати шкури, вам слід відправитися в Старе місто і завітати до крамниці «Міцна шкура».]===],
--- You are looking for Uthan Stillwater. You will find him west of the village, fishing at Stonebull Lake.
-[430700592] = [===[Тобі потрібен Утан Тиха Вода. Він зазвичай рибалить на озері Кам'яного Бика, що на захід від селища.]===],
--- You can find Aldwin Laughlin at the Stormwind Vistor's Center in the Trade District.
-[677670961] = [===[Ви знайдете Олдвіна Сміхта у центрі пригодників Штормовію в Торговому районі.]===],
--- You can find Tannysa standing outside Alchemy Needs in the Mage Quarter.
-[2306273353] = [===[Ви знайдете Таннісу ззовні крамниці «Все для алхімії» у кварталі Магів.]===],
--- You can find Vance Undergloom upstairs in a room at the Gallows' End Tavern on the southeast side of Brill.
-[2784314238] = [===[Ти знайдеш Венс Підцвіт нагорі таверни «Край шибениці», що на південно-східній околиці Брілля.]===],
--- You can find the gryphon master on the northeast rampart overlooking the Valley of Heroes.
-[376581717] = [===[Ви можете знайти приборкувача грифонів на північно-східній стіні, з якої відкривається вид на Долину Героїв.]===],
--- You desire to shape the bones of the Earth Mother into tools that will aid the Horde. Good, good. Follow the path north out of Bloodhoof Village until you come to the elevator leading to the top of Thunder Bluff. A Bluffwatcher there can give you further assistance.
-[1700381068] = [===[Ти бажаєш перетворити дари Матері-Землі на знаряддя, які допоможуть Орді? Добре, дуже добре. Прямуй дорогою на північ від селища Криваве Копито, поки не дійдеш до підйомника, що веде на вершину Громового Бескиду. Там тобі допоможуть вартові бескиду.]===],
--- You don't have the stomach for the gryphon ride, huh. Well lucky for you, we have an alternative where you can keep your feet on the ground... more or less. It's the gnomish mover of people, the Deeprun Tram. Conveniently located in the back of the Dwarven District.
-[1622060168] = [===[Що, не вистачає духу літати на грифонах? Ну, вам пощастило, бо у нас є альтернатива, де вам не доведеться відриватись від землі... ну майже. Це гномська самохідна машина, Підземний трамвай. Він розташований у задній частині Дворфійського району.]===],
--- You know, I could run an orc through or slice up a troll. I could even carve my initials in an ogre's flank, but I just can't stand to skin an animal. Go figure, eh.
---
--- Well, if you have the stomach for it, then go see Maris Granger at the Protective Hide in Old Town.
-[4079505811] = [===[Знаєте, я міг би проткнути орка наскрізь або розрубати троля. Я навіть міг би вирізати свої ініціали на боці огра, але просто не можу здирати шкуру з тварини. Отак от.
-
-Що ж, якщо у вас вистачає духу для цього, то завітайте до Меріс Грейнджер у крамниці «Міцна шкура», що у Старому Місті.]===],
--- You mean you can't smell the smoke of the Dwarven forges from here? Well, you will be looking for Therum Deepforge if you want to learn blacksmithing. He's over in the Dwarven District which is just north of the Cathedral Square.
-[3385632561] = [===[Хочете сказати, що ви не відчуваєте запах диму з дворфійських ковальнь? Ну, якщо хочете навчитися ковальства, вам потрібен Терум Ковоглиб. Він знаходиться у Дворфійському районі, що на північ від Соборної площі.]===],
--- You will find Pyall Silentstride inside the great tent in the northwest corner of the village. He can teach you what you crave.
-[1773819898] = [===[Ти знайдеш П'яла Тихобіга у великому наметі на північно-західному краю селища. Він зможе навчити тебе.]===],
--- You'll find Innkeeper Renee inside the Gallows' End Tavern at the southeast end of the street running through town.
-[3440903634] = [===[Ти знайдеш корчмарку Рені у таверні «Край шибениці», що знаходиться на східному краю міста.]===],
--- You'll find the Mage Trainer, Cain Firesong, upstairs on the landing at the Gallows' End Tavern, which is on the southeast end of Brill. I guess he checked in too late to get a room.
-[1210765157] = [===[Ти знайдеш тренера магів, Каїна Вогнеспіва, нагорі таверни «Край шибениці», що на південно-східному краю Брілля. Думаю, він заїхав надто пізно, щоб зайняти кімнату.]===],
--- You'll need more training before I can share my knowledge with you, I'm afraid.
-[1886983044] = [===[Боюсь, тобі потрібно більше тренуватись, перш ніж приходити до мене.]===],
--- You're into leather, eh? Sounds like you should talk to Simon Tanner over in Old Town. He runs a shop there called the Protective Hide.
-[2625481684] = [===[Любите шкіру, так? Тоді вас слід поговорити з Симоном Кожум'якою у Старому Місті. Він тримає там крамницю, що зветься "Міцна шкура".]===],
--- You're no warlock and I've no time for you. Begone!
-[3332383593] = [===[Ти не {стать:чорнокнижник:чорнокнижниця}, і в мене немає часу на тебе. Зникни!]===],
--- You've heard about the Tram have you? What a ride that thing is! You'll find it in the Dwarven District towards the back. Oh, and be sure to keep your arms and legs inside the tram while the tram is in motion.
-[1094972089] = [===[Ви ж чули про трамвай? Це той ще атракціон! Він знаходиться в кінці Дворфійського району. О, і не висовуйте голову з вагону, поки він рухається.]===],
--- Your body looks worn and your spirit weary. Rest yourself beneath our roof and allow Elune to guide your dreams.
-[326768818] = [===[Твоє тіло виглядає стомленим, а дух — виснаженим. Відпочинь під нашим дахом і дозволь Елуні оберігати твої сни.]===],
-["!code"] = {
-["anaecnstisadtoh.wogsaeadbdteclofdytoteaevs"] = 2874125285,
-["adwhcdjnyu.-hdortosdkpylfdtnstinteksaecrhe"] = 2184089775,
-["donttnyrbkontelt..itmybeteoetgttssyusedy"] = 2507475128,
-["gs..slpeyuwhfritiotewdofmc"] = 668730150,
-["cnnttnyu.."] = 596497898,
-["dttnyrkd.."] = 431079844,
-["henotetoweontelsofyu.."] = 845416524,
-["kehpyewhtnyesdlkfr..tr"] = 666770767,
-["re..tg"] = 3729571731,
-["sktgas.."] = 2847917833,
-["ttteltiswhyu.-istesgttcnhpyuwh"] = 2722278334,
-["myaetepsofteehmrmyyraswhoryu.."] = 2526844877,
-["teltptyu.."] = 3948734958,
-["tesgsscnuealtehptycngtintrftattewgos.-goto"] = 3230762823,
-["wetotebkofsdweorflasadsydtbsfrveisdoyuayhe"] = 4280290942,
-["wlmt..myaetoyuistsasyutltewdbewyofmcfritwl"] = 400623288,
-["wlmt..yuwtseaebdmewehetkortouporsswedo"] = 172630567,
-["ys.."] = 3563799772,
-},
-},
-[1252] = { -- Senir Whitebeard
--- Greetings and salutations to you, good dwarf. P'rhaps you'd like to share a drink with me, help fight off the chill of the wind? Come, I've more than enough to share.
-[2434572833] = [===[Вітаю тебе, друже дворфе. Може, вип’єш зі мною, щоб зігрітися від холодного вітру? Підходь, у мене вистачить на двох.]===],
-},
-[1573] = { -- Gryth Thurden
--- The Wildhammer dwarves might have fast steeds, but can those Aerie Peak gryphons stand the heat of The Great Forge?  I think not!
-[666791115] = [===[У дворфів Дикого Молота, може, й прудкі скакуни, та чи витримають грифони з Орлиного піку жар Великої кузні? Гадаю, що ні!]===],
-},
-[5595] = { -- Ironforge Guard
--- Bank of Ironforge
-[10028616] = [===[Банк Залізогарта]===],
--- The bank?  Oh, ye mean The Vault!  No safer place to store yer valuables than The Vault. Ye'll find it just northeast of the entrance to Ironforge.
-[47033630] = [===[Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.]===],
--- What do ye need directions to?
-[2435559780] = [===[Куди вам підказати дорогу?]===],
-},
-[11036] = { -- Leonid Barthalomew the Revered
--- Through knowledge, may we find salvation.
-[2891883280] = [===[Через знання ми зможемо знайти спасіння.]===],
-},
-[197] = { -- Marshal McBride
--- Hey, citizen! You look like a stout one. We guards are spread a little thin out here, and I could use your help...
-[1499627568] = [===[Гей, {стать:громадянине:громадянко}! Виглядаєте {стать:міцним:міцною}. Нас, вартових, тут небагато, і мені потрібна ваша допомога...]===],
-},
-[5570] = { -- Bruuk Barleybeard
--- Hey there. What can I get for you?
-[4191088603] = [===[Привіт. Що тобі налляти?]===],
--- To be honest, we're struggling to make ends meet. Business has been slowing down lately, no thanks to drunkards like Bruart harassing other customers.
-[428061917] = [===[Якщо чесно, ми ледве зводимо кінці з кінцями. Бізнес загальмувалася останнім часом, не в останню чергу через п'яниць типу Бруарта, що чіпляються до інших клієнтів.]===],
-},
-[8403] = { -- Jeremiah Payson
--- Wanna buy a cockroach?
-[916388844] = [===[Хочеш купити таргана?]===],
-},
-[8737] = { -- Linken
--- I... I'm not really sure how I got here...
---
--- I seem to remember traveling... a raft...
-[2614069872] = [===[Я... якщо чесно, я не зовсім розумію, як я сюди потрапив...
-
-Здається, я кудись плив... на плоті...]===],
-},
-[911] = { -- Llane Beshere
--- I can tell just by the way you're standing that you're no warrior.
---
--- Why don't you go do something safe, like read a book.
-[1298350057] = [===[Я бачу, що ти не {стать:воїн:воїтелька}, просто по тому як ти стоїш.
-
-Чому б тобі не зайнятися чимось безпечним, наприклад почитати книжку.]===],
-},
+addonTable.gossip_hashed = addonTable.gossip_hashed or { version = 1, rows = {} }
+local rows = {
+    [1005494488] = {
+        ["english"] = { [1] = "There's a great cook who works at the Pig and Whistle Tavern in Old Town. I've watched him use a knife when he cooks and just between you and me, I don't think he's always been a cook. Don't get me wrong... if you still want to learn, he's the best we have." },
+        ["text"] = "У таверні «Свиня і Свисток», що у Старому Місті, працює талановитий кухар. Враховуючи те, як майстерно він володіє ножем, думаю, він не завжди був кухарем. Але якщо ви все ще бажаєте навчатися, то краще за нього не знайдете.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1005494488 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1039490946] = {
+        ["english"] = { [1] = "The bat handler" },
+        ["text"] = "Приборкувач кажанів",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1039490946 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1065012391] = {
+        ["english"] = { [1] = "There are many establishments where you can get a drink in Stormwind, but only one will let you spend the night. Head over to the Gilded Rose in the Trade District. I've heard the cost of a room is reasonable and the sheets are clean." },
+        ["text"] = "У Штормовії є багато закладів, де можна випити, але лише в одному з них можна залишитися на ніч. Завітайте до «Позолоченої троянди» в Торговому районі. Кімнати там недорогі, а постіль завжди чиста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1065012391 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [107874079] = {
+        ["english"] = { [1] = "The Cathedral of Light in Cathedral Square is home to the priests of Stormwind. There you will find High Priestess Laurena." },
+        ["text"] = "Собор Світла, що розташований на Соборній площі, служить домівкою для жерців Штормовія. Саме там ви знайдете верховну жрицю Лорену.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 107874079 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1094972089] = {
+        ["english"] = { [1] = "You've heard about the Tram have you? What a ride that thing is! You'll find it in the Dwarven District towards the back. Oh, and be sure to keep your arms and legs inside the tram while the tram is in motion." },
+        ["text"] = "Ви ж чули про трамвай? Це той ще атракціон! Він знаходиться в кінці Дворфійського району. О, і не висовуйте голову з вагону, поки він рухається.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1094972089 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1106987076] = {
+        ["english"] = { [1] = "It is Bowen Brisboise that you seek then. You'll find him inside his house southwest of Brill just on the other side of the bridge at Cold Hearth Manor." },
+        ["text"] = "Тобі потрібен Боуен Брібуа. Ти знайдеш його в будинку на південний захід від Брілля одразу за мостом біля садиби Холодне Вогнище.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1106987076 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1113658956] = {
+        ["english"] = { [1] = "The Stars of this time are bent on new paths, beacons of hope and strength for the coming ages." },
+        ["text"] = "Цієї пори зорі прямують новими шляхами, стаючи маяками надії та сили для прийдешніх поколінь.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1113658956 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1128185429] = {
+        ["english"] = { [1] = "Our Alchemist's name is Carolai Anise. You'll find her in a house at the northwest end of Brill." },
+        ["text"] = "Нашу майстриню алхімії звати Каролая Аніс. Ти знайдеш її в будинку на північно-західному краю Брілля.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1128185429 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1158430877] = {
+        ["english"] = { [1] = "Another entrepreneur, eh? Well, the Auction House can be found in the Trade District. Not far from the bank." },
+        ["text"] = "Любите торги, так? Ну, Аукціонний дім знаходиться в Торговому районі, зовсім поруч із банком.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1158430877 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1176383274] = {
+        ["english"] = { [1] = "You are gonna want to head over to Old Town and drop by the Protective Hide if you are lookin' to learn skinning." },
+        ["text"] = "Якщо хочете навчитися знімати шкури, вам слід відправитися в Старе місто і завітати до крамниці «Міцна шкура».",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1176383274 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1190610084] = {
+        ["english"] = { [1] = "Seikwa can take care of your animal friends when you have the need. Seek her out in front of the inn." },
+        ["text"] = "Сейква може подбати про твоїх друзів-тварин, якщо виникне така потреба. Шукай її поруч з таверною.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1190610084 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1210765157] = {
+        ["english"] = { [1] = "You'll find the Mage Trainer, Cain Firesong, upstairs on the landing at the Gallows' End Tavern, which is on the southeast end of Brill. I guess he checked in too late to get a room." },
+        ["text"] = "Ти знайдеш тренера магів, Каїна Вогнеспіва, нагорі таверни «Край шибениці», що на південно-східному краю Брілля. Думаю, він заїхав надто пізно, щоб зайняти кімнату.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1210765157 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1214104245] = {
+        ["english"] = { [1] = "Stable Master" },
+        ["text"] = "Доглядач стайні",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1214104245 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1219406897] = {
+        ["english"] = { [1] = "The mighty fortress carved within the fiery bowels of Blackrock Mountain was held by the sinister Dark Iron dwarves for centuries until Nefarian - the cunning son of the dragon, Deathwing - took control of the upper Spire and made war on the dwarves' holdings in the mountain's volcanic depths. Realizing that the dwarves were led by the mighty fire elemental, Ragnaros - Nefarian vowed to crush his enemies and claim the whole of Blackrock mountain for himself." },
+        ["text"] = "Могутню фортецю, висічену у вогняних надрах Чорноскельної гори, століттями утримували зловісні дворфи Темного Заліза, доки Нефаріан — хитрий син дракона Смертекрила — не захопив верхній Шпиль і не розпочав війну проти володінь дворфів у вулканічних глибинах гори. Усвідомивши, що дворфами керує могутній вогняний елементаль, Раґнарос, Нефаріан поклявся розгромити своїх ворогів та завоювати всю Чорноскельну гору.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1219406897 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1221755545] = {
+        ["english"] = { [1] = "Profession Trainer" },
+        ["text"] = "Тренер професії",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1221755545 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1233882911] = {
+        ["english"] = { [1] = "I would like to go to the battleground." },
+        ["text"] = "Я хочу піти на поле бою.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1233882911 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1238993775] = {
+        ["english"] = { [1] = "There's nothing quite like communing with nature... or at least that's what the night elves tell me. I'm not much for talking to flowers and trees, but I'm sure Tannysa could help you out. She's over in the Mage Quarter outside of Alchemy Needs." },
+        ["text"] = "Немає нічого подібного на спілкування з природою... принаймні так кажуть нічні ельфи. Я не дуже люблю розмовляти з квітами та деревами, але я певен, що Танніса може вам допомогти. Вона знаходиться у кварталі Магів біля крамниці \"Все для алхімії\".",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1238993775 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1252443735] = {
+        ["english"] = { [1] = "The zeppelin master" },
+        ["text"] = "Провідник дирижабля",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1252443735 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1262318310] = {
+        ["english"] = { [1] = "Ya may not follow the ways of the Light like a Knight of the Silver Hand, but ya can always ask us for aid." },
+        ["text"] = "Хай може ти й не слідуєш шляхом Світла, як лицарі Сріблястої Десниці, але ти завжди можеш розраховувати на нашу допомогу.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1262318310 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1271606688] = {
+        ["english"] = { [1] = "I hear that they have a Mining Trainer in Thunder Bluff to the north. Take the road out of the village and when you get there ride the elevator to the top of the rise. Any of the Bluffwatchers should be able to help you from there." },
+        ["text"] = "У Громовому Бескиді, що на півночі, є тренер гірництва. Вирушай дорогою з селища, а коли дістанешся туди — скористайся підйомником. Будь-який вартовий бескиду зможе допомогти тобі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1271606688 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1287374594] = {
+        ["english"] = { [1] = "So long as you stay here with us, you da king. You take off, and some other ogre will take your place. That's da way of da Gordok!" },
+        ["text"] = "Поки ти з нами — ти король. Ти підеш — інший огр займе твоє місце. Так живуть Ґордоки!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1287374594 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [130610742] = {
+        ["english"] = { [1] = "Sorry, but I only train rogues." },
+        ["text"] = "Вибач, я навчаю лише пройдисвітів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 130610742 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1306819016] = {
+        ["english"] = { [1] = "Sounds like you want to talk to Maginor Dumas! You can usually find him in the Wizard's Sanctum in the Mage Quarter. Course, you never know when or where those magi will portal off to." },
+        ["text"] = "Схоже, що вам потрібен Маґінор Дюма! Зазвичай його можна знайти у Святилищі чарівників, що у кварталі Магів. Ніколи не вгадаєш, куди ці маги відкриють черговий портал, еге ж?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1306819016 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1379987604] = {
+        ["english"] = { [1] = "With the sanction of Lord Varimathras, the Deathstalkers' numbers grow. More blades to strike at our enemies when they least expect it." },
+        ["text"] = "З санкції лорда Варіматраса ряди Смертоловів зростають. Тепер у нас ще більше клинків, готових вразити наших ворогів в будь-який момент.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1379987604 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1416635900] = {
+        ["english"] = { [1] = "Oh, looking for some arcane enlightenment are you? No place better then then Wizard's Sanctum in the Mage Quarter." },
+        ["text"] = "О, то ви шукаєте магічного просвітлення, так? Для цього немає кращого місця за святилище чарівників, що у кварталі Магів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1416635900 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1417749096] = {
+        ["english"] = { [1] = "Since the fall of Dalaran and the destruction of Quel'Thalas, wares of this sort have been hard to come by. But Lucan Cordell and some of our other Tradesman have been doing a fine job of filling our orders with quality merchandise." },
+        ["text"] = "Після падіння Даларану та знищення Квел'Таласу такі речі важко знайти. Але Люкан Корделл та деякі інші наші торговці чудово справляються з постачаннями якісних товарів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1417749096 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1433933426] = {
+        ["english"] = { [1] = "Wind Rider Master" },
+        ["text"] = "Приборкувач виверн",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1433933426 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1438770179] = {
+        ["english"] = { [1] = "Yes, I do." },
+        ["text"] = "Так.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1438770179 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [14556452] = {
+        ["english"] = { [1] = "The School of Necromancy known as Scholomance is on the ruined island of Caer Darrow in the Western Plaguelands." },
+        ["text"] = "Школа Некромантії, відома як Некроситет, розташована на зруйнованому острові Тверджа Дарроу у Західних Зачумлених землях.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 14556452 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1463077307] = {
+        ["english"] = { [1] = "As a mage, you are one of a select group that can conjure a portal to transport you back to this very place. I can teach you if you are ready." },
+        ["text"] = "Як {клас:н}, ти належиш до небагатьох, хто може створити портал, що перенесе тебе сюди. Я можу навчити тебе, якщо ти {стать:готовий:готова}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1463077307 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1463998933] = {
+        ["english"] = { [1] = "Butcher you say? Oh, First Aid Trainer! Same thing. When you see Nurse Neela standing just inside the Gallows' End Tavern on the southeast side of town you'll know why." },
+        ["text"] = "М'ясник, кажеш? А, тренер першої допомоги! Одне й те ж. Як побачиш санітарку Нілу, то зрозумієш чому. Вона стоїть одразу біля входу до таверни «Край шибениці», що на південно-східній околиці міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1463998933 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1474051238] = {
+        ["english"] = { [1] = "Bandages, anti-venoms and such things, these are the inevitable necessities of life on the plains. Vira Younghoof can teach you this knowledge. You can find her in the long house on the west side of Bloodhoof Village." },
+        ["text"] = "Бинти, протиотрути та подібні речі — це необхідність для виживання на рівнинах. Віра Молоде Копито може розповісти тобі про них більше. Ти знайдеш її у довгому будинку на західному боці селища Криваве Копито.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1474051238 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1475993360] = {
+        ["english"] = { [1] = "I can not train you. You need to talk to your class trainer." },
+        ["text"] = "Я не можу тебе навчати. Тобі слід поговорити з тренером свого класу.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1475993360 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1477951151] = {
+        ["english"] = { [1] = "There is a large tent on the east side of Bloodhoof Village. You will find Narm Skychaser awaiting you there." },
+        ["text"] = "На східному боці селища Криваве Копито стоїть великий намет. Там ти знайдеш Нарма Небесного Мисливця.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1477951151 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1580652653] = {
+        ["english"] = { [1] = "Vira Younghoof keeps her practice inside the long house on the west side of the village." },
+        ["text"] = "Шукай Віру Молоде Копито у довгому будинку на західній стороні селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1580652653 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1622060168] = {
+        ["english"] = { [1] = "You don't have the stomach for the gryphon ride, huh. Well lucky for you, we have an alternative where you can keep your feet on the ground... more or less. It's the gnomish mover of people, the Deeprun Tram. Conveniently located in the back of the Dwarven District." },
+        ["text"] = "Що, не вистачає духу літати на грифонах? Ну, вам пощастило, бо у нас є альтернатива, де вам не доведеться відриватись від землі... ну майже. Це гномська самохідна машина, Підземний трамвай. Він розташований у задній частині Дворфійського району.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1622060168 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [162957638] = {
+        ["english"] = { [1] = "While there's no Engineering Trainer in Brill, there is one down in the Undercity. To get there head to the back of the Ruins of Lordaeron to the south of town and take the elevator down. Once you get there ask an Undercity Guardian for more specific directions." },
+        ["text"] = "У Бріллі немає тренера інженерії, але він є у Підмісті. Щоб дістатися туди, іди до задньої частини руїн Лордерона, що на південь звідси, і спускайся вниз. Як будеш там — запитай одного з вартових Підмістя.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 162957638 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1631233284] = {
+        ["english"] = { [1] = "Once the jewel of northern Lordaeron, the city of Stratholme is where Prince Arthas turned against his mentor, Uther Lightbringer, and slaughtered hundreds of his own subjects who were believed to have contracted the plague of undeath. Arthas' surrender to the Lich King soon followed. The broken city is now inhabited by the undead Scourge - led by the powerful lich, Kel'Thuzad, and a contingent of Scarlet Crusaders, led by Grand Crusader Dathrohan. The two sides are locked in constant, violent combat." },
+        ["text"] = "Колишня перлина північного Лордерону, місто Стратгольм — це місце, де принц Артас відвернувся від свого наставника, Утера Світлоносця, та вбив сотні своїх підданих, які, як вважалося, були заражені чумою невмерлих. Незабаром після цього Артас скорився Королю-лічу. Зруйноване місто тепер заповнене Скарою, якою керує могутній ліч, Кел'Тузад, та загонами Багряного Походу на чолі з верховним лицарем Датроганом. Обидві сторони безупинно ведуть жорстокі бої.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1631233284 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1632451446] = {
+        ["english"] = { [1] = "Nothing frees the spirit like soaring through the sky. There is such a place in our great tribal center Thunder Bluff. The road north out of Bloodhoof Village will guide you there. Once you ride the elevator to the top speak with one of the Bluffwatchers who can give you further directions." },
+        ["text"] = "Ніщо так не звільняє дух, як ширяння в небі. Таке місце є в нашому великому місті, Громовому Бескиді. Тебе приведе туди дорога, що веде на північ з селища Криваве Копито. Піднявшись на вершину, звернись за допомогою до одного з вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1632451446 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1632820229] = {
+        ["english"] = { [1] = "Would you rather trust your goods with a goblin?" },
+        ["text"] = "Чи {стать:довірив би:довірила б} ти свої речі гоблінам?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1632820229 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1648758132] = {
+        ["english"] = { [1] = "Rand Rhobart is fairly good at skinning felbats and the like. You can find him at a camp along the road to the southeast of Brill. Take the road southeast out of town and then head east at the intersection." },
+        ["text"] = "Ренд Робарт досить непогано вміє знімати шкури з кажанів і подібних тварин. Ти знайдеш його в придорожньому таборі на південний схід від Брілля. Іди дорогою на південний схід з міста, а на перехресті поверни наліво.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1648758132 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1662785119] = {
+        ["english"] = { [1] = "Master Woo Ping has mastered nearly every weapon known to man. He is especially deadly with his sword techniques. He spends a good deal of time over in the Weller's Arsenal waiting on new shipments of weapons to arrive if you need some training." },
+        ["text"] = "Майстер Ву Пінь володіє майже всіма відомими видами зброї. Він особливо небезпечний своїми техніками володіння мечем. Якщо ви хочете у нього вчитись — можете знайти його в арсеналі Колодязників. Він проводить багато часу там, чекаючи на нову зброю.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1662785119 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1687375698] = {
+        ["english"] = { [1] = "Please train me." },
+        ["text"] = "Будь ласка, навчіть мене.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1687375698 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1696649627] = {
+        ["english"] = { [1] = "Indeed, Silverwing Hold is in need of your assistance. Speak with Elfarran in the audience chamber at Stormwind Keep." },
+        ["text"] = "Так, фортеці Срібнокрилих не завадить ваша допомога. Поговоріть з Ельфарран в тронній залі короля, що у фортеці Штормовію.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1696649627 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1700381068] = {
+        ["english"] = { [1] = "You desire to shape the bones of the Earth Mother into tools that will aid the Horde. Good, good. Follow the path north out of Bloodhoof Village until you come to the elevator leading to the top of Thunder Bluff. A Bluffwatcher there can give you further assistance." },
+        ["text"] = "Ти бажаєш перетворити дари Матері-Землі на знаряддя, які допоможуть Орді? Добре, дуже добре. Прямуй дорогою на північ від селища Криваве Копито, поки не дійдеш до підйомника, що веде на вершину Громового Бескиду. Там тобі допоможуть вартові бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1700381068 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1712914435] = {
+        ["english"] = { [1] = "What?" },
+        ["text"] = "Що?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1712914435 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [172630567] = {
+        ["english"] = { [1] = "Well met, <class>. You want some advice? Befriend a mage! We have a trick or two up our sleeves, we do..." },
+        ["text"] = "Радий зустріти тебе, {клас:к}. Хочеш пораду? Подружись з магом! У нас завжди є в запасі кілька хитрощів, о так...",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 172630567 },
+            [2] = { ["kind"] = "code", ["value"] = "wlmt..yuwtseaebdmewehetkortouporsswedo" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1729072959] = {
+        ["english"] = { [1] = "Lucan Cordell has a small shop on the canal by the Stockade. I am sure he will be able to teach you the art of enchanting." },
+        ["text"] = "Люкан Корделл має невеличку крамницю біля каналу неподалік в'язниці. Думаю, він зможе навчити вас накладання чарів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1729072959 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1745904651] = {
+        ["english"] = { [1] = "I would suggest looking in the Cathedral of Light in Cathedral Square." },
+        ["text"] = "Раджу шукати в соборі Світла, що на Соборній площі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1745904651 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1760627075] = {
+        ["english"] = { [1] = "Yes, I do" },
+        ["text"] = "Так, хочу",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1760627075 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1773819898] = {
+        ["english"] = { [1] = "You will find Pyall Silentstride inside the great tent in the northwest corner of the village. He can teach you what you crave." },
+        ["text"] = "Ти знайдеш П'яла Тихобіга у великому наметі на північно-західному краю селища. Він зможе навчити тебе.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1773819898 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1773952457] = {
+        ["english"] = { [1] = "Tailoring you say? Hmmm. Ah yes, of course. You'll need to head to Thunder Bluff, up north. Take the path out of the village to get there. When you arrive at the base of the bluffs ride the elevator to the top of the rise and speak with one of the Bluffwatchers." },
+        ["text"] = "Кравецтво, кажеш? Хмм. Так, звісно. Тобі слід відправитися до Громового Бескиду, на північ. Йди туди дорогою з селища, а як дістанешся підніжжя — скористайся підйомником. Нагорі ти зможеш запитати дорогу у вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1773952457 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1776223672] = {
+        ["english"] = { [1] = "Clyde Kellen, the local bass master, has his favorite fishing spot just east of Brill at Brightwater Lake." },
+        ["text"] = "Клайд Келлен, наш місцевий майстер риболовлі, зазвичай проводить час на Ясноводному озері, що на схід від Брілля.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1776223672 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1779945546] = {
+        ["english"] = { [1] = "Gryphons, eh? Never really cared for the beasts but to each their own.\010\010You can find Dungar Longdrink on the rampart in the Trade District." },
+        ["text"] = "Грифони, ге? Мені ніколи не подобалися ці звірі, але кожному своє.\010\010Ви можете знайти Дунґара Довгопия на стіні в Торговому районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1779945546 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1787114019] = {
+        ["english"] = { [1] = "May the spirits be with you." },
+        ["text"] = "Нехай духи бережуть тебе.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1787114019 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1801687685] = {
+        ["english"] = { [1] = "Are you here for training? Or are you just here to waste a warrior's time." },
+        ["text"] = "Ти {стать:прийшов:прийшла} на тренування? Чи просто марнуєш мій час?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1801687685 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1815762675] = {
+        ["english"] = { [1] = "Greetings. I'm an undead mage trainer, and you're a mage." },
+        ["text"] = "Вітаю. Я навчаю магів, а ти, здається, маг.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1815762675 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1816071830] = {
+        ["english"] = { [1] = "Welcome to my Inn, weary traveler. What can I do for you?" },
+        ["text"] = "Ласкаво прошу до моєї таверни, {стать:стомлений мандрівниче:стомлена мандрівнице}. Що я можу для тебе зробити?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1816071830 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [182484818] = {
+        ["english"] = { [1] = "Well, well, moving up in the world are we? You're looking for the Champions' Hall, and you'll find it on the southeast end of Old Town. If you're an officer you can enter the hall, otherwise you can still speak to Officer Areyn standing outside. Good luck!" },
+        ["text"] = "Що, просуваєтесь по кар'єрних сходах? Тоді вам до зали Чемпіонів, вона знаходиться в південно-східній частині Старого Міста. Якщо ви офіцер, то зможете увійти до зали, а якщо ні, то можете поспілкуватися з офіцером Арейн, що стоїть зовні. Щасти вам!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 182484818 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1829526179] = {
+        ["english"] = { [1] = "Please teach me." },
+        ["text"] = "Будь ласка, навчіть мене.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1829526179 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1886983044] = {
+        ["english"] = { [1] = "You'll need more training before I can share my knowledge with you, I'm afraid." },
+        ["text"] = "Боюсь, тобі потрібно більше тренуватись, перш ніж приходити до мене.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1886983044 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1898560686] = {
+        ["english"] = { [1] = "If you are looking to become a great cook, venture over to the Pig and Whistle Tavern in Old Town and talk to Stephen Ryback. That man knows how to cook up a rack of ribs like no other.\010\010Man... now you got me hungry for some of his famous ribs. Don't count on him teaching you that recipe though!" },
+        ["text"] = "Якщо ви хочете навчитись гарно готувати — вирушайте до таверни «Свиня і Свисток» у Старому Місті та поговоріть зі Стівеном Райбеком. Він готує найкращі реберця в місті!\010\010Ох... тепер мені хочеться поласувати його знаменитими реберцями. Але не сподівайтеся, що він поділиться з вами цим рецептом!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1898560686 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1901002890] = {
+        ["english"] = { [1] = "Hail to da new king!" },
+        ["text"] = "Слава новому королю!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1901002890 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1931840696] = {
+        ["english"] = { [1] = "I'd like you better if you would apply some perfume." },
+        ["text"] = "Ти мені {стать:сподобався:сподобалася} би більше, якби {стать:користувався:користувалася} парфумами.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1931840696 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1946954940] = {
+        ["english"] = { [1] = "The way of the Druid is sibling to the Shaman. Gennia Runetotem is steeped in such knowledge. Seek her out in the large tent on the east side of Bloodhoof Village." },
+        ["text"] = "Шлях друїдів тісно пов'язаний зі шляхом шаманів. Ґеннія Рунний Тотем досконало володіє такими знаннями. Розшукай її у великому наметі на східному боці селища Криваве Копито.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1946954940 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1948027994] = {
+        ["english"] = { [1] = "Ah, you must go to the great heights of Thunder Bluff to visit one of those. Follow the path north out of Bloodhoof Village. At the base of the bluffs is an elevator that will take you to the top. When you get there ask for further directions from one of the Bluffwatchers." },
+        ["text"] = "Хм, для цього тобі потрібно піднятися до Громового Бескиду. Йди дорогою на північ з селища Криваве Копито, а біля підніжжя бескидів скористайся підйомником. Як дістанешся туди — запитай в одного з вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1948027994 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1972986016] = {
+        ["english"] = { [1] = "No better place to learn First Aid than under the watchful eye of Shaina Fuller at the Cathedral of Light.\010\010To get there, just look for the yellow rooftops, or the towering spire of the Cathedral itself which you can see from almost anywhere in the city." },
+        ["text"] = "Немає кращого місця для вивчення першої допомоги, ніж під пильним наглядом Шайни Валюшник у соборі Світла.\010\010Щоб дістатися туди, просто шукайте жовті дахи або шпиль самого собору, який можна побачити майже з будь-якої точки міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1972986016 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1990326142] = {
+        ["english"] = { [1] = "Which profession trainer are you looking for?" },
+        ["text"] = "Тренера якої професії ви шукаєте?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1990326142 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [199682921] = {
+        ["english"] = { [1] = "Gryphon Master" },
+        ["text"] = "Приборкувач грифонів",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 199682921 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [201661583] = {
+        ["english"] = { [1] = "There is a Blacksmithing Trainer in our great home Thunder Bluff to the north. If you seek such knowledge then head there and ask one of the Bluffwatchers for directions." },
+        ["text"] = "Тренер ковальства є в нашому великому домі, Громовому Бескиді на півночі. Якщо ти шукаєш таких знань, вирушай туди та запитай в одного з вартових бескиду, куди йти далі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 201661583 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2037919567] = {
+        ["english"] = { [1] = "Using the fruits of the Earth Mother to create potions to aid us in our eternal struggle is an honorable endeavor. To learn of this you must travel north to our great home of Thunder Bluff. When you arrive at the top seek out the assistance of one of the Bluffwatchers for more specific directions." },
+        ["text"] = "Використання плодів Матері-Землі для створення зіллів, що допомагають у нашій вічній боротьбі — почесна справа. Щоб навчитися цього, тобі слід вирушити на північ до нашого великого дому, Громового Бескиду. Як піднімешся на вершину, звернись за допомогою до одного з вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2037919567 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [204348992] = {
+        ["english"] = { [1] = "Unfortunately we do not have one who teaches Tailoring here in Bloodhoof Village, but you can find a trainer in Thunder Bluff. Follow the path north out of the village until you come to a set of elevators. Take one up to the top of the rise and ask one of the Bluffwatchers there for directions." },
+        ["text"] = "На жаль, у селищі Криваве Копито немає тренера кравецтва, але його можна знайти в Громовому Бескиді. Йди стежкою на північ від селища, поки не дійдеш до підйомників. Скористайся одним з них і запитай у когось з вартових бескиду нагорі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 204348992 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2046059292] = {
+        ["english"] = { [1] = "We don't have a bank here in Brill, you'll have to go to the Undercity for that. At the back of the Ruins of Lordaeron to the south are elevators that will take you down into the Undercity. Once there ask one of the Undercity Guardians for more precise directions." },
+        ["text"] = "У нас в Бріллі немає банку, тому тобі доведеться вирушити до Підмістя. У дальній частині руїн Лордерона є підйомники, якими можна спуститись у Підмістя. Як будеш там — запитай одного з вартових Підмістя.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2046059292 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2051475275] = {
+        ["english"] = { [1] = "Blackrock Mountain lies between Searing Gorge in the north and Burning Steppes in the south." },
+        ["text"] = "Чорноскельна гора лежить між Випаленою ущелиною на півночі та Палаючим степом на півдні.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2051475275 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2069983304] = {
+        ["english"] = { [1] = "There is a time and a place for all things, including relaxation. On the west side of Bloodhoof Village Innkeeper Kauth maintains a long house for those who seek to rest. You will find him there." },
+        ["text"] = "Для всього є свій час і місце, зокрема й для відпочинку. На західній стороні селища Криваве Копито корчмар Каут тримає довгий будинок для тих, хто бажає відпочити. Ти знайдеш його там.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2069983304 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2070578652] = {
+        ["english"] = { [1] = "I want to create a guild crest." },
+        ["text"] = "Я хочу створити герб гільдії.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2070578652 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2081111865] = {
+        ["english"] = { [1] = "Such wisdom is steeped in a mystery that can only be found in great Thunder Bluff. Follow the path north out of Bloodhoof Village until you come to an elevator at the base of the bluffs. Ride it to the top and ask one of the Bluffwatchers for further assistance." },
+        ["text"] = "Таку таємничу мудрість можна знайти лише у величному Громовому Бескиді. Йди стежкою на північ з селища Криваве Копито, поки не дійдеш до підйомника біля підніжжя бескидів. Піднімися на вершину і запитай у когось з вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2081111865 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2123491325] = {
+        ["english"] = { [1] = "Innkeeper Kauth can see to your needs. He can be found on the west side of the village in one of the long houses." },
+        ["text"] = "Корчмар Каут радо прийме тебе. Його можна знайти в одному з довгих будинків на західній стороні селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2123491325 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2138320769] = {
+        ["english"] = { [1] = "Fancy yourself a chef? Head to the Undercity south of town for your training. You can catch the elevators heading down at the back of the Ruins of Lordaeron. Talk to one of those lumbering Undercity Guardians for further assistance once you arrive." },
+        ["text"] = "Хочеш стати {стать:шеф-кухарем:шеф-кухаркою}? Тоді тобі слід йти до Підмістя, що на південь звідси. Ти зможеш спуститись туди на одному з підйомників, що в глибині руїн Лордерона. Як будеш там — запитай одного з тих величезних вартових Підмістя.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2138320769 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2143395055] = {
+        ["english"] = { [1] = "That bum Leland... all he does is sit out on the dock outside the Trade District and fish all day. I sure hope he's good at it for all the time he spends fishing. If you want to learn, why don't you go talk to him?" },
+        ["text"] = "Цей нероба Ліланд... він днями сидить на причалі зовні Торгового району і рибалить. Сподіваюся, у нього це хоча б добре виходить, зважаючи на те, скільки часу він цим займається. Якщо теж хочете навчитися, чому б вам не звернутися до нього?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2143395055 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2147471617] = {
+        ["english"] = { [1] = "Now if I were Innkeeper Renee where might I be? Hmmm? Oh, perhaps inside the Gallows' End Tavern. Yes, that's it, I'm sure of it. Try the southeast end of Brill... think you can find that?" },
+        ["text"] = "Хм... Якби я був корчмаркою Рені, де ж я міг би бути? Хм? О, можливо, в таверні «Край шибениці». Так, точно, саме там. Це на південному сході від Брілля... ти ж розумієш, в якому це напрямку?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2147471617 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2178875214] = {
+        ["english"] = { [1] = "How do I form a guild?" },
+        ["text"] = "Як створити гільдію?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2178875214 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2184089775] = {
+        ["english"] = { [1] = "And I wish I could join you <name>. Head over to Stormwind Keep. You'll find Thelman Slatefist in the King's audience chamber. He will aid you in getting to Alterac Valley." },
+        ["text"] = "Ех, хотілось би мені приєднатися до вас, {ім'я:к}. Прямуйте до фортеці Штормовія. Там ви знайдете Тельмана Шиферука в тронній залі короля. Він допоможе вам дістатися до Альтерацької долини.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2184089775 },
+            [2] = { ["kind"] = "prefix", ["value"] = "adwhcdjnyu.-hdortosdkpylfdtnstinteksaecrhe" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2208953291] = {
+        ["english"] = { [1] = "As the wind on the plains, you are always welcome here." },
+        ["text"] = "Тут завжди раді тобі, як вітру на рівнинах.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2208953291 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2218003595] = {
+        ["english"] = { [1] = "When you give love tokens to townsfolk, you'll receive different gifts in return. Some of those you'll want to keep and use, but others can be bundled together and given to your favorite hero! Visit Kwee Q. Peddlefeet to turn them in.\010\010Kwee can be found near Cairne, Sylvanas and Thrall." },
+        ["text"] = "Коли ти даруєш містянам знаки кохання, то отримуєш у відповідь різні подарунки. Деякі з них ти захочеш залишити собі, інші можна об'єднати разом та подарувати улюбленому герою! Звернись до Купі С.В. Купайла, щоб віддати їх.\010\010Купі можна знайти поруч з Керном, Сильваною та Траллом.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2218003595 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2242737969] = {
+        ["english"] = { [1] = "I'd like some weapon training" },
+        ["text"] = "Я хочу навчитись користуватись зброєю",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2242737969 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2253063944] = {
+        ["english"] = { [1] = "Ah yes, it is Seikwa that you must find. I believe I saw her last standing out in front of the inn." },
+        ["text"] = "Так, тобі потрібна Сейква. Зазвичай її можна знайти неподалік від таверни.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2253063944 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2261101872] = {
+        ["english"] = { [1] = "All of a sudden you're a 'Defender of the Alliance' are you?! Well, I suppose you'll be wanting to head to the Champions' Hall now. It's over in Old Town, but they won't let you in unless you're an officer, so you might just have to settle for talking to Officer Areyn outside. Move along now." },
+        ["text"] = "Раптом стали \"{стать:Захисником:Захисницею} Альянсу\"? Що ж, гадаю, тепер ви хочете потрапити до зали Чемпіонів. Це в Старому Місті, але якщо ви не офіцер, то вас не пропустять і доведеться обмежитись розмовою з офіцером Арейн зовні.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2261101872 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2281661873] = {
+        ["english"] = { [1] = "Gnomeregan can be found in western Dun Morogh." },
+        ["text"] = "Гномреґан можна знайти на заході Дун-Морога.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2281661873 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2306273353] = {
+        ["english"] = { [1] = "You can find Tannysa standing outside Alchemy Needs in the Mage Quarter." },
+        ["text"] = "Ви знайдете Таннісу ззовні крамниці «Все для алхімії» у кварталі Магів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2306273353 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [233166321] = {
+        ["english"] = { [1] = "Love tokens are small messages of affection you can give to amorous town and city folk. Such people will reward you with a gift of adoration.\010\010Or, if you are already adored by another, then at the least they'll give you a gift of friendship." },
+        ["text"] = "Знаки кохання — це маленькі послання прихильності, які можна подарувати закоханим містянам. Вони своєю чергою віддячать даром обожнювання.\010\010Або, якщо тебе вже обожнює хтось інший, то вони подарують тобі дар дружби.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 233166321 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2343698065] = {
+        ["english"] = { [1] = "Then it is Thelman Slatefist that you wish to speak to. You can find him in the presence of the King at Stormwind Keep." },
+        ["text"] = "Це вам потрібен Тельман Шиферук. Його можна знайти неподалік від короля у фортеці Штормовію.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2343698065 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2351748723] = {
+        ["english"] = { [1] = "Do I look to you like I cast spells? Well, I did hear that Cain Firesong was hanging out on the upstairs landing of the Gallows' End Tavern at the southeast end of town. Odd how he just stands there outside of Gretchen's room like that." },
+        ["text"] = "Хіба схоже, що я вмію чаклувати? Ну, я чув, що Каїн Вогнеспів зависає на другому поверсі таверни «Край шибениці», що на південному сході міста. Дивно, що він просто стоїть там, біля кімнати Ґретхен.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2351748723 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2353007902] = {
+        ["english"] = { [1] = "I can teach you how to cook!" },
+        ["text"] = "Я можу навчити тебе готувати!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2353007902 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2387865313] = {
+        ["english"] = { [1] = "Built twelve thousand years ago by a covert sect of night elf sorcerers, the ancient city of Eldre'Thalas was used to protect Queen Azshara's most prized arcane secrets. Though it was ravaged by the Great Sundering of the world, much of the wondrous city still stands as the imposing Dire Maul. The ruins' three distinct districts have been overrun by all manner of creatures - especially the spectral highborne, foul satyr and brutish ogres." },
+        ["text"] = "Стародавнє місто Ельдре'Талас, збудоване дванадцять тисяч років тому таємним орденом нічних ельфів-чаклунів, було призначене для захисту найцінніших магічних таємниць королеви Азшари. Хоча воно зазнало руйнування внаслідок Великого Розколу, більша частина цього дивовижного міста все ще стоїть, і нині відома як Грізний Молот. Три окремі райони руїн заполонили всілякі істоти — здебільшого примарні високородні, сатири та огри.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2387865313 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [242532920] = {
+        ["english"] = { [1] = "Which trainer do you seek?" },
+        ["text"] = "Якого тренера ти шукаєш?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 242532920 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2439012089] = {
+        ["english"] = { [1] = "What can I do at an inn?" },
+        ["text"] = "Чим я можу зайнятися в таверні?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2439012089 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2444686558] = {
+        ["english"] = { [1] = "To learn to be one with Nature in the eyes of the Earth Mother, this is a matter of pride. If your will is to learn the ways of the Hunter you must seek out Yaw Sharpmane at the north end of Bloodhoof Village." },
+        ["text"] = "Навчитися бути одним цілим з природою в очах Матері Землі — це велика гордість. Якщо ти хочеш опанувати шляхи мисливців, ти маєш знайти Йова Гострогрива на північному краю селища Криваве Копито.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2444686558 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2462972856] = {
+        ["english"] = { [1] = "Scarlet Monastery lies in the hills northeast of Tirisfal Glades." },
+        ["text"] = "Багряний монастир розташований у пагорбах на північний схід від Тірісфальського перелісся.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2462972856 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2470543870] = {
+        ["english"] = { [1] = "Razorfen Downs can be found on the very southern tip of the Barrens on the east side of the road." },
+        ["text"] = "Нори Бритвоболотих можна знайти на самому південному краю Степів зі східного боку дороги.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2470543870 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2471265741] = {
+        ["english"] = { [1] = "Stormwind is the pillar of the human race, maintained through strength of will and the edge of a sturdy blade." },
+        ["text"] = "Штормовій — опора людської раси, яка підтримується силою волі та вістрям міцного клинка.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2471265741 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2492432873] = {
+        ["english"] = { [1] = "Tell me about dungeons I could explore." },
+        ["text"] = "Розкажи мені про підземелля, які я можу відвідати.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2492432873 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2500330050] = {
+        ["english"] = { [1] = "Krang Stonehoof stands astride his training circle at the southeast corner of the village." },
+        ["text"] = "Кранґ Кам'яне Копито стоїть біля тренувального кола на південному сході селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2500330050 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2507475128] = {
+        ["english"] = { [1] = "Do not turn your back on the Light, <class>, it may be the one thing that saves you some day." },
+        ["text"] = "Не повертайся спиною до Світла, {клас:к}, можливо це єдине, що колись тебе врятує.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2507475128 },
+            [2] = { ["kind"] = "code", ["value"] = "donttnyrbkontelt..itmybeteoetgttssyusedy" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2509190657] = {
+        ["english"] = { [1] = "Therum Deepforge is the dwarf you want to talk to. One of the finest blacksmiths around if you ask me. You can find him in the heart of the Dwarven District." },
+        ["text"] = "Терум Ковоглиб — це дворф, якого ви шукаєте. Один з найкращих ковалів у місті, як на мене. Ви знайдете його в самому серці Дворфійського району.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2509190657 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2517430149] = {
+        ["english"] = { [1] = "Blacksmith? Nope, our last one turned back into one of those mindless Scourge. There's one in the Undercity though to the south of town though. Undercity is underneath the Ruins of Lordaeron, clever name, huh? Just take the elevators down at the back of the ruins and then you can talk to one of the Undercity Guardians. They should be able to point you in the right direction." },
+        ["text"] = "Тобі потрібен коваль? Ну, наш останній знову втратив розум і приєднався до Скари. Проте є ще один в Підмісті, що на південь звідси. Підмістя знаходиться під руїнами Лордерона, логічно, ге ж? Просто спустить туди в задній частині руїн і поговори з одним із вартових Підмістя. Вони вкажуть тобі правильний напрямок.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2517430149 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2526844877] = {
+        ["english"] = { [1] = "Many are the paths of the Earth Mother. May your ancestors watch over you <class>." },
+        ["text"] = "Шляхи Матері-Землі незліченні. Нехай предки оберігають тебе, {клас:к}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2526844877 },
+            [2] = { ["kind"] = "code", ["value"] = "myaetepsofteehmrmyyraswhoryu.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2527203566] = {
+        ["english"] = { [1] = "Stormwind's resident engineer trainer is an ingenious gnome by the name of Lilliam Sparkspindle. He can be found in the back of the Dwarven District." },
+        ["text"] = "Найкращий тренер інженерії в Штормовії — це геніальний гном на імʼя Ліліам Іскрошпиндель. Його можна знайти в глибині Дворфійського району.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2527203566 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [253322801] = {
+        ["english"] = { [1] = "Battlemaster" },
+        ["text"] = "Воєначальник",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 253322801 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2542725402] = {
+        ["english"] = { [1] = "Balai Lok'Wein of Brackenwall Village in Dustwallow Marsh sells a manual that you will need to study in order to improve your skills!" },
+        ["text"] = "Балая Лок'Вейн з селища Папорохащі, що в Бруднолипкій трясовині, продає посібник, який тобі варто прочитати, щоб покращити свої навички!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2542725402 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2546276561] = {
+        ["english"] = { [1] = "The ruins of Dire Maul stand in central Ferelas." },
+        ["text"] = "Руїни Грізного Молота стоять у центрі Фераласу.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2546276561 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [257144037] = {
+        ["english"] = { [1] = "Looking for some training, eh? I could train you better then anyone in Stormwind but the guard prohibits it. I guess you will have to settle for one of those has beens hanging out around the Barracks or at the Pig and Whistle Tavern in Old Town." },
+        ["text"] = "Хочете тренуватись? Я можу тренувати краще за будь-кого в Штормовії, але варта забороняє це. Мабуть, вам доведеться звернутися до когось зі старожилів біля Казарм або в таверні «Свиня і Свисток» у Старому Місті.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 257144037 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2578858571] = {
+        ["english"] = { [1] = "I require training." },
+        ["text"] = "Мені потрібне навчання.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2578858571 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2591657221] = {
+        ["english"] = { [1] = "The Sunken Temple can be found in the center of a great lake in eastern Swamp of Sorrows." },
+        ["text"] = "Затонулий храм можна знайти в центрі великого озера на сході болота Скорбот.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2591657221 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2598353272] = {
+        ["english"] = { [1] = "Best deals in all of Stormwind my friend, won't find any better. Now, what can I help you with?" },
+        ["text"] = "Найкращі ціни у всьому Штормовії, {стать:друже:подруго}, кращих не знайдеш. Ну, чим можу допомогти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2598353272 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2599863918] = {
+        ["english"] = { [1] = "There is a Wind Rider Master in the great city of Thunder Bluff to the north. Ride the elevator from the base of Thunder Bluff to the top and ask one of the Bluffwatchers there for further instructions." },
+        ["text"] = "У великому місті Громовий Бескид, що на півночі, є приборкувач виверн. Піднімися туди, скориставшись підйомником біля підніжжя бескиду та звернись до одного з тамтешніх вартових.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2599863918 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2601883962] = {
+        ["english"] = { [1] = "The spirits have guided you to me. How may I be of service?" },
+        ["text"] = "Духи привели тебе до мене. Чим я можу допомогти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2601883962 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2613206497] = {
+        ["english"] = { [1] = "What do you have for sale?" },
+        ["text"] = "Що ти продаєш?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2613206497 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2625481684] = {
+        ["english"] = { [1] = "You're into leather, eh? Sounds like you should talk to Simon Tanner over in Old Town. He runs a shop there called the Protective Hide." },
+        ["text"] = "Любите шкіру, так? Тоді вас слід поговорити з Симоном Кожум'якою у Старому Місті. Він тримає там крамницю, що зветься \"Міцна шкура\".",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2625481684 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2633380395] = {
+        ["english"] = { [1] = "I am interested in mage training." },
+        ["text"] = "Мене цікавить вивчення магії.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2633380395 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2640812024] = {
+        ["english"] = { [1] = "Ah, you're looking for Lucan Cordell. He runs a shop on the outside of the Magic Quarter on your way to the Stockade." },
+        ["text"] = "А, то вам потрібен Люкан Корделл. Він тримає крамницю на околиці кварталу Магії, по дорозі до в'язниці.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2640812024 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2646012415] = {
+        ["english"] = { [1] = "The Cathedral of Light is the center of all the healing practices of Stormwind. There you can find Shaina Fuller to help you learn this craft." },
+        ["text"] = "У Соборі Світла вивчають усі лікувальні практики Штормовія. Там ви можете знайти Шайну Валюшник, яка допоможе вам навчитися цього ремесла.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2646012415 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2666662603] = {
+        ["english"] = { [1] = "Hippogryph Master" },
+        ["text"] = "Приборкувач гіпогрифів",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2666662603 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2669215490] = {
+        ["english"] = { [1] = "Well, you can find Theridan or Maldryn by the moonwell in the Park. Just head to the western area of Stormwind, north of the Mage District, but west of the Cathedral Square." },
+        ["text"] = "Ну, ви можете знайти Терідрана чи Малдріна поруч із місячним колодязем у Парку. Просто прямуйте до західної частини Штормовію, на північ від кварталу Магів та на захід від Соборної площі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2669215490 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2680698699] = {
+        ["english"] = { [1] = "During the War of the Ancients, the demigod Agamaggan came forth to battle the Burning Legion. The colossal boar was defeated, and over time in the areas where his blood fell, massive thorn-ridden vines sprouted to life. The quilboar came to occupy these regions and hold them sacred. The heart of these massive thorn-colonies is the Razorfen. Razorfen Kraul was conquered by the crone, Charlga Razorflank, who some speculate has been negotiating with agents of the Scourge for some insidious purpose." },
+        ["text"] = "Під час Війни Древніх напівбог Аґамаґґан вийшов на бій проти Палаючого Легіону. Гігантський кнур був переможений, і згодом там, де пролилася його кров, проросли величезні колючі лози. Свинобрази племені Бритвоболотих оселились в цих місцях і стали вважати їх священними. Крааль Бритвоболотих був захоплений відьмою Чарлґою Бритвобокою, яка, як дехто припускає, веде переговори з агентами Скари з якоюсь лихою метою.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2680698699 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2692130417] = {
+        ["english"] = { [1] = "Warriors can usually be found either at the Pig and Whistle Tavern or the Barracks in Old Town. Tell ya though, the tavern is probably a better place look." },
+        ["text"] = "Воїнів зазвичай можна знайти або в таверні «Свиня і Свисток», або в казармах у Старому Місті. Але певно краще все ж шукати в таверні.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2692130417 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2705099054] = {
+        ["english"] = { [1] = "Gelman Stonehand would be the one to talk to. I think he has a house over in the Dwarven District but I can't remember exactly. I would check over there." },
+        ["text"] = "Ґелман Камнерук знається на цьому. Здається, у нього є будинок у Дворфійському районі, але я точно не пам'ятаю. Раджу пошукати там.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2705099054 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [270638949] = {
+        ["english"] = { [1] = "There is a wise one in the village who goes by the name Narm Skychaser. He can continue your learning along the path of the Shaman." },
+        ["text"] = "Є один мудрець у селищі, на ім'я Нарм Небесний Мисливець. Він може продовжити твоє навчання шляху шаманів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 270638949 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2707060632] = {
+        ["english"] = { [1] = "If you desire to learn the ways of Herbalism then it is to Thunder Bluff that you must go. Follow the road north out of Bloodhoof Village and take the elevator to the top of the rise. You can ask a Bluffwatcher there for further assistance." },
+        ["text"] = "Якщо ти бажаєш опанувати травництво, тобі слід вирушати до Громового Бескиду. Прямуй дорогою на північ від селища Криваве Копито та скористайся підйомником, щоб піднятися на вершину. Там тобі допоможуть вартові бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2707060632 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2722278334] = {
+        ["english"] = { [1] = "I trust the Light is with you, <name>. Is there something that I can I help you with?" },
+        ["text"] = "Бережи тебе Світло, {ім'я:к}. Чи можу я чимось тобі допомогти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2722278334 },
+            [2] = { ["kind"] = "code", ["value"] = "ttteltiswhyu.-istesgttcnhpyuwh" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [274812311] = {
+        ["english"] = { [1] = "It is located in the Trade District citizen. It is nearly straight on from the entrance of Stormwind." },
+        ["text"] = "Він розташований у Торговому районі, {стать:громадянине:громадянко}. Практично навпроти входу до Штормовію.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 274812311 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2764111522] = {
+        ["english"] = { [1] = "Just browsing my wares or is there something specific I can help you find today?" },
+        ["text"] = "Просто розглядаєш мої товари чи хочеш знайти щось конкретне?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2764111522 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2784213492] = {
+        ["english"] = { [1] = "When we use the hides of the animals we must fell for food or protection we give honor to the Earth Mother and respect to the animal. Chaw Stronghide can teach you of such things. You will find him in the great tent at the northwest corner of Bloodhoof Village." },
+        ["text"] = "Коли ми використовуємо шкуру тварини, вбитої задля їжі чи захисту, ми віддаємо шану Матері-Землі та тварині. Чау Дужа Шкура може навчити тебе таких речей. Ти знайдеш його у великому наметі з північно-західного краю селища Криваве Копито.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2784213492 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2784314238] = {
+        ["english"] = { [1] = "You can find Vance Undergloom upstairs in a room at the Gallows' End Tavern on the southeast side of Brill." },
+        ["text"] = "Ти знайдеш Венс Підцвіт нагорі таверни «Край шибениці», що на південно-східній околиці Брілля.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2784314238 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2791983483] = {
+        ["english"] = { [1] = "May the light guide your path and aid you in your journeys. If you need any assistance browsing, I will be right over here." },
+        ["text"] = "Нехай світло веде тебе і допомагає у твоїх мандрівках. Якщо знадобиться допомога — я буду тут.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2791983483 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [28114999] = {
+        ["english"] = { [1] = "Rest your weary bones for a spell." },
+        ["text"] = "Дай своїм змученим кісткам трохи відпочити.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 28114999 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2847917833] = {
+        ["english"] = { [1] = "I seek training as a <class>." },
+        ["text"] = "Я хочу навчитися навичок {клас:мр}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2847917833 },
+            [2] = { ["kind"] = "code", ["value"] = "sktgas.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2855043518] = {
+        ["english"] = { [1] = "The Dual Talent Specialization allows you to keep two active talent sets. You will be able to easily switch between these two specializations. When you switch between sets, you will also gain access to a second set of action bars. Switching cannot be performed while in combat, and will consume your available resources." },
+        ["text"] = "Подвійна спеціалізація дозволяє мати два активних набори талантів. Ти зможеш легко перемикатися між цими двома спеціалізаціями. При перемиканні між ними ти також отримаєш доступ до другого набору панелей дій. Перемикання не можна виконати під час бою і воно витратить всі доступні ресурси.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2855043518 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2858302175] = {
+        ["english"] = { [1] = "Besides the Grunts outside, my brothers and I fought at the battle of Hyjal. Any who seek to steal from the bank must face us first." },
+        ["text"] = "Мало того, що ззовні стоять бугаї, ми з братами — ветерани битви під Гіджалом. Якщо хтось захоче пограбувати банк — доведеться спершу здолати нас.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2858302175 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2865447560] = {
+        ["english"] = { [1] = "There are those that would teach you of Herbalism in the great home of Thunder Bluff away to the north. Follow the road out of the village to get there and at the base of the bluff ride the elevator to the top of the rise. There are many Bluffwatchers there who can direct you further." },
+        ["text"] = "У нашому великому домі, Громовому Бескиді, що далеко на півночі, є ті, хто можуть навчити тебе травництва. Прямуй дорогою з селиша, щоб дістатися туди, і підіймись на вершину. Там багато вартових бескиду, що зможуть направити тебе далі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2865447560 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2872006923] = {
+        ["english"] = { [1] = "Check around Old Town at the Barracks or the Pig and Whistle Tavern. If you go to the tavern, be sure to sample some of the fine brews. Puts the dwarven ales to shame, I tell ya." },
+        ["text"] = "Погляньте в Старому Місті — біля казарм або у таверні «Свиня і Свисток». Якщо підете в таверну, обов'язково спробуйте тамтешнє пиво. Кажу вам, дворфійський ель і поруч не стояв.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2872006923 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2874125285] = {
+        ["english"] = { [1] = "An Alliance Commendation Signet is awarded to a <hero/heroine> who goes above and beyond the call of duty to the Alliance. Various Commendation Officers for the factions of the Alliance are located in all of the major cities; speak with the one with whom you'd like to raise your reputation, and give them the number of signets they ask for!\010\010By the way, during the war effort here, if you'd rather receive a material reward for your signets in lieu of reputation, seek out Field Marshal Snowfall." },
+        ["text"] = "Відзнака подяки Альянсу вручається героям, що діють понад обов'язок на благо Альянсу. У всіх столицях Альянсу можна знайти офіцерів, що приймають відзнаки подяки в обмін на репутацію своєї фракції.\010\010До речі, поки йде військова кампанія, якщо бажаєш отримати матеріальну винагороду за свої відзнаки замість репутації — звернися до воєводи фельдмаршала Снігопада.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2874125285 },
+            [2] = { ["kind"] = "prefix", ["value"] = "anaecnstisadtoh.wogsaeadbdteclofdytoteaevs" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2893777626] = {
+        ["english"] = { [1] = "Which profession?" },
+        ["text"] = "Якої професії?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2893777626 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2912798431] = {
+        ["english"] = { [1] = "I hear that they have a Mining Trainer in the Undercity. All you have to do to get there is head south out of town and go to the back of the Ruins of Lordaeron. Then take the elevator down into the Undercity itself and ask an Undercity Guardian for further directions." },
+        ["text"] = "Кажуть, що у Підмісті є тренер гірництва. Щоб потрапити туди — вирушай на південь з міста і йди до задньої частини руїн Лордерона. Там спуститися в саме Підмістя та запитай в одного вартових.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2912798431 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2966166576] = {
+        ["english"] = { [1] = "Look inside the Gallows' End Tavern's main dining room for Austil de Mon. The tavern is on the southeast edge of Brill." },
+        ["text"] = "Ти знайдеш Остіля де Мона у головній залі таверни «Край шибениці». Таверна розташована на південно-східній околиці Брілля.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2966166576 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2970795463] = {
+        ["english"] = { [1] = "What is a Horde Commendation Signet?" },
+        ["text"] = "Що таке відзнака подяки Орди?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2970795463 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2984198724] = {
+        ["english"] = { [1] = "Weapon Master" },
+        ["text"] = "Знавець зброї",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2984198724 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [298463633] = {
+        ["english"] = { [1] = "If you need training in alchemy, there is only one place in Stormwind you need to go... Alchemy Needs. You can find it in the Mage Quarter along the outer rim of shops." },
+        ["text"] = "Якщо бажаєте навчатися алхімії, є лише одне місце в Штормовії, куди вам варто звернутись... крамничка \"Все для алхімії\"! Ви знайдете її у кварталі Магів уздовж зовнішнього кола крамниць.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 298463633 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3018548165] = {
+        ["english"] = { [1] = "The Scholomance is housed in crypts beneath the Caer Darrow keep. Once owned by the noble Barov family, the keep fell to ruin after the Second War. As the wizard Kel'Thuzad enlisted followers for his Cult of the Damned, he often promised immortality for those who served his Lich King. The Barovs fell to his influence and donated their keep, but the cultists killed the family and turned the crypts into a school of necromancy. Though Kel'Thuzad no longer resides there, cultists and instructors still remain." },
+        ["text"] = "Некроситет розташований у склепах під Тверджею Дарроу. Колись цей замок належав шляхетній родині Барових, але після Другої війни він був зруйнований. Коли чаклун Кел'Тузад вербував послідовників для свого культу Проклятих, він часто обіцяв безсмертя тим, хто служив Королю-лічу. Барови підпали під його вплив і пожертвували свою фортецю, але культисти вбили їх і перетворили склепи на школу некромантії. Хоча Кел'Тузад більше не мешкає там, культисти та викладачі досі лишаються всередині.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3018548165 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3022226889] = {
+        ["english"] = { [1] = "Now is the time when the year is new and the moon shines bright.\010\010It is our time... when the ancients awake." },
+        ["text"] = "Це пора нового року, коли молодий місяць сяє вперше.\010\010Це наш час... час, коли пробуджуються предки.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3022226889 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3029114566] = {
+        ["english"] = { [1] = "Axe" },
+        ["text"] = "Сокири",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3029114566 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3038229974] = {
+        ["english"] = { [1] = "Old king got dead? That's unpossible!" },
+        ["text"] = "Старий король мертвий? Це не може бути!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3038229974 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3041319677] = {
+        ["english"] = { [1] = "Bow" },
+        ["text"] = "Луки",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3041319677 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3052515204] = {
+        ["english"] = { [1] = "The Bank of Stormwind is located in the Trade District just northwest of the city gates. Here, let me show you on your map." },
+        ["text"] = "Банк Штормовію розташований у Торговому районі на північний захід від міських воріт. Дозвольте, я покажу вам на мапі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3052515204 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3070143212] = {
+        ["english"] = { [1] = "Which class trainer are you looking for?" },
+        ["text"] = "Тренера якого класу ви шукаєте?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3070143212 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3108562334] = {
+        ["english"] = { [1] = "Actually I prefer traditional medicines... leeches, maggots, bonesaws... that sort of thing. Well to each their own. You can find the our local Herbalism Trainer, Faruza, standing out front near the stables in Brill." },
+        ["text"] = "Мені більше до вподоби традиційна медицина... п'явки, черви... такі от речі. Ну, кожному своє. Ти знайдеш нашу місцеву тренерку травництва, Фарузу, біля стайні у Бріллі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3108562334 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3114991326] = {
+        ["english"] = { [1] = "Inn" },
+        ["text"] = "Таверна",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3114991326 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3117392399] = {
+        ["english"] = { [1] = "We a lot cleaner than da ogres in Tanaris. All over da desert as far as da eye can see - ogre poo. Not here, no sir!" },
+        ["text"] = "Ми не такі брудні як огри в Танарісі. Вся пустеля, де не глянь, в огрячих кізяках. В нас такого нема!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3117392399 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3119328017] = {
+        ["english"] = { [1] = "That would be Shelene Rhobart. Take the road southeast out of Brill then head east at the intersection. She's at a camp along the side of the road." },
+        ["text"] = "Тобі потрібна Шелен Робарт. Їди дорогою на південний схід з Брілля, а на перехресті поверни ліворуч. Вона в таборі на узбіччі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3119328017 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3127536296] = {
+        ["english"] = { [1] = "What are you looking for?" },
+        ["text"] = "Чого ти шукаєш?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3127536296 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3140044522] = {
+        ["english"] = { [1] = "Gun" },
+        ["text"] = "Рушниці",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3140044522 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3140085236] = {
+        ["english"] = { [1] = "If I had some chestnuts, you'd better believe I'd have them roasting over an open fire. Mmmm!" },
+        ["text"] = "Ех, були б каштани — можна було б посмажити їх на вогнищі... Це така смакота!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3140085236 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [315240381] = {
+        ["english"] = { [1] = "What do you need directions to?" },
+        ["text"] = "Що ви хочете знайти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 315240381 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3172668669] = {
+        ["english"] = { [1] = "I cause you no trouble, boss." },
+        ["text"] = "Від мене не буде проблем, бос.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3172668669 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3218607412] = {
+        ["english"] = { [1] = "Located in Dun Morogh, Gnomeregan has been the gnomes' capital city for generations, though it was recently infested by mutant troggs. In a desperate attempt to retaliate, High Tinker Mekkatorque ordered the emergency venting of the city's radioactive waste tanks. Though the troggs became irradiated, their siege continued unabated and the gnomes were forced to seek refuge in the dwarven city of Ironforge, where the High Tinker now enlists brave souls to help his people reclaim their beloved city." },
+        ["text"] = "Розташований у Дун-Морозі, Гномреґан був столицею гномів протягом багатьох поколінь, але нещодавно його захопили троги-мутанти. У відчайдушній спробі помсти, верховний штукар Меккакруть наказав відкрити резервуари з радіоактивними відходами. Хоча троги опромінилися, їх натиск не припинився, і гноми були змушені шукати притулку у дворфійському місті Залізогарт, де верховний штукар тепер шукає сміливців, що допоможуть його народу повернути своє рідне місто.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3218607412 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3219197346] = {
+        ["english"] = { [1] = "I would like to buy from you." },
+        ["text"] = "Я хочу щось купити.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3219197346 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3230762823] = {
+        ["english"] = { [1] = "The Silverwing Sentinels can use all the help they can get in their fight against the Warsong Outriders. <name>, go to Stormwind Keep and speak with Elfarran if you wish to assist them." },
+        ["text"] = "Срібнокрилим стражам потрібна будь-яка можлива допомога у боротьбі проти авангарду Пісні Війни. {Ім'я:к}, вирушайте до фортеці Штормовія та поговоріть з Ельфарран, якщо бажаєте допомогти їм.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3230762823 },
+            [2] = { ["kind"] = "prefix", ["value"] = "tesgsscnuealtehptycngtintrftattewgos.-goto" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3266023309] = {
+        ["english"] = { [1] = "If you put on cologne or perfume, then you'll see who is amorous. Those are the ones who accept love tokens... and offer a gift in return.\010\010But remember: to give someone a love token, you have to smell just right! Men like the scent of perfume, while women prefer cologne." },
+        ["text"] = "Якщо ти нанесеш одеколон або парфуми, то побачиш тих, хто закоханий. Вони приймають знаки кохання, а натомість пропонують подарунок.\010\010Але пам'ятай: щоб подарувати комусь знак кохання, ти маєш пахнути саме так, як треба! Чоловіки люблять запах парфумів, а жінки віддають перевагу одеколону.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3266023309 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [326768818] = {
+        ["english"] = { [1] = "Your body looks worn and your spirit weary. Rest yourself beneath our roof and allow Elune to guide your dreams." },
+        ["text"] = "Твоє тіло виглядає стомленим, а дух — виснаженим. Відпочинь під нашим дахом і дозволь Елуні оберігати твої сни.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 326768818 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3288848329] = {
+        ["english"] = { [1] = "Show me where I can fly." },
+        ["text"] = "Покажи куди я можу полетіти.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3288848329 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3291783132] = {
+        ["english"] = { [1] = "I am so smart! S-M-R-T!" },
+        ["text"] = "Я такий вумний! ВУМНИЙ!!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3291783132 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3302415773] = {
+        ["english"] = { [1] = "Away to Thunder Bluff to the north is where your journey takes you then friend. Once there seek out the wisdom of one of the Bluffwatchers who can tell you directly where to find whom you seek." },
+        ["text"] = "Твій шлях лежить до Громового Бескиду, {стать:друже:подруго}. Опинившись там, звернися за порадою до одного з вартових бескиду, які зможуть точніше вказати, кого саме ти шукаєш.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3302415773 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3332383593] = {
+        ["english"] = { [1] = "You're no warlock and I've no time for you. Begone!" },
+        ["text"] = "Ти не {стать:чорнокнижник:чорнокнижниця}, і в мене немає часу на тебе. Зникни!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3332383593 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3334331673] = {
+        ["english"] = { [1] = "Fill yer tankard and pull up a chair. We've stories to tell and kegs to empty." },
+        ["text"] = "Наповнюй кружку і си влаштовуй зручніше. Ми тут любим розказувать історії, а в коморі ще купа випивки.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3334331673 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3334844378] = {
+        ["english"] = { [1] = "Morganus the stable master can be found out in front of the stables strangely enough." },
+        ["text"] = "Як не дивно, доглядача стайні Морґануса можна зустріти перед стайнями.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3334844378 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3356973826] = {
+        ["english"] = { [1] = "I don't know how they do it... those mailboxes must be magic portals or something. Why I see people gathered around the mailbox next to the bank all day pulling swords and shields and various armor all from that small box!" },
+        ["text"] = "Я не знаю, як вони це роблять... в цих поштових скриньках, мабуть, магічні портали чи щось подібне. Я постійно бачу, як зі скриньки, що поруч з банком люди витягують мечі, щити та всілякі обладунки!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3356973826 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3371581698] = {
+        ["english"] = { [1] = "Bank of Stormwind" },
+        ["text"] = "Банк Штормовію",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3371581698 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3374114541] = {
+        ["english"] = { [1] = "The Park is where you want to go if you are looking for druid trainers. Theridan and Maldryn can usually be found by the moonwell in the center of the district." },
+        ["text"] = "Якщо ви шукаєте тренерів-друїдів, вам варто піти до парку. Терідрана та Малдріна зазвичай можна знайти біля місячного колодязя в центрі району.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3374114541 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3385632561] = {
+        ["english"] = { [1] = "You mean you can't smell the smoke of the Dwarven forges from here? Well, you will be looking for Therum Deepforge if you want to learn blacksmithing. He's over in the Dwarven District which is just north of the Cathedral Square." },
+        ["text"] = "Хочете сказати, що ви не відчуваєте запах диму з дворфійських ковальнь? Ну, якщо хочете навчитися ковальства, вам потрібен Терум Ковоглиб. Він знаходиться у Дворфійському районі, що на північ від Соборної площі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3385632561 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3395417804] = {
+        ["english"] = { [1] = "I do not have the knowledge you seek." },
+        ["text"] = "Я не володію знаннями, які ти шукаєш.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3395417804 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3398832840] = {
+        ["english"] = { [1] = "Greetings, traveler." },
+        ["text"] = "Вітаю, {стать:мандрівниче:мандрівнице}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3398832840 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3408769971] = {
+        ["english"] = { [1] = "Auction House" },
+        ["text"] = "Аукціонний дім",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3408769971 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3431578091] = {
+        ["english"] = { [1] = "There is a mailbox located conveniently right between the Stormwind Bank and The Gilded Rose Inn in the Trade District." },
+        ["text"] = "Ви знайдете поштову скриньку прямо між банком Штормовія та таверною \"Позолочена троянда\" у Торговому районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3431578091 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3433932922] = {
+        ["english"] = { [1] = "Ah, The Gilded Rose... with its soft down beds and warm baths... just thinking about that Inn makes me want to... ::yawn:: Lucky you if you're heading over there... you will find it in the west side of the Trade District. ...nice soft pillows, warm blankets. ::yawn::" },
+        ["text"] = "Ах, «Позолочена Троянда»... там такі м'які ліжка та теплі ванни... просто думаю про цю таверну, і вже хочеться... <позіхає> Заздрю вам, якщо ви туди прямуєте... вона знаходиться на західній стороні Торгового району. ...приємні пухові подушки, теплі ковдри... <позіхає>",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3433932922 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3440903634] = {
+        ["english"] = { [1] = "You'll find Innkeeper Renee inside the Gallows' End Tavern at the southeast end of the street running through town." },
+        ["text"] = "Ти знайдеш корчмарку Рені у таверні «Край шибениці», що знаходиться на східному краю міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3440903634 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3462538363] = {
+        ["english"] = { [1] = "Class Trainer" },
+        ["text"] = "Класовий тренер",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3462538363 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3476046583] = {
+        ["english"] = { [1] = "Warlocks, eh. Well, you didn't hear it from me, but I've heard rumors that those types gather at a bar called the Slaughtered Lamb in the Mage Quarter." },
+        ["text"] = "Що, чорнокнижники? Якщо що — я вам цього не казав, але подейкують, що вони збираються у барі під назвою «Зарізане ягня» у кварталі Магів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3476046583 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3476830926] = {
+        ["english"] = { [1] = "What? I don't know of any warlock trainers in Stormwind.\010\010Although... There have been some sightings of demonic activity over by The Slaughtered Lamb in the Mage Quarter. I suppose you could check there." },
+        ["text"] = "Що? Не знаю я ні про яких тренерів чорнокнижників у Штормовії.\010\010Хоча... Було кілька випадків демонічної активності біля таверни \"Зарізане ягня\" у кварталі Магів. Гадаю, варто поглянути там.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3476830926 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3488418310] = {
+        ["english"] = { [1] = "Staff" },
+        ["text"] = "Посохи",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3488418310 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3505225165] = {
+        ["english"] = { [1] = "Crossbow" },
+        ["text"] = "Арбалети",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3505225165 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3556568180] = {
+        ["english"] = { [1] = "Duncan's Textiles employs one of the finest tailors in Stormwind, Georgio Bolero. Look for the shop over in the Mage Quarter." },
+        ["text"] = "Один з найкращих кравців Штормовію, Джорджіо Болеро, працює у крамниці «Текстиль Дункана». Це у кварталі Магів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3556568180 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3563799772] = {
+        ["english"] = { [1] = "Yes, <class>?" },
+        ["text"] = "Так, {клас:к}?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3563799772 },
+            [2] = { ["kind"] = "code", ["value"] = "ys.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3595565728] = {
+        ["english"] = { [1] = "The monastery was once a center for learning and enlightenment. With the rise of the undead Scourge during the Third War, the peaceful Monastery was converted into a stronghold of the fanatical Scarlet Crusade. The Crusaders are intolerant of all non-human races, regardless of alliance or affiliation. They believe that any and all outsiders are potential carriers of the undead plague - and must be destroyed." },
+        ["text"] = "Колись монастир був центром навчання та просвітництва. З появою Скари під час Третьої війни, мирний монастир був перетворений на фортецю фанатичного Багряного Походу. Його члени не терплять будь-які нелюдські раси, незалежно від альянсу чи приналежності. Вони вважають, що всі чужинці є потенційними носіями чуми невмерлих і мають бути знищені.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3595565728 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3650936074] = {
+        ["english"] = { [1] = "Which battleground are you interested in?" },
+        ["text"] = "Який поле бою вас цікавить?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3650936074 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3684095597] = {
+        ["english"] = { [1] = "While we have no Alchemy Trainer here in Bloodhoof Village, there is one in Thunder Bluff to the north. Follow the road there and ask one of the Bluffwatchers for directions when you get to the top." },
+        ["text"] = "Хоча у нас в селищі Криваве Копито немає тренера алхімії, та він є в Громовому Бескиді. Прямуй туди дорогою на північ та, діставшись вершини, запитай дорогу у вартових бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3684095597 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3685220376] = {
+        ["english"] = { [1] = "I guarantee this bank's security with my own blood, is that good enough for you?" },
+        ["text"] = "Я гарантую безпеку цього банку власною кров'ю. Тобі цього достатньо?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3685220376 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3688895151] = {
+        ["english"] = { [1] = "There's a Bat Handler inside the Undercity. Head south down the road out of Brill, then west at the T-intersection. The Ruins of Lordaeron will be on your left. Go into them and then down into the Undercity. You can ask an Undercity Guardian there for further assistance." },
+        ["text"] = "У Підмісті є приборкувач кажанів. Прямуй на південь дорогою з Брілля, потім на роздоріжжі йди на захід. Руїни Лордерона будуть ліворуч. Заходь в них і потім спускайся в Підмістя. Там ти зможеш розпитати вартових Підмістя.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3688895151 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3723630804] = {
+        ["english"] = { [1] = "Over a thousand years ago a group of troll priests known as the Atal'ai attempted to bring back an ancient blood god named Hakkar the Soulflayer. After the resulting civil war the priests were defeated and exiled to the Swamp of Sorrows. There they erected a temple to Hakkar to prepare for his arrival into the physical world. The dragon Aspect Ysera soon learned of the Atal'ai's plans and smashed the temple beneath the marshes. To this day, the temple's ruins are guarded by the mighty green dragons." },
+        ["text"] = "Більше тисячі років тому група тролів-жерців, відомих як Атал'ай, намагалася повернути до життя древнього бога крові, на ім'я Гаккар-Здирач душ. Після громадянської війни жерці були переможені й вигнані до болота Скорбот. Там вони спорудили храм Гаккару, готуючись до його прибуття в матеріальний світ. Дракон-аспект Ізера швидко дізналася про плани Атал'ай і зруйнувала храм, затопивши його в болотах. Донині руїни храму охороняють могутні зелені дракони.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3723630804 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3728150709] = {
+        ["english"] = { [1] = "I'd wager Keryn Sylvius knows the type you're looking for. The company Keryn keeps is less than honorable. She usually hangs out in the Lion's Pride Inn." },
+        ["text"] = "Б'юся об заклад, що Керін Сільвія зможе вам з цим допомогти. Вона постійно вештається з не надто благородними людьми. Зазвичай її можна знайти в таверні «Гордість лева».",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3728150709 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3729571731] = {
+        ["english"] = { [1] = "I require <class> training." },
+        ["text"] = "Я хочу навчитися навичок {клас:мр}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3729571731 },
+            [2] = { ["kind"] = "code", ["value"] = "re..tg" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [376581717] = {
+        ["english"] = { [1] = "You can find the gryphon master on the northeast rampart overlooking the Valley of Heroes." },
+        ["text"] = "Ви можете знайти приборкувача грифонів на північно-східній стіні, з якої відкривається вид на Долину Героїв.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 376581717 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3779169238] = {
+        ["english"] = { [1] = "The Rogue Trainer's name is Marion Call. You can find her upstairs in the reading room at the Gallows' End Tavern at the town's southeast edge." },
+        ["text"] = "Тренерку пройдисвітів звуть Маріон Призов. Ти можеш знайти її нагорі в читальній залі таверни «Край шибениці», що на південно-східному краю міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3779169238 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3788223572] = {
+        ["english"] = { [1] = "I can teach you fishing skills." },
+        ["text"] = "Я можу навчити тебе навичок рибальства.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3788223572 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3795015972] = {
+        ["english"] = { [1] = "The magi congregate in the Wizard's Sanctum in the Mage Quarter. Quite a tower they have there. Makes our barracks look like peasant hovels." },
+        ["text"] = "Маги збираються у святилищі чарівників у кварталі Магів. Так, башта в них там неабияка. Наші казарми в порівнянні з нею виглядають як селянські халупи.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3795015972 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3796778485] = {
+        ["english"] = { [1] = "Dem other ogres was dumb to attack you, boss! Dat's why I'm still alive - I'm smart and stuff!" },
+        ["text"] = "Ті другі огри нападали на тебе, бо були дурні, бос! Того я ше живий — бо я умний, ага!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3796778485 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3808875460] = {
+        ["english"] = { [1] = "I would like to train." },
+        ["text"] = "Я хочу тренуватися.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3808875460 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3823556983] = {
+        ["english"] = { [1] = "What can other weapon masters teach?" },
+        ["text"] = "Чого можуть навчити інші знавці зброї?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3823556983 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [383475913] = {
+        ["english"] = { [1] = "Hey, that reminds me, I need to have my rocket boots repaired. Word to the wise my friend, rocket boots and gryphons don't mix.\010\010Oh, but you need directions... just head on over to the Dwarven District, you'll find Lilliam Sparkspindle towards the back." },
+        ["text"] = "Хм, а мені саме потрібно відремонтувати мої реактивні черевики. Невеличка порада — не намагайтеся використовувати їх верхи на грифоні.\010\010Але вам потрібні вказівки... просто прямуйте до Дворфійського району, ви знайдете Ліліама Іскрошпинделя в дальній частині.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 383475913 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3857457011] = {
+        ["english"] = { [1] = "Yeah, that would be Austil de Mon. He's always hanging out in the tavern at the southeast end of town. It's called the Gallows' End Tavern, you can't miss it." },
+        ["text"] = "Тобі потрібен Остіль де Мон. Він постійно зависає у таверні на південному сході міста. Її назва — «Край шибениці», ти не пропустиш.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3857457011 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3894461271] = {
+        ["english"] = { [1] = "In the King's audience chamber you will find the Lady Hoteshem. She can assist you in getting to Arathi Basin where The League of Arathor is in need of assistance against The Defilers." },
+        ["text"] = "У тронній залі короля ви знайдете леді Готшем. Вона допоможе вам дістатися до низини Араті, де Ліга Аратора бореться проти Труїтелів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3894461271 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3929971245] = {
+        ["english"] = { [1] = "Let me browse your goods." },
+        ["text"] = "Дозволь мені переглянути товари.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3929971245 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3931980287] = {
+        ["english"] = { [1] = "No one's ever stolen anything out of here. Not in the whole history of... the whole history!" },
+        ["text"] = "Ніхто ще звідси нічого не крав. З часів... та ніколи!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3931980287 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3948734958] = {
+        ["english"] = { [1] = "The Light protect you, <class>." },
+        ["text"] = "Нехай Світло береже тебе, {клас:к}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3948734958 },
+            [2] = { ["kind"] = "code", ["value"] = "teltptyu.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3956547599] = {
+        ["english"] = { [1] = "I need a ride." },
+        ["text"] = "Мені потрібно летіти.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3956547599 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3985347023] = {
+        ["english"] = { [1] = "Rut'theran Ferry" },
+        ["text"] = "Рут'Теранська переправа",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3985347023 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3988384690] = {
+        ["english"] = { [1] = "If you desire, in addition to training, I have it within my power to erase the knowledge of your talents from your mind. Be warned that every time you undergo this procedure the more difficult it is to perform, and therefore the more expensive it becomes." },
+        ["text"] = "Якщо бажаєш, окрім навчання, я можу також стерти з твоєї пам'яті набуті тобою таланти. Але попереджаю, що з кожним разом ця процедура стає все складнішою, а отже і дорожчою.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 3988384690 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [399754343] = {
+        ["english"] = { [1] = "Dirge Quikcleave of Gadgetzan is a master of the culinary arts. To better yourself you will need to seek him out." },
+        ["text"] = "Могиль Хуткоріз з Пристробляху — визнаний майстер кулінарного мистецтва. Тобі варто поговорити з ним, щоб вдосконалити свої навички.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 399754343 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [400623288] = {
+        ["english"] = { [1] = "Well met, <class>. My advice to you is this: as you travel the world, be wary of magic for it will burn the untrained." },
+        ["text"] = "Вітаю, {клас:к}. Моя порада тобі: подорожуючи світом, остерігайся магії, бо вона нищить непідготовлених.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 400623288 },
+            [2] = { ["kind"] = "prefix", ["value"] = "wlmt..myaetoyuistsasyutltewdbewyofmcfritwl" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4028126087] = {
+        ["english"] = { [1] = "Not too clever are you? Hmm, if I were a stable master perhaps I might be in the vicinity of say, the stable? Look for Morganus over there." },
+        ["text"] = "А ти не дуже {стать:кмітливий:кмітлива}, еге ж? Хм, якби я був доглядачем стайні, де б я був? Може, біля стайні? Шукай Морґануса там.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4028126087 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4045865235] = {
+        ["english"] = { [1] = "What are the Paragons of Power?" },
+        ["text"] = "Що таке взірці могутності?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4045865235 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4058836045] = {
+        ["english"] = { [1] = "I seek training to ride a steed." },
+        ["text"] = "Я хочу навчитись їздити верхи.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4058836045 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4079025104] = {
+        ["english"] = { [1] = "If we are to make these new lands ours then we must have places to rest our battle weary bodies. Lay your axe by the fire and share the stories of your mighty battles." },
+        ["text"] = "Якщо ми хочемо, щоб ці землі стали нашим новим домом, нам потрібні місця, де ми могли б відпочити після виснажливих битв. Поклади свою зброю, сядь біля вогнища та розкажи про свої славні битви.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4079025104 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4079505811] = {
+        ["english"] = { [1] = "You know, I could run an orc through or slice up a troll. I could even carve my initials in an ogre's flank, but I just can't stand to skin an animal. Go figure, eh.\010\010Well, if you have the stomach for it, then go see Maris Granger at the Protective Hide in Old Town." },
+        ["text"] = "Знаєте, я міг би проткнути орка наскрізь або розрубати троля. Я навіть міг би вирізати свої ініціали на боці огра, але просто не можу здирати шкуру з тварини. Отак от.\010\010Що ж, якщо у вас вистачає духу для цього, то завітайте до Меріс Грейнджер у крамниці «Міцна шкура», що у Старому Місті.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4079505811 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4087015541] = {
+        ["english"] = { [1] = "No, I'm not, but lots of others are looking for love. You should buy my love tokens, put on some cologne or perfume, and then pass them around!" },
+        ["text"] = "Ні, я не з таких, але багато хто шукає кохання. Тобі слід намаститися парфумами чи одеколоном, придбати мої знаки кохання і роздати їх!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4087015541 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4091499529] = {
+        ["english"] = { [1] = "Leave it to the dwarves to send a mining specialist from Ironforge to tell us how to mine. How hard is it to take a pick and chip away at some rock? Well, since he's here, he's probably the one you should see anyhow. His name is Gelman and he resides over in the Dwarven District." },
+        ["text"] = "Уявляєте, до нас з Залізогарту відправили цілого спеціаліста, щоб він розповів нам, як правильно займатися гірництвом! Наскільки важко взяти кирку і відколоти шматок каменю? Ну, раз він тут, то саме до нього вам і слід звернутися. Його звати Ґелман, і він мешкає у Дворфійському районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4091499529 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [409230663] = {
+        ["english"] = { [1] = "Yonn Deepcut can be found inside the great tent at the northwest corner of Bloodhoof Village." },
+        ["text"] = "Йонна Глибокоріза можна знайти у великому наметі на північному заході селища Криваве Копито.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 409230663 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4100779666] = {
+        ["english"] = { [1] = "May the Light protect you this day." },
+        ["text"] = "Нехай Світло береже тебе.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4100779666 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4106002766] = {
+        ["english"] = { [1] = "Ahhh, Stormwind Visitor's Center is what you are looking for then. It's the first building on the left as you walk through the front gates from the Valley of Heroes." },
+        ["text"] = "Ага, тоді вам потрібен центр пригодників Штормовію. Це перша будівля зліва, як заходите через головні ворота з Долини Героїв.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4106002766 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [410675714] = {
+        ["english"] = { [1] = "Bank" },
+        ["text"] = "Банк",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 410675714 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4139945412] = {
+        ["english"] = { [1] = "Where would you like to fly to?" },
+        ["text"] = "Куди бажаєш полетіти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4139945412 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4154475320] = {
+        ["english"] = { [1] = "Ahhh, you are looking for Dungar Longdrink. He has some of the fastest gryphons this side of Khaz Modan! You can find him up on the ramparts in the Trade District." },
+        ["text"] = "Вам потрібен Дунґар Довгопий. У нього найшвидші грифони по цей бік Каз-Модану! Ви знайдеш його на стіні у Торговому районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4154475320 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4158578474] = {
+        ["english"] = { [1] = "Are you interested in exploring one of these dungeons?" },
+        ["text"] = "Хочеш дослідити одне з цих підземель?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4158578474 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4160782058] = {
+        ["english"] = { [1] = "Jenova Stoneshield over in the Dwarven District is the one you're looking for. She tends to hunters' pets while they seek training from her father." },
+        ["text"] = "Вам потрібна Дженова Камнещит з Дворфійського району. Поки її батько тренує мисливців, вона піклується про їхніх вихованців.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4160782058 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4174888839] = {
+        ["english"] = { [1] = "Give a bull a fish and feed him for a day. Teach a bull to fish and feed him for life. Uthan Stillwater can teach you how to fish. Seek his wisdom west of Bloodhoof Village along the banks of Stonebull Lake." },
+        ["text"] = "Дай таурену рибу, і він буде ситий один день. Навчи його ловити рибу, і він буде ситий все життя. Утан Тиха Вода може навчити тебе рибалити. Шукай його на заході від селища Криваве Копито на березі озера Кам'яного Бика.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4174888839 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4174992640] = {
+        ["english"] = { [1] = "Nothing like spending a day down at Crystal Lake fishing. Arnold Leland is the man that taught me. You can usually find him out on the dock in the Canal District just fishing the day away.\010\010Oh, and don't believe any of the stories he tells you about monsters in the canals either." },
+        ["text"] = "Немає нічого кращого, ніж провести день на Кришталевому озері, рибалячи. Мене цього навчив Арнольд Ліланд. Його зазвичай можна знайти на причалі у районі каналів, де він рибалить увесь день.\010\010О, і не вірте жодним його історіям про монстрів, що водяться в каналах.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4174992640 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4181239680] = {
+        ["english"] = { [1] = "I sell only the best gear, tested and true. And the prices are set, so if you want to haggle then go find a Goblin." },
+        ["text"] = "Я продаю лише найкраще спорядження, випробуване і якісне. І ціни фіксовані, тож якщо хочеш поторгуватися — йди до гоблінів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4181239680 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4181975356] = {
+        ["english"] = { [1] = "Greetings and salutations, hero! I have the latest news from both continents and points beyond for your consideration." },
+        ["text"] = "Вітаю тебе, {стать:герою:героїне}! Маю для тебе найсвіжіші новини з обох континентів і не тільки.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4181975356 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4187685329] = {
+        ["english"] = { [1] = "Once the capital city of the Dark Iron dwarves, this volcanic labyrinth now serves as the seat of power for Ragnaros the Firelord. Ragnaros has uncovered the secret to creating life from stone and plans to build an army of unstoppable golems to aid him in conquering the whole of Blackrock Mountain. Obsessed with defeating Nefarian and his draconic minions, Ragnaros will go to any extreme to achieve final victory." },
+        ["text"] = "Колишня столиця дворфів Темного Заліза тепер служить Раґнаросу, лорду вогню. Раґнарос відкрив секрет створення життя з каменю і планує створити армію непереможних големів, які допоможуть йому завоювати всю Чорноскельну гору. Одержимий бажанням перемогти Нефаріана та його драконічних підданих, Раґнарос не зупиниться ні перед чим, щоб досягти остаточної перемоги.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4187685329 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4191392836] = {
+        ["english"] = { [1] = "Stormwind Counting House is located by the front gates in the Trade District of Stormwind. And when you get tired of counting your money, be sure to stop by the Gilded Rose for a drink." },
+        ["text"] = "Рахункова палата Штормовію розташована неподалік головних воріт у Торговому районі. А як втомитеся рахувати гроші, обов'язково зайдіть до «Позолоченої троянди» на кухлик.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4191392836 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4194210259] = {
+        ["english"] = { [1] = "Train me in the ways of the beast." },
+        ["text"] = "Навчіть мене шляхам звіра.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4194210259 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4202082863] = {
+        ["english"] = { [1] = "Rupert Boch is his name. I hear that he's upstairs in one of the rooms at the Gallows' End Tavern on the southeast end of town." },
+        ["text"] = "Тобі потрібен Руперт Бох. Я чув, що він мешкає в одній із кімнат таверни «Край шибениці», що на південно-східному краю міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4202082863 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4207070741] = {
+        ["english"] = { [1] = "It's admirable what The League of Arathor is attempting to do in Arathi Basin. Too bad those undead abominations and their Horde friends are standing in the way. Head over to Stormwind Keep. Lady Hoteshem awaits you in the King's audience chamber. She can help you to get to Arathi Basin." },
+        ["text"] = "Звершення Ліги Аратора в низині Араті справді викликають захоплення. Шкода, що їм перешкоджають невмерлі потвори та їхні друзі з Орди. Вирушайте до фортеці Штормовія. Леді Готшем чекатиме в тронній залі короля. Вона допоможе вам дістатися до низини Араті.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4207070741 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4219891144] = {
+        ["english"] = { [1] = "You aiming to be a taxidermist? I don't like people who think they can stuff and mount me because they think I'm dead. No? Good! Look for Rand Rhobart at a camp to the southeast of town. To get to him take the road southeast out of Brill and hang a left at the intersection." },
+        ["text"] = "Хочеш зайнятись таксидермією? Не люблю тих, хто вважає, що з мене можна зробити ляльку лише тому, що я мертвий. Ні? Добре! Тоді шукай Ренда Робарта у таборі на південний схід від міста. Щоб дістатися до нього, рушай дорогою на південний схід з Брілля і на перехресті поверни ліворуч.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4219891144 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4263658357] = {
+        ["english"] = { [1] = "Join a group going to this dungeon. <This choice will place you in a meetingstone queue>" },
+        ["text"] = "Приєднатися до групи, що йде до цього підземелля. <Цей вибір додасть вас у чергу каменю зустрічі>",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4263658357 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [426785215] = {
+        ["english"] = { [1] = "What could you possibly need a bank for? Very well, you'll need to go through the Ruins of Lordaeron to the south of Brill. In the back are a set of elevators leading down into the Undercity. When you get there stop any of those lumbering Abominations they like to call an Undercity Guardian and ask it for better directions." },
+        ["text"] = "Навіщо тобі може знадобитися банк? Ну добре, тобі потрібно пройти крізь руїни Лордерона, що на південь від Брілля. Позаду знаходяться підйомники, що ведуть до Підмістя. Як будеш там, зупини будь-яку з тих велетенських потвор, яких вони називають вартовими Підмістя, і запитай у них.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 426785215 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4272071823] = {
+        ["english"] = { [1] = "Officers' Lounge" },
+        ["text"] = "Офіцерська зала",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4272071823 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4280290942] = {
+        ["english"] = { [1] = "Welcome to the Bank of Stormwind. We offer financial accounts and safety deposit boxes for valuable items. Do you already have an account with us <sir/ma'am>?" },
+        ["text"] = "Ласкаво просимо до Банку Штормовію. Ми пропонуємо фінансові рахунки та сейфи для зберігання цінних речей. Ви вже маєте рахунок у нас, {стать:пане:пані}?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4280290942 },
+            [2] = { ["kind"] = "prefix", ["value"] = "wetotebkofsdweorflasadsydtbsfrveisdoyuayhe" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [430700592] = {
+        ["english"] = { [1] = "You are looking for Uthan Stillwater. You will find him west of the village, fishing at Stonebull Lake." },
+        ["text"] = "Тобі потрібен Утан Тиха Вода. Він зазвичай рибалить на озері Кам'яного Бика, що на захід від селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 430700592 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [431079844] = {
+        ["english"] = { [1] = "I don't train your kind <class>." },
+        ["text"] = "Я не навчаю таких, як ти, {клас:к}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 431079844 },
+            [2] = { ["kind"] = "code", ["value"] = "dttnyrkd.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [431157885] = {
+        ["english"] = { [1] = "Dagger" },
+        ["text"] = "Кинджали",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 431157885 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [434962902] = {
+        ["english"] = { [1] = "Woo Ping's stamina is simply astounding. Watching him practice his weapon techniques for hours on end, I felt sorry for the practice dummy afterward. I can't think of anyone better suited to train you in armed combat." },
+        ["text"] = "Витривалість Ву Піня просто вражає. Спостерігаючи, як він годинами відпрацьовує свої техніки бою, мені стає шкода тренувальний манекен. Не можу уявити когось, хто б краще підходив для навчання володіння зброєю.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 434962902 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [43845290] = {
+        ["english"] = { [1] = "I wish to browse your wares." },
+        ["text"] = "Я хочу переглянути товари.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 43845290 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [448462128] = {
+        ["english"] = { [1] = "Train me." },
+        ["text"] = "Навчіть мене.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 448462128 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [464103300] = {
+        ["english"] = { [1] = "Through rigorous retraining I have had to break many students of all they had previously learned so that I might teach them anew. The service I offer becomes increasingly difficult to perform each time it is done. It is for that reason that it becomes increasingly expensive with each retraining. Do you desire that I break you of the talents you have learned?" },
+        ["text"] = "Через сувору перепідготовку мені довелося позбавити багатьох студентів усього, чого вони раніше навчилися, щоб навчати їх заново. Послугу, яку я пропоную, з кожним разом стає все важче виконувати. Саме тому вона буде дорожчати з кожним перенавчанням. Ти справді хочеш забути свої таланти?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 464103300 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [488759158] = {
+        ["english"] = { [1] = "That's Rupert Boch you're looking for. He and his entourage have a room upstairs at the Gallows' End Tavern on the southeast end of Brill." },
+        ["text"] = "Тобі потрібен Руперт Бох. Він і йому подібні розмістилися в кімнаті на верхньому поверсі таверни «Край шибениці», що на південному сході Брілля.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 488759158 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [505109101] = {
+        ["english"] = { [1] = "Yes. I do." },
+        ["text"] = "Так.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 505109101 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [551578166] = {
+        ["english"] = { [1] = "Razorfen Kraul can be found on the very southern tip of the Barrens on the west side of the road." },
+        ["text"] = "Крааль Бритвоболотих можна знайти на самому півдні Степів з західного боку дороги.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 551578166 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [565023908] = {
+        ["english"] = { [1] = "My mouth waters just to think on it. Pyall Silentstride is the finest cook in Bloodhoof Village. You will find him in the great tent at the northwest corner of the village." },
+        ["text"] = "П'ял Тихобіг — найкращий кухар у селищі Криваве Копито. Ти знайдеш його у великому наметі на північно-західному краю селища. У мене вже слина тече від одної лиш думки про його страви.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 565023908 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [57088927] = {
+        ["english"] = { [1] = "Can you tell me more about this place?" },
+        ["text"] = "Можеш розповісти більше про це місце?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 57088927 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [575566740] = {
+        ["english"] = { [1] = "I can train you in First Aid techniques." },
+        ["text"] = "Я можу навчити тебе технік першої допомоги.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 575566740 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [576578790] = {
+        ["english"] = { [1] = "If you are looking to become a mighty paladin, there is no better teacher then Lord Grayson Shadowbreaker. He can be found in the Cathedral of Light in Cathedral Square." },
+        ["text"] = "Якщо ви хочете стати {стать:могутнім:могутньою} {клас:о}, то немає кращого вчителя, ніж лорд Сивенко Тінелом. Його можна знайти в соборі Світла, що на Соборній площі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 576578790 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [596497898] = {
+        ["english"] = { [1] = "I can not train you, <class>." },
+        ["text"] = "Я не можу навчати тебе, {клас:к}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 596497898 },
+            [2] = { ["kind"] = "code", ["value"] = "cnnttnyu.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [598856713] = {
+        ["english"] = { [1] = "Hmmm, I think you will need to go up to Thunder Bluff to learn that. Head north on the road out of Bloodhoof Village. It will take you to the base of Thunder Bluff. Ride the elevator to the top and you should be able to ask any of the Bluffwatchers there for further assistance." },
+        ["text"] = "Хм... Думаю, тобі доведеться йти до Громового Бескиду. Вирушай на північ з селища Криваве Копито. Дорога приведе тебе до підніжжя Громового Бескиду. Піднімись на вершину і зможеш запитати в будь-якого вартового бескиду.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 598856713 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [633971117] = {
+        ["english"] = { [1] = "Don't let the jingle of the bells take away from the jingle in your pocket! Buy Smokywood Pastures treats for your Winter Veil festivities!" },
+        ["text"] = "Не дозволяй святковим дзвоникам затьмарити дзвін твого гаманця! Купуй ласощі від Пасовищ Димного Лісу для святкування Зимової Покрови!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 633971117 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [637948054] = {
+        ["english"] = { [1] = "It is Gennia Runetotem's counsel that you seek. You will find her in the large tent on the east side of the village." },
+        ["text"] = "Ти шукаєш Ґеннію Рунний Тотем. Її можна знайти у великому наметі на східному боці селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 637948054 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [666770767] = {
+        ["english"] = { [1] = "I kinnae help ye with trainin'. Ye should look fer a <class> trainer." },
+        ["text"] = "Я не можу помогти тобі з тренуванням. Тобі треба тренер {клас:мр}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 666770767 },
+            [2] = { ["kind"] = "code", ["value"] = "kehpyewhtnyesdlkfr..tr" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [668730150] = {
+        ["english"] = { [1] = "Greetings <class>. Shall I provide you with further insight into the world of magic?" },
+        ["text"] = "Вітаю, {клас:к}. Бажаєш дізнатись більше про світ магії?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 668730150 },
+            [2] = { ["kind"] = "code", ["value"] = "gs..slpeyuwhfritiotewdofmc" },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [67215632] = {
+        ["english"] = { [1] = "Nurse Neela greets all of her future customers as they enter the Gallows' End Tavern at the southeast end of town." },
+        ["text"] = "Санітарка Ніла радо вітає всіх своїх майбутніх клієнтів, коли вони заходять до таверни «Край шибениці», що на південному сході міста.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 67215632 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [677670961] = {
+        ["english"] = { [1] = "You can find Aldwin Laughlin at the Stormwind Vistor's Center in the Trade District." },
+        ["text"] = "Ви знайдете Олдвіна Сміхта у центрі пригодників Штормовію в Торговому районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 677670961 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [684979652] = {
+        ["english"] = { [1] = "Want to learn leatherworking, eh? Simon Tanner would be able to teach you. He can be found in Old Town at the Protective Hide." },
+        ["text"] = "Хочете навчитись шкірництва, так? Вам слід звернутись до Симона Кожум'яки. Його можна знайти в Старому Місті у крамниці \"Міцна шкура\".",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 684979652 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [685663900] = {
+        ["english"] = { [1] = "When I scowled at you before you became da new king... um... I was just joking.\010\010Yeah!" },
+        ["text"] = "Коли я злитися на тебе коли ти не бути новий король... ем... це я так жартувати.\010\010Ага!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 685663900 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [692722891] = {
+        ["english"] = { [1] = "The ruined city of Stratholme lies in the Eastern Plaguelands to the north of the Plaguewood." },
+        ["text"] = "Зруйноване місто Стратгольм розташоване у Східних Зачумлених землях на північ від Чумолісся.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 692722891 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [699855350] = {
+        ["english"] = { [1] = "Rifles, dynamite, bombs, exploding sheep... what's not to love? To learn how to make these and many other exciting tools of the trade head to the Undercity, under the Ruins of Lordaeron to the south of Brill. Take the elevators down at the back of the ruins. Once you arrive speak to one of the Undercity Guardians about where the trainer is exactly." },
+        ["text"] = "Гвинтівки, динаміт, бомби, вибухові вівці... гарні штуки, ге ж? Щоб дізнатись, як зробити їх та багато інших захопливих речей, прямуй до Підмістя, під руїни Лордерона, що на південь від Брілля. Спустись туди в задній частині руїн. Коли будеш там — запитай в одного з вартових Підмістя про те, де саме знаходиться тренер.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 699855350 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [703743365] = {
+        ["english"] = { [1] = "Yes. I do" },
+        ["text"] = "Так, хочу",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 703743365 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [716595721] = {
+        ["english"] = { [1] = "I sell only the finest arcane gear, made by the crafters and mages here in the city of Stormwind." },
+        ["text"] = "Я продаю лише найкраще магічне спорядження, виготовлене майстрами та магами Штормовію.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 716595721 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [722140911] = {
+        ["english"] = { [1] = "Make this inn your home." },
+        ["text"] = "Зупинитися в цій таверні.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 722140911 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [727289260] = {
+        ["english"] = { [1] = "A tailor is it? Well, if you hang out here long enough you'll eventually hear word of mouth about Georgio Bolero. He's been setting the trends for some months now. If you wish to learn from him, you can find him over in the Mage Quarter in the outer rim." },
+        ["text"] = "Кравця шукаєте? Ну, якщо ви пройдетесь містом, то не раз почуєте ім'я Джорджіо Болеро. Він певно найкращий кравець Штормовію. Якщо хочете повчитися у нього, то ви знайдете його у кварталі Магів, на зовнішньому колі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 727289260 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [737697102] = {
+        ["english"] = { [1] = "Look for Faruza. Last I saw she was standing out front between the stables and the house on the northwest end of town." },
+        ["text"] = "Тобі потрібна Фаруза. Востаннє мені доводилось бачити її між стайнею та будинком на північному заході містечка.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 737697102 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [751604591] = {
+        ["english"] = { [1] = "We have no such place in the village. The soaring heights of Thunder Bluff does though. Head north up the road out of Bloodhoof Village until you come to the base of the bluffs. There ride the elevator to the top and speak with a Bluffwatcher. May your ancestors watch over you." },
+        ["text"] = "У нашому селищі такого місця немає. Але воно є у Громовому Бескиді. Вирушай на північ по дорозі з селища Криваве Копито, доки не дійдеш до підніжжя бескиду. Там скористайся підйомником і поговори з вартовим бескиду. Нехай предки оберігають тебе.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 751604591 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [752987331] = {
+        ["english"] = { [1] = "A Horde Commendation Signet is awarded to a hero who goes above and beyond the call of duty to the Horde. Various Commendation Officers for the factions of the Horde are located in all of the major cities; speak with the one with whom you'd like to raise your reputation, and give them the number of signets they ask for!\010\010By the way, during the war effort here, if you'd rather receive a material reward for your signets instead of reputation, seek out Warlord Gorchuk." },
+        ["text"] = "Відзнака подяки Орди вручається героям, що діють понад обов'язок на благо Орди. У всіх великих містах Орди можна знайти офіцерів, що приймають відзнаки подяки в обмін на репутацію своєї фракції.\010\010До речі, поки йде військова кампанія, якщо бажаєш отримати матеріальну винагороду за свої відзнаки замість репутації — звернися до воєводи Ґорчука.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 752987331 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [785669301] = {
+        ["english"] = { [1] = "Sword" },
+        ["text"] = "Мечі",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 785669301 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [789255659] = {
+        ["english"] = { [1] = "I want to browse your goods." },
+        ["text"] = "Я хочу переглянути товари.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 789255659 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [79040106] = {
+        ["english"] = { [1] = "Weapons Trainer" },
+        ["text"] = "Тренер володіння зброєю",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 79040106 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [792537735] = {
+        ["english"] = { [1] = "I wish to unlearn my talents." },
+        ["text"] = "Я хочу забути свої таланти.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 792537735 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [795867403] = {
+        ["english"] = { [1] = "I wish to untrain my pet." },
+        ["text"] = "Я хочу перевчити свого вихованця.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 795867403 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [799167212] = {
+        ["english"] = { [1] = "Yaw Sharpmane awaits you on the north edge of the village. He can teach you the ways of the Hunter." },
+        ["text"] = "Йов Гострогрив знаходиться на північному краю селища. Він зможе навчити тебе шляху мисливців.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 799167212 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [805390248] = {
+        ["english"] = { [1] = "Gonna make a guild, are ya? Good luck to ya then!\010\010Talk to Aldwin Laughlin in the Stormwind Vistor's Center. It's in the Trade District right as you come in from the Valley of Heroes." },
+        ["text"] = "Збираєтесь створити гільдію, так? Ну, хай щастить!\010\010Поговоріть з Олдвіном Сміхтом у центрі пригодників Штормовію. Це в Торговому районі, одразу як заходите з Долини Героїв.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 805390248 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [837558441] = {
+        ["english"] = { [1] = "I would like to check my deposit box." },
+        ["text"] = "Я хочу перевірити свою банківську скриньку.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 837558441 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [837930098] = {
+        ["english"] = { [1] = "Guild Master" },
+        ["text"] = "Розпорядник гільдій",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 837930098 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [845416524] = {
+        ["english"] = { [1] = "I have no time to waste on the likes of you <class>." },
+        ["text"] = "Я не бажаю марнувати час на таких, як ти, {клас:к}.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 845416524 },
+            [2] = { ["kind"] = "code", ["value"] = "henotetoweontelsofyu.." },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [860462721] = {
+        ["english"] = { [1] = "Fist Weapon" },
+        ["text"] = "Кулачна зброя",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 860462721 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [861260030] = {
+        ["english"] = { [1] = "Word is that Vance Undergloom has taken a permanent room upstairs at the Gallows' End Tavern at the southeast end of town. I think he's just off the reading room." },
+        ["text"] = "Кажуть, Венс Підцвіт оселився в кімнаті нагорі таверни «Край шибениці», що на південному сході міста. Думаю, він десь біля кімнати з книжками.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 861260030 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [875224270] = {
+        ["english"] = { [1] = "Sorry friend, we don't have one of those here in Brill. You'll have to head to the Undercity for that. The Undercity is underneath the Ruins of Lordaeron to the south of Brill. From the back of the ruins take the elevator down and then speak to one of the Undercity Guardians to find your way further." },
+        ["text"] = "Вибачай, {стать:друже:подруго}, але у Бріллі такого немає. Тобі доведеться вирушити до Підмістя. Воно знаходиться під руїнами Лордерона на південь від Брілля. В дальній частині руїн спустися вниз на підйомнику, а потім поговори з одним із вартових Підмістя, щоб дізнатися, куди йти далі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 875224270 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [881297538] = {
+        ["english"] = { [1] = "At the southeast edge of town is the Gallows' End Tavern. Go there and head upstairs, and you'll find Dark Cleric Beryl inside the reading room." },
+        ["text"] = "На південно-східній околиці міста знаходиться таверна «Край шибениці». Йди туди та підіймайся нагору — в читальній залі ти знайдеш темного священника Берила.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 881297538 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [883098760] = {
+        ["english"] = { [1] = "Laurena is the High Priestess of Stormwind. You can find her in the Catheral of Light in Cathedral Square." },
+        ["text"] = "Лорена — верховна жриця Штормовію. Ви можете знайти її у Соборі Світла на Соборній площі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 883098760 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [900518594] = {
+        ["english"] = { [1] = "I want to ask you about something else." },
+        ["text"] = "Я хочу запитати про щось інше.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 900518594 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [915178722] = {
+        ["english"] = { [1] = "Tucked away in the Mage Quarter, there is a little shop called Alchemy Needs. You're bound to see all sort of strange shops on your way through the Mage Quarter, but if you stick to the outer rim you'll be sure to find it." },
+        ["text"] = "У кварталі Магів є невеличка крамниця під назвою \"Все для алхімії\". Ви побачите багато дивних крамниць на шляху через квартал Магів, але якщо проходитиме зовнішнім кільцем, то обов'язково її знайдете.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 915178722 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [919263168] = {
+        ["english"] = { [1] = "What is an Alliance Commendation Signet?" },
+        ["text"] = "Що таке відзнака подяки Альянсу?",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 919263168 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [933707458] = {
+        ["english"] = { [1] = "A Hunter is it? Well, then you will want to speak with Thorfin Stoneshield over in the Dwarven District.\010\010Oh, and you be sure to tell him that if I step in his pet's business one more time, he's going to be training other hunters from behind bars in the Stockade!" },
+        ["text"] = "Мисливець, так? Ну, тоді вам варто поговорити з Торфіном Камнещитом у Дворфійському районі.\010\010О, і обов'язково передайте йому, що якщо я ще раз втраплю в відходи його звіра, йому доведеться тренувати мисливців з-за ґрат в'язниці!",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 933707458 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [955403082] = {
+        ["english"] = { [1] = "Thorfin Stoneshield came to us all the way from Ironforge to bring us his expertise in hunting. If you don't mind breathing the smoke filled air of the Dwarven District then you'll find him at his house in the northeast area of the district." },
+        ["text"] = "Торфін Камнещит приїхав до нас аж із Залізогарта, щоб поділитися своїм мисливським досвідом. Якщо ви не проти подихати кіптявою у Дворфійському районі, то знайдете його у його будинку на північному сході району.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 955403082 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [959732348] = {
+        ["english"] = { [1] = "I wish to make a purchase." },
+        ["text"] = "Я хочу щось придбати.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 959732348 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [962416749] = {
+        ["english"] = { [1] = "Marion Call is keeping Dark Cleric Beryl company in the reading room upstairs at the Gallows' End Tavern on the southeast edge of Brill. I'm just dying to see who wins that staring contest." },
+        ["text"] = "Маріон Призов проводить час з темним священником Берилом у читальні на другому поверсі таверни «Край шибениці», що на південно-східній околиці Брілля. Цікаво, чому вони постійно витріщаються одне на одного.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 962416749 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [964758132] = {
+        ["english"] = { [1] = "A rogue? Hmmm... well, I've heard that Keryn Sylvius hangs around those shady types. You might want to talk to her and see what you can learn." },
+        ["text"] = "Пройдисвіти? Хмм... ну, здається, Керін Сільвія крутиться з цих підозрілими типами. Можете поговорити з нею і дізнатися, чого вона може навчити.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 964758132 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [97165450] = {
+        ["english"] = { [1] = "Inside the great tent at the northwest corner of the village is where Chaw Stronghide resides. He will teach you what you must know of Leatherworking for now." },
+        ["text"] = "У великому наметі на північно-західному боці селища мешкає Чау Дужа Шкура. Він навчить тебе усього, що ти маєш знати про шкірництво.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 97165450 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [974624469] = {
+        ["english"] = { [1] = "Polearm" },
+        ["text"] = "Держакова зброя",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 974624469 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [975191646] = {
+        ["english"] = { [1] = "If you need to house your pet while you're training another, then you should talk to Jenova Stoneshield over in the Dwarven District." },
+        ["text"] = "Якщо вам потрібно прихистити свого вихованця, поки ви тренуєте іншого — зверніться до Дженови Камнещит у Дворфійському районі.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 975191646 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [981571142] = {
+        ["english"] = { [1] = "The School for Necromancy known as Scholomance is on the ruined island of Caer Darrow in the Western Plaguelands." },
+        ["text"] = "Школа Некромантії, відома як Некроситет, розташована на зруйнованому острові Тверджа Дарроу у Західних Зачумлених землях.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 981571142 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [986764953] = {
+        ["english"] = { [1] = "Ah yes, Skinning. There is no one finer in wielding a skinning knife than Yonn Deepcut. You can find him in the great tent at the northwest corner of the village." },
+        ["text"] = "Так, шкуродерство. Ніхто не вміє так вправно володіти ножем для зняття шкур, як Йонн Глибокоріз. Його можна знайти у великому наметі на північному заході селища.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 986764953 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [990036718] = {
+        ["english"] = { [1] = "If it is the way of the Warrior that you crave then you must seek out Krang Stonehoof. You will find him in the southeast corner of the village at his training circle, often instructing his other students." },
+        ["text"] = "Якщо тобі до вподоби шлях воїнів — тобі слід поговорити з Кранґом Кам'яним Копитом. Його можна знайти на південно-східному краю селища біля тренувального кола, де він часто навчає інших учнів.",
+        ["npcs"] = {},
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 990036718 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1233051477] = {
+        ["english"] = { [1] = "Ah friend, I only help hunters and their pets." },
+        ["text"] = "Друже, я допомагаю лише мисливцям та їхнім вихованцям.",
+        ["npcs"] = { [1] = 10090 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ahfdoyhphsadtrps" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1328829589] = {
+        ["english"] = { [1] = "Aye, I would love ta teach ye a thing or two about smithing. Grab an apron and a hammer and let's see what we can accomplish shall we?" },
+        ["text"] = "Авжеж, я залюбки навчу тебе ковальської справи. Бери фартух і молот, та подивімося, чого ми зможемо досягти!",
+        ["npcs"] = { [1] = 10276 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "aewdletathyetgortoatsggbananadhradlssewtwecnahslwe" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3491900434] = {
+        ["english"] = { [1] = "Ye've got a little skill on ye. Enough to learn ye a few things I wager. Let's see what I can teach ye, shall we?" },
+        ["text"] = "На вигляд ти вже дещо вмієш. Гадаю, цього вистачить, щоб навчити тебе кількох речей. Подивімося, чого я можу тебе навчити.",
+        ["npcs"] = { [1] = 10277 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yegtleslonyeehtolnyefwtswrlssewtcnthyeslwe" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [783062122] = {
+        ["english"] = { [1] = "Ye know more than I do, that's a certainty. Tell ye what though, go talk with me da'. He'll want ye ta prove yerself, but he is a fine teacher indeed. His name's Rotgath, and ye'll find him near the anvils workin steel for ol' Bengus." },
+        ["text"] = "Ти знаєш більше за мене, це вже точно. Знаєш що? Поговори з моїм батьком. Він захоче, щоб ти довів свою майстерність, але вчитель він чудовий. Його звати Ротґат. Знайдеш його біля ковадел, де він кує сталь для старого Бенґуса.",
+        ["npcs"] = { [1] = 10277 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yekwmetndotscytlyewtthgotkwhmedahlwtyetapeyfbtheisfetridhsnsrhadylfdhmnrteaswnslfrolbs" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [208026625] = {
+        ["english"] = {},
+        ["text"] = "Он там, за мостом, знайдеш містечко Приозер'я. Та спокійним місцем його не назвеш. Якщо ти шукаєш пригод, хлопче, запам'ятай мої слова — ти їх знайшов!",
+        ["npcs"] = { [1] = 1070 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ylfdtetnofleyrastebebtylntfditplpeifyehefraeldtnmkmefdit" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2300769562] = {
+        ["english"] = {},
+        ["text"] = "Спокійно, дворфе. Зараз не час для формальностей. Поки сили Альянсу перебувають під атакою, захист дворфійських територій стає ще важливішим. Нещодавнє повстання трогів становить жахливу загрозу землям короля.",
+        ["npcs"] = { [1] = 1092 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ateedftsisnotefrfswhteaefsuraktepnoftedntsbsenmeclterttgugpsdltttoteksld" },
+        },
+        ["source_status"] = "missing",
+    },
+    [233238440] = {
+        ["english"] = { [1] = "I heard the new Henweigh 6000 will be rolling off the assembly line soon. I can barely contain my excitement!" },
+        ["text"] = "Чула, новий «Генвей 6000» скоро зійде з конвеєра. Ледве стримую захват!",
+        ["npcs"] = { [1] = 11028 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hdtenwhh60wlbergofteaylesncnbycnmyet" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3195219780] = {
+        ["english"] = { [1] = "The plans for my twenty-foot tall turkey baster are nearly complete! Now all I need is a twenty-foot tall turkey..." },
+        ["text"] = "Креслення моєї двадцятифутової піпетки для поливання індички майже готове! Тепер потрібна лише двадцятифутова індичка...",
+        ["npcs"] = { [1] = 11029 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tepsfrmytttltybraenycenwalndistttlty" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2891883280] = {
+        ["english"] = { [1] = "Through knowledge, may we find salvation." },
+        ["text"] = "Через знання ми зможемо знайти спасіння.",
+        ["npcs"] = { [1] = 11036 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2891883280 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2365977664] = {
+        ["english"] = { [1] = "Greetings, $N. I am Myolor Sunderfury, keeper of the Great Forge." },
+        ["text"] = "Вітаю, {ім'я:к}. Я — Міолор Лютолом, хранитель Великої Кузні.",
+        ["npcs"] = { [1] = 11145 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsneammrsykroftegtfe" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3986850573] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, дворфе.",
+        ["npcs"] = { [1] = 11146 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsdf" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1703858873] = {
+        ["english"] = {},
+        ["text"] = "Тут, у Притулку Далекоходців, ми понад усе цінуємо мисливську майстерність. Хочеш заслужити моє схвалення? Доведеться його вибороти.\010\010Схоже, ти готовий до випробування, хлопче!",
+        ["npcs"] = { [1] = 1154 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "heattefrlewepehgssaealeewhtognmyalylhetoenityulkuptoteceld" },
+        },
+        ["source_status"] = "missing",
+    },
+    [4218596081] = {
+        ["english"] = {},
+        ["text"] = "Хоч як прикро це визнавати, той ведмідь таки взяв наді мною гору. Ох і здоровенний же він!\010\010Та якщо тобі вдасться здолати того ведмедя, цим справді можна буде пишатися! Він завдав чимало клопоту кільком нашим найкращим мисливцям.\010\010<Він плескає вас по спині.>\010\010Здолай ведмедя — і ми приймемо тебе як повноправного члена Притулку Далекоходців.",
+        ["npcs"] = { [1] = 1154 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "thhetoatittebrddgttebrofmemyohmytsoebgolbrnsifyucntettbrdnidbefttobepdofitgemetnfwoforbthssetehecsyuontebkbttebradwlatyuasrrmroftefrle" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2205967543] = {
+        ["english"] = { [1] = "Welcome to the Farstrider Lodge, $N!" },
+        ["text"] = "Ласкаво просимо до Притулку Далекоходців, {ім'я:к}!",
+        ["npcs"] = { [1] = 1156 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetotefrlene" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3545671218] = {
+        ["english"] = { [1] = "Ye want to be trained in the use of a weapon, do ye?  Well don't stand there slack-jawed, speak up $gladdie : lassie;!" },
+        ["text"] = "Хочеш навчитися володіти зброєю? То не стій із роззявленим ротом, кажи, хлопче!",
+        ["npcs"] = { [1] = 11865 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yewttobetdinteueofwndoyewldtsdtesdskuple" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2340710306] = {
+        ["english"] = { [1] = "Have you come seeking training in the ways of armed combat?" },
+        ["text"] = "Прийшли опановувати бойове мистецтво зі зброєю?",
+        ["npcs"] = { [1] = 11867 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "heyucesgtgintewsofadct" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1583656545] = {
+        ["english"] = { [1] = "$N, have ye any idea o' what we're up against in Alterac Valley?  Are ye ready to fight the Frostwolf Clan?" },
+        ["text"] = "{Ім'я:к}, чи відаєш ти, з чим нам доводиться мати справу в Альтерацькій долині? Чи готовий ти битися з кланом Морозних Вовків?",
+        ["npcs"] = { [1] = 12197 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "neheyeayiawtweupatinacvyaeyerytoftteffcn" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2243546265] = {
+        ["english"] = {},
+        ["text"] = "Служи Світлу гідно, {клас:к}.",
+        ["npcs"] = { [1] = 1226 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "seteltwlcs" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1508610294] = {
+        ["english"] = {},
+        ["text"] = "Вітаю.  Я навчаю {клас:з}, а ти — {клас:н}.",
+        ["npcs"] = { [1] = 1228 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsimcstradyecs" },
+        },
+        ["source_status"] = "missing",
+    },
+    [17025135] = {
+        ["english"] = { [1] = "The big wars might be over, for now, but we still have to keep our skills sharp!" },
+        ["text"] = "Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!",
+        ["npcs"] = { [1] = 1229 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tebgwsmtbeorfrnwbtweslhetokporsssp" },
+        },
+        ["source_status"] = "unique_source_candidate",
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The big wars might be over, for now, but we still have to keep our skills sharp!" },
+                ["text"] = "Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!",
+                ["npcs"] = { [1] = 1901 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "tebgwsmtbeorfrnwbtweslhetokporsssp" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+            [2] = {
+                ["english"] = { [1] = "The big wars might be over, for now, but we still have to keep our skills sharp!" },
+                ["text"] = "Великі війни, може, й скінчилися — принаймні поки що, — але ми все одно мусимо відточувати свою майстерність!",
+                ["npcs"] = { [1] = 5113 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "tebgwsmtbeorfrnwbtweslhetokporsssp" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+            [3] = {
+                ["english"] = { [1] = "The big wars might be over, for now, but we still have to keep our skills sharp!" },
+                ["text"] = "Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!",
+                ["npcs"] = { [1] = 912 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "tebgwsmtbeorfrnwbtweslhetokporsssp" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+        },
+    },
+    [3624774263] = {
+        ["english"] = {},
+        ["text"] = "Та який з тебе воїн... Та ти й дня не витримаєш моїх тренувань!  \010\010{клас:н}, що уявив себе воїном.  Ха!",
+        ["npcs"] = { [1] = 1229 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yrnowrwyyewtenltdyurmytgrncswotshswrha" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3076921376] = {
+        ["english"] = { [1] = "Can't help ya, $n. I only train rogues." },
+        ["text"] = "Не можу допомогти, {ім'я:к}. Я навчаю лише розбійників.",
+        ["npcs"] = { [1] = 1234 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "cthpyaneoytnrs" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3478325341] = {
+        ["english"] = { [1] = "Good day to ye $g lad : lass;. Can I be of service?" },
+        ["text"] = "Доброго дня тобі, хлопче. Чим можу прислужитися?",
+        ["npcs"] = { [1] = 1241 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gddytoyeldcnbeofse" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2865378603] = {
+        ["english"] = { [1] = "Here for training eh? Just began my training meself, but I would be glad ta teach ye what I can." },
+        ["text"] = "Прийшов на навчання, га? Я й сам тільки почав учитися, але радо навчу тебе всього, що знаю.",
+        ["npcs"] = { [1] = 1241 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hefrtgehjtbnmytgmfbtwdbegdtathyewtcn" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [4169688849] = {
+        ["english"] = { [1] = "Hegnar Rumbleshot, at your service!" },
+        ["text"] = "Геґнар Грімостріл до ваших послуг!",
+        ["npcs"] = { [1] = 1243 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hrrtatyrse" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2434572833] = {
+        ["english"] = { [1] = "Greetings and salutations to you, good dwarf. P'rhaps you'd like to share a drink with me, help fight off the chill of the wind? Come, I've more than enough to share." },
+        ["text"] = "Вітаю тебе, друже дворфе. Може, вип’єш зі мною, щоб зігрітися від холодного вітру? Підходь, у мене вистачить на двох.",
+        ["npcs"] = { [1] = 1252 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2434572833 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3141162412] = {
+        ["english"] = {},
+        ["text"] = "Вітаю тебе, добрий гноме. Мо', вип'єш зі мною, щоб відігнати холодний вітер? Ходи, у мене вистачить на двох.",
+        ["npcs"] = { [1] = 1252 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsadsstoyugdgepsydletosedkwhmehpftoftecloftewdceiemetnehtose" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1132330448] = {
+        ["english"] = {},
+        ["text"] = "Ласкаво просимо, {стать:воїне:воїтелько}, до Імлистої Сосни. Якщо ти втомився з дороги, заходь, відпочинь і зігрійся. А якщо маєш трохи часу, може, допоможеш мені з кількома справами.",
+        ["npcs"] = { [1] = 1253 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wewrtotemypeifyuaewyfmyrtsflfetortadwmyfieadpsifyeseseteyucdatmeinsets" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2030449369] = {
+        ["english"] = { [1] = "Well hi there!  Are you here to learn the proper technique of a new weapon?" },
+        ["text"] = "О, вітаю! Хочеш навчитися володіти новим видом зброї?",
+        ["npcs"] = { [1] = 13084 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wlhiteaeyuhetolnteprteofnwwn" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [670162414] = {
+        ["english"] = { [1] = "Hello, $n.  Welcome to Thelsamar, and while you're here don't forget to visit our local brewery!" },
+        ["text"] = "Вітаю, {ім'я:к}.  Ласкаво просимо до Телсамара, і поки ви тут, не забудьте завітати до нашої місцевої броварні!",
+        ["npcs"] = { [1] = 1340 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "honewetotradweyehedtfttovtorllby" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2741642153] = {
+        ["english"] = {},
+        ["text"] = "Ласкаво просимо до Телсамара — твого другого дому в Лох-Модані!\010\010Телсамар — гарне місце, та для тих, хто відгукується на поклик обов'язку, життя тут не обмежується пивом і солоним м'ясом! Якщо готовий зустріти небезпеку в ім'я Альянсу, прочитай оголошення біля телсамарського відділення Ліги дослідників.",
+        ["npcs"] = { [1] = 1340 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetotryrheayfmheinlhmntrisnepebtisntalbradsdmtfrtewoartecltodyifyewgtofedrinteneofteaetnrdteproetetrbhofteesle" },
+        },
+        ["source_status"] = "missing",
+    },
+    [655829930] = {
+        ["english"] = {},
+        ["text"] = "О, та це ж молодий, завзятий воїн, якого, без сумніву, привели сюди розповіді про мої подвиги на полях битв!\010\010Зараз не час для історій — на нас чекають великі й важливі справи! Тож якщо ти шукаєш слави, сьогодні удача тобі усміхається...",
+        ["npcs"] = { [1] = 1343 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wlifititygbgwrnodtdnhebytkofmyesinfsofbenotefrssnwfrteaegtitdsttnddgsoifyelgfrgytnlkssonyuty" },
+        },
+        ["source_status"] = "missing",
+    },
+    [4189965412] = {
+        ["english"] = { [1] = "Cooking is a life long pursuit and I see we share the same passion!" },
+        ["text"] = "Куховарство — справа всього життя, і я бачу, що ми поділяємо це захоплення!",
+        ["npcs"] = { [1] = 1355 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "cgislelgptadsewesetesepn" },
+        },
+        ["source_status"] = "unique_source_candidate",
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Cooking is a life long pursuit and I see we share the same passion!" },
+                ["text"] = "Кулінарія — це захоплення на все життя, і я бачу, що ми поділяємо ту саму пристрасть!",
+                ["npcs"] = { [1] = 1430 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "cgislelgptadsewesetesepn" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+            [2] = {
+                ["english"] = { [1] = "Cooking is a life long pursuit and I see we share the same passion!" },
+                ["text"] = "Кулінарія — справа всього життя, і бачу, ми поділяємо цю пристрасть!",
+                ["npcs"] = { [1] = 1699 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "cgislelgptadsewesetesepn" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+        },
+    },
+    [3306117922] = {
+        ["english"] = {},
+        ["text"] = "Трансмогрифікатор",
+        ["npcs"] = { [1] = 1423 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tetr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3264872817] = {
+        ["english"] = {},
+        ["text"] = "Гей, ти! Якщо хочеш заслужити повагу дворфів Залізогарта, почни з пожертви цінних припасів! У Залізогарті бракує тканини, а полотно й бинти, знаєш, на деревах не ростуть!\010\010Не продавай знайдену в мандрах тканину, а пожертвуй її! Так ти здобудеш визнання дворфів Залізогарта!",
+        ["npcs"] = { [1] = 14723 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "aeyuteifyuwttoentertoftedsofietnyucnstbydgversiefsifrglwonchpetsadbsdtgwontsyakwrrtnchinvschpsyufdagdetmdgsowlenyuternoftednpeofie" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2323451589] = {
+        ["english"] = { [1] = "The exiles of Gnomeregan find ourselves in even more dire straits by running low on cloth reserves!  Perhaps you can help us, eh?!$B$BBring me extra cloth pieces you might have to help us replenish our stocks.  By donating them, you'll be earning the respect and trust of gnomes everywhere.  That's something that money can't buy!  Well, I guess cloth does, but that's beside the point..." },
+        ["text"] = "Ми, вигнанці Гномреґана, опинилися в ще скрутнішому становищі: запаси тканини добігають кінця! Може, допоможеш нам, га?!\010\010Принеси мені зайві клапті тканини, щоб поповнити наші запаси. За це ти здобудеш повагу й довіру гномів усюди. Такого за гроші не купиш! Хоча тканину купиш... але це вже інша річ...",
+        ["npcs"] = { [1] = 14724 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "teesofgnfdosinenmedessbyrglwonchrspsyucnhpusehbgmeeachpsyumthetohpusrhorssbydgtmylbeegtertadttofgseetssgttmyctbywlgschdsbttsbetept" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3502108952] = {
+        ["english"] = { [1] = "$C, we need your assistance at Warsong Gulch.  Will you aid us in our fight against the Warsong Outriders?" },
+        ["text"] = "{Клас:к}, нам потрібна твоя допомога в ущелині Пісні Війни. Допоможеш нам у боротьбі проти вершників Пісні Війни?",
+        ["npcs"] = { [1] = 14982 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "cswendyraeatwgghwlyuadusinorftattewgos" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3518419843] = {
+        ["english"] = { [1] = "The war against the Horde has reached full tilt, $N.  This is a time of great need for the Alliance and it's quite necessary that all of us do our part to help." },
+        ["text"] = "Війна проти Орди вирує на повну силу, {Ім'я:к}. Нині Альянс як ніколи потребує нашої допомоги, тож кожен із нас мусить зробити свій внесок.",
+        ["npcs"] = { [1] = 15351 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tewrattehehsrdflttnetsisteofgtndfrteaeadisqenyttalofusdoorpttohp" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3153557919] = {
+        ["english"] = { [1] = "Mark my words!  You won't find faster gryphons anywhere in the Eastern Kingdoms than the ones right here in Thelsamar!" },
+        ["text"] = "Запам'ятай мої слова! У всьому Східному Королівстві не знайти грифонів швидших за тих, що тут, у Телсамарі!",
+        ["npcs"] = { [1] = 1572 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "mkmywsyuwtfdfrgsaeinteenkstnteosrtheintr" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2148468450] = {
+        ["english"] = {},
+        ["text"] = "У дворфів Дикого Молота, може, й прудкі скакуни, та чи витримають грифони з Орлиного піку жар Великої кузні? Гадаю, що ні!",
+        ["npcs"] = { [1] = 1573 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 666791115 },
+        },
+        ["source_status"] = "missing",
+    },
+    [662858951] = {
+        ["english"] = { [1] = "The Wildhammer dwarves might have fast steeds, but can those Aerie Peak gryphons stand the heat of The Great Forge?  I think not!" },
+        ["text"] = "У дворфів Дикого Молота, може, й прудкі скакуни, та чи витримають грифони з Орлиного піку жар Великої кузні? Гадаю, що ні!",
+        ["npcs"] = { [1] = 1573 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tewrdsmtheftssbtcnteaepkgssdtehtoftegtfetknt" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [906683950] = {
+        ["english"] = {},
+        ["text"] = "Вітаю.",
+        ["npcs"] = { [1] = 167 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gs" },
+        },
+        ["source_status"] = "ambiguous",
+    },
+    [2437419311] = {
+        ["english"] = {},
+        ["text"] = "Я хочу оглянути ваші товари.",
+        ["npcs"] = { [1] = 167 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wdletoseyrws" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2203201377] = {
+        ["english"] = { [1] = "The best miner has a firm grip on $ghis:her; pick, a stout heart in $ghis:her; chest, and thick, black dust in $ghis:her; hair." },
+        ["text"] = "Найкращий гірник міцно тримає кирку, має відважне серце в грудях і густий чорний пил у волоссі.",
+        ["npcs"] = { [1] = 1681 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tebtmrhsfmgponhspksthtinhsctadtkbkdtinhshr" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [901283542] = {
+        ["english"] = { [1] = "Welcome to Steelgrill's Depot!" },
+        ["text"] = "Ласкаво просимо до депо Сталешквара!",
+        ["npcs"] = { [1] = 1694 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetossdt" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1875312946] = {
+        ["english"] = {},
+        ["text"] = "Чого тобі треба?",
+        ["npcs"] = { [1] = 1698 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wtdoyhwt" },
+        },
+        ["source_status"] = "missing",
+    },
+    [366164575] = {
+        ["english"] = { [1] = "Greetings, citizen. I ask that you move along if you have nothing to ask of me." },
+        ["text"] = "Вітаю, громадянине. Якщо вам нічого в мене запитати, прошу не затримуватися.",
+        ["npcs"] = { [1] = 17804 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gscnakttyumeagifyuhengtoakofme" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3945856599] = {
+        ["english"] = {},
+        ["text"] = "Я хочу скинути таланти свого класу або спадщини.",
+        ["npcs"] = { [1] = 1901 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "whtounmycsorlyts" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1499627568] = {
+        ["english"] = { [1] = "Hey, citizen! You look like a stout one. We guards are spread a little thin out here, and I could use your help..." },
+        ["text"] = "Гей, {стать:громадянине:громадянко}! Виглядаєте {стать:міцним:міцною}. Нас, вартових, тут небагато, і мені потрібна ваша допомога...",
+        ["npcs"] = { [1] = 197 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1499627568 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [1040555450] = {
+        ["english"] = {},
+        ["text"] = "Перукарня",
+        ["npcs"] = { [1] = 1976 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "bp" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1871366716] = {
+        ["english"] = {},
+        ["text"] = "Ідіть до Кварталу магів і знайдіть Фіренза Зорегляда, трохи на північний захід від вежі магів.",
+        ["npcs"] = { [1] = 1976 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gototemeqradskotfzsrjtntoftemetr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1199119846] = {
+        ["english"] = {},
+        ["text"] = "Трансмогрифікатор",
+        ["npcs"] = { [1] = 1976 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1794867496] = {
+        ["english"] = { [1] = "Are you here to help with the delivery? Miran's just about ready." },
+        ["text"] = "Ви тут, щоб допомогти з доставкою? Міран уже майже готовий.",
+        ["npcs"] = { [1] = 2057 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "aeyuhetohpwhtedymsjtatry" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2296431316] = {
+        ["english"] = {},
+        ["text"] = "Доставляти ці бочки до місця розкопок — важка праця, але стільки людей покладаються на нас, щоб ми доправили туди вибуховий порох.\010\010Ми мусимо зробити все, що в наших силах, у боротьбі проти Чорного Заліза!",
+        ["npcs"] = { [1] = 2057 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "dgtebstoteenseishdwkbtteaesomydgonustogttebtprtewemtdowtwecnattedkis" },
+        },
+        ["source_status"] = "missing",
+    },
+    [110935853] = {
+        ["english"] = {},
+        ["text"] = "Небезпечне це ремесло!\010\010Міран щойно вирушив із вантажем. За кілька хвилин він має повернутися.",
+        ["npcs"] = { [1] = 2057 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tsisdsleofbsmnjtltwhdyhesdbebkinfwms" },
+        },
+        ["source_status"] = "missing",
+    },
+    [4266408007] = {
+        ["english"] = { [1] = "Try not to draw too much attention, I'm waiting for the King to grant me audience.  Not that I mind waiting, I feel pretty safe around all these burly guards." },
+        ["text"] = "Не привертай зайвої уваги. Я чекаю, поки король прийме мене. Хоча очікування мене не бентежить — поруч із цими кремезними вартовими я почуваюся цілком безпечно.",
+        ["npcs"] = { [1] = 230319 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tynttodwtomhanimwgfrtekgtogtmeaentttmdwgflpyseadaltebygs" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [69307391] = {
+        ["english"] = {},
+        ["text"] = "У нас виникли проблеми з вантажами, що зникають по всьому Азероту. Якщо знайдете якийсь із них, буду вдячна, якщо повернете його мені.",
+        ["npcs"] = { [1] = 256390 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wehdtewhssggmgasahifyufdayidaeifyucdrntmtome" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1316868760] = {
+        ["english"] = {},
+        ["text"] = "Ви використовуєте золото як основну валюту?",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "doyuuegdasyrpycy" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2445109844] = {
+        ["english"] = {},
+        ["text"] = "Не кожне замовлення йде за планом. Ми докладаємо всіх зусиль, щоб кожна доставка прибувала цілою та вчасно, але останнім часом через почастішання нападів звірів, бандитів і навіть Орди, на жаль, певних втрат товарів не уникнути.\013\010\013\010Якщо вам трапиться загублений вантаж і ви захочете допомогти, погляньте на етикетку та з'ясуйте, що мало бути всередині. Звісно, виправляти наші недоліки — не ваш обов'язок, але якщо ви укомплектуєте вантаж, то отримаєте належну винагороду.\013\010\013\010Пані Бейкер біля ящиків подбає про вашу винагороду, а решту логістики ми візьмемо на себе.",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "nteyorgsagtopnwewesetoeettehdyasitadeyrtreofbsbsadenheasuyceseuelsofgssdyufdayltssadaefgpyhlyucntelkortelladiyisedcsitisntyrrytodlwhorssofcebtifyucdtestyuwlberdinkdmsbrnrtecswlheyrcnadwewlteceoftelsfmte" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3165918261] = {
+        ["english"] = {},
+        ["text"] = "Звісно, ми торгуємо за золото! Зрештою, це універсальна валюта.\013\010\013\010Однак для розрахунків між собою ми маємо власну систему. Вона зветься «Прихильність торговців» і дає змогу не залежати від постійних коливань вартості золота й срібла. Завдяки цьому торгівля між членами Торговельного управління Азероту залишається стабільною, чесною та справедливою. І перш ніж ви запитаєте: ні, обміняти її на золото не можна.\013\010\013\010Ми й далі використовуємо золото для простих покупок, як-от звичайні нитки чи алхімічні флакони — словом, для повсякденного ремесла. В інших випадках покладаємося на Прихильність торговців.\013\010\013\010Що більше ви допомагатимете з нашими загубленими вантажами та напливом ремісничих замовлень, то більше Прихильності заробите!",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ofceweteingditisulcyaralhrweheoronsmfresmeatositisknasmsfraditeyasayteegveofgdadsrtsesctfradeetebnmsofteahceaybeyuaknoitctbeldiogdwesluegdfrsetsshasbctsorayvsyukweycsoeweryonmsfrtemeyuhpwhorltssadixofcgostemefryuwlen" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1757959469] = {
+        ["english"] = {},
+        ["text"] = "Ой лишенько, ви мене налякали! Рада вас бачити, {ім'я:к}. Торговельному управлінню Азероту завжди потрібні нові підрядники.\013\010\013\010Якщо вам до вподоби прогулюватися лісом, збираючи корисні матеріали, або ви вмієте власноруч створювати речі з нуля — що ж, тут ви почуватиметеся як удома!\013\010\013\010Якщо матимете запитання — неодмінно звертайтеся.",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ohgsyuskuponmegdtoseyuneteahceayisasinndofnwcsifyuaetesttoeyslthteftggulmsorpstesstoctsgfmshwlyuhefdyfrtathepeltmekwifyuheayqs" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3116371637] = {
+        ["english"] = {},
+        ["text"] = "Я хочу поговорити про щось інше.",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wdletotkatsgee" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3121903837] = {
+        ["english"] = {},
+        ["text"] = "За останні місяці наша справа стрімко розрослася, але ми все ще налагоджуємо засоби швидкого зв'язку між клієнтами з усіх куточків світу. Тож нам доводиться постійно шукати нагоди, щоб наші ремісники не сиділи без діла. Ми покладаємося на кур'єрів та інших відважних душ, які доставляють ремісничі замовлення просто до нас.\013\010\013\010Як ви, мабуть, здогадуєтеся, така модель роботи має свої труднощі. А поки що ми наполегливо заохочуємо наших ремісників виконувати ці замовлення й особисто доставляти товари замовникам, де б ті не перебували. Не хвилюйтеся, друже: за ваші клопоти ви отримаєте справедливу винагороду й заслужите нашу повагу!",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "weheryedorbsinrtmsbtweaesldgtemstoeestcnbncsasalcsoftewdasshwehetokporesotfrostokporcshsbyweddoncsororbesstobgcgosdytousyucnpyiettbsmlbsatcsintemewesyeeorcstosyteosaddrtegsdytotecstswrtymycybeftntfdyuwlbefycdfryrtsadenorrt" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3959828019] = {
+        ["english"] = {},
+        ["text"] = "Що таке ремісничі приписи?",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wtaecsws" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2208628296] = {
+        ["english"] = {},
+        ["text"] = "Що таке перехоплені ящики з припасами?",
+        ["npcs"] = { [1] = 256391 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wtaewdsycs" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1676393488] = {
+        ["english"] = {},
+        ["text"] = "Я знаю, про що ви думаєте, але не хвилюйтеся — кулінарні та алхімічні інгредієнти ми зберігаємо окремо!\013\010\013\010Чим можу допомогти?",
+        ["npcs"] = { [1] = 256729 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "kwwtyetgbtdtwywekporcgadayissehwcnhpyu" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3033750522] = {
+        ["english"] = {},
+        ["text"] = "Ці зливки лише для виставки!",
+        ["npcs"] = { [1] = 256730 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "teisaefrdyoy" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1659845785] = {
+        ["english"] = {},
+        ["text"] = "Схоже, вам не завадило б кілька чарів. Ви прийшли куди треба!",
+        ["npcs"] = { [1] = 256732 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yulkleyucduefwesyuhecetotertpe" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3920278585] = {
+        ["english"] = {},
+        ["text"] = "Радий знайомству! Якщо вам до вподоби майструвати, ви потрапили куди треба!",
+        ["npcs"] = { [1] = 256733 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "pdtomtyuifyuletotryuhecetotertpe" },
+        },
+        ["source_status"] = "missing",
+    },
+    [596344326] = {
+        ["english"] = {},
+        ["text"] = "Вітаю! У мене найкраща шкіра по цей бік Штормовію. Цікавить?",
+        ["npcs"] = { [1] = 256734 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hoteiegtteftlstsseofsdid" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3844284996] = {
+        ["english"] = {},
+        ["text"] = "<Мівін із усмішкою вказує на свої товари, а потім на вас, не промовляючи ані слова.>",
+        ["npcs"] = { [1] = 256735 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "mngstdhswsadbkatyuanwhsebtssng" },
+        },
+        ["source_status"] = "missing",
+    },
+    [282683729] = {
+        ["english"] = {},
+        ["text"] = "Ти зайшов далі, ніж багато хто, {ім'я:к}. Поважай стихії довкола себе — і матимеш значно більший успіх, ніж більшість.",
+        ["npcs"] = { [1] = 258043 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yecefrtnmydnrtteesadyeadyeslfefrgrtnmt" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3308134134] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, {Ім'я:к}. Бажаєш вступити в бій на островах Темного Списа?",
+        ["npcs"] = { [1] = 263643 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsnedoyuwhtoerbeatdris" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2083569053] = {
+        ["english"] = {},
+        ["text"] = "Землепровидцю, поділися зі мною своїм даром далекоглядності.",
+        ["npcs"] = { [1] = 264936 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "erpeseyrftwhme" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3345429769] = {
+        ["english"] = {},
+        ["text"] = "Ясного дня звідси видно навіть Чорну гору. Вона водночас прекрасна й жахлива.",
+        ["npcs"] = { [1] = 264936 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "oncrdyyucnensebkmnfmheisbhbladtgattesete" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2626532443] = {
+        ["english"] = { [1] = "How can I help you, $c?" },
+        ["text"] = "Чим можу допомогти?",
+        ["npcs"] = { [1] = 267337 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hwcnhpyu" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2924551370] = {
+        ["english"] = {},
+        ["text"] = "<Горянинка, вочевидь, хоробро билася, перш ніж загинути від зброї трогів.>",
+        ["npcs"] = { [1] = 269153 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "temrcyftbybemghredattewsoftets" },
+        },
+        ["source_status"] = "missing",
+    },
+    [751186203] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, {клас:к}.\013\010\013\010Я можу показати вам, як оповити себе чарами, щоб змінити вигляд свого спорядження, якщо забажаєте. Бажаєте скористатися моїми послугами?",
+        ["npcs"] = { [1] = 270581 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gscscnswyuhwtowemcatyftoceteaeofyretifyusodedoyuwhtouemyss" },
+        },
+        ["source_status"] = "missing",
+    },
+    [197406724] = {
+        ["english"] = {},
+        ["text"] = "Я хочу змінити вигляд свого спорядження.",
+        ["npcs"] = { [1] = 270581 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "idletoceteaeofmyet" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1854070909] = {
+        ["english"] = {},
+        ["text"] = "Я хочу вимкнути трансмогрифікацію.",
+        ["npcs"] = { [1] = 270581 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "idletodetn" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1325629054] = {
+        ["english"] = {},
+        ["text"] = "Я хочу увімкнути трансмогрифікацію.",
+        ["npcs"] = { [1] = 270581 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "idletoeetn" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3433948923] = {
+        ["english"] = {},
+        ["text"] = "Шукаєш гінця? Щойно полетів геть, наче маленька пташка.\010\010Не можу винуватити бідолаху. З цими вендиго кепські справи.",
+        ["npcs"] = { [1] = 271546 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "lnfrtecrjtfwoflewebdctsybeteprsdtewsaenybs" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1485374421] = {
+        ["english"] = {},
+        ["text"] = "Ласкаво просимо до Залізогарта, {стать:воїне:воїтелько}.",
+        ["npcs"] = { [1] = 2784 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetoiewr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1513093227] = {
+        ["english"] = { [1] = "Welcome to the Explorer's League.  If you need information, and it is in book form, then I might be able to help you out." },
+        ["text"] = "Ласкаво просимо до Ліги дослідників. Якщо тобі потрібні якісь відомості й вони записані в книгах, то, можливо, я зможу тобі допомогти.",
+        ["npcs"] = { [1] = 2916 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetoteesleifyundinaditisinbkfmtnmtbeaetohpyuot" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1344650236] = {
+        ["english"] = { [1] = "These great beasts know paths that ye can't find on foot, they'll get ye there fast and maybe show ye something new at the same time." },
+        ["text"] = "Ці величні звірі знають шляхи, якими пішки не дістатися. Вони швидко доправлять тебе й, можливо, покажуть щось нове.",
+        ["npcs"] = { [1] = 352 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tegtbskwpsttyectfdonfttlgtyeteftadmeswyesgnwattesete" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2064322828] = {
+        ["english"] = {},
+        ["text"] = "І чути цього не хочу, {ім'я:к}. Ні, нізащо вас не пустять до Випаленої ущелини. Неможливо. Цього не буде. Скільки разів мені ще повторювати — я не можу вас пропустити! Ви що, не розумієте загальної? Чи, може, ви орк під прикриттям? Н-І. НІ!\010\010Якщо я впущу вас, доведеться впускати всіх. Незабаром сюди захочуть ваші близькі друзі, потім їхні далекі родичі, потім їхні друзі — і так без кінця. Минулого разу, коли таке сталося... гаразд, краще не згадуватимемо, що тоді було. ",
+        ["npcs"] = { [1] = 3836 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "dtcetohritnenenowyaeyuggtobeltiotesggeientggtohnhwmytsdohetotlyuctltyuindoyuntskcnaeyuanocindenonoifltyuintnhetolteyinpysnyrcefswlwtintntrdtrstntrfsadsoonadsofhtelttetthdwlwewttkatteltteithd" },
+        },
+        ["source_status"] = "missing",
+    },
+    [804804664] = {
+        ["english"] = { [1] = "If you ask me, there's no greater profession than a miner.  And if you ask me, there's no greater miner than a dwarf!" },
+        ["text"] = "Як на мене, немає кращого ремесла за гірництво. І немає кращого гірника за дворфа!",
+        ["npcs"] = { [1] = 4256 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ifyuakmetsnogrpntnmradifyuakmetsnogrmrtndf" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [500597199] = {
+        ["english"] = {},
+        ["text"] = "Рада зустрічі.",
+        ["npcs"] = { [1] = 49808 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gttamtya" },
+        },
+        ["source_status"] = "missing",
+    },
+    [3889837155] = {
+        ["english"] = {},
+        ["text"] = "Я хочу забути свої класові таланти або таланти спадщини.",
+        ["npcs"] = { [1] = 5113 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "whtounmycsorlyts" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1146920946] = {
+        ["english"] = { [1] = "Excellent! You meet the required parameters and specifications. What can I do for you?" },
+        ["text"] = "Чудово! Ти відповідаєш усім необхідним вимогам і умовам. Чим можу допомогти?",
+        ["npcs"] = { [1] = 5114 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "etyumtterdpsadsswtcndofryu" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [868060428] = {
+        ["english"] = {},
+        ["text"] = "Я хочу скинути таланти свого класу або спадщини.",
+        ["npcs"] = { [1] = 5114 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "whtounmycsorlyts" },
+        },
+        ["source_status"] = "missing",
+    },
+    [4018565610] = {
+        ["english"] = { [1] = "Are you a student of the medical sciences?" },
+        ["text"] = "Ви вивчаєте лікарське ремесло?",
+        ["npcs"] = { [1] = 5150 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "aeyustoftemlss" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2157989851] = {
+        ["english"] = { [1] = "I require training, Nissa." },
+        ["text"] = "Мені потрібне навчання, Ніссо.",
+        ["npcs"] = { [1] = 5150 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "retgna" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [144374892] = {
+        ["english"] = { [1] = "Ah, this Darnassian fabric is the finest!" },
+        ["text"] = "Ох, ця дарнаська тканина — найкраща!",
+        ["npcs"] = { [1] = 5153 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ahtsdnfcisteft" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3140649672] = {
+        ["english"] = { [1] = "I keep 'em fed, kid. Yep, Daryl Riknussun, at yer service." },
+        ["text"] = "Я годую їх, малий. Ага, Деріл Рікнуссун, до твоїх послуг.",
+        ["npcs"] = { [1] = 5159 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "kpemfdkdypdlrnatyrse" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [129855803] = {
+        ["english"] = { [1] = "I require training, Daryl." },
+        ["text"] = "Мені потрібне навчання, Деріле.",
+        ["npcs"] = { [1] = 5159 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "retgdl" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [55256926] = {
+        ["english"] = { [1] = "Ye bothered me for that? Ye'd be better off strapping a dead rabbit to yer back and running through a Troll's den than wearing that piece of garbage." },
+        ["text"] = "Ти мене заради цього потурбував? Та тобі краще прив'язати до спини дохлого кролика й пробігти крізь лігво тролів, ніж носити це сміття.",
+        ["npcs"] = { [1] = 5164 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "yebdmefrttydbebrofsgddrttoyrbkadrgthtsdntnwgttpeofge" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3288482092] = {
+        ["english"] = { [1] = "If my calculations are correct, the wheel will soon be obsolete!" },
+        ["text"] = "Якщо мої розрахунки правильні, колесо скоро застаріє!",
+        ["npcs"] = { [1] = 5174 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ifmycsaecttewlwlsnbeoe" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [4191088603] = {
+        ["english"] = { [1] = "Hey there. What can I get for you?" },
+        ["text"] = "Привіт. Що тобі налляти?",
+        ["npcs"] = { [1] = 5570 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 4191088603 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [428061917] = {
+        ["english"] = { [1] = "To be honest, we're struggling to make ends meet. Business has been slowing down lately, no thanks to drunkards like Bruart harassing other customers." },
+        ["text"] = "Якщо чесно, ми ледве зводимо кінці з кінцями. Бізнес загальмувалася останнім часом, не в останню чергу через п'яниць типу Бруарта, що чіпляються до інших клієнтів.",
+        ["npcs"] = { [1] = 5570 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 428061917 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2665431500] = {
+        ["english"] = {},
+        ["text"] = "Банк Залізогарта",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 10028616 },
+        },
+        ["source_status"] = "missing",
+    },
+    [2435559780] = {
+        ["english"] = { [1] = "What do ye need directions to?" },
+        ["text"] = "Куди вам підказати дорогу?",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2435559780 },
+        },
+        ["source_status"] = "verified_comment",
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "What do ye need directions to?" },
+                ["text"] = "Куди вам підказати дорогу?",
+                ["npcs"] = { [1] = 5595 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "wtdoyenddsto" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+            [2] = {
+                ["english"] = { [1] = "What do ye need directions to?" },
+                ["text"] = "Куди вам підказати дорогу?",
+                ["npcs"] = { [1] = 727 },
+                ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+                ["priority"] = 1,
+                ["identities"] = {
+                    [1] = { ["kind"] = "code", ["value"] = "wtdoyenddsto" },
+                },
+                ["source_status"] = "unique_source_candidate",
+            },
+        },
+    },
+    [1248871042] = {
+        ["english"] = {},
+        ["text"] = "Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 47033630 },
+        },
+        ["source_status"] = "missing",
+    },
+    [6096452] = {
+        ["english"] = { [1] = "Bank of Ironforge" },
+        ["text"] = "Банк Залізогарта",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "bkofie" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1520529407] = {
+        ["english"] = { [1] = "Do we have Mining trainers here?  Where do ye think ye are!?  \010\010Why you'll find one o' the best miners in all Dun Morogh at the Deepmountain Mining Guild on the northern side of The Great Forge.  There, Geofram Bouldertoe will show ye the true art of mining." },
+        ["text"] = "Чи є тут учителі гірництва? Та ти знаєш, де опинився?!\010\010Одного з найкращих гірників у всьому Дун-Морозі знайдеш у Гільдії гірників Глибокогір'я, на північному боці Великої кузні. Там Ґеофрам Камнепалий покаже тобі справжнє гірницьке мистецтво.",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "dowehemgtshewedoyetkyeaewyylfdoetebtmsinaldnmhattednmggdontennseoftegtfetegmbewlswyeteteatofmg" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2707566082] = {
+        ["english"] = { [1] = "First Aid?  Well ye don't look hurt to me.  If yer really interested in learning First Aid, then Nissa Firestone is the one to learn from.  Go see her over by The Great Forge in her shop, The Ironforge Physician." },
+        ["text"] = "Перша допомога? Та наче не схоже, що тебе поранено. Якщо справді хочеш навчитися першої допомоги, звернися до Нісси Вогнекамінь. Знайдеш її біля Великої Кузні, у крамниці «Лікар Залізогарта».",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ftadwlyedtlkhttomeifyrryidinlgftadtnnafeisteoetolnfmgosehrorbytegtfeinhrspteiepn" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3816269332] = {
+        ["english"] = {},
+        ["text"] = "Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tebkohyemntevtnosrpetoseyrvstntevtylfditjtntofteeetoie" },
+        },
+        ["source_status"] = "ambiguous",
+    },
+    [1685550884] = {
+        ["english"] = { [1] = "That Jormund Stonebrow has a knack for the needle, he does.  Should you be needing some training, then you'll find him at Stonebrow's Clothier on the northern side of The Great Forge." },
+        ["text"] = "Йормунд Камнебров вправно орудує голкою. Якщо хочеш навчитися кравецької справи, знайдеш його в крамниці Камнеброва на північному боці Великої кузні.",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ttjdswhskkfrtenehedssdyubengsetgtnylfdhmatsscrontennseoftegtfe" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1488050284] = {
+        ["english"] = { [1] = "Which profession trainer would ye be looking for?" },
+        ["text"] = "Вчителя якої професії ти шукаєш?",
+        ["npcs"] = { [1] = 5595 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "whpntrwdyebelgfr" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3219809344] = {
+        ["english"] = {},
+        ["text"] = "Останнім часом потоки магії стали непередбачуваними й хаотичними. Цікаво, що могло спричинити це?",
+        ["npcs"] = { [1] = 5694 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tefwofmcisueadccoflewtwrcdbeteceofts" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1583751585] = {
+        ["english"] = {},
+        ["text"] = "Там, де тепер блукають троги й лепрогноми, стоїть наш дім — Гномреґан.\010\010Ми втратили родини, нас вигнали з домівок. Розпорошили по світу.\010\010Ох, як же я тужу за днями безтурботного життя у Гномреґані, та ті часи минули. Ми мусимо дати відсіч! Ми мусимо врятувати Гномреґан!",
+        ["npcs"] = { [1] = 6569 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "wetsadlrgsrmssorhegnorfsltorhsddsdohhwlgfrtedsofcegnlebttedsaenomewemtmeorsdwemtsegn" },
+        },
+        ["source_status"] = "missing",
+    },
+    [4080853939] = {
+        ["english"] = { [1] = "Ah, well aren't you a sturdy-looking one? Perhaps you can assist me with a thing or two. Not much help around here except for green apprentices, and they've other things to worry about." },
+        ["text"] = "О, та ти, бачу, міцної статури! Може, допоможеш мені з однією-другою справою? Тут майже нікому допомогти, самі недосвідчені учні, а в них свої клопоти.",
+        ["npcs"] = { [1] = 658 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "ahwlatyusgoepsyucnatmewhtgortontmhhpadheetfrgnasadteortstowyat" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [3366096261] = {
+        ["english"] = {},
+        ["text"] = "Перукарня",
+        ["npcs"] = { [1] = 68 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "bp" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1206093254] = {
+        ["english"] = {},
+        ["text"] = "Трансмогрифікатор",
+        ["npcs"] = { [1] = 68 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [2806813727] = {
+        ["english"] = { [1] = "Greetings, $c! Fine day for hunting, wouldn't you say? I've been having more than a little luck with boars, myself. Perhaps you'd like a shot?" },
+        ["text"] = "Вітаю, магу! Чудовий день для полювання, чи не так? Мені й самому неабияк щастить на вепрів. Може, й ти хочеш спробувати?",
+        ["npcs"] = { [1] = 714 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gscsfedyfrhgwtyusyiebnhgmetnlelkwhbsmfpsydlest" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [449351295] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, юначе. Я Ґрелін Білобородий. Я тут, щоб дослідити загрозу, яку становить дедалі більша кількість тролів у Долині Морозного Хребта. Що я з'ясував? Дещо тривожне...",
+        ["npcs"] = { [1] = 786 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsldimgnwdimhetoeetettpdbyteggnsoftsincevywthefdisbttg" },
+        },
+        ["source_status"] = "ambiguous",
+    },
+    [3599619743] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, {стать:воїне:воїтелько}. Я — Верховний штукар Меккакруть, вигнанець із Гномреґану.",
+        ["npcs"] = { [1] = 7937 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hotewramhhtrmeofteesofgn" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1702116538] = {
+        ["english"] = {},
+        ["text"] = "Я — мехмайстер Надспалах, головний архітектор сучасних засад гномської інженерії в усьому світі! Моє завдання — стежити, щоб сила винахідництва й надалі сяяла в наших дугових гайковертах яскравіше, ніж будь-де інде!\010\010До речі, якщо тобі відоме добре креслення для усунення радіації, ми саме зараз шукаємо щось подібне...",
+        ["npcs"] = { [1] = 7944 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "amtrokadamtecfatfrmnghegpsintewdtyitismyjbtoeettteprofincstosebtfmoratsstnaeeeaoifyuhntokwgdscfrrnenwejtsohntobeintemtfroertatnw" },
+        },
+        ["source_status"] = "missing",
+    },
+    [152460222] = {
+        ["english"] = { [1] = "Erm... I really don't know you that well, sorry.  I mean, as an authorized Mechano-strider dealer, I really only can sell my mounts to those people who are considered exalted amongst the gnomes.  If you ever are recognized as exalted to Gnomeregan, I'd be happy to show you what I have to offer." },
+        ["text"] = "Ем... Вибач, але я тебе зовсім не знаю. Як уповноважений продавець механобігів, я можу продавати своїх скакунів лише тим, кого гноми вважають превознесеними. Якщо ти заслужиш превознесення в Гномреґані, я радо покажу тобі свій товар.",
+        ["npcs"] = { [1] = 7955 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "emrydtkwyuttwlsymnasanadmrdrryoycnslmymstotepewoaecdedattegsifyueraerdasedtognidbehytoswyuwthetoor" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [4031819490] = {
+        ["english"] = { [1] = "I sell the finest cloth and leather garb this side of the valley!" },
+        ["text"] = "Я продаю найкращий одяг із тканини та шкіри по цей бік долини!",
+        ["npcs"] = { [1] = 836 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "slteftchadlrgbtsseoftevy" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [1224797151] = {
+        ["english"] = {},
+        ["text"] = "Служи Світлу гідно, {стать:воїне:воїтелько}.",
+        ["npcs"] = { [1] = 837 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "seteltwlwr" },
+        },
+        ["source_status"] = "missing",
+    },
+    [916388844] = {
+        ["english"] = { [1] = "Wanna buy a cockroach?" },
+        ["text"] = "Хочеш купити таргана?",
+        ["npcs"] = { [1] = 8403 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 916388844 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [3636201544] = {
+        ["english"] = { [1] = "Arathi Basin was once our home, and will be again with your aid!  Will you help us $c?" },
+        ["text"] = "Низина Араті колись була нашим домом і з твоєю допомогою знову ним стане! Допоможеш нам, {клас:к}?",
+        ["npcs"] = { [1] = 857 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "aibnwsoeorheadwlbeanwhyradwlyuhpuscs" },
+        },
+        ["source_status"] = "unique_source_candidate",
+    },
+    [2614069872] = {
+        ["english"] = { [1] = "I... I'm not really sure how I got here...\010\010I seem to remember traveling... a raft..." },
+        ["text"] = "Я... якщо чесно, я не зовсім розумію, як я сюди потрапив...\010\010Здається, я кудись плив... на плоті...",
+        ["npcs"] = { [1] = 8737 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 2614069872 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [4260626268] = {
+        ["english"] = {},
+        ["text"] = "Вітаю, {ім'я:к}. Ти {стать:прийшов:прийшла} дізнатися про історію Залізогарта?",
+        ["npcs"] = { [1] = 8879 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsdnheyucetolnoftehyofie" },
+        },
+        ["source_status"] = "missing",
+    },
+    [1298350057] = {
+        ["english"] = { [1] = "I can tell just by the way you're standing that you're no warrior.\010\010Why don't you go do something safe, like read a book." },
+        ["text"] = "Я бачу, що ти не {стать:воїн:воїтелька}, просто по тому як ти стоїш.\010\010Чому б тобі не зайнятися чимось безпечним, наприклад почитати книжку.",
+        ["npcs"] = { [1] = 911 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "hash", ["value"] = 1298350057 },
+        },
+        ["source_status"] = "verified_comment",
+    },
+    [2546856024] = {
+        ["english"] = {},
+        ["text"] = "Вітаю.  Я навчаю гномів-магів, а ти — маг.",
+        ["npcs"] = { [1] = 944 },
+        ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+        ["priority"] = 1,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "gsimgecstradyecs" },
+        },
+        ["source_status"] = "missing",
+    },
 }
-
-if addonTable.gossip then
-    for k, v in pairs(gossip) do
-        if type(addonTable.gossip[k]) == "table" and type(v) == "table" then
-            for vk, vv in pairs(v) do
-                addonTable.gossip[k][vk] = vv
-            end
-        else
-            addonTable.gossip[k] = v
-        end
-    end
-else
-    addonTable.gossip = gossip
-end
-
--- Verified in-game NPC dialogue scan entries.
-local verified_entries = {
-    [1092] = {
-        ["ateedftsisnotefrfswhteaefsuraktepnoftedntsbsenmeclterttgugpsdltttoteksld"] = [===[Спокійно, дворфе. Зараз не час для формальностей. Поки сили Альянсу перебувають під атакою, захист дворфійських територій стає ще важливішим. Нещодавнє повстання трогів становить жахливу загрозу землям короля.]===],
-    },
-    [167] = {
-        ["gs"] = [===[Вітаю.]===],
-        ["wdletoseyrws"] = [===[Я хочу оглянути ваші товари.]===],
-    },
-    [1681] = {
-        ["tebtmrhsfmgponhspksthtinhsctadtkbkdtinhshr"] = [===[Найкращий гірник міцно тримає кирку, має відважне серце в грудях і густий чорний пил у волоссі.]===],
-    },
-    [258043] = {
-        ["yecefrtnmydnrtteesadyeadyeslfefrgrtnmt"] = [===[Ти зайшов далі, ніж багато хто, {ім'я:к}. Поважай стихії довкола себе — і матимеш значно більший успіх, ніж більшість.]===],
-    },
-    [269153] = {
-        ["temrcyftbybemghredattewsoftets"] = [===[<Горянинка, вочевидь, хоробро билася, перш ніж загинути від зброї трогів.>]===],
-    },
-    [11029] = {
-        ["tepsfrmytttltybraenycenwalndistttlty"] = [===[Креслення моєї двадцятифутової піпетки для поливання індички майже готове! Тепер потрібна лише двадцятифутова індичка...]===],
-    },
-    [5174] = {
-        ["ifmycsaecttewlwlsnbeoe"] = [===[Якщо мої розрахунки правильні, колесо скоро застаріє!]===],
-    },
-    [49808] = {
-        ["gttamtya"] = [===[Рада зустрічі.]===],
-    },
-    [1343] = {
-        ["wlifititygbgwrnodtdnhebytkofmyesinfsofbenotefrssnwfrteaegtitdsttnddgsoifyelgfrgytnlkssonyuty"] = [===[О, та це ж молодий, завзятий воїн, якого, без сумніву, привели сюди розповіді про мої подвиги на полях битв!
-
-Зараз не час для історій — на нас чекають великі й важливі справи! Тож якщо ти шукаєш слави, сьогодні удача тобі усміхається...]===],
-    },
-    [1572] = {
-        ["mkmywsyuwtfdfrgsaeinteenkstnteosrtheintr"] = [===[Запам'ятай мої слова! У всьому Східному Королівстві не знайти грифонів швидших за тих, що тут, у Телсамарі!]===],
-    },
-    [1340] = {
-        ["wetotryrheayfmheinlhmntrisnepebtisntalbradsdmtfrtewoartecltodyifyewgtofedrinteneofteaetnrdteproetetrbhofteesle"] = [===[Ласкаво просимо до Телсамара — твого другого дому в Лох-Модані!
-
-Телсамар — гарне місце, та для тих, хто відгукується на поклик обов'язку, життя тут не обмежується пивом і солоним м'ясом! Якщо готовий зустріти небезпеку в ім'я Альянсу, прочитай оголошення біля телсамарського відділення Ліги дослідників.]===],
-        ["honewetotradweyehedtfttovtorllby"] = "Вітаю, {ім'я:к}.  Ласкаво просимо до Телсамара, і поки ви тут, не забудьте завітати до нашої місцевої броварні!",
-    },
-    [10276] = {
-        ["aewdletathyetgortoatsggbananadhradlssewtwecnahslwe"] = [===[Авжеж, я залюбки навчу тебе ковальської справи. Бери фартух і молот, та подивімося, чого ми зможемо досягти!]===],
-    },
-    [13084] = {
-        ["wlhiteaeyuhetolnteprteofnwwn"] = [===[О, вітаю! Хочеш навчитися володіти новим видом зброї?]===],
-    },
-    [14723] = {
-        ["aeyuteifyuwttoentertoftedsofietnyucnstbydgversiefsifrglwonchpetsadbsdtgwontsyakwrrtnchinvschpsyufdagdetmdgsowlenyuternoftednpeofie"] = [===[Гей, ти! Якщо хочеш заслужити повагу дворфів Залізогарта, почни з пожертви цінних припасів! У Залізогарті бракує тканини, а полотно й бинти, знаєш, на деревах не ростуть!
-
-Не продавай знайдену в мандрах тканину, а пожертвуй її! Так ти здобудеш визнання дворфів Залізогарта!]===],
-    },
-    [4256] = {
-        ["ifyuakmetsnogrpntnmradifyuakmetsnogrmrtndf"] = [===[Як на мене, немає кращого ремесла за гірництво. І немає кращого гірника за дворфа!]===],
-    },
-    [5153] = {
-        ["ahtsdnfcisteft"] = [===[Ох, ця дарнаська тканина — найкраща!]===],
-    },
-    [11146] = {
-        ["gsdf"] = [===[Вітаю, дворфе.]===],
-    },
-    [1901] = {
-        ["tebgwsmtbeorfrnwbtweslhetokporsssp"] = [===[Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!]===],
-        ["whtounmycsorlyts"] = [===[Я хочу скинути таланти свого класу або спадщини.]===],
-    },
-    [230319] = {
-        ["tynttodwtomhanimwgfrtekgtogtmeaentttmdwgflpyseadaltebygs"] = [===[Не привертай зайвої уваги. Я чекаю, поки король прийме мене. Хоча очікування мене не бентежить — поруч із цими кремезними вартовими я почуваюся цілком безпечно.]===],
-    },
-    [2784] = {
-        ["wetoiewr"] = [===[Ласкаво просимо до Залізогарта, {стать:воїне:воїтелько}.]===],
-    },
-    [5164] = {
-        ["yebdmefrttydbebrofsgddrttoyrbkadrgthtsdntnwgttpeofge"] = [===[Ти мене заради цього потурбував? Та тобі краще прив'язати до спини дохлого кролика й пробігти крізь лігво тролів, ніж носити це сміття.]===],
-    },
-    [7937] = {
-        ["hotewramhhtrmeofteesofgn"] = [===[Вітаю, {стать:воїне:воїтелько}. Я — Верховний штукар Меккакруть, вигнанець із Гномреґану.]===],
-    },
-    [6569] = {
-        ["wetsadlrgsrmssorhegnorfsltorhsddsdohhwlgfrtedsofcegnlebttedsaenomewemtmeorsdwemtsegn"] = [===[Там, де тепер блукають троги й лепрогноми, стоїть наш дім — Гномреґан.
-
-Ми втратили родини, нас вигнали з домівок. Розпорошили по світу.
-
-Ох, як же я тужу за днями безтурботного життя у Гномреґані, та ті часи минули. Ми мусимо дати відсіч! Ми мусимо врятувати Гномреґан!]===],
-    },
-    [7944] = {
-        ["amtrokadamtecfatfrmnghegpsintewdtyitismyjbtoeettteprofincstosebtfmoratsstnaeeeaoifyuhntokwgdscfrrnenwejtsohntobeintemtfroertatnw"] = [===[Я — мехмайстер Надспалах, головний архітектор сучасних засад гномської інженерії в усьому світі! Моє завдання — стежити, щоб сила винахідництва й надалі сяяла в наших дугових гайковертах яскравіше, ніж будь-де інде!
-
-До речі, якщо тобі відоме добре креслення для усунення радіації, ми саме зараз шукаємо щось подібне...]===],
-    },
-    [8879] = {
-        ["gsdnheyucetolnoftehyofie"] = [===[Вітаю, {ім'я:к}. Ти {стать:прийшов:прийшла} дізнатися про історію Залізогарта?]===],
-    },
-    [10277] = {
-        ["yekwmetndotscytlyewtthgotkwhmedahlwtyetapeyfbtheisfetridhsnsrhadylfdhmnrteaswnslfrolbs"] = [===[Ти знаєш більше за мене, це вже точно. Знаєш що? Поговори з моїм батьком. Він захоче, щоб ти довів свою майстерність, але вчитель він чудовий. Його звати Ротґат. Знайдеш його біля ковадел, де він кує сталь для старого Бенґуса.]===],
-        ["yegtleslonyeehtolnyefwtswrlssewtcnthyeslwe"] = [===[На вигляд ти вже дещо вмієш. Гадаю, цього вистачить, щоб навчити тебе кількох речей. Подивімося, чого я можу тебе навчити.]===],
-    },
-    [727] = {
-        ["wtdoyenddsto"] = [===[Куди вам підказати дорогу?]===],
-    },
-    [11867] = {
-        ["heyucesgtgintewsofadct"] = [===[Прийшли опановувати бойове мистецтво зі зброєю?]===],
-    },
-    [352] = {
-        ["tegtbskwpsttyectfdonfttlgtyeteftadmeswyesgnwattesete"] = [===[Ці величні звірі знають шляхи, якими пішки не дістатися. Вони швидко доправлять тебе й, можливо, покажуть щось нове.]===],
-    },
-    [1355] = {
-        ["cgislelgptadsewesetesepn"] = [===[Куховарство — справа всього життя, і я бачу, що ми поділяємо це захоплення!]===],
-    },
-    [1698] = {
-        ["wtdoyhwt"] = [===[Чого тобі треба?]===],
-    },
-    [264936] = {
-        ["erpeseyrftwhme"] = [===[Землепровидцю, поділися зі мною своїм даром далекоглядності.]===],
-        ["oncrdyyucnensebkmnfmheisbhbladtgattesete"] = [===[Ясного дня звідси видно навіть Чорну гору. Вона водночас прекрасна й жахлива.]===],
-    },
-    [1229] = {
-        ["tebgwsmtbeorfrnwbtweslhetokporsssp"] = [===[Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!]===],
-        ["yrnowrwyyewtenltdyurmytgrncswotshswrha"] = "Та який з тебе воїн... Та ти й дня не витримаєш моїх тренувань!  \n\n{клас:н}, що уявив себе воїном.  Ха!",
-    },
-    [1241] = {
-        ["hefrtgehjtbnmytgmfbtwdbegdtathyewtcn"] = [===[Прийшов на навчання, га? Я й сам тільки почав учитися, але радо навчу тебе всього, що знаю.]===],
-        ["gddytoyeldcnbeofse"] = "Доброго дня тобі, хлопче. Чим можу прислужитися?",
-    },
-    [1253] = {
-        ["wewrtotemypeifyuaewyfmyrtsflfetortadwmyfieadpsifyeseseteyucdatmeinsets"] = [===[Ласкаво просимо, {стать:воїне:воїтелько}, до Імлистої Сосни. Якщо ти втомився з дороги, заходь, відпочинь і зігрійся. А якщо маєш трохи часу, може, допоможеш мені з кількома справами.]===],
-    },
-    [1694] = {
-        ["wetossdt"] = [===[Ласкаво просимо до депо Сталешквара!]===],
-    },
-    [271546] = {
-        ["lnfrtecrjtfwoflewebdctsybeteprsdtewsaenybs"] = [===[Шукаєш гінця? Щойно полетів геть, наче маленька пташка.
-
-Не можу винуватити бідолаху. З цими вендиго кепські справи.]===],
-    },
-    [7955] = {
-        ["emrydtkwyuttwlsymnasanadmrdrryoycnslmymstotepewoaecdedattegsifyueraerdasedtognidbehytoswyuwthetoor"] = [===[Ем... Вибач, але я тебе зовсім не знаю. Як уповноважений продавець механобігів, я можу продавати своїх скакунів лише тим, кого гноми вважають превознесеними. Якщо ти заслужиш превознесення в Гномреґані, я радо покажу тобі свій товар.]===],
-    },
-    [11028] = {
-        ["hdtenwhh60wlbergofteaylesncnbycnmyet"] = [===[Чула, новий «Генвей 6000» скоро зійде з конвеєра. Ледве стримую захват!]===],
-    },
-    [1243] = {
-        ["hrrtatyrse"] = [===[Геґнар Грімостріл до ваших послуг!]===],
-    },
-    [14724] = {
-        ["teesofgnfdosinenmedessbyrglwonchrspsyucnhpusehbgmeeachpsyumthetohpusrhorssbydgtmylbeegtertadttofgseetssgttmyctbywlgschdsbttsbetept"] = [===[Ми, вигнанці Гномреґана, опинилися в ще скрутнішому становищі: запаси тканини добігають кінця! Може, допоможеш нам, га?!
-
-Принеси мені зайві клапті тканини, щоб поповнити наші запаси. За це ти здобудеш повагу й довіру гномів усюди. Такого за гроші не купиш! Хоча тканину купиш... але це вже інша річ...]===],
-    },
-    [1573] = {
-        ["tewrdsmtheftssbtcnteaepkgssdtehtoftegtfetknt"] = [===[У дворфів Дикого Молота, може, й прудкі скакуни, та чи витримають грифони з Орлиного піку жар Великої кузні? Гадаю, що ні!]===],
-    },
-    [267337] = {
-        ["hwcnhpyu"] = [===[Чим можу допомогти?]===],
-    },
-    [5595] = {
-        ["dowehemgtshewedoyetkyeaewyylfdoetebtmsinaldnmhattednmggdontennseoftegtfetegmbewlswyeteteatofmg"] = [===[Чи є тут учителі гірництва? Та ти знаєш, де опинився?!
-
-Одного з найкращих гірників у всьому Дун-Морозі знайдеш у Гільдії гірників Глибокогір'я, на північному боці Великої кузні. Там Ґеофрам Камнепалий покаже тобі справжнє гірницьке мистецтво.]===],
-        ["ttjdswhskkfrtenehedssdyubengsetgtnylfdhmatsscrontennseoftegtfe"] = [===[Йормунд Камнебров вправно орудує голкою. Якщо хочеш навчитися кравецької справи, знайдеш його в крамниці Камнеброва на північному боці Великої кузні.]===],
-        ["whpntrwdyebelgfr"] = [===[Вчителя якої професії ти шукаєш?]===],
-        ["bkofie"] = [===[Банк Залізогарта]===],
-        ["tebkohyemntevtnosrpetoseyrvstntevtylfditjtntofteeetoie"] = [===[Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.]===],
-        ["wtdoyenddsto"] = [===[Куди вам підказати дорогу?]===],
-        ["ftadwlyedtlkhttomeifyrryidinlgftadtnnafeisteoetolnfmgosehrorbytegtfeinhrspteiepn"] = "Перша допомога? Та наче не схоже, що тебе поранено. Якщо справді хочеш навчитися першої допомоги, звернися до Нісси Вогнекамінь. Знайдеш її біля Великої Кузні, у крамниці «Лікар Залізогарта».",
-    },
-    [658] = {
-        ["ahwlatyusgoepsyucnatmewhtgortontmhhpadheetfrgnasadteortstowyat"] = [===[О, та ти, бачу, міцної статури! Може, допоможеш мені з однією-другою справою? Тут майже нікому допомогти, самі недосвідчені учні, а в них свої клопоти.]===],
-    },
-    [836] = {
-        ["slteftchadlrgbtsseoftevy"] = [===[Я продаю найкращий одяг із тканини та шкіри по цей бік долини!]===],
-    },
-    [837] = {
-        ["seteltwlwr"] = [===[Служи Світлу гідно, {стать:воїне:воїтелько}.]===],
-    },
-    [912] = {
-        ["tebgwsmtbeorfrnwbtweslhetokporsssp"] = [===[Великі війни поки скінчилися, та ми все одно мусимо відточувати свої навички!]===],
-    },
-    [10090] = {
-        ["ahfdoyhphsadtrps"] = [===[Друже, я допомагаю лише мисливцям та їхнім вихованцям.]===],
-    },
-    [11865] = {
-        ["yewttobetdinteueofwndoyewldtsdtesdskuple"] = [===[Хочеш навчитися володіти зброєю? То не стій із роззявленим ротом, кажи, хлопче!]===],
-    },
-    [5114] = {
-        ["etyumtterdpsadsswtcndofryu"] = [===[Чудово! Ти відповідаєш усім необхідним вимогам і умовам. Чим можу допомогти?]===],
-        ["whtounmycsorlyts"] = [===[Я хочу скинути таланти свого класу або спадщини.]===],
-    },
-    [12197] = {
-        ["neheyeayiawtweupatinacvyaeyerytoftteffcn"] = "{Ім'я:к}, чи відаєш ти, з чим нам доводиться мати справу в Альтерацькій долині? Чи готовий ти битися з кланом Морозних Вовків?",
-    },
-    [14982] = {
-        ["cswendyraeatwgghwlyuadusinorftattewgos"] = "{Клас:к}, нам потрібна твоя допомога в ущелині Пісні Війни. Допоможеш нам у боротьбі проти вершників Пісні Війни?",
-    },
-    [15351] = {
-        ["tewrattehehsrdflttnetsisteofgtndfrteaeadisqenyttalofusdoorpttohp"] = "Війна проти Орди вирує на повну силу, {Ім'я:к}. Нині Альянс як ніколи потребує нашої допомоги, тож кожен із нас мусить зробити свій внесок.",
-    },
-    [263643] = {
-        ["gsnedoyuwhtoerbeatdris"] = "Вітаю, {Ім'я:к}. Бажаєш вступити в бій на островах Темного Списа?",
-    },
-    [2916] = {
-        ["wetoteesleifyundinaditisinbkfmtnmtbeaetohpyuot"] = "Ласкаво просимо до Ліги дослідників. Якщо тобі потрібні якісь відомості й вони записані в книгах, то, можливо, я зможу тобі допомогти.",
-    },
-    [5113] = {
-        ["tebgwsmtbeorfrnwbtweslhetokporsssp"] = "Великі війни, може, й скінчилися — принаймні поки що, — але ми все одно мусимо відточувати свою майстерність!",
-        ["whtounmycsorlyts"] = "Я хочу забути свої класові таланти або таланти спадщини.",
-    },
-    [857] = {
-        ["aibnwsoeorheadwlbeanwhyradwlyuhpuscs"] = "Низина Араті колись була нашим домом і з твоєю допомогою знову ним стане! Допоможеш нам, {клас:к}?",
-    },
-    [5159] = {
-        ["kpemfdkdypdlrnatyrse"] = "Я годую їх, малий. Ага, Деріл Рікнуссун, до твоїх послуг.",
-        ["retgdl"] = "Мені потрібне навчання, Деріле.",
-    },
-    [2057] = {
-        ["dgtebstoteenseishdwkbtteaesomydgonustogttebtprtewemtdowtwecnattedkis"] = "Доставляти ці бочки до місця розкопок — важка праця, але стільки людей покладаються на нас, щоб ми доправили туди вибуховий порох.\n\nМи мусимо зробити все, що в наших силах, у боротьбі проти Чорного Заліза!",
-        ["tsisdsleofbsmnjtltwhdyhesdbebkinfwms"] = "Небезпечне це ремесло!\n\nМіран щойно вирушив із вантажем. За кілька хвилин він має повернутися.",
-        ["aeyuhetohpwhtedymsjtatry"] = "Ви тут, щоб допомогти з доставкою? Міран уже майже готовий.",
-    },
-    [5150] = {
-        ["aeyustoftemlss"] = "Ви вивчаєте лікарське ремесло?",
-        ["retgna"] = "Мені потрібне навчання, Ніссо.",
-    },
-    [11145] = {
-        ["gsneammrsykroftegtfe"] = "Вітаю, {ім'я:к}. Я — Міолор Лютолом, хранитель Великої Кузні.",
-    },
-    [1976] = {
-        ["bp"] = "Перукарня",
-        ["gototemeqradskotfzsrjtntoftemetr"] = "Ідіть до Кварталу магів і знайдіть Фіренза Зорегляда, трохи на північний захід від вежі магів.",
-        ["tr"] = "Трансмогрифікатор",
-    },
-    [270581] = {
-        ["gscscnswyuhwtowemcatyftoceteaeofyretifyusodedoyuwhtouemyss"] = "Вітаю, {клас:к}.\r\n\r\nЯ можу показати вам, як оповити себе чарами, щоб змінити вигляд свого спорядження, якщо забажаєте. Бажаєте скористатися моїми послугами?",
-        ["idletoceteaeofmyet"] = "Я хочу змінити вигляд свого спорядження.",
-        ["idletodetn"] = "Я хочу вимкнути трансмогрифікацію.",
-        ["idletoeetn"] = "Я хочу увімкнути трансмогрифікацію.",
-    },
-    [5694] = {
-        ["tefwofmcisueadccoflewtwrcdbeteceofts"] = "Останнім часом потоки магії стали непередбачуваними й хаотичними. Цікаво, що могло спричинити це?",
-    },
-    [1154] = {
-        ["heattefrlewepehgssaealeewhtognmyalylhetoenityulkuptoteceld"] = "Тут, у Притулку Далекоходців, ми понад усе цінуємо мисливську майстерність. Хочеш заслужити моє схвалення? Доведеться його вибороти.\n\nСхоже, ти готовий до випробування, хлопче!",
-        ["thhetoatittebrddgttebrofmemyohmytsoebgolbrnsifyucntettbrdnidbefttobepdofitgemetnfwoforbthssetehecsyuontebkbttebradwlatyuasrrmroftefrle"] = "Хоч як прикро це визнавати, той ведмідь таки взяв наді мною гору. Ох і здоровенний же він!\n\nТа якщо тобі вдасться здолати того ведмедя, цим справді можна буде пишатися! Він завдав чимало клопоту кільком нашим найкращим мисливцям.\n\n<Він плескає вас по спині.>\n\nЗдолай ведмедя — і ми приймемо тебе як повноправного члена Притулку Далекоходців.",
-    },
-    [1156] = {
-        ["wetotefrlene"] = "Ласкаво просимо до Притулку Далекоходців, {ім'я:к}!",
-    },
-    [3836] = {
-        ["dtcetohritnenenowyaeyuggtobeltiotesggeientggtohnhwmytsdohetotlyuctltyuindoyuntskcnaeyuanocindenonoifltyuintnhetolteyinpysnyrcefswlwtintntrdtrstntrfsadsoonadsofhtelttetthdwlwewttkatteltteithd"] = "І чути цього не хочу, {ім'я:к}. Ні, нізащо вас не пустять до Випаленої ущелини. Неможливо. Цього не буде. Скільки разів мені ще повторювати — я не можу вас пропустити! Ви що, не розумієте загальної? Чи, може, ви орк під прикриттям? Н-І. НІ!\n\nЯкщо я впущу вас, доведеться впускати всіх. Незабаром сюди захочуть ваші близькі друзі, потім їхні далекі родичі, потім їхні друзі — і так без кінця. Минулого разу, коли таке сталося... гаразд, краще не згадуватимемо, що тоді було. ",
-    },
-    [1423] = {
-        ["tetr"] = "Трансмогрифікатор",
-    },
-    [1430] = {
-        ["cgislelgptadsewesetesepn"] = "Кулінарія — це захоплення на все життя, і я бачу, що ми поділяємо ту саму пристрасть!",
-    },
-    [17804] = {
-        ["gscnakttyumeagifyuhengtoakofme"] = "Вітаю, громадянине. Якщо вам нічого в мене запитати, прошу не затримуватися.",
-    },
-    [68] = {
-        ["bp"] = "Перукарня",
-        ["tr"] = "Трансмогрифікатор",
-    },
-    [256391] = {
-        ["doyuuegdasyrpycy"] = "Ви використовуєте золото як основну валюту?",
-        ["nteyorgsagtopnwewesetoeettehdyasitadeyrtreofbsbsadenheasuyceseuelsofgssdyufdayltssadaefgpyhlyucntelkortelladiyisedcsitisntyrrytodlwhorssofcebtifyucdtestyuwlberdinkdmsbrnrtecswlheyrcnadwewlteceoftelsfmte"] = "Не кожне замовлення йде за планом. Ми докладаємо всіх зусиль, щоб кожна доставка прибувала цілою та вчасно, але останнім часом через почастішання нападів звірів, бандитів і навіть Орди, на жаль, певних втрат товарів не уникнути.\r\n\r\nЯкщо вам трапиться загублений вантаж і ви захочете допомогти, погляньте на етикетку та з'ясуйте, що мало бути всередині. Звісно, виправляти наші недоліки — не ваш обов'язок, але якщо ви укомплектуєте вантаж, то отримаєте належну винагороду.\r\n\r\nПані Бейкер біля ящиків подбає про вашу винагороду, а решту логістики ми візьмемо на себе.",
-        ["ofceweteingditisulcyaralhrweheoronsmfresmeatositisknasmsfraditeyasayteegveofgdadsrtsesctfradeetebnmsofteahceaybeyuaknoitctbeldiogdwesluegdfrsetsshasbctsorayvsyukweycsoeweryonmsfrtemeyuhpwhorltssadixofcgostemefryuwlen"] = "Звісно, ми торгуємо за золото! Зрештою, це універсальна валюта.\r\n\r\nОднак для розрахунків між собою ми маємо власну систему. Вона зветься «Прихильність торговців» і дає змогу не залежати від постійних коливань вартості золота й срібла. Завдяки цьому торгівля між членами Торговельного управління Азероту залишається стабільною, чесною та справедливою. І перш ніж ви запитаєте: ні, обміняти її на золото не можна.\r\n\r\nМи й далі використовуємо золото для простих покупок, як-от звичайні нитки чи алхімічні флакони — словом, для повсякденного ремесла. В інших випадках покладаємося на Прихильність торговців.\r\n\r\nЩо більше ви допомагатимете з нашими загубленими вантажами та напливом ремісничих замовлень, то більше Прихильності заробите!",
-        ["ohgsyuskuponmegdtoseyuneteahceayisasinndofnwcsifyuaetesttoeyslthteftggulmsorpstesstoctsgfmshwlyuhefdyfrtathepeltmekwifyuheayqs"] = "Ой лишенько, ви мене налякали! Рада вас бачити, {ім'я:к}. Торговельному управлінню Азероту завжди потрібні нові підрядники.\r\n\r\nЯкщо вам до вподоби прогулюватися лісом, збираючи корисні матеріали, або ви вмієте власноруч створювати речі з нуля — що ж, тут ви почуватиметеся як удома!\r\n\r\nЯкщо матимете запитання — неодмінно звертайтеся.",
-        ["wdletotkatsgee"] = "Я хочу поговорити про щось інше.",
-        ["weheryedorbsinrtmsbtweaesldgtemstoeestcnbncsasalcsoftewdasshwehetokporesotfrostokporcshsbyweddoncsororbesstobgcgosdytousyucnpyiettbsmlbsatcsintemewesyeeorcstosyteosaddrtegsdytotecstswrtymycybeftntfdyuwlbefycdfryrtsadenorrt"] = "За останні місяці наша справа стрімко розрослася, але ми все ще налагоджуємо засоби швидкого зв'язку між клієнтами з усіх куточків світу. Тож нам доводиться постійно шукати нагоди, щоб наші ремісники не сиділи без діла. Ми покладаємося на кур'єрів та інших відважних душ, які доставляють ремісничі замовлення просто до нас.\r\n\r\nЯк ви, мабуть, здогадуєтеся, така модель роботи має свої труднощі. А поки що ми наполегливо заохочуємо наших ремісників виконувати ці замовлення й особисто доставляти товари замовникам, де б ті не перебували. Не хвилюйтеся, друже: за ваші клопоти ви отримаєте справедливу винагороду й заслужите нашу повагу!",
-        ["wtaecsws"] = "Що таке ремісничі приписи?",
-        ["wtaewdsycs"] = "Що таке перехоплені ящики з припасами?",
-    },
-    [256730] = {
-        ["teisaefrdyoy"] = "Ці зливки лише для виставки!",
-    },
-    [256733] = {
-        ["pdtomtyuifyuletotryuhecetotertpe"] = "Радий знайомству! Якщо вам до вподоби майструвати, ви потрапили куди треба!",
-    },
-    [256734] = {
-        ["hoteiegtteftlstsseofsdid"] = "Вітаю! У мене найкраща шкіра по цей бік Штормовію. Цікавить?",
-    },
-    [256735] = {
-        ["mngstdhswsadbkatyuanwhsebtssng"] = "<Мівін із усмішкою вказує на свої товари, а потім на вас, не промовляючи ані слова.>",
-    },
-    [1070] = {
-        ["ylfdtetnofleyrastebebtylntfditplpeifyehefraeldtnmkmefdit"] = "Он там, за мостом, знайдеш містечко Приозер'я. Та спокійним місцем його не назвеш. Якщо ти шукаєш пригод, хлопче, запам'ятай мої слова — ти їх знайшов!",
-    },
-    [256390] = {
-        ["wehdtewhssggmgasahifyufdayidaeifyucdrntmtome"] = "У нас виникли проблеми з вантажами, що зникають по всьому Азероту. Якщо знайдете якийсь із них, буду вдячна, якщо повернете його мені.",
-    },
-    [256729] = {
-        ["kwwtyetgbtdtwywekporcgadayissehwcnhpyu"] = "Я знаю, про що ви думаєте, але не хвилюйтеся — кулінарні та алхімічні інгредієнти ми зберігаємо окремо!\r\n\r\nЧим можу допомогти?",
-    },
-    [256732] = {
-        ["yulkleyucduefwesyuhecetotertpe"] = "Схоже, вам не завадило б кілька чарів. Ви прийшли куди треба!",
-    },
-    [714] = {
-        ["gscsfedyfrhgwtyusyiebnhgmetnlelkwhbsmfpsydlest"] = "Вітаю, магу! Чудовий день для полювання, чи не так? Мені й самому неабияк щастить на вепрів. Може, й ти хочеш спробувати?",
-    },
-    [786] = {
-        ["gsldimgnwdimhetoeetettpdbyteggnsoftsincevywthefdisbttg"] = "Вітаю, юначе. Я Ґрелін Білобородий. Я тут, щоб дослідити загрозу, яку становить дедалі більша кількість тролів у Долині Морозного Хребта. Що я з'ясував? Дещо тривожне...",
-    },
-    [944] = {
-        ["gsimgecstradyecs"] = "Вітаю.  Я навчаю гномів-магів, а ти — маг.",
-    },
-    [1226] = {
-        ["seteltwlcs"] = "Служи Світлу гідно, {клас:к}.",
-    },
-    [1228] = {
-        ["gsimcstradyecs"] = "Вітаю.  Я навчаю {клас:з}, а ти — {клас:н}.",
-    },
-    [1234] = {
-        ["cthpyaneoytnrs"] = "Не можу допомогти, {ім'я:к}. Я навчаю лише розбійників.",
-    },
-    [1252] = {
-        ["gsadsstoyugdgepsydletosedkwhmehpftoftecloftewdceiemetnehtose"] = "Вітаю тебе, добрий гноме. Мо', вип'єш зі мною, щоб відігнати холодний вітер? Ходи, у мене вистачить на двох.",
-    },
-    [1699] = {
-        ["cgislelgptadsewesetesepn"] = "Кулінарія — справа всього життя, і бачу, ми поділяємо цю пристрасть!",
-    },
-}
-
-addonTable.gossip = addonTable.gossip or {}
-for npcID, entries in pairs(verified_entries) do
-    local target = addonTable.gossip[npcID] or {}
-    for code, translation in pairs(entries) do
-        target[code] = translation
-    end
-    addonTable.gossip[npcID] = target
+for key, row in pairs(rows) do
+    local existing = addonTable.gossip_hashed.rows[key]
+    if existing then
+        existing.alternatives = existing.alternatives or {}
+        existing.alternatives[#existing.alternatives + 1] = row
+    else addonTable.gossip_hashed.rows[key] = row end
 end
