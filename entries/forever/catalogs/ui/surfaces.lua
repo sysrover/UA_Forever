@@ -84,6 +84,9 @@ addonTable.forever_surface_ui = {
         end,
     },
     quest = {
+        ABANDON_QUEST_CONFIRM = "Відмовитися від завдання «%s»?",
+        ABANDON_QUEST_CONFIRM_WITH_ITEMS =
+            "Відмовитися від завдання «%s», знищивши %s?",
         ready_for_turn_in = "Можна здати",
         complete_suffix = " (виконано)",
         timer_units = {
