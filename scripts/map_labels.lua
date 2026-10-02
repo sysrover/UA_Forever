@@ -358,9 +358,7 @@ local function ui_message_region(frame, message, message_id)
 end
 
 local function translate_quest_progress_message(message)
-    local progress = message:gsub("%s+%(Complete%)$", "")
-    if not progress:match("^.-:%s*%d+%s*/%s*%d+%s*$")
-        and not progress:match("^%d+%s*/%s*%d+%s+.+$") then return nil end
+    if not entries.is_quest_progress_message(message) then return nil end
     local translated = entries.translate_quest_objective_task(message)
     return translated ~= message and translated or nil
 end
@@ -370,6 +368,18 @@ local function translate_ui_message(self, message, message_id)
     if not message then return end
     local region = ui_message_region(self, message, message_id)
     if not region then return end
+    if entries.is_quest_progress_message(message) then
+        if not options.can_translate("translate_quest") then return end
+        local translated = translate_quest_progress_message(message)
+        if translated then
+            runtime.apply(region, {
+                owner = "quest-progress-message", slot = "quest.progress",
+                source = message, translated = translated,
+                option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+            })
+        end
+        return
+    end
     if message == "You are no longer rested." then
         if not options.can_lookup("translate_string") then return end
         runtime.apply(region, {
@@ -388,15 +398,6 @@ local function translate_ui_message(self, message, message_id)
             owner = "ui-message", slot = slot or "ui.message",
             source = message, translated = translated, category = category,
             option = option, priority = runtime.priority_for_source(source_kind),
-        })
-        return
-    end
-    local translated_progress = translate_quest_progress_message(message)
-    if translated_progress and options.can_lookup("translate_quest") then
-        runtime.apply(region, {
-            owner = "quest-progress-message", slot = "quest.progress",
-            source = message, translated = translated_progress,
-            option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
         })
         return
     end
@@ -427,12 +428,17 @@ local function wrap_ui_error_add_message(frame)
     local ok = pcall(function ()
         frame.AddMessage = function (self, message, ...)
             local source = safe_string(message)
+            if source and entries.is_quest_progress_message(source) then
+                if options.can_translate("translate_quest") then
+                    message = translate_quest_progress_message(source) or source
+                end
+                if type(auto_scan.record_ui) == "function" then
+                    auto_scan.record_ui(source, message ~= source, "UIErrorsFrame")
+                end
+                return original_add_message(self, message, ...)
+            end
             if source and options.can_translate("translate_zone") then
                 local translated = translated_zone_discovery_message(source)
-                if translated then message = translated end
-            end
-            if source and message == source and options.can_translate("translate_quest") then
-                local translated = translate_quest_progress_message(source)
                 if translated then message = translated end
             end
             if source and message == source and options.can_translate("translate_string") then

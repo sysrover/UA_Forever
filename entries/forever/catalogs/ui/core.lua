@@ -1003,8 +1003,8 @@ addonTable.forever_ui_patterns = {
         pattern = "^(.+) slain: (%d+)/(%d+)$",
         replace = function (name, current, total)
             local entries = addonTable.use("entries")
-            local translated = entries.lookup_name("npc", name) or name
-            return translated .. ": " .. current .. "/" .. total .. " вбито"
+            return entries.translate_quest_objective_task(
+                name .. " slain: " .. current .. "/" .. total)
         end,
     },
     {
