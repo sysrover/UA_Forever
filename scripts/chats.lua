@@ -52,7 +52,13 @@ local system_chat_events = {
 local chat_addition_sequence = 0
 local chat_bubble_sequence = 0
 local direct_event_messages = setmetatable({}, { __mode = "k" })
-local wrapped_chat_frames = setmetatable({}, { __mode = "k" })
+
+local function has_secret_values(...)
+    for index = 1, select("#", ...) do
+        if runtime.is_secret_value(select(index, ...)) then return true end
+    end
+    return false
+end
 
 chats.styles = {
     { key = "replacement", label = addon_locale.chat_style_replacement },
@@ -111,6 +117,11 @@ local function resolve_lang_name(chat_frame, lang_name)
 end
 
 local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
+    -- Returning a rewritten argument list also returns the sender/history
+    -- metadata. Leave secret-bearing events entirely in the native path.
+    if has_secret_values(chat_text, npc_name, lang_name, ...) then return nil end
+    if type(chat_text) ~= "string" or type(npc_name) ~= "string"
+        or type(lang_name) ~= "string" then return nil end
     local known_event = known_chat_msg_events[event]
     if not known_event or not options.can_lookup("translate_chat") then
         return nil, chat_text, npc_name, lang_name, ...
@@ -227,7 +238,10 @@ local function translate_domain_links(text)
         function(prefix, kind, payload, name, suffix)
             local translated
             local id = tonumber(payload:match("^(%d+)"))
-            if kind == "quest" and options.can_translate("translate_quest")
+            if kind == "item" and options.can_translate("translate_item")
+                and options.translate_name("item") then
+                translated = translate_item_name(name, id)
+            elseif kind == "quest" and options.can_translate("translate_quest")
                 and options.translate_name("quest") then
                 local entry = id and entries.get_entry("quest", id)
                 translated = entry and entry[1] or entries.lookup_name("quest", name)
@@ -246,6 +260,10 @@ local function translate_domain_links(text)
             return prefix .. "[" .. translated .. "]" .. suffix
         end)
 end
+
+-- Pure label lookup shared with the rendered-chat adapter. No history IDs,
+-- event arguments or player-message wording enter this function.
+chats.translate_links = translate_domain_links
 
 -- Parse client printf templates instead of making a separate English regex
 -- for every notification. Positional placeholders retain their argument IDs.
@@ -819,12 +837,11 @@ end
 
 -- Some client notices are written straight to a ChatFrame without a CHAT_MSG_*
 -- event. Change only those exact notices in the frame history after insertion.
-local function after_chat_add_message(self, message, r, g, b)
+local function after_chat_add_message(self, message, r, g, b, ...)
     if self == _G.COMBATLOG or self == _G.ChatFrame2 then return end
-    if wrapped_chat_frames[self] then return end
+    if has_secret_values(message, r, g, b, ...) or type(message) ~= "string" then return end
     if not options.can_lookup("translate_chat")
-        or not options.can_translate("translate_chat")
-        or (_G.issecretvalue and _G.issecretvalue(message)) then return end
+        or not options.can_translate("translate_chat") then return end
     local from_event = direct_event_messages[self] == message
     if from_event then
         direct_event_messages[self] = nil
@@ -839,58 +856,28 @@ local function after_chat_add_message(self, message, r, g, b)
         self:AddMessage(assets.icon_ua_inline .. " " .. translated)
         return
     end
-    self:TransformMessages(function(text)
-        return not (_G.issecretvalue and _G.issecretvalue(text))
-            and text == message
+    self:TransformMessages(function(text, ...)
+        return not has_secret_values(text, ...) and text == message
     end, function(_, r, g, b, ...)
         return translated, r, g, b, ...
     end)
 end
 
-local function wrap_chat_frame(frame)
-    if frame and (frame == _G.COMBATLOG or frame == _G.ChatFrame2) then return end
-    if not frame or wrapped_chat_frames[frame]
-        or type(frame.AddMessage) ~= "function" then return end
-    local original_add_message = frame.AddMessage
-    local ok = pcall(function()
-        frame.AddMessage = function(self, message, r, g, b, ...)
-            if not options.can_lookup("translate_chat")
-                or not options.can_translate("translate_chat")
-                or (_G.issecretvalue and _G.issecretvalue(message)) then
-                return original_add_message(self, message, r, g, b, ...)
-            end
-            if direct_event_messages[self] == message then
-                direct_event_messages[self] = nil
-                local linked = translate_domain_links(message)
-                if linked == message then return original_add_message(self, message, r, g, b, ...) end
-                if options.account.chat_style == "addition" then
-                    original_add_message(self, message, r, g, b, ...)
-                    return original_add_message(self, assets.icon_ua_inline .. " " .. linked, r, g, b, ...)
-                end
-                return original_add_message(self, linked, r, g, b, ...)
-            end
-            local translated = translate_rendered_chat(message, r, g, b)
-            record_direct_system_chat(message, r, g, b, translated ~= nil)
-            if not translated then return original_add_message(self, message, r, g, b, ...) end
-            if options.account.chat_style == "addition" then
-                original_add_message(self, message, r, g, b, ...)
-                return original_add_message(self,
-                    assets.icon_ua_inline .. " " .. translated, r, g, b, ...)
-            end
-            return original_add_message(self, translated, r, g, b, ...)
-        end
-    end)
-    if ok then wrapped_chat_frames[frame] = true end
-end
-
-local function wrap_chat_frames()
-    wrap_chat_frame(_G.DEFAULT_CHAT_FRAME)
+-- Post-hooks run after Blizzard has inserted the native message. Never
+-- replace AddMessage or pass its history IDs through an addon-owned wrapper.
+local function prepare_chat_frames()
+    local function prepare_frame(frame)
+        if frame == _G.COMBATLOG or frame == _G.ChatFrame2 then return end
+        hooks.region(frame, "AddMessage", after_chat_add_message)
+    end
+    prepare_frame(_G.DEFAULT_CHAT_FRAME)
     for i = 1, (_G.NUM_CHAT_WINDOWS or 10) do
-        wrap_chat_frame(_G["ChatFrame" .. i])
+        prepare_frame(_G["ChatFrame" .. i])
     end
 end
 
 local function filter_system_msg(self, event, message, ...)
+    if has_secret_values(message, ...) or type(message) ~= "string" then return nil end
     if not system_chat_events[event] or not options.can_lookup("translate_chat") then
         return nil, message, ...
     end
@@ -1058,36 +1045,14 @@ local function prepare_chat_tabs()
     registry.refresh("chat-tabs")
 end
 
-local function prepare_chat_headers()
-    hooks.once("chat-header-formatter", function()
-        local util = _G.ChatFrameUtil
-        local original = util and util.GetOutMessageFormatKey
-        if type(original) ~= "function" then return false end
-        -- Build 70170 reads CHAT_<subtype>_GET here before substituting the
-        -- speaker link and message. Localize only the native format template.
-        -- The existing UI catalog preserves printf arguments and channel hrefs.
-        return pcall(function()
-            util.GetOutMessageFormatKey = function(subtype)
-                local source = original(subtype)
-                if not options.can_lookup("translate_chat")
-                    or not options.can_translate("translate_chat")
-                    or not runtime.safe_string_or_nil(source) then return source end
-                return resolver.find_ui(source) or source
-            end
-        end)
-    end)
-end
-
 chats.prepare = function()
-    prepare_chat_headers()
     for event_name, _ in pairs(known_chat_msg_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_chat_msg)
     end
     for event_name in pairs(system_chat_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_system_msg)
     end
-    hooks.region(_G.ChatFrameMixin, "AddMessage", after_chat_add_message)
-    wrap_chat_frames()
-    hooks.global("FCF_OpenNewWindow", wrap_chat_frames)
+    prepare_chat_frames()
+    hooks.global("FCF_OpenNewWindow", prepare_chat_frames)
     prepare_chat_tabs()
 end
