@@ -636,6 +636,7 @@ local function register_slash_command()
         elseif command == "off" then
             options.account.enabled = false
             runtime.refresh_policy()
+            registry.refresh("combat-log")
             if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
             if strings.refresh_combat_text_globals then
                 strings.refresh_combat_text_globals()
@@ -1025,6 +1026,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 addon_table.use("faction_client_db").prepare()
                 cast_bar_adapter.prepare()
                 loss_of_control_adapter.prepare()
+                addon_table.use("combat_log").prepare()
                 prepare_nameplates()
                 prepare_target_frame()
                 registry.prepare_root_hooks()
@@ -1061,6 +1063,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         tooltips.prepare()
         target_aura_overlay.prepare()
         chats.prepare()
+        addon_table.use("combat_log").prepare()
         prepare_nameplates()
         prepare_target_frame()
         prepare_panel_hooks()

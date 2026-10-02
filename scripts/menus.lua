@@ -678,6 +678,154 @@ local function schedule_lfg_who()
     scheduler.request("lfg-who", nil, translate_lfg_who)
 end
 
+-- Vanilla-style Group Finder in 1.60.1.70170 has separate roots and native
+-- writers. Bind completed display regions, including hidden controls; never
+-- walk player names, guilds, comments or the contents of editable fields.
+local function lfg_name(source)
+    local translated = entries.get_glossary_text(source, source, "zone")
+    if translated ~= source then return translated end
+    return resolver.find_ui(source) or source
+end
+
+local function translate_lfg_display(region, category)
+    if not region or runtime.is_applying(region)
+        or type(region.GetText) ~= "function" then return end
+    local ok, source = pcall(region.GetText, region)
+    if not ok or runtime.is_secret_value(source) or type(source) ~= "string"
+        or source == "" then return end
+    local claim = runtime.get(region)
+    if claim and source == claim.translated then source = claim.source end
+    local translated = surface_text.lfg_text(source, lfg_name)
+    if translated and translated ~= source then
+        runtime.apply(region, {
+            owner = "lfg", slot = category == "zone" and "activity.name" or "ui.text",
+            source = source, translated = translated,
+            option = category == "zone" and "translate_zone" or "translate_string",
+            priority = runtime.PRIORITY.CONTEXT, reapply_cached = true,
+        })
+    else
+        strings.translate_region(region, category, nil, registry.get("lfg"))
+    end
+end
+
+local function bind_lfg_display(region, category)
+    if not region then return end
+    hooks.region(region, "SetText", function (self)
+        translate_lfg_display(self, category)
+    end)
+    translate_lfg_display(region, category)
+end
+
+local function bind_lfg_button(button)
+    if not button or type(button.GetFontString) ~= "function" then return end
+    local ok, label = pcall(button.GetFontString, button)
+    if ok then bind_lfg_display(label) end
+end
+
+local function translate_lfg_vanilla_listing()
+    local frame = _G.LFGListingFrame
+    if not frame then return end
+    bind_lfg_display(frame.TitleContainer and frame.TitleContainer.TitleText)
+    bind_lfg_button(frame.BackButton)
+    bind_lfg_button(frame.PostButton)
+    local roles = frame.GroupRoleButtons
+    bind_lfg_button(roles and roles.RolePollButton)
+    bind_lfg_display(roles and roles.RoleDropdown and roles.RoleDropdown.Text)
+    local view = frame.ActivityView
+    bind_lfg_display(view and view.LevelRangesCheckbox and view.LevelRangesCheckbox.Text)
+    bind_lfg_display(view and view.PlayStyleDropdown and view.PlayStyleDropdown.Text)
+    bind_lfg_display(view and view.Comment and view.Comment.EditBox
+        and view.Comment.EditBox.Instructions)
+    local locked = frame.LockedView
+    bind_lfg_display(locked and locked.ErrorText)
+    bind_lfg_display(locked and locked.ActivityText)
+end
+
+local function translate_lfg_vanilla_categories(view)
+    view = view or _G.LFGListingFrameCategoryView
+    if not view or type(view.CategoryButtons) ~= "table" then return end
+    for _, button in ipairs(view.CategoryButtons) do bind_lfg_button(button) end
+end
+
+local function translate_lfg_vanilla_activity(row)
+    if not row then return end
+    bind_lfg_display(row.NameButton and row.NameButton.Name, "zone")
+    bind_lfg_display(row.Level)
+end
+
+local function translate_lfg_vanilla_result(row)
+    if not row then return end
+    bind_lfg_display(row.CategoryLabel)
+    bind_lfg_display(row.ActivityName, "zone")
+    bind_lfg_display(row.Level)
+    bind_lfg_display(row.PlaystyleLabel)
+    local data = row.DataDisplay
+    bind_lfg_display(data and data.RolesText)
+end
+
+local function translate_lfg_vanilla_who_row(row)
+    if not row then return end
+    bind_lfg_display(row.Level)
+    bind_lfg_display(row.Race)
+    bind_lfg_display(row.Class)
+    -- Variable is selected by whoSortValue: area, guild or race.
+    if _G.whoSortValue == 1 then translate_lfg_display(row.Variable, "zone") end
+    if _G.whoSortValue == 3 then translate_lfg_display(row.Variable) end
+end
+
+local function translate_lfg_vanilla_tooltip(frame)
+    if not frame then return end
+    for _, key in ipairs({ "Delisted", "NewPlayerFriendlyText",
+        "CompletedEncounterHeader", "MemberCount" }) do
+        bind_lfg_display(frame[key])
+    end
+    bind_lfg_display(frame.Leader and frame.Leader.Level)
+    if frame.memberPool and type(frame.memberPool.EnumerateActive) == "function" then
+        for member in frame.memberPool:EnumerateActive() do bind_lfg_display(member.Level) end
+    end
+    if frame.activityPool and type(frame.activityPool.EnumerateActive) == "function" then
+        for label in frame.activityPool:EnumerateActive() do bind_lfg_display(label, "zone") end
+    end
+    if frame.completedEncounterPool
+        and type(frame.completedEncounterPool.EnumerateActive) == "function" then
+        for label in frame.completedEncounterPool:EnumerateActive() do
+            bind_lfg_display(label, "npc")
+        end
+    end
+end
+
+local function translate_lfg_vanilla()
+    local parent = _G.LFGParentFrame
+    if parent then
+        for index = 1, 3 do
+            local tab = parent["Tab" .. index]
+            bind_lfg_button(tab)
+            if tab and type(_G.PanelTemplates_TabResize) == "function" then
+                pcall(_G.PanelTemplates_TabResize, tab, 0)
+            end
+        end
+    end
+    translate_lfg_vanilla_listing()
+    translate_lfg_vanilla_categories()
+    local browse = _G.LFGBrowseFrame
+    if browse then
+        bind_lfg_display(browse.TitleContainer and browse.TitleContainer.TitleText)
+        bind_lfg_display(browse.CategoryDropdown and browse.CategoryDropdown.Text)
+        bind_lfg_display(browse.ActivityDropdown and browse.ActivityDropdown.Text, "zone")
+        bind_lfg_display(browse.NoResultsFound)
+        bind_lfg_display(browse.SearchingSpinner and browse.SearchingSpinner.Label)
+        bind_lfg_button(browse.SendMessageButton)
+        bind_lfg_button(browse.GroupInviteButton)
+    end
+    local who = _G.LFGWhoListFrame
+    if who then
+        bind_lfg_display(who.TitleContainer and who.TitleContainer.TitleText)
+        bind_lfg_display(who.EditBox and who.EditBox.Instructions)
+        bind_lfg_display(who.FilterDropdown and who.FilterDropdown.Text)
+        bind_lfg_display(who.WhoFrameTotals)
+    end
+end
+
 local function translate_lfg_quest_description(entry)
     local region = entry and entry.Description and entry.Description.EditBox
         and entry.Description.EditBox.Instructions
@@ -1087,6 +1235,7 @@ menus_ui.prepare = function ()
             local generic_static = lfg.static
             lfg.static = function (surface)
                 translate_lfg_frame(_G.LFGListFrame)
+                translate_lfg_vanilla()
                 if generic_static then generic_static(surface) end
             end
             lfg.uaForeverStaticConfigured = true
@@ -1101,6 +1250,7 @@ menus_ui.prepare = function ()
             local root = _G.LFGListFrame
             local entry = root and root.EntryCreation
             if entry then translate_lfg_frame(entry) end
+            translate_lfg_vanilla()
         end
     end
     -- Forever 1.60.1 creates the escape menu in GameMenuFrameMixin:InitButtons and
@@ -1120,22 +1270,54 @@ menus_ui.prepare = function ()
     hooks.global("LFGListEntryCreation_Show", translate_lfg_frame)
     hooks.global("LFGListEntryCreation_Select", translate_lfg_frame)
 
-    -- The Forever listing view uses a separate ScrollBox from EntryCreation.
-    -- Its pooled zone labels are rewritten when rows are built or recycled.
-    local listing_view = _G.LFGListingFrameActivityView
-    local listing_scroll_box = _G.LFGListingFrameActivityViewScrollBox
-    hooks.region_script(listing_view, "OnShow", schedule_lfg_listing_rows)
-    hooks.region_script(listing_scroll_box, "OnShow", schedule_lfg_listing_rows)
-    hooks.region_script(listing_scroll_box, "OnMouseWheel", schedule_lfg_listing_rows)
-    hooks.region(listing_scroll_box, "Update", schedule_lfg_listing_rows)
-    hooks.region(listing_scroll_box, "SetDataProvider", schedule_lfg_listing_rows)
-    schedule_lfg_listing_rows()
-    hooks.region_script(_G.LFGListingFrameCategoryView, "OnShow", schedule_lfg_categories)
-    schedule_lfg_categories()
-    hooks.region_script(_G.LFGBrowseFrame, "OnShow", schedule_lfg_browse)
-    schedule_lfg_browse()
-    hooks.region_script(_G.LFGWhoListFrame, "OnShow", schedule_lfg_who)
-    schedule_lfg_who()
+    -- Hook live instances: XML has already copied their mixin methods.
+    for _, name in ipairs({ "LFGParentFrame", "LFGListingFrame",
+        "LFGBrowseFrame", "LFGWhoListFrame", "LFGListingFrameActivityView",
+        "LFGListingFrameCategoryView", "LFGListingFrameLockedView" }) do
+        hooks.region_script(_G[name], "OnShow", translate_lfg_vanilla)
+    end
+    hooks.region(_G.LFGParentFrame, "UpdateTabs", translate_lfg_vanilla)
+    hooks.region(_G.LFGListingFrame, "UpdateFrameView", translate_lfg_vanilla)
+    hooks.region(_G.LFGBrowseFrame, "UpdateResults", translate_lfg_vanilla)
+    hooks.region(_G.LFGWhoListFrame, "UpdateWhoList", translate_lfg_vanilla)
+    for _, name in ipairs({ "LFGListingPostButton_UpdateText",
+        "LFGListingBackButton_UpdateText", "LFGListingActivityView_OnShow",
+        "LFGListingLockedView_RefreshContent" }) do
+        hooks.global(name, translate_lfg_vanilla_listing)
+    end
+    hooks.global("LFGListingCategorySelection_UpdateCategoryButtons",
+        translate_lfg_vanilla_categories)
+    hooks.global("LFGListingActivityView_InitActivityButton", translate_lfg_vanilla_activity)
+    hooks.global("LFGListingActivityView_InitActivityGroupButton", translate_lfg_vanilla_activity)
+    hooks.global("LFGListingLockedView_SetLineContent", function (_, row)
+        if row then bind_lfg_display(row.Text, "zone") end
+    end)
+    hooks.global("LFGBrowseSearchEntry_Update", translate_lfg_vanilla_result)
+    hooks.global("LFGBrowseSearchEntryTooltip_UpdateAndShow", translate_lfg_vanilla_tooltip)
+    hooks.mixin("LFGWhoListButtonMixin", "InitButton", translate_lfg_vanilla_who_row)
+    -- Cover rows created before prepare(), and bind the copied InitButton on
+    -- those instances as well as the mixin used by later pooled rows.
+    local listing = _G.LFGListingFrame
+    local browse = _G.LFGBrowseFrame
+    local who = _G.LFGWhoListFrame
+    local row_views = {
+        { listing and listing.ActivityView and listing.ActivityView.ScrollBox,
+            translate_lfg_vanilla_activity },
+        { browse and browse.ScrollBox, translate_lfg_vanilla_result },
+        { who and who.ScrollBox, translate_lfg_vanilla_who_row },
+    }
+    for _, view in ipairs(row_views) do
+        local scroll_box, translate_row = view[1], view[2]
+        if scroll_box and type(scroll_box.ForEachFrame) == "function" then
+            scroll_box:ForEachFrame(function (row)
+                if translate_row == translate_lfg_vanilla_who_row then
+                    hooks.region(row, "InitButton", translate_row)
+                end
+                translate_row(row)
+            end)
+        end
+    end
+    translate_lfg_vanilla()
 
     -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
     -- public manager and translate only the completed menu returned as open.

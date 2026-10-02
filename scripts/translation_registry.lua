@@ -343,7 +343,7 @@ registry.register_defaults = function (translate_frame)
         { "level-up", { "EventToastManagerFrame",
             "EventToastManagerSideDisplay" }, "none" },
         { "mail", { "MailFrame" }, "none" },
-        { "lfg", { "GroupFinderFrame", "LFGListFrame" }, "none" },
+        { "lfg", { "GroupFinderFrame", "LFGListFrame", "LFGParentFrame" }, "none" },
         { "quest-gossip", { "QuestFrame", "GossipFrame", "WorldMapFrame", "ObjectiveTrackerFrame" }, "quest" },
         { "character", { "CharacterFrame", "ReputationFrame", "PVPUIFrame", "PVPRankFrame",
             "TokenFrame", "TokenDetailFrame", "StatisticsFrame", "GearManagerPopupFrame" }, "none" },
