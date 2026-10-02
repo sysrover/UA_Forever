@@ -9090,6 +9090,24 @@ local chat_rows = {
     ["npcs"] = { [1] = "Yorus Barleybrew" },
     ["priority"] = 3,
 },
+    [2084772259] = {
+    ["english"] = { [1] = "%s looks up at you quizzically. Maybe you should inspect it?" },
+    ["text"] = "%s здивовано дивиться на вас. Може, варто його оглянути?",
+    ["npcs"] = { [1] = "Chicken" },
+    ["priority"] = 3,
+},
+    [3983152201] = {
+    ["english"] = { [1] = "I know how to speak kitty, and Effsee said thank you." },
+    ["text"] = "Я вмію говорити по-котячому, і Еффсі сказала «дякую».",
+    ["npcs"] = { [1] = "Hilary" },
+    ["priority"] = 3,
+},
+    [3811835150] = {
+    ["english"] = { [1] = "Here we have the Cathedral of Light, the center of spiritual enlightenment here in Stormwind." },
+    ["text"] = "Перед нами Собор Сяйва — осередок духовного просвітлення тут, у Штормовії.",
+    ["npcs"] = { [1] = "Miss Danna" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

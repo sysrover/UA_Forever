@@ -3176,6 +3176,16 @@ addonTable.object = { -- [key] = text
 ["The Shal'nan's Abdication"] = "Зречення Шал'нана",
 ["Windstone"] = "Вітрокамінь",
 ["Remote Campfire"] = "Віддалене багаття",
+["Aegrim Bronzebeard"] = "Ейґрім Бронзобородий",
+["Barbershop Chair"] = "Перукарське крісло",
+["Burned-Out Remains"] = "Обгорілі рештки",
+["Eimear Bronzebeard"] = "Еймер Бронзобородий",
+["Faldrim Anvilmar, Thane of Ironforge"] = "Фалдрім Анвілмар, тан Залізогарту",
+["Gnomish Tome"] = "Гномський фоліант",
+["Madoran Bronzebeard"] = "Мадоран Бронзобородий",
+["Muradin Bronzebeard"] = "Мурадін Бронзобородий",
+["Suspicious Crate"] = "Підозрілий ящик",
+["Treaty of Understanding"] = "Угода про порозуміння",
 }
 
 addonTable.translate_object_name = function (name)

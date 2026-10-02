@@ -8746,6 +8746,14 @@ local npc = { -- [id] = { title, description (optional) }
 [263664] = { [1] = "Раан Дикий Вітер", en = "Raan Wildwind" },
 [253092] = { [1] = "Альба Фейрмун", en = "Alba Fairmoon" },
 [275075] = { [1] = "Захисник Приозер'я", en = "Lakeshire Protector" },
+[242498] = { [1] = "Робот реагентів", en = "Reagent Bot" },
+[251507] = { [1] = "Джозефіна Карсон", en = "Josephine Carson" },
+[256741] = { [1] = "Кошик текстильних припасів", en = "Basket of Textile Supplies" },
+[258306] = { [1] = "Бабуся Тонкопряд", en = "Granny Finespindle" },
+[258930] = { [1] = "Айзек Чан", en = "Isaac Chan" },
+[258934] = { [1] = "Різон", en = "Reason" },
+[268238] = { [1] = "Нордун Твердозір", en = "Nordun Steadysight" },
+[274914] = { [1] = "Аендаріл Струмкостріл", en = "Aendaril Brookshot" },
 }
 
 if addonTable.npc then
