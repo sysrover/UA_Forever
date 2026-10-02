@@ -160,6 +160,7 @@ local function prepare_name_lookup()
     local names = { quest = {}, spell = {} }
     local name_ids = { quest = {}, spell = {} }
     local quest_title_ids = {}
+    local quest_task_names = {}
     for _, group in ipairs({
         { "spell", at.spell },
         { "quest", at.quest_faction }, { "quest", at.quest_both },
@@ -171,6 +172,19 @@ local function prepare_name_lookup()
                 name_ids[group[1]][entry.en] = id
             end
             if group[1] == "quest" and type(entry) == "table" then
+                for source, translated in pairs(entry.tasks or {}) do
+                    if type(source) == "string" and type(translated) == "string"
+                        and translated ~= "" then
+                        local known = quest_task_names[source]
+                        if known == nil then
+                            quest_task_names[source] = translated
+                        elseif known ~= translated then
+                            -- UI_INFO_MESSAGE has no quest ID. Never choose an
+                            -- arbitrary quest when the same task has different wording.
+                            quest_task_names[source] = false
+                        end
+                    end
+                end
                 local titles = { entry.en, entry[1] }
                 for index = 1, 2 do
                     local title = titles[index]
@@ -186,6 +200,7 @@ local function prepare_name_lookup()
     entries.names = names
     entries.name_ids = name_ids
     entries.quest_title_ids = quest_title_ids
+    entries.quest_task_names = quest_task_names
 end
 
 entries.prepare = function ()
@@ -834,16 +849,39 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
             required_item, quest_id, objective_source))
     end
 
+    -- UIErrorsFrame receives "Task: N/N" without a quest ID. Resolve the
+    -- complete task first (it can itself contain a colon), retaining counters
+    -- and spacing exactly as the client supplied them.
+    local progress_task, progress_suffix = text:match("^(.-)(:%s*%d+%s*/%s*%d+%s*)$")
+    if progress_task and progress_task ~= "" then
+        return finish(entries.translate_quest_objective_task(
+            progress_task, quest_id, objective_source) .. progress_suffix)
+    end
+
     local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
         or addon_table.quest_both[tonumber(quest_id)])
     local task = quest and quest.tasks and quest.tasks[text]
     if type(task) == "string" then return finish(make_text(task)) end
+    if not quest_id then
+        local shared_task = entries.quest_task_names and entries.quest_task_names[text]
+        if type(shared_task) == "string" then
+            return finish(utils.cap(make_text(shared_task)))
+        end
+    end
     if type(objective_source) == "string"
         and text:lower() == objective_source:lower() then
         local objective = quest and quest[3]
         if type(objective) == "string" and objective ~= "" and objective ~= text then
             return finish(objective)
         end
+    end
+
+    -- Item names intentionally do not belong to the generic glossary. Use
+    -- the build-local name index for item objectives on every quest surface.
+    local item_db = addon_table.use("item_client_db")
+    local item_name = item_db.ready and item_db.get_name_by_english(text)
+    if type(item_name) == "string" and item_name ~= "" and item_name ~= text then
+        return finish(utils.cap(item_name))
     end
 
     -- try parse "LEFT: RIGHT"
