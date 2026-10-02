@@ -2,6 +2,12 @@ local _, addonTable = ...
 
 -- Base-world and Forever zones, supplemented with missing ClassicUA names.
 addonTable.zone = {
+    ["The Grand Vestibule"] = "Великий вестибюль",
+    ["The Domicile"] = "Оселя",
+    ["The Violet Hold"] = "Фіолетова фортеця",
+    ["The Linguist's Lounge"] = "Вітальня мовознавця",
+    ["Tome of the Unrepentant"] = "Фоліант Нерозкаяного",
+    ["The Slough of Despair"] = "Трясовина Відчаю",
     ["Azeroth"] = "Азерот",
     ["Eastern Kingdoms"] = "Східні Королівства",
     ["Kalimdor"] = "Калімдор",

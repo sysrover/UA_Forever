@@ -895,6 +895,10 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             if tooltips.refresh_active then tooltips.refresh_active() end
             if map_labels.refresh_active then map_labels.refresh_active() end
         end)
+        -- Combat tracker updates skip the domain post-hook entirely, so there
+        -- may be no deferred text claim for retry_deferred to restore.
+        scheduler.request("quest-tracker-progress", nil,
+            quest_ui.refresh_tracker_progress, 0.2)
     elseif event == "ITEM_TEXT_BEGIN" then
         scanner.begin_book(...)
     elseif event == "ITEM_TEXT_READY" then

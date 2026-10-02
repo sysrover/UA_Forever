@@ -4,6 +4,22 @@ local _, addonTable = ...
 -- GlobalStrings subset. Keep these as display-only translations: the actual
 -- Blizzard globals must remain English because Camelot uses some as data keys.
 local settings = {
+    ["Uses settings from your Discord account to control volume and the push-to-talk keybinding. Disable this to control these settings in World of Warcraft."] = "Використовує налаштування вашого облікового запису Discord для керування гучністю та клавішею режиму «натисни й говори». Вимкніть це, щоб керувати цими налаштуваннями у World of Warcraft.",
+    ["Use Your Discord Client Settings"] = "Використовувати налаштування вашого клієнта Discord",
+    ["Gamepad Action Bar"] = "Панель команд геймпада",
+    ["Stick angle past the set value will make the player face the stick movement; otherwise, the player strafes while facing the camera direction. Angle of 0 makes the player always face the stick movement direction. Angle of 180 makes the player always face the camera direction. Only applies when in combat."] = "Якщо кут нахилу джойстика перевищує задане значення, гравець буде повертатися у бік руху джойстика; в іншому випадку гравець рухатиметься вбік, залишаючись оберненим у бік камери. При куті 0 гравець завжди буде обернений у бік руху джойстика. При куті 180 гравець завжди буде обернений у бік камери. Діє лише під час бою.",
+    ["Stick angle past the set value will make the player face the stick movement; otherwise, the player strafes while facing the camera direction. Angle of 0 makes the player always face the stick movement direction. Angle of 180 makes the player always face the camera direction. Only applies when not in combat."] = "Якщо кут нахилу джойстика перевищує задане значення, гравець повернеться обличчям у напрямку руху джойстика; в іншому випадку гравець рухатиметься вбік, залишаючись обличчям до напрямку камери. При куті 0 гравець завжди буде дивитися у напрямку руху джойстика. При куті 180 гравець завжди буде дивитися у напрямку камери. Діє лише поза боєм.",
+    ["Camera follows the player while remaining centered behind them."] = "Камера слідує за гравцем, залишаючись по центру позаду нього.",
+    ["Very high resolution reflections, Bicubic filtering, and flow calculations."] = "Відображення з дуже високою роздільною здатністю, бікубічна фільтрація та розрахунки потоків.",
+    ["Hide Interface enabled. Press Escape to exit mode"] = "Функція «Приховати інтерфейс» увімкнено. Натисніть клавішу Escape, щоб вийти з режиму",
+    ["|cnNORMAL_FONT_COLOR:You have received a Real ID friend request|r|n|n|cnHIGHLIGHT_FONT_COLOR:This should be a person you know and trust in real life. You will be able to chat with them no matter which Blizzard game you are playing. If you accept their friend request, your real name will be displayed to all of their friends.|r"] = "|cnNORMAL_FONT_COLOR:Ви отримали запит на дружбу в Real ID|r|n|n|cnHIGHLIGHT_FONT_COLOR:Це має бути людина, яку ви знаєте та якій довіряєте в реальному житті. Ви зможете спілкуватися з нею, незалежно від того, в яку гру Blizzard ви граєте. Якщо ви приймете її запит на дружбу, ваше справжнє ім'я буде показано всім її друзям.|r",
+    ["Choose the style of voice used by the screen narrator"] = "Виберіть стиль голосу, яким говорить диктор на екрані",
+    ["Displays health, power, and class resources. The Personal Resource Display is currently disabled. Enable it in: Combat > Personal Resource Display"] = "Відображає показники здоров’я, енергії та ресурсів класу. Функція «Відображення особистих ресурсів» наразі вимкнена. Увімкніть її в меню: «Бойові дії» > «Відображення особистих ресурсів»",
+    ["Disables the Transmog System. You will not see other Players' Transmogs and they will not see yours."] = "Вимкне систему трансформації: ви не бачитимете трансформації інших гравців, а вони — ваші.",
+    ["Secondary lighting effects are disabled."] = "Додаткові ефекти освітлення вимкнені.",
+    ["When two lights are overlapping, the indicator will appear."] = "Коли два світлові сигнали перекриваються, з’явиться відповідний індикатор.",
+    ["When this is true, the gamepad UI will be enabled"] = "Якщо це так, інтерфейс геймпада буде увімкнено",
+    ["Only show raid-style warnings for guild member deaths"] = "Показувати попередження у стилі рейдів лише у разі загибелі членів гільдії",
     ["Automatically exit Away mode upon moving or talking."] =
         "Автоматично виходити з режиму «Відійшов» після руху або початку розмови.",
     -- Game menu and Settings navigation
