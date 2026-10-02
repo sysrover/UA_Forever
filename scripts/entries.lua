@@ -813,7 +813,6 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
     -- table pristine and translate only the text after its dynamic N/N prefix.
     local quest_surface = addon_table.forever_surface_ui
         and addon_table.forever_surface_ui.quest or {}
-    local original_text = text
     local complete_suffix = ""
     local without_complete = text:match("^(.-)%s+%(Complete%)$")
     if without_complete then
@@ -821,10 +820,28 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
         complete_suffix = quest_surface.complete_suffix or " (Complete)"
     end
     local function finish(value)
-        if without_complete and value == without_complete then
-            return original_text
-        end
         return value .. complete_suffix
+    end
+
+    if text == "Objective Complete." then
+        return finish(quest_surface.objective_complete or text)
+    end
+    -- Prefer the exact quest wording before decomposing client templates.
+    local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
+        or addon_table.quest_both[tonumber(quest_id)])
+    local task = quest and quest.tasks and quest.tasks[text]
+    if type(task) == "string" then return finish(make_text(task)) end
+    if not quest_id then
+        local shared_task = entries.quest_task_names and entries.quest_task_names[text]
+        if type(shared_task) == "string" then
+            return finish(utils.cap(make_text(shared_task)))
+        end
+    end
+    if text == "Players slain" then
+        return finish(quest_surface.player_kills or text)
+    end
+    if text == "Players defeated in pet battle" then
+        return finish(quest_surface.pet_battle_victories or text)
     end
 
     local status_prefix = text:match("^(%-%s*)Ready for turn%-in$")
@@ -835,10 +852,29 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
     if text == "Ready for turn-in" then
         return finish(quest_surface.ready_for_turn_in or text)
     end
-    local progress_prefix, objective_text = text:match("^(%d+%s*/%s*%d+%s+)(.+)$")
+    local progress_prefix, objective_text = text:match("^(%d[%d%.,]*%s*/%s*%d[%d%.,]*%s+)(.+)$")
     if progress_prefix and objective_text then
         return finish(progress_prefix .. entries.translate_quest_objective_task(
             objective_text, quest_id, objective_source))
+    end
+
+    -- QUEST_FACTION_NEEDED uses %s for both progress values. They can be
+    -- formatted numbers rather than plain %d, so identify the objective by
+    -- its translation and retain the entire client-supplied progress prefix.
+    local faction_prefix, faction_tail = text:match("^(.+%s+/%s+)(.+)$")
+    if faction_prefix then
+        local start_at = 1
+        for _ = 1, 20 do
+            local first, last = faction_tail:find("%s+", start_at)
+            if not first then break end
+            local source = faction_tail:sub(last + 1)
+            local translated = entries.translate_quest_objective_task(
+                source, quest_id, objective_source)
+            if translated ~= source then
+                return finish(faction_prefix .. faction_tail:sub(1, last) .. translated)
+            end
+            start_at = last + 1
+        end
     end
 
     -- Quest-link tooltips list required items as "1 x Item", rather than
@@ -852,21 +888,24 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
     -- UIErrorsFrame receives "Task: N/N" without a quest ID. Resolve the
     -- complete task first (it can itself contain a colon), retaining counters
     -- and spacing exactly as the client supplied them.
-    local progress_task, progress_suffix = text:match("^(.-)(:%s*%d+%s*/%s*%d+%s*)$")
+    local progress_task, progress_suffix = text:match("^(.-)(:%s*%d[%d%.,]*%s*/%s*%d[%d%.,]*%s*)$")
     if progress_task and progress_task ~= "" then
         return finish(entries.translate_quest_objective_task(
             progress_task, quest_id, objective_source) .. progress_suffix)
     end
 
-    local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
-        or addon_table.quest_both[tonumber(quest_id)])
-    local task = quest and quest.tasks and quest.tasks[text]
-    if type(task) == "string" then return finish(make_text(task)) end
-    if not quest_id then
-        local shared_task = entries.quest_task_names and entries.quest_task_names[text]
-        if type(shared_task) == "string" then
-            return finish(utils.cap(make_text(shared_task)))
-        end
+    -- ERR_QUEST_ADD_KILL_SII and QUEST_MONSTERS_KILLED share this suffix.
+    -- A catalog task including "slain" already won above; otherwise resolve
+    -- its target through the same task/item/NPC glossary route.
+    local player_target = text:match("^(.+)%s+Players slain$")
+    if player_target and type(quest_surface.player_kills_named) == "string" then
+        return finish(string_format(quest_surface.player_kills_named,
+            entries.translate_quest_objective_task(player_target, quest_id, objective_source)))
+    end
+    local slain_target = text:match("^(.+)%s+slain$")
+    if slain_target and type(quest_surface.slain) == "string" then
+        return finish(string_format(quest_surface.slain,
+            entries.translate_quest_objective_task(slain_target, quest_id, objective_source)))
     end
     if type(objective_source) == "string"
         and text:lower() == objective_source:lower() then
@@ -909,6 +948,16 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
     end
 
     return finish(text)
+end
+
+-- Formats verified in GlobalStrings for the active Forever client. Keep this
+-- gate shared with UIErrorsFrame so unrelated messages do not become quests.
+entries.is_quest_progress_message = function (text)
+    return text == "Objective Complete."
+        or text:match("%s+%(Complete%)$") ~= nil
+        or text:match("^.-:%s*%d[%d%.,]*%s*/%s*%d[%d%.,]*%s*$") ~= nil
+        or text:match("^%d[%d%.,]*%s*/%s*%d[%d%.,]*%s+.+$") ~= nil
+        or text:match("^.+%s+/%s+.+%s+.+$") ~= nil
 end
 
 entries.translate_taxi_node_name = function (text)

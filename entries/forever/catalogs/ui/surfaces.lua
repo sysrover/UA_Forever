@@ -117,6 +117,11 @@ addonTable.forever_surface_ui = {
             "Відмовитися від завдання «%s», знищивши %s?",
         ready_for_turn_in = "Можна здати",
         complete_suffix = " (виконано)",
+        objective_complete = "Завдання виконано.",
+        slain = "%s: убито",
+        player_kills = "Вбиті гравці",
+        player_kills_named = "%s: вбиті гравці",
+        pet_battle_victories = "Гравці, яких було переможено в битві вихованців",
         timer_units = {
             { source = "Day", translated = "дн" },
             { source = "Hr", translated = "год" },
