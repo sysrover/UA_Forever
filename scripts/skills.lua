@@ -291,6 +291,8 @@ local function translate_trainer_region(region, category, slot)
     return strings.translate_region(region, category, slot)
 end
 
+local translate_trainer_requirements
+
 local function translate_trainer_row(row)
     if not row or type(row.GetRegions) ~= "function" then return end
     local ok, regions = pcall(function () return { row:GetRegions() } end)
@@ -301,12 +303,18 @@ local function translate_trainer_row(row)
             local is_name = region == row.name
             local category = is_name and "skill" or nil
             local slot = is_name and "skill.name" or nil
+            local function translate(current)
+                if current == row.subText then
+                    translate_trainer_requirements(current)
+                end
+                translate_trainer_region(current, category, slot)
+            end
             hooks.region(region, "SetText", function (self)
                 if not runtime.is_applying(self) then
-                    translate_trainer_region(self, category, slot)
+                    translate(self)
                 end
             end)
-            translate_trainer_region(region, category, slot)
+            translate(region)
         end
     end
 end
@@ -326,26 +334,24 @@ local function translate_trainer_static_region(region)
     if not runtime.is_applying(region) then translate(region) end
 end
 
-local function translate_trainer_requirements(region)
+translate_trainer_requirements = function (region)
     local source = text_from(region)
     if not source or runtime.is_applying(region) then return end
-    local translated = surface_text.trainer_requirements(source, function (body)
+    local translated = surface_text.trainer_requirements(source, function (name)
+        local translated_name = entries.lookup_name("spell", name)
+        if translated_name then return utils.cap(translated_name) end
         local english = addon_table.client_skill_lines_en
         local ukrainian = addon_table.client_skill_lines_uk
         if not english or not ukrainian or english.sourceBuild ~= ukrainian.sourceBuild then
-            return body
+            return name
         end
-        for id, name in pairs(english.rows or {}) do
+        for id, english_name in pairs(english.rows or {}) do
             local replacement = ukrainian.rows and ukrainian.rows[id]
-            if type(name) == "string" and type(replacement) == "string" then
-                local first, last = body:find(name, 1, true)
-                if first then
-                    body = body:sub(1, first - 1) .. utils.cap(replacement)
-                        .. body:sub(last + 1)
-                end
+            if english_name == name and type(replacement) == "string" then
+                return utils.cap(replacement)
             end
         end
-        return body
+        return name
     end)
     if translated then
         runtime.apply(region, {
@@ -392,6 +398,15 @@ local function translate_trainer_rows()
     translate_trainer_requirements(requirements)
     translate_trainer_title()
     local frame = _G.ClassTrainerFrame
+    local dropdown = frame and frame.FilterDropdown
+    local function translate_filter()
+        translate_trainer_region(dropdown and dropdown.Text)
+    end
+    -- The dropdown retains its native label and rewrites Text on UpdateText.
+    -- Translate the completed display without changing its menu data.
+    hook_owner(dropdown, "UpdateText", translate_filter)
+    hook_owner(dropdown and dropdown.Text, "SetText", translate_filter)
+    translate_filter()
     local scroll_box = frame and frame.ScrollBox
     if not scroll_box or type(scroll_box.ForEachFrame) ~= "function" then return end
     pcall(scroll_box.ForEachFrame, scroll_box, translate_trainer_row)

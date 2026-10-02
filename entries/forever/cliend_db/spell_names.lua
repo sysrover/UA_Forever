@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70170",
-    count = 31725,
+    count = 31731,
     rows = {
         [1] = "Word of Recall (OLD)",
         [3] = "Word of Mass Recall (OLD)",
@@ -31170,7 +31170,6 @@ local database = {
         [1310199] = "Slam",
         [1310200] = "Slam",
         [1310222] = "Spearing Strike",
-        [1310236] = "Boundless Rage",
         [1310243] = "Rend",
         [1310285] = "Curse of the Satyr",
         [1310296] = "Water Walking",
@@ -31731,6 +31730,13 @@ local database = {
         [1323418] = "Revelation",
         [1323419] = "Revelation",
         [1323420] = "Totemic Recall",
+        [1323963] = "Furious Precision",
+        [1323964] = "Lingering Rage",
+        [1323965] = "Lingering Rage",
+        [1323966] = "Lingering Rage",
+        [1323967] = "Gore Drinker",
+        [1323968] = "Gore Drinker",
+        [1323969] = "Gore Drinker",
     },
 }
 

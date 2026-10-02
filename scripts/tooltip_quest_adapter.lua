@@ -172,7 +172,7 @@ adapter.translate_embedded = function (tooltip)
     return applied
 end
 
-adapter.add = function (tooltip, id, skip_title)
+adapter.add = function (tooltip, id, skip_title, data)
     local contract = deps()
     if not options.can_lookup("translate_quest") then return false end
     local entry = entries.get_entry("quest", id)
@@ -214,6 +214,23 @@ adapter.add = function (tooltip, id, skip_title)
                 if value then original_objective = value end
             end
         end
+        -- Quest-link TooltipData in 70170 contains title, a blank spacer,
+        -- then the native objective. It also works for quests outside the log.
+        -- Use only this verified Quest layout; map and NPC rows are tasks.
+        local quest_type = _G.Enum and _G.Enum.TooltipDataType
+            and _G.Enum.TooltipDataType.Quest
+        if type(data) == "table" and quest_type
+            and contract.safe_number(data.type) == quest_type
+            and contract.safe_number(data.id) == id
+            and type(data.lines) == "table" then
+            local spacer, objective = data.lines[2], data.lines[3]
+            if type(spacer) == "table" and type(objective) == "table"
+                and contract.safe_string(spacer.leftText) == " "
+                and contract.safe_number(objective.type) == 0 then
+                original_objective = contract.safe_string(objective.leftText)
+                    or original_objective
+            end
+        end
         local prefix = type(_G.QUEST_DASH) == "string" and _G.QUEST_DASH or ""
         for index = 2, math.min(count, contract.max_lines) do
             local source, region = contract.tooltip_line(tooltip, "Left", index)
@@ -229,14 +246,14 @@ adapter.add = function (tooltip, id, skip_title)
                 elseif prefix ~= "" and source:sub(1, #prefix) == prefix then
                     local raw = source:sub(#prefix + 1)
                     local ok, value = pcall(
-                        entries.translate_quest_objective_task, raw, id)
+                        entries.translate_quest_objective_task, raw, id, original_objective)
                     if ok and type(value) == "string" and value ~= raw then
                         translated = prefix .. value
                     end
                 end
                 if not translated then
                     local ok, value = pcall(
-                        entries.translate_quest_objective_task, source, id)
+                        entries.translate_quest_objective_task, source, id, original_objective)
                     if ok and type(value) == "string" and value ~= source then
                         translated = value
                     end

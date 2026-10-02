@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70170",
-    count = 7752,
+    count = 7753,
     rows = {
         [10] = "$1279976s1 Frost damage every $t3 $lsecond:seconds;.",
         [17] = "Absorbs $w1 damage.",
@@ -7758,6 +7758,7 @@ local database = {
         [1323410] = "Critical Strike chance of your next non-periodic spell increased by $s1%.",
         [1323418] = "Critical Strike chance of your next non-periodic spell increased by $s1%.",
         [1323419] = "Critical Strike chance of your next non-periodic spell increased by $s1%.",
+        [1323969] = "Successful melee attacks restore $w1 Health.",
     },
 }
 

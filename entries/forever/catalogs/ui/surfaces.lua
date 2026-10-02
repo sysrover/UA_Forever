@@ -60,11 +60,34 @@ addonTable.forever_surface_ui = {
         },
         required_prefix = "Потрібно:",
         requirements = function (value) return "Потрібно: " .. value end,
-        trainer_requirements = function (source, translate_skills)
+        trainer_requirements = function (source, translate_name)
             local body = source:match("^Requires: (.+)$")
             if not body then return nil end
-            body = body:gsub("Level ", "Рівень ")
-            return "Потрібно: " .. translate_skills(body)
+            local parts = {}
+            for part in body:gmatch("[^,]+") do
+                part = part:match("^%s*(.-)%s*$")
+                local color, inner, reset = part:match(
+                    "^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
+                local value = inner or part
+                if value:match("^Level ") then
+                    value = value:gsub("^Level ", "Рівень ")
+                else
+                    local name, rank = value:match("^(.-) %(Rank (%d+)%)$")
+                    if name then
+                        value = translate_name(name) .. " (Ранг " .. rank .. ")"
+                    else
+                        local suffix
+                        name, suffix = value:match("^(.-)( %(%d+%))$")
+                        if not name then
+                            name, suffix = value:match(
+                                "^(.-)( %(|c%x%x%x%x%x%x%x%x%d+|r%))$")
+                        end
+                        value = translate_name(name or value) .. (suffix or "")
+                    end
+                end
+                parts[#parts + 1] = (color or "") .. value .. (reset or "")
+            end
+            return "Потрібно: " .. table.concat(parts, ", ")
         end,
     },
     menus = {

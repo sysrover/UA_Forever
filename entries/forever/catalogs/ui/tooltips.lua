@@ -45,6 +45,8 @@ local tooltip = {
     -- build 1.60.1.70058. These keys are English client output, never
     -- translated text used for recognition.
     item_line_exact = {
+        ["Scarce"] = "Дефіцитний",
+        ["|cFF87ABFFScarce|r"] = "|cFF87ABFFДефіцитний|r",
         ["Soulbound"] = "Прив’язано до персонажа",
         ["Binds when picked up"] = "Прив’язується при отриманні",
         ["Binds when equipped"] = "Прив’язується при спорядженні",
@@ -408,6 +410,17 @@ tooltip.item_line_patterns = {
             return "Екіпірування: збільшує шкоду та зцілення від магічних заклять і ефектів на "
                 .. amount .. "."
         end },
+    { "^Equip: Increases healing done by up to (%d+) and damage done by up to (%d+) for all magical spells and effects%.$",
+        function (healing, damage)
+            return "Екіпірування: збільшує зцілення від усіх магічних заклять та ефектів на "
+                .. healing .. ", а шкоду — на " .. damage .. "."
+        end },
+    { "^Use: Teaches you how to craft (.+)%.$", function (name)
+        local translated = addonTable.use("item_client_db").get_name_by_english(name)
+            or addonTable.use("entries").lookup_name("item", name)
+        if not translated then return nil end
+        return "Використання: навчає виготовляти «" .. translated .. "»."
+    end },
     { "^%+(%d+) ([A-Za-z]+) Resistance$",
         function (amount, school)
             local name = item_resistance_names[school]

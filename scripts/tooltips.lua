@@ -661,7 +661,7 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "quest" then
         local entry = entries.get_entry("quest", id)
         dev_log.record_id("quests", id, data.title, entry ~= nil)
-        translated = quest_adapter.add(tooltip, id, data.uaForeverSkipTitle)
+        translated = quest_adapter.add(tooltip, id, data.uaForeverSkipTitle, data)
     elseif kind == "object" then
         dev_log.record_id("objects", id, data.name, false)
         translated = translate_object_tooltip_title(tooltip)
