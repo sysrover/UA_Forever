@@ -814,6 +814,20 @@ end
 
 addonTable.forever_ui_patterns = {
     {
+        pattern = '^Abandon "(.*)", destroying (.+)%?$',
+        replace = function (name, items)
+            return string.format(addonTable.forever_surface_ui.quest
+                .ABANDON_QUEST_CONFIRM_WITH_ITEMS, name, items)
+        end,
+    },
+    {
+        pattern = '^Abandon "(.*)"%?$',
+        replace = function (name)
+            return string.format(addonTable.forever_surface_ui.quest
+                .ABANDON_QUEST_CONFIRM, name)
+        end,
+    },
+    {
         -- SecondsToTime() emits at most two abbreviated units for quest timers.
         pattern = "^([%d%.,]+)%s+(%a+)%s*([%d%.,]*)%s*(%a*)$",
         replace = translate_quest_timer_value,

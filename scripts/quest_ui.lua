@@ -78,7 +78,11 @@ local function quest_name_region(region, id, owner)
     if not current or not english or not ukrainian then return false end
     ukrainian = utils.cap(ukrainian)
     local source = replace_once(current, ukrainian, english) or current
-    local translated = replace_once(source, english, ukrainian)
+    local display_source = source
+    if owner == "quest-static-popup" and options.can_lookup("translate_string") then
+        display_source = strings.find_ui_translation(source, region) or source
+    end
+    local translated = replace_once(display_source, english, ukrainian)
     if not translated then return false end
     return runtime.apply(region, {
         owner = owner, slot = "quest:" .. id .. ".name",
