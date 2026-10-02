@@ -97,6 +97,9 @@ addonTable.forever_surface_ui = {
     },
     menus = {
         lfg_text = function (source, translate_name)
+            local applicants = source:match("^(%d+) Pending Applicant[s]?$")
+                or source:match("^(%d+) |4Pending Applicant:Pending Applicants;$")
+            if applicants then return "Заявок на розгляді: " .. applicants end
             local count = source:match("^(%d+) activit[yi]e?s? selected$")
                 or source:match("^(%d+) |4activity:activities; selected$")
             if count then return "Вибрано активностей: " .. count end

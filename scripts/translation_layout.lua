@@ -514,6 +514,68 @@ local function fit_button_to_text(button, region)
     end
 end
 
+-- The 70170 LFG tooltip only includes names and activities in its native
+-- width calculation. Translated alerts, member counts and role columns can
+-- extend past that width. Measure the completed display, then its new height.
+layout.fit_lfg_tooltip = function (tooltip)
+    if not tooltip or is_protected_frame(tooltip)
+        or not runtime.can_write_text(tooltip)
+        or type(tooltip.SetWidth) ~= "function"
+        or type(tooltip.SetHeight) ~= "function" then return false end
+    local left = safe_dimension(tooltip, "GetLeft")
+    local width = safe_dimension(tooltip, "GetWidth")
+    local height = safe_dimension(tooltip, "GetHeight")
+    if not left or not width or not height then return false end
+    local regions = {}
+    local function add(region, wraps)
+        if not region or type(region.IsShown) ~= "function" then return end
+        local ok, shown = pcall(region.IsShown, region)
+        if ok and not is_secret(shown) and shown then
+            regions[#regions + 1] = { region = region, wraps = wraps }
+        end
+    end
+    for _, key in ipairs({ "Delisted", "NewPlayerFriendlyIcon",
+        "NewPlayerFriendlyText", "LeaderIcon", "MemberCount",
+        "CompletedEncounterHeader" }) do add(tooltip[key]) end
+    add(tooltip.Comment, true)
+    local function add_member(member)
+        if not member or type(member.IsShown) ~= "function" then return end
+        local ok, shown = pcall(member.IsShown, member)
+        if not ok or is_secret(shown) or not shown then return end
+        add(member.Name)
+        add(member.Level)
+        for _, role in ipairs(member.Roles or {}) do add(role) end
+    end
+    add_member(tooltip.Leader)
+    for _, key in ipairs({ "memberPool", "activityPool", "completedEncounterPool" }) do
+        local pool = tooltip[key]
+        if pool and type(pool.EnumerateActive) == "function" then
+            for region in pool:EnumerateActive() do
+                if key == "memberPool" then add_member(region) else add(region) end
+            end
+        end
+    end
+    for _, row in ipairs(regions) do
+        if not row.wraps then
+            local x = safe_dimension(row.region, "GetLeft")
+            local text_width = unbounded_text_width(row.region)
+                or safe_dimension(row.region, "GetWidth")
+            if x and text_width then width = math.max(width, x - left + text_width + 11) end
+        end
+    end
+    if not pcall(tooltip.SetWidth, tooltip, math.ceil(width)) then return false end
+    -- Width can move a clamped tooltip and reflow Comment/anchored labels.
+    local top = safe_dimension(tooltip, "GetTop")
+    if not top then return false end
+    for _, row in ipairs(regions) do
+        local y = safe_dimension(row.region, "GetTop")
+        local text_height = safe_dimension(row.region, "GetStringHeight")
+            or safe_dimension(row.region, "GetHeight")
+        if y and text_height then height = math.max(height, top - y + text_height + 11) end
+    end
+    return pcall(tooltip.SetHeight, tooltip, math.ceil(height))
+end
+
 layout.safe_dimension = safe_dimension
 layout.is_button = is_button
 layout.is_tooltip = is_tooltip

@@ -10,9 +10,10 @@ local scheduler = addon_table.use("translation_scheduler")
 local strings = addon_table.use("strings")
 local hooks = addon_table.use("translation_hooks").bind("combat-log")
 local templates, terms, term_heads, event_templates = {}, {}, {}, {}
-local wrapped = setmetatable({}, { __mode = "k" })
+local line_sources = setmetatable({}, { __mode = "k" })
 local quick_buttons = setmetatable({}, { __mode = "k" })
-local surface, policy
+local display_callbacks = setmetatable({}, { __mode = "k" })
+local surface
 
 local function enabled()
     return options.can_translate("translate_chat")
@@ -256,46 +257,88 @@ combat_log.translate = function(message)
     return (timestamp or "") .. body
 end
 
-local function translate_history(frame)
-    if not enabled() or not frame or type(frame.ForEachMessage) ~= "function" then return end
-    local changed = false
-    -- Build 70170 exposes the actual history entries here. TransformMessages
-    -- repackages entries (including their timestamps); update only the public
-    -- message field and explicitly invalidate the already rendered lines.
-    frame:ForEachMessage(function(entry)
-        local read_ok, message = pcall(function() return entry.message end)
-        message = read_ok and runtime.safe_string_or_nil(message)
-        if not message then return end
-        local translated = combat_log.translate(message)
-        if translated ~= message then
-            local write_ok = pcall(function() entry.message = translated end)
-            changed = write_ok or changed
-        end
-    end)
-    if changed and type(frame.MarkDisplayDirty) == "function" then
-        pcall(frame.MarkDisplayDirty, frame)
+local function translate_line(region, native, native_write)
+    if not region or runtime.is_applying(region) then return end
+    local ok, text = pcall(region.GetText, region)
+    text = ok and runtime.safe_string_or_nil(text)
+    local source
+    if native_write then
+        source = runtime.safe_string_or_nil(native)
+    else
+        source = text
+    end
+    local previous = line_sources[region]
+    if not source then
+        line_sources[region] = nil
+        runtime.release(region, "combat-log")
+        return
+    end
+    if not native_write and previous and text == previous.display then source = previous.source end
+    if native_write then runtime.release(region, "combat-log") end
+    local translated = combat_log.translate(source)
+    line_sources[region] = { source = source, display = translated }
+    if translated == text then return end
+    -- Use the enemy-tooltip path even out of combat: public SetText only,
+    -- no SetFont/SetFontObject, resizing, buffer writes or deferred stale text.
+    runtime.apply(region, {
+        owner = "combat-log", slot = "chat.text", source = source,
+        translated = translated, option = "translate_chat",
+        priority = runtime.PRIORITY.DOMAIN, surface = surface,
+        instance = tostring(region), phase = "static",
+        lookup_tier = "combat-log-adapter", catalog_source = "chat",
+        combat_text_only = true, defer_if_protected = false,
+        verify_after_apply = false,
+    })
+    -- A disabled option rejects apply(), so restore this readable native text
+    -- through the same text-only gate rather than show_original's combat gate.
+    if not enabled() and text ~= source and runtime.can_write_text(region, true) then
+        runtime.release(region, "combat-log")
+        pcall(region.SetText, region, source)
     end
 end
 
-local function wrap_history_method(frame, method)
-    local methods = wrapped[frame]
-    if not methods then methods = {}; wrapped[frame] = methods end
-    if methods[method] then return end
-    local original = frame[method]
-    if type(original) ~= "function" then return end
-    local ok = pcall(function()
-        frame[method] = function(self, text, ...)
-            return original(self, combat_log.translate(text), ...)
-        end
+local function prepare_line(region)
+    if not region then return end
+    hooks.region(region, "SetText", function(self, native)
+        translate_line(self, native, true)
     end)
-    if ok then methods[method] = true end
-    -- If this client refuses method replacement, preserve insertion order and
-    -- translate readable history after the original native insertion instead.
-    if not ok then
-        methods[method] = hooks.region(frame, method, function()
-            translate_history(frame)
-        end)
+    hooks.region(region, "ClearText", function(self)
+        line_sources[self] = nil
+        runtime.release(self, "combat-log")
+    end)
+    translate_line(region)
+end
+
+local function translate_display(frame)
+    if not frame then return end
+    -- The secure intrinsic owns visibleLines and calls its own RefreshDisplay.
+    -- Enumerate the public font-string container after its display callback;
+    -- post-hooks on the insecure copy of those methods need not run.
+    local ok, container = pcall(function() return frame.FontStringContainer end)
+    if not ok or not container then return end
+    local regions_ok, regions = pcall(function() return { container:GetRegions() } end)
+    if not regions_ok then return end
+    for _, region in ipairs(regions) do
+        local type_ok, kind = pcall(region.GetObjectType, region)
+        local shown_ok, shown = pcall(region.IsShown, region)
+        if type_ok and kind == "FontString" and shown_ok
+            and not runtime.is_secret_value(shown) and shown == true then
+            prepare_line(region)
+        end
     end
+end
+
+local function prepare_display(frame)
+    if not frame then return end
+    if not display_callbacks[frame] then
+        local ok = pcall(function()
+            frame:AddOnDisplayRefreshedCallback(function()
+                translate_display(frame)
+            end)
+        end)
+        if ok then display_callbacks[frame] = true end
+    end
+    translate_display(frame)
 end
 
 local function prepare_quick_buttons()
@@ -332,26 +375,9 @@ end
 local function refresh()
     local frame = _G.COMBATLOG
     if not frame then return end
-    wrap_history_method(frame, "AddMessage")
-    wrap_history_method(frame, "BackFillMessage")
+    prepare_display(frame)
     prepare_quick_buttons()
     translate_config()
-    local current_policy = table.concat({ tostring(enabled()),
-        tostring(options.can_translate("translate_spell") and options.translate_name("spell")),
-        tostring(options.can_translate("translate_item") and options.translate_name("item")),
-        tostring(options.can_translate("translate_npc")) }, ":")
-    if policy and policy ~= current_policy and _G.C_CombatLog
-        and type(_G.C_CombatLog.RefilterEntries) == "function" then
-        -- Native history supplies the English originals again when settings
-        -- change, avoiding an unbounded reverse cache of combat messages.
-        pcall(_G.C_CombatLog.RefilterEntries)
-        if not runtime.combat_locked() and type(_G.Blizzard_CombatLog_Update_QuickButtons) == "function" then
-            pcall(_G.Blizzard_CombatLog_Update_QuickButtons)
-        end
-    else
-        translate_history(frame)
-    end
-    policy = current_policy
 end
 
 combat_log.prepare = function()
@@ -384,13 +410,8 @@ combat_log.prepare = function()
         callback = translate_config })
     hooks.region_script(_G.COMBATLOG, "OnShow", function() registry.refresh("combat-log") end)
     hooks.region_script(_G.ChatConfigFrame, "OnShow", function() registry.refresh("combat-log") end)
-    registry.declare_hook({ id = "combat-log:history-finished", surface = "combat-log",
-        kind = "frame", target = "CombatLogDriverFrame", method = "OnCombatLogRefilterFinished",
-        blizzardAddon = "Blizzard_CombatLog", verifiedBuild = "1.60.1.70170",
-        callback = function() translate_history(_G.COMBATLOG) end })
     refresh()
-    -- Native startup may populate the history after ADDON_LOADED callbacks.
-    scheduler.request("combat-log:initial-history", nil, function()
-        translate_history(_G.COMBATLOG)
+    scheduler.request("combat-log:initial-display", nil, function()
+        prepare_display(_G.COMBATLOG)
     end)
 end
