@@ -580,6 +580,7 @@ local questTasks = {
         ["Miners' Union Card (Provided)"] = "картка спілки шахтарів (видано)",
     },
     [169] = {
+        ["Kill Gath'Ilzogg and bring his head to Magistrate Solomon in Lakeshire for the reward."] = "Вбийте Ґат'Ільзоґґа та принесіть його голову війту Соломону в Приозер'я, щоб отримати винагороду.",
         ["Head of Gath'Ilzogg"] = "голова Ґат'Ільзоґґа",
         ["Head of Gath'Ilzogg (Provided)"] = "голова Ґат'Ільзоґґа (видано)",
     },

@@ -6,6 +6,14 @@ local _, addonTable = ...
 addonTable.addon_locale_uk = {
     chat_style_replacement = "Заміна",
     chat_style_addition = "Доповнення",
+    cast_bar_probe = {
+        delayed = "Скан смуги касту через %.1f с; тривалість %.1f с — почніть каст або виплавлення",
+        summary = "Смуги касту: видимих %d, з перекладом %d; знімок %d",
+        row = "%s: текст=%s; переклад=%s; показаний переклад=%s; стан=%s",
+        saved = "Зробіть /reload; результат: UA_ForeverDB.scan.castBarProbe у SavedVariables/UA_Forever.lua",
+        error = "Помилка сканування смуги касту; подробиці збережено в castBarProbe",
+        help = "; /uaf castbar [затримка] [тривалість]",
+    },
     panel_probe = {
         error = "Probe панелі завершився помилкою; її записано в SavedVariables",
         summary = "Probe панелі: %s; об'єктів %d; знімок %d%s",

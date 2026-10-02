@@ -822,6 +822,14 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
             objective_text, quest_id, objective_source))
     end
 
+    -- Quest-link tooltips list required items as "1 x Item", rather than
+    -- the tracker's "0/1 Item". Keep the native quantity and spacing.
+    local quantity_prefix, required_item = text:match("^(%s*%d+%s+x%s+)(.+)$")
+    if quantity_prefix and required_item then
+        return finish(quantity_prefix .. entries.translate_quest_objective_task(
+            required_item, quest_id, objective_source))
+    end
+
     local quest = quest_id and (addon_table.quest_faction[tonumber(quest_id)]
         or addon_table.quest_both[tonumber(quest_id)])
     local task = quest and quest.tasks and quest.tasks[text]
