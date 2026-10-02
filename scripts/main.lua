@@ -7,6 +7,7 @@ local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
 local auto_scan = addon_table.use("auto_scan")
 local book_ui = addon_table.use("book_ui")
+local cast_bar_adapter = addon_table.use("cast_bar_adapter")
 local chats = addon_table.use("chats")
 local dev_log = addon_table.use("dev_log")
 local edit_mode = addon_table.use("edit_mode")
@@ -28,6 +29,7 @@ local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local talent_frame_adapter = addon_table.use("talent_frame_adapter")
 local tooltips = addon_table.use("tooltips")
+local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
 local target_aura_overlay = addon_table.use("target_aura_overlay")
 local translation = addon_table.use("translation")
 local registry = addon_table.use("translation_registry")
@@ -528,11 +530,10 @@ local function register_slash_command()
                 local function capture_all_tooltips()
                     local ok, report = pcall(tooltips.capture_visible_tooltips)
                     if not ok then
-                        UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-                        UA_ForeverDB.scan.tooltipProbe = {
+                        tooltip_diagnostics.append_report("tooltipProbe", {
                             version = 1, status = "error",
                             error = tostring(report),
-                        }
+                        })
                         message("захоплення tooltip-ів завершилося помилкою; стан збережено")
                         return
                     end
@@ -543,10 +544,9 @@ local function register_slash_command()
                 local delay = tonumber(all_value)
                 if delay and delay > 0 then
                     delay = math.min(delay, 30)
-                    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-                    UA_ForeverDB.scan.tooltipProbe = {
+                    tooltip_diagnostics.append_report("tooltipProbe", {
                         version = 1, status = "waiting", delay = delay,
-                    }
+                    })
                     message(string.format("захоплю всі tooltip-и через %.1f с — наведіть курсор на предмет", delay))
                     scheduler.cancel("manual-tooltip-capture")
                     scheduler.request("manual-tooltip-capture", nil,
@@ -567,6 +567,9 @@ local function register_slash_command()
                 end
             end
             if not tooltip then
+                tooltip_diagnostics.append_report("tooltipProbe", {
+                    version = 1, status = "no_tooltips", count = 0, tooltips = {},
+                })
                 message("немає відкритої підказки")
             else
                 local function short(text)
@@ -576,6 +579,12 @@ local function register_slash_command()
                 end
                 local limit = math.max(1, math.min(tonumber(value) or 12, 20))
                 local lines = tooltips.inspect(tooltip, limit)
+                tooltip_diagnostics.append_report("tooltipProbe", {
+                    version = 1, status = "captured", count = 1,
+                    tooltips = { {
+                        kind = tooltip.uaForeverKind or "generic", lines = lines,
+                    } },
+                })
                 message(string.format("підказка: %s; рядків %d",
                     tostring(tooltip.uaForeverKind or "generic"), #lines))
                 for _, line in ipairs(lines) do
@@ -590,9 +599,8 @@ local function register_slash_command()
                 end
             end
         elseif command == "aura" then
-            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
             local status = { state = "waiting", attempts = 0 }
-            UA_ForeverDB.scan.auraCapture = status
+            tooltip_diagnostics.append_report("auraCapture", status)
             local function capture_aura()
                 local tooltip = tooltips.visible_aura_window
                     and tooltips.visible_aura_window() or nil
@@ -716,8 +724,9 @@ local function register_slash_command()
             local function capture_panel()
                 local ok, report = pcall(tooltips.capture_panel)
                 if not ok then
-                    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-                    UA_ForeverDB.scan.panelProbeError = tostring(report)
+                    tooltip_diagnostics.append_report("panelProbe", {
+                        version = 1, status = "error", error = tostring(report),
+                    })
                     message(panel_probe_text.error)
                     return
                 end
@@ -813,6 +822,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 profession_recipe_adapter.prepare()
                 talent_frame_adapter.prepare()
                 skills.prepare()
+                cast_bar_adapter.prepare()
                 prepare_nameplates()
                 prepare_target_frame()
                 registry.prepare_root_hooks()
@@ -866,6 +876,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         level_up_display.prepare()
         achievements.prepare()
         skills.prepare()
+        cast_bar_adapter.prepare()
         registry.install_hooks()
         update_target_name()
         self.uaForeverLoginReady = true

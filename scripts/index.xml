@@ -32,6 +32,7 @@
     <Script file="profession_recipe_adapter.lua"/>
     <Script file="tooltip_diagnostics.lua"/>
     <Script file="strings.lua"/>
+    <Script file="cast_bar_adapter.lua"/>
     <Script file="settings.lua"/>
     <Script file="menus.lua"/>
     <Script file="items.lua"/>
