@@ -168,7 +168,7 @@ local function show_export_window()
             edit:SetHeight(math.max(380, math.ceil(#content / 65) * 16))
             edit:SetText(content)
             edit:SetCursorPosition(0)
-            clear:SetEnabled(has_data)
+            clear:SetEnabled(has_data or auto_scan.has_saved_data())
             copy:SetEnabled(has_data)
             scroll:SetVerticalScroll(0)
         end
@@ -179,8 +179,9 @@ local function show_export_window()
                 button2 = addon_locale.cancel,
                 OnAccept = function ()
                     auto_scan.clear()
-                    edit:SetText("")
-                    refresh()
+                    -- WoW writes SavedVariables during reload. Reload also
+                    -- cancels pending manual captures from the old session.
+                    ReloadUI()
                 end,
                 timeout = 0,
                 whileDead = true,

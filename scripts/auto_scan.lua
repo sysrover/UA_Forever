@@ -1552,6 +1552,27 @@ auto_scan.clear_diagnostics = function ()
     diagnostic_retention = {}
 end
 
+-- Manual probes are saved outside scan.auto and are not necessarily included
+-- in the text export. They must still make the clear button available.
+auto_scan.has_saved_data = function ()
+    if type(UA_ForeverDB) ~= "table" then return false end
+    for _, group in ipairs({ "scan", "missing", "diagnostics" }) do
+        local data = UA_ForeverDB[group]
+        if type(data) == "table" then
+            for _, value in pairs(data) do
+                if type(value) == "table" then
+                    if next(value) ~= nil then return true end
+                elseif value ~= nil then
+                    return true
+                end
+            end
+        elseif data ~= nil then
+            return true
+        end
+    end
+    return false
+end
+
 auto_scan.clear = function ()
     if UA_ForeverDB and UA_ForeverDB.scan then
         for field in pairs(UA_ForeverDB.scan) do
@@ -1559,7 +1580,10 @@ auto_scan.clear = function ()
         end
         UA_ForeverDB.scan.auto = {}
     end
-    if UA_ForeverDB then UA_ForeverDB.missing = {} end
+    if UA_ForeverDB then
+        UA_ForeverDB.missing = {}
+        UA_ForeverDB.diagnostics = nil
+    end
     surface_states = {}
     hook_states = {}
     diagnostic_retention = {}
