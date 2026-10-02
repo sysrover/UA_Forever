@@ -1798,11 +1798,26 @@ local function prepare_tooltip_frames()
     hooks.global("GameTooltip_SetTitle", function (tooltip, native)
         native = safe_string(native)
         if tooltip ~= _G.GameTooltip or not native
-            or type(tooltip.GetOwner) ~= "function"
-            or (native ~= _G.EQUIP_CONTAINER
-                and native ~= _G.EQUIP_CONTAINER_REAGENT) then return end
+            or type(tooltip.GetOwner) ~= "function" then return end
         local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-        if not owner_ok or not owner or type(owner.GetBagID) ~= "function"
+        if not owner_ok or not owner then return end
+        -- Build 70170's social toast writes its binding-colored title through
+        -- this helper. Apply after that write, before Show, even when the
+        -- tooltip is already open and no new OnShow callback will run.
+        if owner == _G.QuickJoinToastButton then
+            local source, region = tooltip_line(tooltip, "Left", 1, true)
+            if source ~= native or not region then return end
+            if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
+            if tooltip.uaForeverShowOriginal then return end
+            local translated, _, source_kind = strings.find_ui_translation(native, region)
+            if translated and translated ~= native then
+                set_tooltip_translation(tooltip, region, native, translated,
+                    "social.title", nil, "social-tooltip", source_kind, false, false)
+            end
+            return
+        end
+        if (native ~= _G.EQUIP_CONTAINER and native ~= _G.EQUIP_CONTAINER_REAGENT)
+            or type(owner.GetBagID) ~= "function"
             or type(owner.GetID) ~= "function" then return end
         local source, region = tooltip_line(tooltip, "Left", 1, true)
         if source ~= native or not region then return end
