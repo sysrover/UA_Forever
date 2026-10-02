@@ -125,6 +125,7 @@ local function translate_frame(frame)
     hook_button(frame.InspectCopyButton)
     hook_region(frame.SearchBox and frame.SearchBox.Instructions)
     hook_region(frame.SearchOptionsDropdown and frame.SearchOptionsDropdown.Text)
+    hook_region(frame.ClassCurrencyDisplay and frame.ClassCurrencyDisplay.UnspentLabel)
 
     local active = frame.ActiveSpec
     hook_region(active and active.ActiveLabel)

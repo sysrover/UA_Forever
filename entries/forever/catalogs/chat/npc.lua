@@ -9120,6 +9120,18 @@ local chat_rows = {
     ["npcs"] = { [1] = "Gryan Stoutmantle" },
     ["priority"] = 3,
 },
+    [1535942007] = {
+    ["english"] = { [1] = "The People of Westfall salute <name>, a brave and valiant defender of freedom." },
+    ["text"] = "Народ Західного краю вітає {ім'я:з}, хороброго й звитяжного захисника свободи.",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [1646177819] = {
+    ["english"] = { [1] = "ROARRRRR!!" },
+    ["text"] = "РРРРРРАААА!!",
+    ["npcs"] = { [1] = "Stitches" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
