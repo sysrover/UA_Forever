@@ -389,6 +389,19 @@ end
 
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    -- Chat configuration labels describe message categories, not actions.
+    { text = "Say", frame = "ChatConfig", translation = "Розмова" },
+    { text = "Skill-ups", frame = "ChatConfig", translation = "Підвищення навичок" },
+    { text = "Item Loot", frame = "ChatConfig", translation = "Здобич: предмети" },
+    { text = "Money Loot", frame = "ChatConfig", translation = "Здобич: гроші" },
+    { text = "Pet Info", frame = "ChatConfig", translation = "Інформація про вихованця" },
+    { text = "Pet Battle Combat", frame = "ChatConfig", translation = "Бої вихованців" },
+    { text = "Pet Battle Info", frame = "ChatConfig", translation = "Інформація про бої вихованців" },
+    { text = "Battleground Horde", frame = "ChatConfig", translation = "Поле бою: Орда" },
+    { text = "Battleground Alliance", frame = "ChatConfig", translation = "Поле бою: Альянс" },
+    { text = "Battleground Neutral", frame = "ChatConfig", translation = "Поле бою: нейтральні" },
+    { text = "Boss Emote", frame = "ChatConfig", translation = "Повідомлення боса" },
+    { text = "Boss Whisper", frame = "ChatConfig", translation = "Шепіт боса" },
     { text = "Send Mail", frame = "MailFrameTab2.Text", translation = "Надіслати" },
     { text = "Custom", frame = "LFGListingFrameCategoryView", translation = "Користувацькі групи" },
     { text = "Back", frame = "Quest", translation = "Назад" },
