@@ -5401,6 +5401,41 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
 },
+    [1077543292] = {
+    ["english"] = { [1] = "It takes strong arms and brave hearts to keep the town of Menethil safe!" },
+    ["text"] = "Щоб оберігати місто Менетіл, потрібні дужі руки й хоробрі серця!",
+    ["npcs"] = { [1] = 2086 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [1837721387] = {
+    ["english"] = { [1] = "My darlings... my darlings..." },
+    ["text"] = "Мої любі... мої любі...",
+    ["npcs"] = { [1] = 272450 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [3528953104] = {
+    ["english"] = { [1] = "Not to worry, the barbershop just northwest from the entrance to Ironforge.\013\010\013\010They'll have ye looking sharp in no time!" },
+    ["text"] = "Не хвилюйся, перукарня — трохи на північний захід від входу до Залізогарту.\013\010\013\010Там тебе миттю причепурять!",
+    ["npcs"] = { [1] = 5595 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [3120309113] = {
+    ["english"] = { [1] = "The barbershop" },
+    ["text"] = "Перукарня",
+    ["npcs"] = { [1] = 5595 },
+    ["priority"] = 3,
+    ["roles"] = { ["reply"] = true },
+},
+    [2519246229] = {
+    ["english"] = { [1] = "Go to the Mage Quarter and seek out Fyrenz Stargazer, just northwest of the mage tower." },
+    ["text"] = "Іди до кварталу Магів і розшукай Файренза Зорегляда — він трохи на північний захід від вежі магів.",
+    ["npcs"] = { [1] = 68 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
 }
 for key, row in pairs(rows) do
     local existing = addonTable.gossip_hashed.rows[key]

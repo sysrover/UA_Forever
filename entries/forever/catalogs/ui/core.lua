@@ -821,7 +821,108 @@ local function translate_quest_timer_value(first_count, first_unit,
     return result
 end
 
+local social_time_units = {
+    second = "с", seconds = "с", minute = "хв", minutes = "хв",
+    hour = "год", hours = "год", day = "дн.", days = "дн.",
+    month = "міс.", months = "міс.", year = "р.", years = "р.",
+}
+
+local function social_label(source)
+    return addonTable.forever_ui and addonTable.forever_ui[source]
+        or addonTable.string and addonTable.string[source] or ui[source]
+end
+
+local function translate_social_time(value)
+    if value == "< a minute" then return "менше хвилини" end
+    local valid, count = true, 0
+    local translated = value:gsub("(%d+)%s+([A-Za-z]+)", function (number, unit)
+        local label = social_time_units[unit:lower()]
+        if not label then valid = false; return end
+        count = count + 1
+        return number .. " " .. label
+    end)
+    if valid and count > 0 and not translated:find("[A-Za-z]") then
+        return translated
+    end
+end
+
 addonTable.forever_ui_patterns = {
+    -- Contacts formats these values before writing its pooled FontStrings.
+    {
+        pattern = "^(.+), Level (%d+) (.+)$",
+        replace = function (name, level, class)
+            return name .. ", Рівень " .. level .. " " .. (social_label(class) or class)
+        end,
+    },
+    {
+        pattern = "^Friend Requests %((%d+)%)$",
+        replace = function (count) return "Запрошення в друзі (" .. count .. ")" end,
+    },
+    {
+        pattern = "^Quick Join %((%d+)%)$",
+        replace = function (count)
+            return (social_label("Quick Join") or "Швидке приєднання") .. " (" .. count .. ")"
+        end,
+    },
+    {
+        pattern = "^Legacy Friends (%d+)/(%d+)$",
+        replace = function (count, maximum) return "Давні друзі " .. count .. "/" .. maximum end,
+    },
+    {
+        pattern = "^Pinned (%d+)/(%d+)$",
+        replace = function (count, maximum) return "Закріплені " .. count .. "/" .. maximum end,
+    },
+    {
+        pattern = "^Recent Allies (%d+)/(%d+)$",
+        replace = function (count, maximum) return "Недавні союзники " .. count .. "/" .. maximum end,
+    },
+    {
+        pattern = "^last online (.+) ago$",
+        replace = function (time)
+            local translated = translate_social_time(time)
+            return translated and ("Востаннє в мережі: " .. translated .. " тому") or nil
+        end,
+    },
+    {
+        pattern = "^%((.+) ago%)$",
+        replace = function (time)
+            local translated = translate_social_time(time)
+            return translated and ("(" .. translated .. " тому)") or nil
+        end,
+    },
+    {
+        pattern = "^(.+) ago$",
+        replace = function (time)
+            local translated = translate_social_time(time)
+            return translated and (translated .. " тому") or nil
+        end,
+    },
+    {
+        pattern = "^Pinned Ally %(Expires in (.+)%)$",
+        replace = function (time)
+            local translated = translate_social_time(time)
+            return translated and ("Закріплений союзник (ще " .. translated .. ")") or nil
+        end,
+    },
+    {
+        pattern = "^Status: (|c%x%x%x%x%x%x%x%x)(.-)(|r)$",
+        replace = function (color, status, reset)
+            local translated = social_label(status)
+            return translated and ("Статус: " .. color .. translated .. reset) or nil
+        end,
+    },
+    {
+        pattern = "^(|T.-|t) (.+)$",
+        replace = function (icon, status)
+            if status ~= "Available" and status ~= "Away" and status ~= "Busy" then return nil end
+            local translated = social_label(status)
+            return translated and (icon .. " " .. translated) or nil
+        end,
+    },
+    {
+        pattern = "^Tier (%d+)$",
+        replace = function (tier) return "Рівень " .. tier end,
+    },
     {
         pattern = "^Use: Restores ([%d%.,]+) to ([%d%.,]+) health%.$",
         replace = function (minimum, maximum)
