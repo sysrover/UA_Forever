@@ -9,6 +9,8 @@ local item_client_db = addon_table.use("item_client_db")
 local options   = addon_table.use("options") ---@class options_class
 local runtime   = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
+local registry  = addon_table.use("translation_registry")
+local resolver  = addon_table.use("translation_resolver")
 local utils     = addon_table.use("utils") ---@class utils_class
 local hooks     = addon_table.use("translation_hooks").bind("chats")
 
@@ -910,6 +912,150 @@ local function filter_system_msg(self, event, message, ...)
     return nil, translated, ...
 end
 
+-- Build 70170 writes tab.Text in FCF_SetWindowName, then caches its width.
+-- Translate only the two standard window names, never the saved name or
+-- whisper target. Minimized and overflow buttons read frame.name separately.
+local chat_tab_surface
+
+local function standard_chat_name(frame)
+    if not frame or runtime.is_secret_value(frame.chatType)
+        or runtime.is_secret_value(frame.isTemporary)
+        or frame.chatType == "WHISPER" or frame.chatType == "BN_WHISPER"
+        or frame.isTemporary then return nil end
+    local ok, id = pcall(frame.GetID, frame)
+    if not ok or runtime.is_secret_value(id) then return nil end
+    local source = runtime.safe_string_or_nil(frame.name)
+    local expected = id == 1 and _G.GENERAL or id == 2 and _G.COMBAT_LOG
+    expected = runtime.safe_string_or_nil(expected)
+    if source and expected and source == expected then return source end
+end
+
+local function chat_tab_for(frame)
+    local ok, name = pcall(frame.GetName, frame)
+    name = ok and runtime.safe_string_or_nil(name)
+    return name and _G[name .. "Tab"] or nil
+end
+
+local function resize_chat_tab(tab)
+    if not tab or not tab.Text or not runtime.can_write_text(tab.Text)
+        or runtime.combat_locked() then return end
+    if type(_G.PanelTemplates_TabResize) ~= "function" then return end
+    local ok = pcall(_G.PanelTemplates_TabResize, tab, tab.sizePadding or 0)
+    if not ok then return end
+    local width_ok, width = pcall(tab.Text.GetWidth, tab.Text)
+    if width_ok and not runtime.is_secret_value(width) and type(width) == "number" then
+        tab.textWidth = width
+    end
+    -- Let the client position all docked tabs using its own sizing rules.
+    local dock = _G.GENERAL_CHAT_DOCK
+    if dock and type(_G.FCFDock_SetDirty) == "function" then
+        pcall(_G.FCFDock_SetDirty, dock)
+        scheduler.request("chat-tabs:dock-layout", nil, function ()
+            if not runtime.combat_locked() and runtime.can_write_text(tab.Text)
+                and type(_G.FCFDock_UpdateTabs) == "function" then
+                pcall(_G.FCFDock_UpdateTabs, dock)
+            end
+        end)
+    end
+end
+
+local function apply_chat_label(region, frame, slot)
+    if not region then return end
+    local source = standard_chat_name(frame)
+    if not source then
+        runtime.release(region, "chat-tabs")
+        return
+    end
+    -- Registry refresh starts a new generation, so hidden regions may no
+    -- longer have a claim when translation has just been disabled.
+    if not options.can_translate("translate_string") then
+        runtime.release(region, "chat-tabs")
+        runtime.restore_source(region, source)
+        return
+    end
+    -- Overflow buttons belong to GeneralDockManager, not ChatFrame. Resolve
+    -- every copy against the original tab so "General" keeps its chat context.
+    local tab = chat_tab_for(frame)
+    local translated, _, tier, _, _, _, provenance =
+        resolver.find_ui(source, tab and tab.Text or region)
+    if not translated or translated == source then return end
+    runtime.apply(region, {
+        owner = "chat-tabs", slot = slot, source = source,
+        translated = translated, option = "translate_string",
+        lookup_tier = tier, catalog_source = provenance and provenance.source,
+        priority = runtime.priority_for_source(tier), surface = chat_tab_surface,
+        instance = source, phase = "static",
+    })
+end
+
+local function translate_chat_window(frame)
+    if not frame then return end
+    local tab = chat_tab_for(frame)
+    if tab and tab.Text and standard_chat_name(frame) then
+        -- Also observe policy restoration and later native text writes. Layout
+        -- runs once after the write, outside FCF_SetWindowName's width cache.
+        hooks.region(tab.Text, "SetText", function ()
+            scheduler.request("chat-tab-layout:" .. tab:GetName(), nil, function ()
+                if standard_chat_name(frame) then resize_chat_tab(tab) end
+            end)
+        end)
+        hooks.region_script(tab, "OnShow", function ()
+            translate_chat_window(frame)
+        end)
+    end
+    apply_chat_label(tab and tab.Text, frame, "ui.tab")
+    if standard_chat_name(frame) then resize_chat_tab(tab) end
+    local minimized = frame.minFrame
+    if minimized and type(minimized.GetFontString) == "function" then
+        apply_chat_label(minimized:GetFontString(), frame, "ui.minimized-tab")
+    end
+end
+
+local function translate_chat_overflow(button, frame)
+    if not button or type(button.GetFontString) ~= "function" then return end
+    local region = button:GetFontString()
+    apply_chat_label(region, frame, "ui.overflow-tab")
+    if standard_chat_name(frame) and runtime.can_write_text(region)
+        and not runtime.combat_locked() then
+        local ok, height = pcall(button.GetTextHeight, button)
+        if ok and not runtime.is_secret_value(height) and type(height) == "number" then
+            pcall(button.SetHeight, button, height)
+        end
+    end
+end
+
+local function refresh_chat_tabs()
+    for id = 1, 2 do translate_chat_window(_G["ChatFrame" .. id]) end
+    local dock = _G.GENERAL_CHAT_DOCK
+    local list = dock and dock.overflowButton and dock.overflowButton.list
+    for _, button in ipairs(list and list.buttons or {}) do
+        translate_chat_overflow(button, button.chatFrame)
+    end
+end
+
+local function prepare_chat_tabs()
+    chat_tab_surface = registry.register_surface({
+        id = "chat-tabs", roots = { "GeneralDockManager" },
+        domains = { "ui", "context" }, name_category = "none",
+        slots = { "ui.tab", "ui.minimized-tab", "ui.overflow-tab" },
+        static = refresh_chat_tabs,
+        -- Tabs may be visible while their chat window is hidden or minimized.
+        is_open = function () return _G.ChatFrame1 ~= nil end,
+    })
+    for _, declaration in ipairs({
+        { "FCF_SetWindowName", translate_chat_window },
+        { "FCF_MinimizeFrame", translate_chat_window },
+        { "FCFDockOverflowListButton_SetValue", translate_chat_overflow },
+    }) do
+        registry.declare_hook({
+            id = "chat-tabs:" .. declaration[1], surface = "chat-tabs",
+            kind = "global", target = declaration[1], callback = declaration[2],
+            blizzardAddon = "Blizzard_ChatFrameBase", verifiedBuild = "1.60.1.70170",
+        })
+    end
+    registry.refresh("chat-tabs")
+end
+
 chats.prepare = function()
     for event_name, _ in pairs(known_chat_msg_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_chat_msg)
@@ -920,4 +1066,5 @@ chats.prepare = function()
     hooks.region(_G.ChatFrameMixin, "AddMessage", after_chat_add_message)
     wrap_chat_frames()
     hooks.global("FCF_OpenNewWindow", wrap_chat_frames)
+    prepare_chat_tabs()
 end
