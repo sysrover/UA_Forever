@@ -329,21 +329,100 @@ local function translate_character_title(frame)
 end
 
 local function translate_character_level(region)
-    if not region or runtime.is_applying(region) then return end
-    strings.translate_region(region)
+    if not region or runtime.is_applying(region)
+        or not options.can_translate("translate_string") then return end
     local ok, source = pcall(region.GetText, region)
     if not ok or type(source) ~= "string" or is_secret(source) then return end
-    local class = type(_G.UnitClass) == "function" and _G.UnitClass("player")
-    if type(class) ~= "string" or class == "" or is_secret(class) then return end
-    local translated = strings.find_ui_translation(class)
-    if not translated then return end
-    local start_at, end_at = source:find(class, 1, true)
-    if not start_at then return end
+    -- Build 70170 formats PLAYER_LEVEL[_NO_SPEC] with a colored class/spec
+    -- and can use an effective level such as "20 (30)". Apply once from the
+    -- native text so original mode retains the whole Blizzard string.
+    local level, color, description = source:match(
+        "^Level (.-) (|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    local wording = addon_table.forever_surface_ui.character
+    if not level or not wording then
+        strings.translate_region(region)
+        return
+    end
+    local class_ok, class = pcall(function () return _G.UnitClass("player") end)
+    if class_ok and not is_secret(class) and type(class) == "string" and class ~= "" then
+        local start_at, end_at = description:find(class, 1, true)
+        if start_at and end_at == #description then
+            local spec = description:sub(1, start_at - 1):match("^(.-)%s*$")
+            local translated_class = strings.find_ui_translation(class) or class
+            local translated_spec = spec ~= "" and (strings.find_ui_translation(spec) or spec) or ""
+            description = (translated_spec ~= "" and translated_spec .. " " or "") .. translated_class
+        end
+    end
     runtime.apply(region, { owner = "character-level",
         slot = "character.level_class", source = source,
-        translated = source:sub(1, start_at - 1) .. translated
-            .. source:sub(end_at + 1),
+        translated = wording.level(level, color, description),
+        option = "translate_string",
         priority = runtime.PRIORITY.CONTEXT })
+end
+
+local function translate_character_stat_region(region)
+    if not region or runtime.is_applying(region)
+        or not options.can_translate("translate_string") then return end
+    strings.translate_region(region, nil, "ui.text", registry.get("character"))
+end
+
+local function translate_character_stat_row(row)
+    if not row then return end
+    for _, key in ipairs({ "Title", "Label", "Value" }) do
+        local region = row[key]
+        -- Hook actual pooled widgets, not mixins copied before addon load.
+        -- Later stat updates can rewrite a row without reopening the panel.
+        hooks.region(region, "SetText", translate_character_stat_region)
+        hooks.region(region, "SetFormattedText", translate_character_stat_region)
+        translate_character_stat_region(region)
+    end
+end
+
+local function translate_character_pane(frame)
+    if frame then strings.translate_frame(frame, registry.get("character")) end
+end
+
+local character_scroll_owners = setmetatable({}, { __mode = "k" })
+local function prepare_character_scroll_box(pane, stats)
+    local scroll_box = pane and pane.ScrollBox
+    if not scroll_box or type(scroll_box.RegisterCallback) ~= "function"
+        or not _G.ScrollUtil
+        or type(_G.ScrollUtil.AddInitializedFrameCallback) ~= "function" then return end
+    local translate_row = stats and translate_character_stat_row or translate_character_pane
+    if not character_scroll_owners[scroll_box] then
+        local owner = {}
+        local ok = pcall(_G.ScrollUtil.AddInitializedFrameCallback,
+            scroll_box, function (_, row) translate_row(row) end, owner, false)
+        if ok then character_scroll_owners[scroll_box] = owner end
+    end
+    if type(scroll_box.ForEachFrame) == "function" then
+        pcall(scroll_box.ForEachFrame, scroll_box, translate_row)
+    end
+end
+
+local function prepare_character_panels()
+    for _, name in ipairs({ "CharacterStatsPaneScrollBox", "CharacterStatsPanePetScrollBox" }) do
+        prepare_character_scroll_box(_G[name], true)
+    end
+    for _, name in ipairs({ "ReputationFrame", "TokenFrame", "StatisticsFrame" }) do
+        prepare_character_scroll_box(_G[name], false)
+    end
+    local character = _G.CharacterFrame
+    -- Right-hand details use their own row pools and can update independently
+    -- of ShowSubFrame (selection, reputation gain, and PvP progress).
+    for _, pane in ipairs(character and character.SidePanes or {}) do
+        for _, method in ipairs({ "SetPaneTitle", "SetDescription", "LayoutRows", "SetEmpty" }) do
+            hooks.region(pane, method, translate_character_pane)
+        end
+    end
+    hooks.region(_G.PVPRankFrame, "Update", translate_character_pane)
+    hooks.region(_G.PVPRankFrame, "UpdateSeasonCountdownTimer", function (frame)
+        translate_character_stat_region(frame.SeasonTimerField)
+    end)
+    hooks.global("PaperDollFrame_SetSidebar", function ()
+        translate_character_pane(_G.PaperDollFrame and _G.PaperDollFrame.currentSideBar)
+    end)
+    hooks.region_script(_G.GearManagerPopupFrame, "OnShow", translate_character_pane)
 end
 
 local function quest_greeting_shown()
@@ -456,7 +535,8 @@ local function prepare_panel_hooks()
     end)
     local paper_doll = _G.PaperDollFrame
     hooks.region_script(paper_doll and paper_doll.EquipmentManagerPane,
-        "OnShow", opened_panel)
+        "OnShow", translate_character_pane)
+    prepare_character_panels()
 end
 
 local function prepare_nameplates()

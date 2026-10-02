@@ -3,6 +3,11 @@ local _, addonTable = ...
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
 addonTable.forever_surface_ui = {
+    character = {
+        level = function (level, color, description)
+            return "Рівень " .. level .. ": " .. color .. description .. "|r"
+        end,
+    },
     settings = {
         base_tab = "Основні",
         selected = function (count) return "Вибрано: " .. count end,
