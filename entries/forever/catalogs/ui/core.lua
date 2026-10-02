@@ -813,6 +813,13 @@ end
 
 addonTable.forever_ui_patterns = {
     {
+        pattern = "^Use: Restores ([%d%.,]+) to ([%d%.,]+) health%.$",
+        replace = function (minimum, maximum)
+            return "Використання: відновлює " .. minimum .. "–" .. maximum
+                .. " здоров'я."
+        end,
+    },
+    {
         pattern = '^Abandon "(.*)", destroying (.+)%?$',
         replace = function (name, items)
             return string.format(addonTable.forever_surface_ui.quest

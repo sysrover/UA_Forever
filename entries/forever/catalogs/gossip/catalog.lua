@@ -4582,7 +4582,7 @@ local rows = {
     [2665431500] = {
         ["english"] = {},
         ["text"] = "Банк Залізогарта",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4593,7 +4593,7 @@ local rows = {
     [2435559780] = {
         ["english"] = { [1] = "What do ye need directions to?" },
         ["text"] = "Куди вам підказати дорогу?",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4604,7 +4604,7 @@ local rows = {
             [1] = {
                 ["english"] = { [1] = "What do ye need directions to?" },
                 ["text"] = "Куди вам підказати дорогу?",
-                ["npcs"] = { [1] = 5595 },
+                ["npcs"] = { [1] = 5595, [2] = 274781 },
                 ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
                 ["priority"] = 1,
                 ["identities"] = {
@@ -4628,7 +4628,7 @@ local rows = {
     [1248871042] = {
         ["english"] = {},
         ["text"] = "Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4639,7 +4639,7 @@ local rows = {
     [6096452] = {
         ["english"] = { [1] = "Bank of Ironforge" },
         ["text"] = "Банк Залізогарта",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4650,7 +4650,7 @@ local rows = {
     [1520529407] = {
         ["english"] = { [1] = "Do we have Mining trainers here?  Where do ye think ye are!?  \010\010Why you'll find one o' the best miners in all Dun Morogh at the Deepmountain Mining Guild on the northern side of The Great Forge.  There, Geofram Bouldertoe will show ye the true art of mining." },
         ["text"] = "Чи є тут учителі гірництва? Та ти знаєш, де опинився?!\010\010Одного з найкращих гірників у всьому Дун-Морозі знайдеш у Гільдії гірників Глибокогір'я, на північному боці Великої кузні. Там Ґеофрам Камнепалий покаже тобі справжнє гірницьке мистецтво.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4661,7 +4661,7 @@ local rows = {
     [2707566082] = {
         ["english"] = { [1] = "First Aid?  Well ye don't look hurt to me.  If yer really interested in learning First Aid, then Nissa Firestone is the one to learn from.  Go see her over by The Great Forge in her shop, The Ironforge Physician." },
         ["text"] = "Перша допомога? Та наче не схоже, що тебе поранено. Якщо справді хочеш навчитися першої допомоги, звернися до Нісси Вогнекамінь. Знайдеш її біля Великої Кузні, у крамниці «Лікар Залізогарта».",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4672,7 +4672,7 @@ local rows = {
     [3816269332] = {
         ["english"] = {},
         ["text"] = "Банк? А, ви про Сховище! Надійнішого місця для ваших цінностей не знайти. Воно на північний схід від входу до Залізогарта.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4683,7 +4683,7 @@ local rows = {
     [1685550884] = {
         ["english"] = { [1] = "That Jormund Stonebrow has a knack for the needle, he does.  Should you be needing some training, then you'll find him at Stonebrow's Clothier on the northern side of The Great Forge." },
         ["text"] = "Йормунд Камнебров вправно орудує голкою. Якщо хочеш навчитися кравецької справи, знайдеш його в крамниці Камнеброва на північному боці Великої кузні.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -4694,7 +4694,7 @@ local rows = {
     [1488050284] = {
         ["english"] = { [1] = "Which profession trainer would ye be looking for?" },
         ["text"] = "Вчителя якої професії ти шукаєш?",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
         ["priority"] = 1,
         ["identities"] = {
@@ -5328,6 +5328,16 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["reply"] = true },
 },
+    ["274781:tebp"] = {
+        ["english"] = { [1] = "The barbershop" },
+        ["text"] = "Перукарня",
+        ["npcs"] = { [1] = 274781 },
+        ["roles"] = { ["reply"] = true },
+        ["priority"] = 3,
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "tebp" },
+        },
+    },
 }
 for key, row in pairs(rows) do
     local existing = addonTable.gossip_hashed.rows[key]

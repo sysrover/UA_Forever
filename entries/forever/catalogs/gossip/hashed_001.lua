@@ -6,8 +6,8 @@ addonTable.gossip_hashed = addonTable.gossip_hashed or { version = 1, rows = {} 
 local rows = {
     [1765777794] = {
         ["english"] = { [1] = "Are ye really askin' me where the Blacksmith is?  Have ye not heard of The Great Forge!?  All our best blacksmiths gather there to craft their weapons and armor!  \010\010It's dead smack in the middle of Ironforge, and that's where you'll find one of our most brilliant blacksmiths, Bengus Deepforge.  " },
-        ["text"] = "Ти справді питаєш мене, де коваль? Невже не чув про Велику Кузню!? Там збираються всі наші найкращі ковалі, щоб кувати зброю й обладунки!  \010\010Вона просто в самому центрі Стальгорна, і там ти знайдеш одного з найвидатніших наших ковалів — Бенґуса Глибококовача.  ",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Ти справді питаєш мене, де коваль? Невже не чув про Велику Кузню!? Там збираються всі наші найкращі ковалі, щоб кувати зброю й обладунки!  \010\010Вона просто в самому центрі Залізогарта, і там ти знайдеш одного з найвидатніших наших ковалів — Бенґуса Глибококовача.  ",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1463998933] = {
@@ -55,7 +55,7 @@ local rows = {
     [1457786268] = {
         ["english"] = { [1] = "A Cooking trainer is it?  Well then, get yerself over to the Bronze Kettle on the northeastern side of The Great Forge.  Daryl Riknussun will teach ye to make a mighty fine dish that's sure to put the life back in ye!" },
         ["text"] = "Шукаєш наставника кулінарії? Тоді мерщій до Бронзового Казана на північно-східному боці Великої Кузні. Деріл Рікнуссун навчить тебе готувати чудову страву, що неодмінно поверне сили!",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2006225776] = {
@@ -199,7 +199,7 @@ local rows = {
     [363497526] = {
         ["english"] = { [1] = "Cooking" },
         ["text"] = "Кулінарія",
-        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 3571, [30] = 4262, [31] = 5595, [32] = 5624, [33] = 5725, [34] = 5953, [35] = 6272, [36] = 6740, [37] = 8931, [38] = 12996, [39] = 13076 },
+        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 3571, [30] = 4262, [31] = 5595, [32] = 5624, [33] = 5725, [34] = 5953, [35] = 6272, [36] = 6740, [37] = 8931, [38] = 12996, [39] = 13076, [40] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [2909971633] = {
@@ -288,7 +288,7 @@ local rows = {
     },
     [2589984413] = {
         ["english"] = { [1] = "Amazing to see little flowers persist in the cold of Dun Morogh...  but ye won't find any herbalists out here.  Ye'll have to go to Ironforge to get some training in that profession." },
-        ["text"] = "Дивовижно, що ці маленькі квіти виживають у холоді Дун-Морога... але травників тут не знайдеш. За навчанням цієї професії доведеться йти до Стальгорна.",
+        ["text"] = "Дивовижно, що ці маленькі квіти виживають у холоді Дун-Морога... але травників тут не знайдеш. За навчанням цієї професії доведеться йти до Залізогарта.",
         ["npcs"] = { [1] = 727, [2] = 12996, [3] = 13076 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -306,7 +306,7 @@ local rows = {
     },
     [3570280304] = {
         ["english"] = { [1] = "Buliwyf, the dwarven weapon master at the Timberline Arms in Ironforge, teaches fist weapons, guns, one and two-handed axes and one and two-handed maces.\010\010Bixi Wobblebonk, the gnome weapon master at the Timberline Arms in Ironforge, teaches crossbow, daggers and throwing weapons.\010\010Woo Ping, the human weapon master at Weller's Arsenal in Stormwind, teaches crossbow, daggers, one and two-handed swords, polearms, and staff." },
-        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Стальгорні, навчає кулачної зброї, рушниць, одноручних і дворучних сокир та одноручних і дворучних булав.\010\010Біксі Хитрокіст, гномка-майстриня зброї в «Лісовому краї» у Стальгорні, навчає арбалетів, кинджалів і метальної зброї.\010\010Ву Пін, людський майстер зброї в Арсеналі Веллера у Штормовії, навчає арбалетів, кинджалів, одноручних і дворучних мечів, древкової зброї та посохів.",
+        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Залізогарті, навчає кулачної зброї, рушниць, одноручних і дворучних сокир та одноручних і дворучних булав.\010\010Біксі Хитрокіст, гномка-майстриня зброї в «Лісовому краї» у Залізогарті, навчає арбалетів, кинджалів і метальної зброї.\010\010Ву Пін, людський майстер зброї в Арсеналі Веллера у Штормовії, навчає арбалетів, кинджалів, одноручних і дворучних мечів, древкової зброї та посохів.",
         ["npcs"] = { [1] = 11866 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -324,8 +324,8 @@ local rows = {
     },
     [2822284190] = {
         ["english"] = { [1] = "Ah, Braenna Flintcrag.  She has magic hands, that one.  Braenna is the one to see about Priestly matters.  \010\010Ye'll want to travel north from the gates of Ironforge to the Hall of Mysteries.  That's where ye'll find her." },
-        ["text"] = "А, Бренна Кремнескеля. У неї чарівні руки. Саме до Бренни треба звертатися з жрецьких справ.  \010\010Іди на північ від брами Стальгорна до Зали Таємниць. Там її й знайдеш.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "А, Бренна Кремнескеля. У неї чарівні руки. Саме до Бренни треба звертатися з жрецьких справ.  \010\010Іди на північ від брами Залізогарта до Зали Таємниць. Там її й знайдеш.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2261323498] = {
@@ -589,13 +589,13 @@ local rows = {
     [2785353595] = {
         ["english"] = { [1] = "Do ye have the potential to be a skilled hunter?  Well $gladdie : lassie;, only time will tell.  Just don't ye go shooting at apples atop peoples' heads till ye've spoken with Regnus o'er in the Hall of Arms." },
         ["text"] = "Чи маєш ти хист стати вправним мисливцем? Що ж, $gхлопче : дівчино;, це покаже лише час. Тільки не стріляй у яблука на головах людей, доки не поговориш із Реґнусом у Залі зброї.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [4079188992] = {
         ["english"] = { [1] = "Do ye have some new treasures that ye want to keep safe n' sound?  Ye'll be wanting to store them at The Vault with the Stonemantles.  Ye'll find The Vault just a hammer's throw northeast from the entrance to Ironforge." },
-        ["text"] = "Маєш нові скарби, які хочеш зберегти в безпеці? Тоді неси їх у Сховище до Кам'яномантій. Сховище — лише за один кидок молота на північний схід від входу до Стальгорна.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Маєш нові скарби, які хочеш зберегти в безпеці? Тоді неси їх у Сховище до Кам'яномантій. Сховище — лише за один кидок молота на північний схід від входу до Залізогарта.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2512606791] = {
@@ -606,8 +606,8 @@ local rows = {
     },
     [1395375415] = {
         ["english"] = { [1] = "Do ye have some new treasures that ye want to keep safe n' sound?  Then ye'll be wanting to store them at The Vault with the Stonemantles.  \010\010Ye'll find The Vault just a hammer's throw northeast from the entrance to Ironforge." },
-        ["text"] = "Маєш нові скарби, які хочеш зберегти в безпеці? Тоді неси їх у Сховище до Кам'яномантій.  \010\010Сховище — лише за один кидок молота на північний схід від входу до Стальгорна.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Маєш нові скарби, які хочеш зберегти в безпеці? Тоді неси їх у Сховище до Кам'яномантій.  \010\010Сховище — лише за один кидок молота на північний схід від входу до Залізогарта.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1999127288] = {
@@ -631,7 +631,7 @@ local rows = {
     [1520529407] = {
         ["english"] = { [1] = "Do we have Mining trainers here?  Where do ye think ye are!?  \010\010Why you'll find one o' the best miners in all Dun Morogh at the Deepmountain Mining Guild on the northern side of The Great Forge.  There, Geofram Bouldertoe will show ye the true art of mining." },
         ["text"] = "У нас є наставники гірництва? Та де, по-твоєму, ти знаходишся!?  \010\010Одного з найкращих гірників у всьому Дун-Морозі знайдеш у Гільдії гірників Глибокої Гори на північному боці Великої кузні. Там Джеофрам Валунопалець покаже тобі справжнє мистецтво гірництва.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1098583018] = {
@@ -877,7 +877,7 @@ local rows = {
     [3846790138] = {
         ["english"] = { [1] = "Ah, nothing better than a priest to cure what ails ye.  Of course a nice tall pint cures a lot of what ails ye too, but I don't think Braenna Flintcrag teaches brewing.  I guess ye'll have to settle for some priest training over in the Hall of Mysteries instead." },
         ["text"] = "Немає нічого кращого за жерця, щоб вилікувати те, що тебе мучить. Хоча високий кухоль елю теж лікує чимало недуг, та не думаю, що Бренна Кремнескеля навчає пивоваріння. Доведеться задовольнитися навчанням жреця в Залі Таємниць.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [4088364594] = {
@@ -1039,7 +1039,7 @@ local rows = {
     [2534458145] = {
         ["english"] = { [1] = "Ah, nothing quite like a ride on a gryphon, is there?  The night elves can keep those hippo's of theirs, just give me a gryphon and the wind in me hair!  \010\010Well now, I won't keep ye any longer, just head over to Gryth Thurden on the east side of The Great Forge and he'll get ye on yer way." },
         ["text"] = "Немає нічого кращого за політ на грифоні, еге ж? Нічні ельфи хай залишають собі своїх гіпогрифів, а мені дай грифона й вітер у волоссі!  \010\010Ну, більше не затримуватиму. Іди до Ґрита Турдена на східному боці Великої Кузні — він відправить тебе куди треба.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [3473001312] = {
@@ -1050,8 +1050,8 @@ local rows = {
     },
     [1274675590] = {
         ["english"] = { [1] = "Brandur Ironhammer would be the one ye'd want to see.  Ye can find him in the Hall of Mysteries north of the gates of Ironforge." },
-        ["text"] = "Тобі потрібен Брандур Залізний Молот. Знайдеш його в Залі Таємниць на північ від брами Стальгорна.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Тобі потрібен Брандур Залізний Молот. Знайдеш його в Залі Таємниць на північ від брами Залізогарта.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [404671739] = {
@@ -1081,7 +1081,7 @@ local rows = {
     [3462538363] = {
         ["english"] = { [1] = "Class Trainer" },
         ["text"] = "Наставник класу",
-        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1976, [5] = 2808, [6] = 3571, [7] = 4262, [8] = 5595, [9] = 6272, [10] = 6740, [11] = 8931, [12] = 12996, [13] = 13076 },
+        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1976, [5] = 2808, [6] = 3571, [7] = 4262, [8] = 5595, [9] = 6272, [10] = 6740, [11] = 8931, [12] = 12996, [13] = 13076, [14] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [2501661725] = {
@@ -1345,7 +1345,7 @@ local rows = {
     [3455191955] = {
         ["english"] = { [1] = "Alchemy" },
         ["text"] = "Алхімія",
-        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 3571, [30] = 4262, [31] = 5595, [32] = 5624, [33] = 5725, [34] = 5953, [35] = 6272, [36] = 6740, [37] = 8931, [38] = 12996, [39] = 13076 },
+        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 3571, [30] = 4262, [31] = 5595, [32] = 5624, [33] = 5725, [34] = 5953, [35] = 6272, [36] = 6740, [37] = 8931, [38] = 12996, [39] = 13076, [40] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [3796778485] = {
@@ -1369,7 +1369,7 @@ local rows = {
     [1252277807] = {
         ["english"] = { [1] = "Deeprun Tram" },
         ["text"] = "Глибокобіжний трамвай",
-        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 5595, [5] = 6272, [6] = 6740, [7] = 8931 },
+        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 5595, [5] = 6272, [6] = 6740, [7] = 8931, [8] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [885133612] = {
@@ -1998,8 +1998,8 @@ local rows = {
     },
     [1685239] = {
         ["english"] = { [1] = "A valuable skill First Aid is.  Our resident trainer, Nissa Firestone, can show ye how it's done.  Look for her on the southern side of The Great Forge at the Ironforge Physician." },
-        ["text"] = "Перша допомога — дуже цінна навичка. Наша місцева наставниця Нісса Вогнекамінь покаже, як це робиться. Шукай її на південному боці Великої Кузні, у стальгорнського лікаря.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Перша допомога — дуже цінна навичка. Наша місцева наставниця Нісса Вогнекамінь покаже, як це робиться. Шукай її на південному боці Великої Кузні, у Залізогартського лікаря.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2949196802] = {
@@ -2220,7 +2220,7 @@ local rows = {
     },
     [2839427942] = {
         ["english"] = { [1] = "Ah, Stonebrow doesn't leave Ironforge much these days so if ye're looking to learn the tailor's profession ye'll have to go to see him up in Ironforge." },
-        ["text"] = "А, Кам'янобровий нині майже не покидає Стальгорна, тож якщо хочеш опанувати кравецтво, доведеться піднятися до нього в Стальгорн.",
+        ["text"] = "А, Кам'янобровий нині майже не покидає Залізогарта, тож якщо хочеш опанувати кравецтво, доведеться піднятися до нього в Залізогарт.",
         ["npcs"] = { [1] = 727, [2] = 12996, [3] = 13076 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3054,7 +3054,7 @@ local rows = {
     },
     [2945591952] = {
         ["english"] = { [1] = "Ah, Alterac Valley, I have fine memories I tell ya.  <sigh>  Well, I cannot join ya, but do me proud just the same!  To get there you'll be wanting to speak with Glordrum Steelbeard at the Hall of Arms here in Ironforge." },
-        ["text"] = "А, Альтерацька долина... Гарні спогади, кажу тобі. <зітхає> Я не можу піти з тобою, але зроби так, щоб я пишався! Щоб потрапити туди, поговори з Ґлордумом Сталебородим у Залі Зброї тут, у Стальгорні.",
+        ["text"] = "А, Альтерацька долина... Гарні спогади, кажу тобі. <зітхає> Я не можу піти з тобою, але зроби так, щоб я пишався! Щоб потрапити туди, поговори з Ґлордумом Сталебородим у Залі Зброї тут, у Залізогарті.",
         ["npcs"] = {},
         ["roles"] = { ["greeting"] = true },
     },
@@ -3204,7 +3204,7 @@ local rows = {
     },
     [1048641383] = {
         ["english"] = { [1] = "Buliwyf, the dwarven weapon master at the Timberline Arms in Ironforge, teaches fist weapons, guns, one and two-handed axes and one and two-handed maces.\010\010Bixi Wobblebonk, the gnome weapon master at the Timberline Arms in Ironforge, teaches crossbow, daggers and throwing weapons.\010\010Ilyenia Moonfire, the night elf weapon master, resides at the Warrior's Terrace in Darnassus where she teaches bow, daggers, fist weapons, staff and throwing weapons." },
-        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Стальгорні, навчає кулачної зброї, рушниць, одноручних і дворучних сокир та одноручних і дворучних булав.\010\010Біксі Хитрокіст, гномка-майстриня зброї в «Лісовому краї» у Стальгорні, навчає арбалетів, кинджалів і метальної зброї.\010\010Іленія Місячний Вогонь, майстриня зброї нічних ельфів, мешкає на Терасі Воїнів у Дарнасі, де навчає луків, кинджалів, кулачної зброї, посохів і метальної зброї.",
+        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Залізогарті, навчає кулачної зброї, рушниць, одноручних і дворучних сокир та одноручних і дворучних булав.\010\010Біксі Хитрокіст, гномка-майстриня зброї в «Лісовому краї» у Залізогарті, навчає арбалетів, кинджалів і метальної зброї.\010\010Іленія Місячний Вогонь, майстриня зброї нічних ельфів, мешкає на Терасі Воїнів у Дарнасі, де навчає луків, кинджалів, кулачної зброї, посохів і метальної зброї.",
         ["npcs"] = { [1] = 11867 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3252,7 +3252,7 @@ local rows = {
     },
     [4241486809] = {
         ["english"] = { [1] = "Buliwyf, the dwarf weapon master within the Timberline Arms in Ironforge, can train you in the use of guns." },
-        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Стальгорні, навчить тебе користуватися рушницями.",
+        ["text"] = "Булівіф, дворф-майстер зброї в крамниці «Лісовий край» у Залізогарті, навчить тебе користуватися рушницями.",
         ["npcs"] = { [1] = 11866, [2] = 11867 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3300,7 +3300,7 @@ local rows = {
     },
     [3414505782] = {
         ["english"] = { [1] = "Buliwyf can show you how to swing a mace properly, no matter the size. You can find him within the Timberline Arms in Ironforge." },
-        ["text"] = "Булівіф покаже, як правильно махати булавою будь-якого розміру. Знайдеш його в крамниці «Лісовий край» у Стальгорні.",
+        ["text"] = "Булівіф покаже, як правильно махати булавою будь-якого розміру. Знайдеш його в крамниці «Лісовий край» у Залізогарті.",
         ["npcs"] = { [1] = 11866, [2] = 11867 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3348,7 +3348,7 @@ local rows = {
     },
     [2745734629] = {
         ["english"] = { [1] = "Aye, you there!  If you want to earn the respect of the dwarves of Ironforge, then you can start by donating valuable resources!  Ironforge finds itself running low on cloth piece; textiles and bandages don't grow on trees, ya know!$B$BRather than cash in various cloth pieces you find adventuring, donate them!  Doing so will earn you the recognition of the dwarven people of Ironforge!" },
-        ["text"] = "Гей, ти! Якщо хочеш заслужити повагу дворфів Стальгорна, почни з пожертв цінних ресурсів! У Стальгорні бракує тканини; тканина й бинти на деревах не ростуть, знаєш!$B$BЗамість продавати шматки тканини, які знаходиш у мандрах, пожертвуй їх! Так ти здобудеш визнання дворфів Стальгорна!",
+        ["text"] = "Гей, ти! Якщо хочеш заслужити повагу дворфів Залізогарта, почни з пожертв цінних ресурсів! У Залізогарті бракує тканини; тканина й бинти на деревах не ростуть, знаєш!$B$BЗамість продавати шматки тканини, які знаходиш у мандрах, пожертвуй їх! Так ти здобудеш визнання дворфів Залізогарта!",
         ["npcs"] = { [1] = 14723 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3504,8 +3504,8 @@ local rows = {
     },
     [6096452] = {
         ["english"] = { [1] = "Bank of Ironforge" },
-        ["text"] = "Банк Стальгорна",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Банк Залізогарта",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [2514761680] = {
@@ -3613,7 +3613,7 @@ local rows = {
     [601366877] = {
         ["english"] = { [1] = "Blacksmithing" },
         ["text"] = "Ковальство",
-        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 5595, [30] = 5624, [31] = 5725, [32] = 5953, [33] = 6272, [34] = 6740, [35] = 8931, [36] = 12996, [37] = 13076 },
+        ["npcs"] = { [1] = 68, [2] = 727, [3] = 1423, [4] = 1496, [5] = 1652, [6] = 1735, [7] = 1738, [8] = 1742, [9] = 1743, [10] = 1744, [11] = 1745, [12] = 1746, [13] = 1976, [14] = 2209, [15] = 2210, [16] = 2808, [17] = 3084, [18] = 3212, [19] = 3215, [20] = 3217, [21] = 3218, [22] = 3219, [23] = 3220, [24] = 3221, [25] = 3222, [26] = 3223, [27] = 3224, [28] = 3296, [29] = 5595, [30] = 5624, [31] = 5725, [32] = 5953, [33] = 6272, [34] = 6740, [35] = 8931, [36] = 12996, [37] = 13076, [38] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [2669124250] = {
@@ -3624,7 +3624,7 @@ local rows = {
     },
     [3666824438] = {
         ["english"] = { [1] = "All those official types reside in Ironforge.  Ye'll be wanting to check out the Ironforge Visitor's Center for guild creation papers." },
-        ["text"] = "Усі ті офіційні типи сидять у Стальгорні. За паперами для створення гільдії йди до Центру відвідувачів Стальгорна.",
+        ["text"] = "Усі ті офіційні типи сидять у Залізогарті. За паперами для створення гільдії йди до Центру відвідувачів Залізогарта.",
         ["npcs"] = { [1] = 727, [2] = 12996, [3] = 13076 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -3697,7 +3697,7 @@ local rows = {
     [1363658865] = {
         ["english"] = { [1] = "Between Bixi and Buliwyf, there ain't many weapons they haven't had the pleasure of slashing or smashing an orc with.  You can find them hanging out at the Timberline Arms weapon shop if ye need some training." },
         ["text"] = "Між Біксі та Булівіфом майже не лишилося зброї, якою вони не мали задоволення рубати чи трощити орків. Якщо потрібне навчання, знайдеш їх у крамниці зброї «Лісовий край».",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [4018565610] = {
@@ -4141,7 +4141,7 @@ local rows = {
     [253322801] = {
         ["english"] = { [1] = "Battlemaster" },
         ["text"] = "Воєвода",
-        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 4262, [5] = 5595, [6] = 6272, [7] = 6740, [8] = 8931 },
+        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 4262, [5] = 5595, [6] = 6272, [7] = 6740, [8] = 8931, [9] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [490263236] = {
@@ -4152,8 +4152,8 @@ local rows = {
     },
     [3599574552] = {
         ["english"] = { [1] = "Ah, good ol' Brandur Ironhammer.  There's no doubt he'll provide ye with the guidance ye seek, $glad : lass;.  Ye'll find him in the Hall of Mysteries north of the gates of Ironforge." },
-        ["text"] = "А, добрий старий Брандур Залізний Молот. Без сумніву, він дасть тобі потрібні настанови, $gхлопче : дівчино;. Знайдеш його в Залі Таємниць на північ від брами Стальгорна.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "А, добрий старий Брандур Залізний Молот. Без сумніву, він дасть тобі потрібні настанови, $gхлопче : дівчино;. Знайдеш його в Залі Таємниць на північ від брами Залізогарта.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2616026548] = {
@@ -4303,7 +4303,7 @@ local rows = {
     [2864289641] = {
         ["english"] = { [1] = "Bah!  Mailboxes...  all I get is junk mail lately!  \010\010Increase the size of this... decrease the size of that... act now for your free Sword of Dragonslaying.  I have to change my mailbox number every other month!  \010\010Well, ye can't say I didn't warn ye.  If you're looking for the mailbox it's just outside the Stonefire Tavern." },
         ["text"] = "Ба! Поштові скриньки... останнім часом мені приходить самий непотріб!  \010\010Збільште розмір цього... зменште розмір того... замовте зараз і отримайте безкоштовний Меч Драконовбивства. Я вже через місяць змінюю номер поштової скриньки!  \010\010Ну, не кажи потім, що я не попереджав. Якщо шукаєш скриньку, вона просто біля таверни «Кам'яний Вогонь».",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1661194790] = {
@@ -4327,7 +4327,7 @@ local rows = {
     [146861603] = {
         ["english"] = { [1] = "A warlock, eh...  Well, if you've got a mind to be doing that sort of thing around here then ye best keep yer demons on a leash $gboyo : girlie;.  I don't like demons, but I love putting mah axe to them.  Ye get me?  \010\010Now you just leave me be and go get lost in The Forlorn Cavern.  That's where you'll find that warlock, Thistleheart." },
         ["text"] = "Чорнокнижник, еге ж... Ну, якщо надумав займатися таким тут, то краще тримай своїх демонів на повідку, $gхлопче : дівчино;. Я демонів не люблю, зате люблю знайомити їх зі своєю сокирою. Зрозумів?  \010\010А тепер лиши мене в спокої та забирайся до Закинутої печери. Там і знайдеш того чорнокнижника, Колючесерда.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [2435037417] = {
@@ -4392,8 +4392,8 @@ local rows = {
     },
     [3140814846] = {
         ["english"] = { [1] = "Aye, everyone wants to ride the tram, it's a real hoot and a half.  Well, if ye want to find the tram, it's located over in Tinker Town just east of the gates of Ironforge." },
-        ["text"] = "Так, усі хочуть проїхатися трамваєм — весела штука. Якщо шукаєш його, він у Штукарівці, просто на схід від брами Стальгорна.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Так, усі хочуть проїхатися трамваєм — весела штука. Якщо шукаєш його, він у Штукарівці, просто на схід від брами Залізогарта.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [3396704486] = {
@@ -4465,7 +4465,7 @@ local rows = {
     [3408769971] = {
         ["english"] = { [1] = "Auction House" },
         ["text"] = "Аукціонний дім",
-        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 4262, [5] = 5595, [6] = 6272, [7] = 6740, [8] = 8931 },
+        ["npcs"] = { [1] = 68, [2] = 1976, [3] = 2808, [4] = 4262, [5] = 5595, [6] = 6272, [7] = 6740, [8] = 8931, [9] = 274781 },
         ["roles"] = { ["reply"] = true },
     },
     [543227100] = {
@@ -5130,8 +5130,8 @@ local rows = {
     },
     [573202102] = {
         ["english"] = { [1] = "All the roguish types hang out in The Forlorn Cavern, north of the gates of Ironforge.  I'd wager ye'll find Fenthwick there, no doubt counting the coin of another cut purse.  I'll catch him one of these days!  \010\010In the meantime I'll have my eye on you as well, $glad : lass;." },
-        ["text"] = "Усі шахраюваті типи зависають у Закинутій печері на північ від брами Стальгорна. Б'юся об заклад, Фентвіка знайдеш саме там — певно, рахує монети з чужого гаманця. Одного дня я його спіймаю!  \010\010А поки що й за тобою наглядатиму, $gхлопче : дівчино;.",
-        ["npcs"] = { [1] = 5595 },
+        ["text"] = "Усі шахраюваті типи зависають у Закинутій печері на північ від брами Залізогарта. Б'юся об заклад, Фентвіка знайдеш саме там — певно, рахує монети з чужого гаманця. Одного дня я його спіймаю!  \010\010А поки що й за тобою наглядатиму, $gхлопче : дівчино;.",
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [845721595] = {
@@ -5269,7 +5269,7 @@ local rows = {
     [4034865330] = {
         ["english"] = { [1] = "Balthus Stoneflayer is the one to see about Skinning.  If it can be skinned, he can teach ye how.  Just walk yerself over to Finespindle's Leather Goods on the northern side of The Great Forge." },
         ["text"] = "Щодо зняття шкур іди до Балтуса Шкуродера. Якщо з чогось можна зняти шкуру, він навчить як. Просто йди до крамниці «Шкіряні товари Тонкопряда» на північному боці Великої Кузні.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [4093346972] = {
@@ -5443,7 +5443,7 @@ local rows = {
     [3975323690] = {
         ["english"] = { [1] = "Ah, I believe Gimble Thistlefuzz is who ye'll be needing if yer looking to learn the Enchanter's profession.  Ye'll find Gimble in his shop, Thistlefuzz Arcanery, right by the Gryphon Master at The Great Forge." },
         ["text"] = "Гадаю, тобі потрібен Ґімбл Будякопух, якщо хочеш опанувати ремесло зачарування. Знайдеш Ґімбла в його крамниці «Арканерія Будякопуха» біля майстра грифонів у Великій Кузні.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1233051477] = {
@@ -5526,7 +5526,7 @@ local rows = {
     },
     [1508344882] = {
         ["english"] = { [1] = "Both Ilyenia Moonfire on the Warrior's Terrace of Darnassus and Bixi Wobblebonk of the Timberline Arms in Ironforge can show you how to use throwing weapons properly." },
-        ["text"] = "Іленія Місячний Вогонь на Терасі Воїнів у Дарнасі та Біксі Хитрокіст у крамниці «Лісовий край» у Стальгорні можуть навчити тебе правильно користуватися метальною зброєю.",
+        ["text"] = "Іленія Місячний Вогонь на Терасі Воїнів у Дарнасі та Біксі Хитрокіст у крамниці «Лісовий край» у Залізогарті можуть навчити тебе правильно користуватися метальною зброєю.",
         ["npcs"] = { [1] = 11867 },
         ["roles"] = { ["greeting"] = true },
     },
@@ -5719,7 +5719,7 @@ local rows = {
     [1036662120] = {
         ["english"] = { [1] = "An Alchemy trainer is what you need?  Well, I just came from there, I did.  Ye'll find Ms. Berryfizz over in Tinker Town where the gnomes gather." },
         ["text"] = "Тобі потрібен наставник алхімії? Я саме звідти. Пані Берріфіз знайдеш у Штукарівці, де збираються гноми.",
-        ["npcs"] = { [1] = 5595 },
+        ["npcs"] = { [1] = 5595, [2] = 274781 },
         ["roles"] = { ["greeting"] = true },
     },
     [1500853023] = {

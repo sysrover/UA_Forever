@@ -4,5 +4,6 @@
 /automation
 /cache
 /classic-db
+/vmangos-core
 __pycache__/
 *.pyc

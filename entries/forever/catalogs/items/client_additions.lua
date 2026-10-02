@@ -1055,7 +1055,7 @@ local client_items = {
     [6236] = { "Монстр - Предмет, Квітка - Троянда (Біла)", en="Monster - Item, Flower - Rose (White)" },
     [6237] = { "Монстр - Предмет, Квіти - Букет троянд (чорний)", en="Monster - Item, Flowers  - Boquet Roses (Black)" },
     [6244] = { "гггфг", en="ggggfg" },
-    [6254] = { "Монстр - Щит, Стальгорн", en="Monster - Shield, Ironforge" },
+    [6254] = { "Монстр - Щит, Залізогарт", en="Monster - Shield, Ironforge" },
     [6313] = { "Серце Корми", en="Corma's Heart" },
     [6322] = { "Монстр - Персонал, Аругал", en="Monster - Staff, Arugal" },
     [6334] = { "Монстр - Булава, Зелена", en="Monster - Mace, Green" },
