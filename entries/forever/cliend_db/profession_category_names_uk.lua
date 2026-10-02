@@ -1,10 +1,10 @@
--- Ukrainian profession category names for client build 1.60.1.70058.
+-- Ukrainian profession category names for client build 1.60.1.70170.
 -- Add reviewed translations here by TradeSkillCategoryID.
 -- Source worklist: translation_worklists/profession_categories_70058.tsv
 local _, addon_table = ...
 
 addon_table.client_profession_category_names_uk = {
-    sourceBuild = "1.60.1.70058",
+    sourceBuild = "1.60.1.70170",
     count = 108,
     rows = {
         [2399] = "Ювелірна справа (PROTOTYPE)",

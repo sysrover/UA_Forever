@@ -754,8 +754,9 @@ local function translate_objectives(module, block, id)
 end
 
 -- Some client builds refresh the quest log before repainting a tracked line.
--- Reconcile only numeric progress from the live journal; static objective
--- text and the rest of the tracker remain owned by Blizzard's layout pass.
+-- Reconcile numeric progress from the live journal, then restore translations
+-- on every used line. A native tracker rebuild in combat skips after_update,
+-- so even unchanged objectives can still contain English after combat ends.
 quest_ui.refresh_tracker_progress = function ()
     if runtime.combat_locked() then return end
     local module = _G.QuestObjectiveTracker
@@ -794,6 +795,7 @@ quest_ui.refresh_tracker_progress = function ()
                     end
                 end)
             end
+            translate_objectives(module, block, id)
         end
     end
 end

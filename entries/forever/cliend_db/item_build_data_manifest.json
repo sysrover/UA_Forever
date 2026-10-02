@@ -1,6 +1,6 @@
 {
-  "sourceBuild": "1.60.1.70124",
-  "itemMetadata": 31818,
+  "sourceBuild": "1.60.1.70170",
+  "itemMetadata": 31821,
   "itemClasses": 17,
   "itemSubclasses": 100,
   "itemSets": 536,
@@ -8,7 +8,7 @@
   "itemEnchantments": 2216,
   "gemProperties": 0,
   "itemNameDescriptions": 92,
-  "itemLimitCategories": 52,
+  "itemLimitCategories": 51,
   "itemBonuses": 1124,
   "itemBonusLists": 365,
   "itemBonusTrees": 115,
