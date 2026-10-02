@@ -382,13 +382,30 @@ local function translate_character_pane(frame)
     if frame then strings.translate_frame(frame, registry.get("character")) end
 end
 
+local function prepare_reputation_bar(bar)
+    local region = bar and bar.Text
+    -- Hover swaps the standing for progress; OnLeave writes the cached native
+    -- standing again. Translate the display region, retaining both native
+    -- cache fields for Blizzard's hover and reputation-update logic.
+    hooks.region(region, "SetText", translate_character_stat_region)
+    hooks.region(region, "SetFormattedText", translate_character_stat_region)
+    translate_character_stat_region(region)
+end
+
+local function translate_reputation_row(row)
+    if not row then return end
+    prepare_reputation_bar(row.Content and row.Content.ReputationBar)
+    translate_character_pane(row)
+end
+
 local character_scroll_owners = setmetatable({}, { __mode = "k" })
-local function prepare_character_scroll_box(pane, stats)
+local function prepare_character_scroll_box(pane, stats, row_callback)
     local scroll_box = pane and pane.ScrollBox
     if not scroll_box or type(scroll_box.RegisterCallback) ~= "function"
         or not _G.ScrollUtil
         or type(_G.ScrollUtil.AddInitializedFrameCallback) ~= "function" then return end
-    local translate_row = stats and translate_character_stat_row or translate_character_pane
+    local translate_row = row_callback
+        or (stats and translate_character_stat_row or translate_character_pane)
     if not character_scroll_owners[scroll_box] then
         local owner = {}
         local ok = pcall(_G.ScrollUtil.AddInitializedFrameCallback,
@@ -404,13 +421,15 @@ local function prepare_character_panels()
     for _, name in ipairs({ "CharacterStatsPaneScrollBox", "CharacterStatsPanePetScrollBox" }) do
         prepare_character_scroll_box(_G[name], true)
     end
-    for _, name in ipairs({ "ReputationFrame", "TokenFrame", "StatisticsFrame" }) do
+    prepare_character_scroll_box(_G.ReputationFrame, false, translate_reputation_row)
+    for _, name in ipairs({ "TokenFrame", "StatisticsFrame" }) do
         prepare_character_scroll_box(_G[name], false)
     end
     local character = _G.CharacterFrame
     -- Right-hand details use their own row pools and can update independently
     -- of ShowSubFrame (selection, reputation gain, and PvP progress).
     for _, pane in ipairs(character and character.SidePanes or {}) do
+        prepare_reputation_bar(pane.StandingBar)
         for _, method in ipairs({ "SetPaneTitle", "SetDescription", "LayoutRows", "SetEmpty" }) do
             hooks.region(pane, method, translate_character_pane)
         end
