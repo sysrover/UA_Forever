@@ -30,6 +30,7 @@ local tooltip = {
         ["Миттєво"] = true,
     },
     comparison_item_labels = {
+        ["Critical Strike Chance"] = "ймовірність критичного удару",
         Cloth = "Тканина", Leather = "Шкіра", Mail = "Кольчуга",
         Plate = "Лати", Head = "Голова", Neck = "Шия",
         Shoulder = "Плечі", Shoulders = "Плечі", Back = "Спина",
@@ -45,6 +46,8 @@ local tooltip = {
     -- build 1.60.1.70058. These keys are English client output, never
     -- translated text used for recognition.
     item_line_exact = {
+        ["Use: Teaches you how to summon this mount."] =
+            "Використання: навчає викликати цю їздову тварину.",
         ["Scarce"] = "Дефіцитний",
         ["|cFF87ABFFScarce|r"] = "|cFF87ABFFДефіцитний|r",
         ["Soulbound"] = "Прив’язано до персонажа",
@@ -105,6 +108,12 @@ local tooltip = {
 }
 
 tooltip.format = {
+    item_set_name = function (name, equipped, total)
+        return name .. " (" .. equipped .. "/" .. total .. ")"
+    end,
+    item_set_bonus = function (count, description)
+        return "(" .. count .. ") Комплект: " .. description
+    end,
     dynamic_value_range = function (value)
         return (value:gsub("([%d%.,]+)%s+to%s+([%d%.,]+)", "%1–%2"))
     end,
@@ -141,6 +150,27 @@ tooltip.format = {
             .. school .. ".\n\nСередній опір проти ворога " .. level
             .. "-го рівня: |cffffffff" .. average .. "%|r"
     end,
+}
+
+-- Names verified against GlobalStrings and ChrTitles in 1.60.1.70170;
+-- wording is retained from factions-taxi-titles/titles_uk.json.
+tooltip.pvp_rank_names = {
+    Private = "Рядовий", Corporal = "Капрал", Sergeant = "Сержант",
+    ["Master Sergeant"] = "Майстер-сержант", ["Sergeant Major"] = "Сержант-майор",
+    Knight = "Лицар", ["Knight-Lieutenant"] = "Лицар-лейтенант",
+    ["Knight-Captain"] = "Лицар-капітан", ["Knight-Champion"] = "Лицар-чемпіон",
+    ["Lieutenant Commander"] = "Лейтенант-командир", Commander = "Командир",
+    Marshal = "Маршал", ["Field Marshal"] = "Фельдмаршал",
+    ["Grand Marshal"] = "Великий маршал", Scout = "Розвідник", Grunt = "Рубака",
+    ["Senior Sergeant"] = "Старший сержант", ["First Sergeant"] = "Перший сержант",
+    ["Stone Guard"] = "Кам'яний вартовий", ["Blood Guard"] = "Кривавий вартовий",
+    Legionnaire = "Легіонер", Centurion = "Центуріон", Champion = "Чемпіон",
+    ["Lieutenant General"] = "Генерал-лейтенант", General = "Генерал",
+    Warlord = "Воєвода", ["High Warlord"] = "Верховний воєвода",
+}
+
+tooltip.item_set_names = {
+    ["Lieutenant Commander's Battlegear"] = "Бойове спорядження лейтенант-командира",
 }
 
 local item_stat_names = {
@@ -347,6 +377,25 @@ local function translate_bag_filter_list(source)
 end
 
 tooltip.item_line_patterns = {
+    { "^Requires (.-)%s*%(%s*Rank%s+(%d+)%s*%)$", function (names, rank)
+        local translated = {}
+        for name in names:gmatch("[^/]+") do
+            name = name:match("^%s*(.-)%s*$")
+            local value = tooltip.pvp_rank_names[name]
+            if not value then return nil end
+            translated[#translated + 1] = value
+        end
+        if #translated == 0 then return nil end
+        return "Необхідно: " .. table.concat(translated, " / ")
+            .. " (ранг " .. rank .. ")"
+    end },
+    { "^Equip: Improves your chance to get a critical strike by ([%d%.,]+)%%%.$",
+        function (value)
+            return "Екіпірування: збільшує ймовірність критичного удару на " .. value .. "%."
+        end },
+    { "^([%+%-]?[%d%.,]+)%% Critical Strike Chance$", function (value)
+        return value .. "% до ймовірності критичного удару"
+    end },
     { "^([%+%-]?%d+) Armor$", function (value)
         return value .. " броні"
     end },
@@ -437,7 +486,7 @@ function tooltip.translate_spell_reagents(source, translate_names)
     return "Реагенти:" .. translate_names(body)
 end
 
-function tooltip.translate_item_line(source)
+local function translate_plain_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
     local translated = tooltip.item_line_exact[source]
         or tooltip.comparison_item_labels[source]
@@ -449,6 +498,42 @@ function tooltip.translate_item_line(source)
         if #captures > 0 then return rule[2](unpack(captures)) end
     end
     return nil
+end
+
+function tooltip.restore_item_markup(source, translated)
+    if type(source) ~= "string" or type(translated) ~= "string" then return translated end
+    local color, body, reset = source:match("^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
+    if color and not body:find("|r", 1, true) then
+        if translated:sub(1, #color) == color then return translated end
+        return color .. translated .. reset
+    end
+    for prefix, payload, suffix in source:gmatch("(|c%x%x%x%x%x%x%x%x)(.-)(|r)") do
+        local token = payload
+        if token == "" or not translated:find(token, 1, true) then
+            token = tooltip.pvp_rank_names[payload]
+                or tooltip.item_line_exact[payload]
+                or tooltip.comparison_item_labels[payload]
+                or payload:match("([%+%-]?%d[%d%.,]*%%?)")
+        end
+        if token and token ~= "" and not translated:find(prefix .. token .. suffix, 1, true) then
+            local first, last = translated:find(token, 1, true)
+            if first then
+                translated = translated:sub(1, first - 1) .. prefix .. token .. suffix
+                    .. translated:sub(last + 1)
+            end
+        end
+    end
+    return translated
+end
+
+function tooltip.translate_item_line(source)
+    if type(source) ~= "string" or source == "" then return nil end
+    local translated = translate_plain_item_line(source)
+    if not translated then
+        local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        if clean ~= source then translated = translate_plain_item_line(clean) end
+    end
+    return tooltip.restore_item_markup(source, translated)
 end
 
 tooltip.talent_description_overrides = {

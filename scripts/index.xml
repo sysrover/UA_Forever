@@ -10,6 +10,7 @@
     <Script file="spell_template_renderer.lua"/>
     <Script file="item_client_db.lua"/>
     <Script file="profession_client_db.lua"/>
+    <Script file="achievement_client_db.lua"/>
     <Script file="gossip_hashed.lua"/>
     <Script file="entries.lua"/>
     <Script file="translation_runtime.lua"/>

@@ -11,6 +11,7 @@ local databases = {
     spell_reagents = addon_table.client_spell_reagents,
     item_classes = addon_table.client_item_classes,
     metadata = addon_table.client_item_metadata,
+    item_sets = addon_table.client_item_sets,
     skill_lines_en = addon_table.client_skill_lines_en,
     skill_lines_uk = addon_table.client_skill_lines_uk,
 }
@@ -130,6 +131,15 @@ end
 
 lookup.get_metadata = function (item_id)
     return row(databases.metadata, item_id)
+end
+
+-- Optional build-local table: a missing/mismatched set table must not disable
+-- ordinary item names and effects.
+lookup.get_item_set = function (set_id)
+    local database = databases.item_sets
+    if not lookup.ready or type(database) ~= "table"
+        or database.sourceBuild ~= source_build then return nil end
+    return row(database, set_id)
 end
 
 lookup.get_item_class = function (class_id)

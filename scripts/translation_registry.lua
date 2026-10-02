@@ -435,6 +435,13 @@ registry.register_defaults = function (translate_frame)
         domains = { "ui" }, slots = { "achievement.name", "ui.title" },
         dynamic_hooks = { "AchievementAlertFrame_SetUp" },
         clear_on_reuse = true })
+    registry.register_surface({ id = "achievement-ui", roots = {},
+        domains = {},
+        slots = { "achievement.name", "achievement.description", "achievement.reward", "achievement.category" },
+        dynamic_hooks = { "AchievementTemplateMixin.InitRewards",
+            "AchievementCategoryTemplateMixin.Init", "AchievementFrameSummary_UpdateAchievements",
+            "AchievementComparisonTemplateMixin.Init", "AchievementFrameSearch_InitButton" },
+        clear_on_reuse = true })
 end
 
 registry.each = function (callback)

@@ -162,6 +162,8 @@ local function make_item_state(item_id, key)
         english_description = client_db.get_english_description(item_id),
         translated_description = client_db.get_description(item_id),
         metadata = metadata,
+        item_set = type(metadata) == "table"
+            and client_db.get_item_set(tonumber(metadata.ItemSet)) or nil,
         required_skill = type(metadata) == "table"
             and tonumber(metadata.RequiredSkill) or nil,
         required_skill_rank = type(metadata) == "table"
@@ -308,6 +310,71 @@ local function translate_classification(state, source)
     end
 end
 
+local function translate_set_line(state, source, region)
+    local set = state.item_set
+    if type(set) ~= "table" or type(source) ~= "string" then return nil end
+    local name, equipped, total = source:match("^(.-) %((%d+)/(%d+)%)$")
+    if name == set.name then
+        local translated = catalog.item_set_names[name]
+            or addon_table.use("entries").lookup_name("spell", name)
+            or strings.find_ui_translation(name, region)
+        if translated and translated ~= name then
+            return catalog.format.item_set_name(translated, equipped, total)
+        end
+    end
+    local indent, member = source:match("^(%s*)(.-)%s*$")
+    for _, item_id in ipairs(set.itemIDs or {}) do
+        if member == client_db.get_english_name(item_id) then
+            local translated = client_db.get_name(item_id)
+            return translated and indent .. deps().capitalize(translated) or nil
+        end
+    end
+    local count, body = source:match("^%((%d+)%) Set: (.+)$")
+    if not count then return nil end
+    local result
+    for _, bonus in ipairs(set.bonuses or {}) do
+        if tonumber(bonus.Threshold) == tonumber(count) then
+            local spell_id = tonumber(bonus.SpellID)
+            -- Match the actual visible description. Several bonuses can have
+            -- the same threshold, so never select only by piece count.
+            local translated
+            for _, kind in ipairs({ "spell", "aura" }) do
+                local english, ukrainian
+                if kind == "spell" then
+                    english = spell_db.get_english_description(spell_id)
+                    ukrainian = spell_db.get_description(spell_id)
+                else
+                    english = spell_db.get_english_aura_description(spell_id)
+                    ukrainian = spell_db.get_aura_description(spell_id)
+                end
+                if english and ukrainian then
+                    translated = renderer.render(spell_id, kind,
+                        english, ukrainian, body)
+                    if translated then break end
+                end
+            end
+            if translated then
+                if result and result ~= translated then return nil end
+                result = translated
+            end
+        end
+    end
+    return result and catalog.format.item_set_bonus(count, result) or nil
+end
+
+local function translate_shared_line(state, source, region)
+    if type(source) ~= "string" then return nil end
+    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local translated = translate_set_line(state, clean, region)
+        or catalog.translate_item_line(source)
+        or strings.find_ui_translation(source, region)
+    if not translated and clean ~= source then
+        translated = strings.find_ui_translation(clean, region)
+    end
+    if translated == source or translated == clean then return nil end
+    return catalog.restore_item_markup(source, translated)
+end
+
 local function translate_structured(tooltip, data, state)
     local contract = deps()
     local lines = type(data) == "table" and data.lines or nil
@@ -392,16 +459,15 @@ local function translate_structured(tooltip, data, state)
                         translated = catalog.translate_item_line(source)
                         slot = translated and "item.line:" .. line_index or nil
                     end
-                    if not translated and source and line_type == 0 then
-                        -- The live 70124 client emits some equip effects and
-                        -- appearance notices as generic lines, without a spell
-                        -- ID. Reuse an existing UI translation of this exact
-                        -- rendered line, never the item's general description.
-                        translated = strings.find_ui_translation(source, region)
-                        slot = translated and "item.ui-line:" .. line_index or nil
-                    end
                 end
 
+                -- Requirements, class restrictions and set rows can use
+                -- specialized TooltipData types. The fallback must run after
+                -- every semantic branch, rather than only for type 0.
+                if not translated and source and line_index > 1 then
+                    translated = translate_shared_line(state, source, region)
+                    slot = translated and "item.shared-line:" .. line_index or slot
+                end
                 if translated and source and region then
                     applied = contract.set_translation(
                         tooltip, region, source, translated, slot,
