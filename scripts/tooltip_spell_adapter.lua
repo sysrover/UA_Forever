@@ -331,6 +331,14 @@ adapter.add_structured_aura = function (tooltip, data)
                         ) or applied
                     end
                 elseif is_description then
+                    -- TooltipData can still contain native plural tokens such
+                    -- as "1 |4hour:hrs;" after the FontString renders "1 hour".
+                    -- Render and verify against that actual text, otherwise
+                    -- the resolved SetText result looks like a failed write
+                    -- and the tooltip appends the same description again.
+                    local visible_source = contract.tooltip_line(
+                        tooltip, "Left", line_index, true)
+                    source = contract.safe_string(visible_source) or source
                     local translated
                     if region and source and english_raw and ukrainian_raw
                         and options.can_translate("translate_spell") then
