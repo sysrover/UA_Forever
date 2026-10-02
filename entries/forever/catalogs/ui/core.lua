@@ -623,7 +623,6 @@ local ui = {
     ["Use: Restores 70 to 90 health."] = "Використання: відновлює 70–90 здоров'я.",
     ["Use: Restores 140 to 180 health."] = "Використання: відновлює 140–180 здоров'я.",
     ["Use: Target is cured of poisons up to level 25. (1 Min Cooldown)"] = "Використання: зцілює ціль від отрут до 25-го рівня. (Перезарядка: 1 хв.)",
-    ["Equip: Increases healing done by up to 9 and damage done by up to 3 for all magical spells and effects."] = "Екіпірування: збільшує зцілення на 9 і шкоду від усіх магічних заклять та ефектів на 3.",
     ["<Shift click to buy a different amount>"] = "<Shift + клацання: змінити кількість покупки>",
     ["Dagger"] = "Кинджал",
     ["Track Recipe"] = "Відстежувати рецепт",

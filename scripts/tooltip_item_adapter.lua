@@ -366,6 +366,11 @@ local function translate_structured(tooltip, data, state)
                                 return render_effect(effect, line_type, source)
                             end)
                     end
+                    -- Recipe learn lines can lack a translated spell effect.
+                    -- Use the shared visible-text templates as a fallback.
+                    if not translated and source then
+                        translated = catalog.translate_item_line(source)
+                    end
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
                 else

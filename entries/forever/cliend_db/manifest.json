@@ -3,10 +3,10 @@
   "itemSourceBuild": "1.60.1.70170",
   "skillLineSourceBuild": "1.60.1.70170",
   "traitSourceBuild": "1.60.1.70170",
-  "spellIDs": 32856,
-  "names": 31725,
-  "descriptions": 17597,
-  "auraDescriptions": 7752,
+  "spellIDs": 32862,
+  "names": 31731,
+  "descriptions": 17602,
+  "auraDescriptions": 7753,
   "skillLines": 154,
   "spellsWithSkillLines": 7369,
   "itemIDs": 25667,
@@ -21,13 +21,13 @@
   "itemNamesNeedTranslation": 1,
   "itemDescriptionsUk": 4841,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 31718,
+  "spellNamesUkV4": 31725,
   "spellNamesNeedTranslation": 7,
   "itemNamesUkComplete": false,
-  "spellDescriptionsUk": 17597,
+  "spellDescriptionsUk": 17603,
   "spellDescriptionsNeedTranslation": 0,
   "spellNamesUkV4Complete": false,
-  "auraDescriptionsUk": 7752,
+  "auraDescriptionsUk": 7753,
   "auraDescriptionsNeedTranslation": 0,
   "auraDescriptionsUkComplete": true,
   "previousTranslationImport": {
@@ -74,5 +74,42 @@
     "acceptedRecords": 997,
     "recordsAwaitingReview": 0,
     "correctedRecords": 99
+  },
+  "spellDescriptionsUkComplete": true,
+  "talentHotfixUpdate": {
+    "sourceBuild": "1.60.1.70170",
+    "cacheSHA256": "b681adf1af3b16f83b53187afa3485be87f8912ce0fc4a11c8750c8094779de5",
+    "newSpellIDs": [
+      1323963,
+      1323964,
+      1323965,
+      1323966,
+      1323967,
+      1323968,
+      1323969
+    ],
+    "changedSpellDescriptions": [
+      1680,
+      5246,
+      12321,
+      12322,
+      12323,
+      16487,
+      23584,
+      1310315
+    ],
+    "traitEntries": 659,
+    "changedTraitEntryIDs": [
+      130659,
+      130666,
+      130683,
+      130703,
+      137849,
+      141191,
+      141192
+    ],
+    "retainedHistoricalUkrainianIDs": [
+      1310236
+    ]
   }
 }
