@@ -5306,6 +5306,13 @@ local rows = {
     ["npcs"] = { [1] = 2198 },
     ["priority"] = 3,
     ["roles"] = { ["reply"] = true },
+    ["alternatives"] = { [1] = {
+    ["english"] = { [1] = "Yes. I would like to unlearn my legacy talents." },
+    ["text"] = "Так. Я хочу забути свої спадкові таланти.",
+    ["npcs"] = { [1] = 1901 },
+    ["priority"] = 3,
+    ["roles"] = { ["reply"] = true },
+} },
 },
     [3136726784] = {
     ["english"] = { [1] = "I am told the farms of Westfall once supplied a bounty of crops for Stormwind. But now, the soil is barren and most of the farmers have fled.\013\010\013\010On behalf of Darnassus I would like to offer my aid in replenishing this land. Will you assist me?" },
@@ -5313,6 +5320,13 @@ local rows = {
     ["npcs"] = { [1] = 253092 },
     ["priority"] = 3,
     ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [1143893139] = {
+    ["english"] = { [1] = "Yes. I would like to unlearn my class talents." },
+    ["text"] = "Так. Я хочу забути свої класові таланти.",
+    ["npcs"] = { [1] = 1901 },
+    ["priority"] = 3,
+    ["roles"] = { ["reply"] = true },
 },
 }
 for key, row in pairs(rows) do

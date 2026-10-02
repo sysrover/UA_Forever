@@ -9054,6 +9054,42 @@ local chat_rows = {
     ["npcs"] = { [1] = "Yorus Barleybrew" },
     ["priority"] = 3,
 },
+    [2764595154] = {
+    ["english"] = { [1] = "All hail, Bobby! Defender of The People!" },
+    ["text"] = "Слава Боббі! Захисникові народу!",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [283623795] = {
+    ["english"] = { [1] = "Three cheers for Gear!  This land shall be ours once again!" },
+    ["text"] = "Тричі слава Ґіру!  Ця земля знову буде нашою!",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [103433419] = {
+    ["english"] = { [1] = "The People of Westfall salute Roland, a brave and valiant defender of freedom." },
+    ["text"] = "Народ Західного краю вітає Роланда, хороброго й доблесного захисника свободи.",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [1755078689] = {
+    ["english"] = { [1] = "The People of Westfall salute Wreckin, a brave and valiant defender of freedom." },
+    ["text"] = "Народ Західного краю вітає Вреккіна, хороброго й доблесного захисника свободи.",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [3891630814] = {
+    ["english"] = { [1] = "Follow me, Cataloren. I'll take you to the Defias hideout. But you better protect me or I am as good as dead." },
+    ["text"] = "Іди за мною, Каталорене. Я відведу тебе до схованки Непокірних. Але краще захищай мене, бо інакше мені кінець.",
+    ["npcs"] = { [1] = "The Defias Traitor" },
+    ["priority"] = 3,
+},
+    [2905478527] = {
+    ["english"] = { [1] = "Shluhpickle ran the Gauntlet!  Three cheers for Shluhpickle!" },
+    ["text"] = "Шлухпікл пройшов Випробування!  Тричі слава Шлухпіклу!",
+    ["npcs"] = { [1] = "Yorus Barleybrew" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
