@@ -9108,6 +9108,18 @@ local chat_rows = {
     ["npcs"] = { [1] = "Miss Danna" },
     ["priority"] = 3,
 },
+    [1401222207] = {
+    ["english"] = { [1] = "Grom zugas maza kazum kazum ka dogg, <name>!" },
+    ["text"] = "Grom zugas maza kazum kazum ka dogg, {ім'я:к}!",
+    ["npcs"] = { [1] = "Dragonmaw Scout" },
+    ["priority"] = 3,
+},
+    [3032670814] = {
+    ["english"] = { [1] = "Three cheers for <name>!  This land shall be ours once again!" },
+    ["text"] = "Тричі слава {ім'я:д}!  Ця земля знову буде нашою!",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
