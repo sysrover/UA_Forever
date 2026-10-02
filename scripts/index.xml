@@ -38,6 +38,11 @@
     <Script file="loss_of_control_adapter.lua"/>
     <Script file="settings.lua"/>
     <Script file="menus.lua"/>
+    <Script file="mail_ui.lua"/>
+    <Script file="auction_ui.lua"/>
+    <Script file="lfg_ui.lua"/>
+    <Script file="popup_ui.lua"/>
+    <Script file="social_ui.lua"/>
     <Script file="items.lua"/>
     <Script file="book_ui.lua"/>
     <Script file="quest_ui.lua"/>
