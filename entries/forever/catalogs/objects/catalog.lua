@@ -3176,6 +3176,7 @@ addonTable.object = { -- [key] = text
 ["The Shal'nan's Abdication"] = "Зречення Шал'нана",
 ["Windstone"] = "Вітрокамінь",
 ["Remote Campfire"] = "Віддалене багаття",
+["Khaz Modan Timber"] = "Деревина Каз-Модану",
 ["Aegrim Bronzebeard"] = "Ейґрім Бронзобородий",
 ["Barbershop Chair"] = "Перукарське крісло",
 ["Burned-Out Remains"] = "Обгорілі рештки",

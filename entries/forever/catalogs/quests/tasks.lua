@@ -20229,8 +20229,8 @@ local questTasks = {
         ["Menethil Statuette (Provided)"] = "статуетка Менетіла (видано)",
     },
     [98197] = {
-        ["Khaz Modan Iron"] = "Хаз Модан Айрон",
-        ["Khaz Modan Timber"] = "Тимбер Хаз Модан",
+        ["Khaz Modan Iron"] = "Залізо Каз-Модану",
+        ["Khaz Modan Timber"] = "Деревина Каз-Модану",
     },
     [98208] = {
         ["Nord'el"] = "Норд'ел",
