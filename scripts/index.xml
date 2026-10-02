@@ -44,6 +44,7 @@
     <Script file="lfg_ui.lua"/>
     <Script file="popup_ui.lua"/>
     <Script file="social_ui.lua"/>
+    <Script file="raid_ui.lua"/>
     <Script file="items.lua"/>
     <Script file="book_ui.lua"/>
     <Script file="quest_ui.lua"/>

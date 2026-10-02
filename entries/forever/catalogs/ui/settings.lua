@@ -22,6 +22,10 @@ local settings = {
     ["Only show raid-style warnings for guild member deaths"] = "Показувати попередження у стилі рейдів лише у разі загибелі членів гільдії",
     ["Automatically exit Away mode upon moving or talking."] =
         "Автоматично виходити з режиму «Відійшов» після руху або початку розмови.",
+    -- RaidFrame's rendered description uses real newlines, unlike the DB2
+    -- source-literal spelling retained in the client compatibility catalog.
+    ["Raids are groups of more than 5 people and are typically used to defeat unique challenges at high levels.\n\n|cffffffff- Raid members cannot earn credit toward most non-raid quests. Specifically, they will not receive non-raid quest credit for killing creatures or collecting items.\n\n- Raids grant substantially less experience for defeating monsters than normal groups.\n\n- Raids allow you to overcome challenges that might otherwise be nearly impossible.|r"] =
+        "Рейди — це групи з понад 5 учасників, які зазвичай створюють для подолання особливих випробувань на високих рівнях.\n\n|cffffffff- Учасникам рейду не зараховується виконання більшості завдань, не призначених для рейдів. Зокрема, їм не зараховують убивства істот і збирання предметів для таких завдань.\n\n- За перемогу над монстрами учасники рейду отримують значно менше досвіду, ніж учасники звичайної групи.\n\n- Рейд дає змогу подолати випробування, які інакше були б майже нездоланними.|r",
     -- Game menu and Settings navigation
     ["Game Menu"] = "Меню гри",
     ["Return to Game"] = "Повернутися до гри",
@@ -389,6 +393,11 @@ end
 
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    { text = "Convert To Raid", frame = "RaidFrame", translation = "Створити рейд" },
+    { text = "Convert To Party", frame = "RaidFrame", translation = "Перетворити на групу" },
+    { text = "Extend Raid Lock", frame = "RaidInfo", translation = "Продовжити збереження рейду" },
+    { text = "Reactivate Raid Lock", frame = "RaidInfo", translation = "Поновити збереження рейду" },
+    { text = "Remove Raid Lock Extension", frame = "RaidInfo", translation = "Скасувати продовження" },
     -- Chat configuration labels describe message categories, not actions.
     { text = "Say", frame = "ChatConfig", translation = "Розмова" },
     { text = "Skill-ups", frame = "ChatConfig", translation = "Підвищення навичок" },
