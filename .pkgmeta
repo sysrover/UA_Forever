@@ -2,3 +2,16 @@ package-as: UA_Forever
 
 ignore:
   - automation
+  - tools
+  - build
+  - cache
+  - classic-db
+  - cmangos-classic
+  - vmangos-core
+  - debug.log
+  - AGENTS.md
+  - CONTRIBUTING_TRANSLATIONS.md
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
