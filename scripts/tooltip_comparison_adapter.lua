@@ -234,24 +234,7 @@ comparison_adapter.install = function (api)
     end
 
     local function restore_comparison_markup(source, translated)
-        if type(source) ~= "string" or type(translated) ~= "string" then
-            return translated
-        end
-        for color, payload, reset in source:gmatch(
-            "(|c%x%x%x%x%x%x%x%x)(.-)(|r)") do
-            local token = payload
-            if token == "" or not translated:find(token, 1, true) then
-                token = payload:match("([%+%-]?[%d][%d%.,]*)")
-            end
-            if token and token ~= ""
-                and translated:find(token, 1, true)
-                and not translated:find(color .. token .. reset, 1, true) then
-                local first, last = translated:find(token, 1, true)
-                translated = translated:sub(1, first - 1) .. color .. token
-                    .. reset .. translated:sub(last + 1)
-            end
-        end
-        return translated
+        return tooltip_catalog.restore_item_markup(source, translated)
     end
 
     local function translate_comparison_region(tooltip, region, source, side,

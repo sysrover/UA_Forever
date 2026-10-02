@@ -62,10 +62,12 @@
     <Script file="cliend_db\spell_reagents.lua"/>
     <Script file="cliend_db\item_classes.lua"/>
     <Script file="cliend_db\item_metadata.lua"/>
+    <Script file="cliend_db\item_sets.lua"/>
     <Script file="cliend_db\skill_lines.lua"/>
     <Script file="cliend_db\skill_lines_uk.lua"/>
     <Script file="cliend_db\profession_recipes.lua"/>
     <Script file="cliend_db\profession_category_names_uk.lua"/>
+    <Script file="cliend_db\achievements_uk.lua"/>
     <Script file="cliend_db\trait_entries.lua"/>
     <Script file="cliend_db\trait_definition_overrides.lua"/>
     <Script file="catalogs\runtime\compile.lua"/>
