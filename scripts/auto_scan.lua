@@ -698,6 +698,7 @@ local function has_ui_translation(text)
 end
 
 local function annotate_personalized_gossip(record, text)
+    if record.template and record.personalized then return record.templateCode end
     local _, template, personalized, translation_hint, template_code =
         utils.get_gossip_lookup_codes(text)
     record.template = personalized and template or nil
@@ -707,6 +708,41 @@ local function annotate_personalized_gossip(record, text)
     record.translationHint = translation_hint
     record.templateCode = template_code
     return template_code
+end
+
+local function capture_player(record)
+    record.playerName, record.playerClass, record.playerRace = utils.get_player_capture()
+end
+
+local function capture_quest_template(record, field, text)
+    record.templates = record.templates or {}
+    local template, kinds = utils.get_personalized_gossip(text)
+    record.templates[field] = kinds and template or nil
+end
+
+local function annotate_personalized_chat(record)
+    if record.template and record.personalized then return record.templateCode end
+    local template, kinds, hints = utils.get_personalized_chat(record.npc, record.text)
+    if kinds then
+        record.template, record.personalized = template, kinds
+        record.translationHint = hints
+        record.templateCode = utils.get_text_code(template)
+        record.personalizationConfidence = "exact"
+    end
+    return record.templateCode
+end
+
+local function chat_records_for_export(records)
+    local prepared = {}
+    for key, record in pairs(records or {}) do
+        if type(record) == "table" then
+            local copy = {}
+            for field, value in pairs(record) do copy[field] = value end
+            local code = type(copy.text) == "string" and annotate_personalized_chat(copy)
+            prepared[code and copy.npc .. ":" .. code or key] = copy
+        end
+    end
+    return prepared
 end
 
 local function gossip_records_for_export(records)
@@ -761,6 +797,7 @@ auto_scan.record_quest = function (id, fields, missing_fields)
         or type(missing_fields) ~= "table" then return end
     local record = records[id] or {}
     record.fields = record.fields or {}
+    capture_player(record)
     record.unapplied = nil
     record.objectiveSource = safe_text(fields.objective) or record.objectiveSource
     for key, value in pairs(fields) do
@@ -777,6 +814,7 @@ auto_scan.record_quest = function (id, fields, missing_fields)
             end
             if text and english_source(text) and not translated_task then
                 record.fields[key] = text
+                capture_quest_template(record, key, text)
             else record.fields[key] = nil end
         else
             record.fields[key] = nil
@@ -808,6 +846,7 @@ auto_scan.record_visible_quest_field = function (id, field, source, visible, exp
     local still_english = english_source(visible) and visible == source
     local record = records[id] or {}
     record.fields = record.fields or {}
+    capture_player(record)
     if translated then
         record.fields[field] = nil
         if type(record.unapplied) == "table" then record.unapplied[field] = nil end
@@ -818,6 +857,7 @@ auto_scan.record_visible_quest_field = function (id, field, source, visible, exp
         end
     else
         record.fields[field] = still_english and source or nil
+        if still_english then capture_quest_template(record, field, source) end
     end
     if next(record.fields) then
         if field == "title" then record.name = source end
@@ -889,15 +929,18 @@ auto_scan.record_chat = function (name, code, source, language)
     local npc = safe_text(name)
     if not records or not npc or not code or not text
         or not english_source(text) then return end
-    local key = npc .. ":" .. tostring(code)
+    local record = { npc = npc, text = text, language = safe_text(language) }
+    capture_player(record)
+    local exact_key = npc .. ":" .. tostring(code)
+    local template_code = annotate_personalized_chat(record)
+    local key = npc .. ":" .. tostring(template_code or code)
+    if exact_key ~= key then records[exact_key] = nil end
     local ok, _, translation = pcall(entries.get_chat_text, npc, text)
     if ok and type(translation) == "string" and translation ~= text then
         records[key] = nil
         return
     end
-    records[key] = {
-        npc = npc, text = text, language = safe_text(language),
-    }
+    records[key] = record
 end
 
 auto_scan.record_system_chat = function (event, source, translated)
@@ -1196,6 +1239,7 @@ auto_scan.export_text = function ()
                 or group == "catalog_conflicts" and catalog_records
                 or group == "invalid_candidates" and invalid_candidate_records
                 or group == "gossips" and gossip_records_for_export(store[group])
+                or group == "chats" and chat_records_for_export(store[group])
                 or store[group] or {}
         end
         local keys = {}
@@ -1377,7 +1421,7 @@ auto_scan.export_text = function ()
                         "translation", "visible", "owner", "slot", "surface",
                         "reason", "template", "personalized",
                         "personalizationConfidence", "translationHint",
-                        "templateCode" }
+                        "templateCode", "playerName", "playerClass", "playerRace" }
                 else
                     output_fields = { "spellID", "npcID", "bookID", "page",
                         "npc", "name", "text", "translation", "visible",
@@ -1385,7 +1429,7 @@ auto_scan.export_text = function ()
                         "reason", "event", "language", "reply", "global",
                         "current", "capture", "template", "personalized",
                         "personalizationConfidence", "translationHint",
-                        "templateCode" }
+                        "templateCode", "playerName", "playerClass", "playerRace" }
                 end
                 for _, field in ipairs(output_fields) do
                     if record[field] ~= nil
@@ -1406,6 +1450,9 @@ auto_scan.export_text = function ()
                                 tag_added = true
                             end
                         else
+                            if record.templates and record.templates[field] then
+                                add("template_" .. field .. " = " .. field_text(record.templates[field]))
+                            end
                             add(field .. " = " .. field_text(record.fields[field]))
                         end
                     end

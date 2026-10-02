@@ -436,15 +436,16 @@ local function readable_unit_value(api_name, unit)
     local api = _G[api_name]
     if type(api) ~= "function" then return nil end
     local ok, value = pcall(api, unit)
-    if not ok or type(value) ~= "string" or value == "" then return nil end
+    if not ok then return nil end
     if type(_G.issecretvalue) == "function" then
         local secret_ok, secret = pcall(_G.issecretvalue, value)
         if not secret_ok or secret then return nil end
     end
+    if type(value) ~= "string" or value == "" then return nil end
     return value
 end
 
-local function replace_ascii_phrase(text, phrase, replacement)
+local function replace_ascii_phrase(text, phrase, replacement, address_only)
     if type(text) ~= "string" or type(phrase) ~= "string" or phrase == "" then
         return text, false
     end
@@ -458,7 +459,16 @@ local function replace_ascii_phrase(text, phrase, replacement)
         if not first then break end
         local before = first > 1 and lower_text:sub(first - 1, first - 1) or ""
         local after = last < #lower_text and lower_text:sub(last + 1, last + 1) or ""
-        if not before:match("[%w_]") and not after:match("[%w_]") then
+        local function word_byte(value)
+            return value ~= "" and (value:match("[%w_]") or value:byte() >= 128)
+        end
+        local prefix = lower_text:sub(1, first - 1)
+        local address = not address_only or (
+            (prefix:match(",%s*$") or prefix:match(",%s*young%s*$")
+                or prefix:match(",%s*fellow%s*$") or prefix:match("^greetings%s+$")
+                or prefix:match("^hello%s+$") or prefix:match("^welcome%s+$"))
+            and (after == "" or after:match("[,.!?;:]")))
+        if not word_byte(before) and not word_byte(after) and address then
             parts[#parts + 1] = text:sub(cursor, first - 1)
             parts[#parts + 1] = replacement
             cursor = last + 1
@@ -473,6 +483,12 @@ local function replace_ascii_phrase(text, phrase, replacement)
     return table_concat(parts), true
 end
 
+utils.get_player_capture = function ()
+    return readable_unit_value("UnitName", "player"),
+        readable_unit_value("UnitClass", "player"),
+        readable_unit_value("UnitRace", "player")
+end
+
 -- Gossip APIs expose player substitutions as rendered text (for example the
 -- current character name or "Warrior"), not as the original $n/$c tokens.
 -- Keep the rendered source for evidence, but derive a stable lookup template.
@@ -482,8 +498,7 @@ utils.get_personalized_gossip = function (text)
     local template = text
     local kinds = {}
     local hints = {}
-    local player_name = readable_unit_value("UnitName", "player")
-    local player_class = readable_unit_value("UnitClass", "player")
+    local player_name, player_class, player_race = utils.get_player_capture()
 
     local changed
     if player_name then
@@ -494,15 +509,44 @@ utils.get_personalized_gossip = function (text)
         end
     end
     if player_class then
-        template, changed = replace_ascii_phrase(template, player_class, "<class>")
+        template, changed = replace_ascii_phrase(template, player_class, "<class>", true)
         if changed then
             kinds[#kinds + 1] = "class"
             hints[#hints + 1] = "{клас:<відмінок>}"
         end
     end
+    if player_race then
+        template, changed = replace_ascii_phrase(template, player_race, "<race>", true)
+        if changed then
+            kinds[#kinds + 1] = "race"
+            hints[#hints + 1] = "{раса:<відмінок>}"
+        end
+    end
 
     if #kinds == 0 then return text end
     return template, table_concat(kinds, ","), table_concat(hints, ", ")
+end
+
+-- These NPC announcements address other players, not necessarily the scanner.
+-- Scope the capture to the speaker and fixed sentence, never arbitrary names.
+utils.get_personalized_chat = function (npc, text)
+    local template, kinds, hints = utils.get_personalized_gossip(text)
+    local patterns = npc == "Gryan Stoutmantle" and {
+        { "^All hail, (.+)! Defender of The People!$", "All hail, <name>! Defender of The People!" },
+        { "^Three cheers for (.+)!  This land shall be ours once again!$", "Three cheers for <name>!  This land shall be ours once again!" },
+        { "^The People of Westfall salute (.+), a brave and valiant defender of freedom%.$", "The People of Westfall salute <name>, a brave and valiant defender of freedom." },
+    } or npc == "Jarven Thunderbrew" and {
+        { "^Ah, that sure does hit the spot!  I think I'll get myself a couple more%.%.%.can you watch these barrels for me, (.+)%?$", "Ah, that sure does hit the spot!  I think I'll get myself a couple more...can you watch these barrels for me, <name>?" },
+        { "^Hey there, Belm!  Give me a mug of Thunder Ale, and one for my good friend (.+)%.$", "Hey there, Belm!  Give me a mug of Thunder Ale, and one for my good friend <name>." },
+    } or npc == "Mangeclaw" and {
+        { "^%%s roars a challenge to (.+)!$", "%s roars a challenge to <name>!" },
+    } or npc == "The Defias Traitor" and {
+        { "^Follow me, (.+)%. I'll take you to the Defias hideout%. But you better protect me or I am as good as dead%.$", "Follow me, <name>. I'll take you to the Defias hideout. But you better protect me or I am as good as dead." },
+    } or nil
+    for _, row in ipairs(patterns or {}) do
+        if text:match(row[1]) then return row[2], "name", "{ім'я:<відмінок>}" end
+    end
+    return template, kinds, hints
 end
 
 utils.get_gossip_lookup_codes = function (text)
