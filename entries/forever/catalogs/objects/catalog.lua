@@ -3169,6 +3169,13 @@ addonTable.object = { -- [key] = text
 ["Ritual Candle Aura"] = "Аура ритуальної свічки",
 ["Stranglethorn"] = "Терниста долина",
 ["Swirling Maelstrom"] = "Вируючий вир",
+["Bounty Available: Vulgara the Insatiable!"] = "Оголошено нагороду: Вулґара Ненаситна!",
+["Inviting Chair"] = "Затишний стілець",
+["Ley Line"] = "Лей-лінія",
+["Raw Windstone"] = "Необроблений вітрокамінь",
+["The Shal'nan's Abdication"] = "Зречення Шал'нана",
+["Windstone"] = "Вітрокамінь",
+["Remote Campfire"] = "Віддалене багаття",
 }
 
 addonTable.translate_object_name = function (name)

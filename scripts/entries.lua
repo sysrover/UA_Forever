@@ -5,6 +5,15 @@ local entries   = addon_table.use("entries") ---@class entries_class
 local options   = addon_table.use("options") ---@class options_class
 local utils     = addon_table.use("utils") ---@class utils_class
 local gossip_hashed = addon_table.use("gossip_hashed")
+local chat_hashed = addon_table.use("chat_hashed")
+local function chat_lookup()
+    if type(chat_hashed.find) ~= "function" then
+        gossip_hashed.create("chat_hashed", function(scope)
+            return type(scope) == "string" and scope or nil
+        end, chat_hashed, true)
+    end
+    return chat_hashed
+end
 
 local pcall         = _G.pcall
 local string_format = _G.string.format
@@ -254,7 +263,7 @@ local function make_text_array(array)
     return result
 end
 
-local function make_chat_text(original, translation)
+local function make_chat_text(original, translation, source_template)
     local known_templates = { name=true, race=true, class=true, target=true }
     local at = addon_table
     local sex = UnitSex("player") == 2 and 1 or 2
@@ -266,6 +275,18 @@ local function make_chat_text(original, translation)
 
     local translation_split = { string_split("#", translation) }
     local template_matches = {}
+    if source_template then
+        local kinds = {}
+        local expression = utils.esc(source_template):gsub("<([%a]+)>", function(kind)
+            if known_templates[kind] then
+                kinds[#kinds + 1] = kind
+                return "(.-)"
+            end
+            return "<" .. kind .. ">"
+        end)
+        local captures = { original:match("^" .. expression .. "$") }
+        for i, kind in ipairs(kinds) do template_matches[kind] = captures[i] end
+    end
     if #translation_split > 1 then
         local text_templates = {}
         for i = 2, #translation_split do
@@ -360,8 +381,8 @@ local function make_chat_text(original, translation)
     return translation
 end
 
-local function safe_make_chat_text(original, translation)
-    local success, result = pcall(make_chat_text, original, translation)
+local function safe_make_chat_text(original, translation, source_template)
+    local success, result = pcall(make_chat_text, original, translation, source_template)
 
     if success then
         return result
@@ -699,12 +720,23 @@ end
 entries.get_chat_text = function (npc_name, chat_text)
     local at = addon_table
 
-    if not npc_name or not chat_text or type(at.chat) ~= "table" then
+    if not npc_name or type(chat_text) ~= "string" then
         return
     end
 
-    -- Use the codes captured in the NPC speech scan before generated hashes.
+    local text, _, source_template = chat_lookup().find(npc_name, chat_text, nil, true)
+    if text then
+        -- Stored templates resolve the person addressed, including other players;
+        -- old translations can also retain their own # fragments.
+        local npc_strings = at.chat and at.chat[npc_name]
+        local npc_name_uk = npc_strings and npc_strings[1] or entries.get_glossary_text(npc_name, npc_name)
+        local translated = safe_make_chat_text(chat_text, text, source_template)
+        if translated then return utils.cap(npc_name_uk), translated, nil end
+    end
+
+    -- Only entries without a recovered English source remain in this table.
     local chat_code = utils.get_text_code(chat_text)
+    if type(at.chat) ~= "table" then return nil, nil, chat_code end
     if chat_code and #chat_code > 0 then
         for _, npc_key in ipairs({ npc_name, '!common' }) do
             local npc_strings = at.chat[npc_key]
