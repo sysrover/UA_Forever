@@ -204,10 +204,188 @@ local function translate_spell_links(text)
 end
 
 local function translate_skill_name(name)
+    local english, ukrainian = addon_table.client_skill_lines_en, addon_table.client_skill_lines_uk
+    if english and ukrainian and english.sourceBuild == ukrainian.sourceBuild then
+        for id, source in pairs(english.rows or {}) do
+            local translated = ukrainian.rows and ukrainian.rows[id]
+            if source == name and type(translated) == "string" then return utils.cap(translated) end
+        end
+    end
     return addon_table.forever_ui_curated
         and addon_table.forever_ui_curated[name]
+        or addon_table.forever_ui and addon_table.forever_ui[name]
         or entries.lookup_name("spell", name)
         or name
+end
+
+local function translate_domain_links(text)
+    -- These links can occur in player messages too. Only their labels belong
+    -- to us; do not run sentence/template translation over player speech.
+    return text:gsub("(|H([^:|]+):([^|]+)|h)%[([^%]]+)%](|h)",
+        function(prefix, kind, payload, name, suffix)
+            local translated
+            local id = tonumber(payload:match("^(%d+)"))
+            if kind == "quest" and options.can_translate("translate_quest")
+                and options.translate_name("quest") then
+                local entry = id and entries.get_entry("quest", id)
+                translated = entry and entry[1] or entries.lookup_name("quest", name)
+            elseif kind == "trade" and options.can_translate("translate_string")
+                and options.translate_name("skill") then
+                translated = translate_skill_name(name)
+            elseif (kind == "enchant" or kind == "spell")
+                and options.can_translate("translate_spell") and options.translate_name("spell") then
+                local entry = id and entries.get_entry("spell", id)
+                translated = entry and entry[1]
+                if not translated or translated == name then
+                    translated = translate_skill_name(name)
+                end
+            end
+            if type(translated) ~= "string" or translated == "" then translated = name end
+            return prefix .. "[" .. translated .. "]" .. suffix
+        end)
+end
+
+-- Parse client printf templates instead of making a separate English regex
+-- for every notification. Positional placeholders retain their argument IDs.
+local function template_parts(template)
+    local parts, kinds, next_index, position = {}, {}, 1, 1
+    while position <= #template do
+        local start = template:find("%", position, true)
+        if not start then parts[#parts + 1] = { text = template:sub(position) }; break end
+        if start > position then parts[#parts + 1] = { text = template:sub(position, start - 1) } end
+        if template:sub(start + 1, start + 1) == "%" then
+            parts[#parts + 1] = { text = "%" }
+            position = start + 2
+        else
+            local tail = template:sub(start)
+            local token, explicit, kind = tail:match("^(%%(%d+)%$([sd]))")
+            if not token then token, kind = tail:match("^(%%([sd]))") end
+            if not token then return nil end
+            local index = tonumber(explicit) or next_index
+            if not explicit then next_index = next_index + 1 end
+            if kinds[index] and kinds[index] ~= kind then return nil end
+            kinds[index] = kind
+            parts[#parts + 1] = { index = index, kind = kind }
+            position = start + #token
+        end
+    end
+    return parts, kinds
+end
+
+local function template_markup(template)
+    local tokens = {}
+    for token in template:gmatch("|H.-|h") do tokens[#tokens + 1] = token end
+    for token in template:gmatch("|T.-|t") do tokens[#tokens + 1] = token end
+    for token in template:gmatch("|c%x%x%x%x%x%x%x%x") do tokens[#tokens + 1] = token end
+    for token in template:gmatch("|[hr]") do tokens[#tokens + 1] = token end
+    return table.concat(tokens, "\n")
+end
+
+local function plural_variants(template)
+    local first, last, forms = template:find("|4([^;]+);")
+    if not first then return { template } end
+    local result = {}
+    for form in forms:gmatch("[^:]+") do
+        for _, variant in ipairs(plural_variants(template:sub(1, first - 1)
+            .. form .. template:sub(last + 1))) do result[#result + 1] = variant end
+    end
+    return result
+end
+
+local client_notice_templates
+local function prepare_client_notice_templates()
+    local result, seen = {}, {}
+    for _, tag in ipairs(chat_catalog.template_tags) do
+        local source = _G[tag]
+        local target = type(source) == "string" and (chat_catalog.exact[source]
+            or chat_catalog.template_text[source]
+            or addon_table.forever_ui_curated and addon_table.forever_ui_curated[source]
+            or addon_table.forever_ui and addon_table.forever_ui[source])
+        if type(target) == "string" and target ~= source and not seen[source]
+            and template_markup(source) == template_markup(target) then
+            local output, target_kinds = template_parts(target)
+            for _, variant in ipairs(plural_variants(source)) do
+                local input, source_kinds = template_parts(variant)
+                local valid = input and output
+                if valid then
+                    for index, kind in pairs(source_kinds) do
+                        if target_kinds[index] ~= kind then valid = false end
+                    end
+                    for index, kind in pairs(target_kinds) do
+                        if source_kinds[index] ~= kind then valid = false end
+                    end
+                end
+                if valid then
+                    local pattern, captures, weight = { "^" }, {}, 0
+                    for _, part in ipairs(input) do
+                        if part.text then
+                            pattern[#pattern + 1] = part.text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+                            weight = weight + #part.text
+                        else
+                            pattern[#pattern + 1] = part.kind == "d" and "(%d+)" or "(.-)"
+                            captures[#captures + 1] = part.index
+                        end
+                    end
+                    pattern[#pattern + 1] = "$"
+                    result[#result + 1] = { pattern = table.concat(pattern),
+                        captures = captures, output = output, weight = weight,
+                        rank = chat_catalog.rank_arguments[tag] }
+                end
+            end
+            seen[source] = true
+        end
+    end
+    table.sort(result, function(a, b) return a.weight > b.weight end)
+    client_notice_templates = result
+end
+
+local function translate_client_notice(message)
+    if not client_notice_templates then prepare_client_notice_templates() end
+    for _, template in ipairs(client_notice_templates) do
+        local matched = { message:match(template.pattern) }
+        if #matched > 0 then
+            local arguments, valid = {}, true
+            for capture, index in ipairs(template.captures) do
+                if arguments[index] and arguments[index] ~= matched[capture] then valid = false end
+                arguments[index] = matched[capture]
+            end
+            if valid then
+                local output, last_number = {}, nil
+                for _, part in ipairs(template.output) do
+                    if part.text then
+                        output[#output + 1] = part.text:gsub("|4([^;]+);", function(forms)
+                            local choices = {}
+                            for form in forms:gmatch("[^:]+") do choices[#choices + 1] = form end
+                            local number = last_number or 0
+                            local last_two, last_one = number % 100, number % 10
+                            local index = #choices == 2 and (number == 1 and 1 or 2)
+                                or (last_one == 1 and last_two ~= 11 and 1
+                                or last_one >= 2 and last_one <= 4
+                                    and (last_two < 12 or last_two > 14) and 2 or 3)
+                            return choices[index] or choices[#choices]
+                        end)
+                    else
+                        local value = arguments[part.index]
+                        if part.index == template.rank then
+                            value = addon_table.forever_ui_curated and addon_table.forever_ui_curated[value]
+                                or addon_table.forever_ui and addon_table.forever_ui[value] or value
+                        end
+                        output[#output + 1] = value
+                        last_number = tonumber(value) or last_number
+                    end
+                end
+                return table.concat(output)
+            end
+        end
+    end
+end
+
+local function is_notice_color(r, g, b)
+    for _, kind in ipairs(chat_catalog.notice_types) do
+        local info = ChatTypeInfo and ChatTypeInfo[kind]
+        if info and info.r == r and info.g == g and info.b == b then return true end
+    end
+    return false
 end
 
 local money_unit_forms = chat_catalog.money_unit_forms
@@ -358,6 +536,11 @@ local function translate_system_text(event, message)
         or event == "CHAT_MSG_CURRENCY" or event == "CHAT_MSG_TRADESKILLS" then
         local direct = translate_direct_chat_text(message)
         if direct then return direct end
+    end
+
+    if event == "CHAT_MSG_SYSTEM" then
+        local notice = translate_client_notice(message)
+        if notice then return notice end
     end
 
     if event == "CHAT_MSG_TRADESKILLS" then
@@ -556,7 +739,7 @@ end
 local function record_direct_system_chat(message, r, g, b, translated)
     if type(message) ~= "string" or not ChatTypeInfo then return end
     if message:match("^%[[^%]]+%] says: ")
-        or message:find("|Hplayer:", 1, true) then return end
+        or message:match("|Hplayer:.-|h.-|h[|r%s]*:") then return end
     for _, kind in ipairs({ "SYSTEM", "LOOT", "MONEY", "CURRENCY", "SKILL", "TRADESKILLS" }) do
         local info = ChatTypeInfo[kind]
         if info and r == info.r and g == info.g and b == info.b then
@@ -577,8 +760,8 @@ local function translated_channel_label(label)
                 or entries.get_language_text(zone)
             return chat_format.channel(number, channel_name, language)
         end
-        local zone_name = addon_table.zone and addon_table.zone[zone]
-        if channel_name and zone_name then
+        local zone_name = addon_table.zone and addon_table.zone[zone] or zone
+        if channel_name then
             return chat_format.channel(number, channel_name, zone_name)
         end
     end
@@ -603,15 +786,31 @@ local function translate_chat_channel_header(message)
     return changed and result or nil
 end
 
+local function translate_rendered_chat(message, r, g, b)
+    if type(message) ~= "string" then return nil end
+    -- Player speech has a rendered speaker header. Even if its color matches
+    -- SYSTEM, only domain-link labels may be changed inside that message.
+    local plain = message:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local player_speech = plain:match("|Hplayer:.-|h.-|h%s*:")
+        or plain:match("^%[[^%]]+%] says: ")
+    local translated = not player_speech and (translate_direct_chat_text(message)
+        or is_notice_color(r, g, b) and translate_client_notice(message)) or nil
+    local result = translated or message
+    result = translate_chat_channel_header(result) or result
+    result = translate_domain_links(result)
+    return result ~= message and result or nil
+end
+
 auto_scan.system_chat_translated = function(event, message)
-    if event == "ChatFrame.AddMessage" and (message:match("^%[[^%]]+%] says: ")
-        or message:find("|Hplayer:", 1, true)) then return true end
+    if event == "ChatFrame.AddMessage" and message:match("|Hplayer:.-|h.-|h[|r%s]*:") then
+        return true -- Player speech is outside the system-notice worklist.
+    end
     if event == "ChatFrame.ChannelHeader" then
         local translated = translated_channel_label(message)
         return type(translated) == "string" and translated ~= message
     end
     local translated = event == "ChatFrame.AddMessage"
-        and translate_direct_chat_text(message)
+        and (translate_direct_chat_text(message) or translate_client_notice(message))
         or translate_system_text(event, message)
     return type(translated) == "string" and translated ~= message
 end
@@ -623,12 +822,14 @@ local function after_chat_add_message(self, message, r, g, b)
     if not options.can_lookup("translate_chat")
         or not options.can_translate("translate_chat")
         or (_G.issecretvalue and _G.issecretvalue(message)) then return end
-    if direct_event_messages[self] == message then
+    local from_event = direct_event_messages[self] == message
+    if from_event then
         direct_event_messages[self] = nil
-        return
+        local linked = translate_domain_links(message)
+        if linked == message then return end
     end
-    local translated = translate_direct_chat_text(message)
-        or translate_chat_channel_header(message)
+    local translated = from_event and translate_domain_links(message)
+        or translate_rendered_chat(message, r, g, b)
     record_direct_system_chat(message, r, g, b, translated ~= nil)
     if not translated or type(self.TransformMessages) ~= "function" then return end
     if options.account.chat_style == "addition" then
@@ -656,10 +857,15 @@ local function wrap_chat_frame(frame)
             end
             if direct_event_messages[self] == message then
                 direct_event_messages[self] = nil
-                return original_add_message(self, message, r, g, b, ...)
+                local linked = translate_domain_links(message)
+                if linked == message then return original_add_message(self, message, r, g, b, ...) end
+                if options.account.chat_style == "addition" then
+                    original_add_message(self, message, r, g, b, ...)
+                    return original_add_message(self, assets.icon_ua_inline .. " " .. linked, r, g, b, ...)
+                end
+                return original_add_message(self, linked, r, g, b, ...)
             end
-            local translated = translate_direct_chat_text(message)
-                or translate_chat_channel_header(message)
+            local translated = translate_rendered_chat(message, r, g, b)
             record_direct_system_chat(message, r, g, b, translated ~= nil)
             if not translated then return original_add_message(self, message, r, g, b, ...) end
             if options.account.chat_style == "addition" then

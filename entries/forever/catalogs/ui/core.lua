@@ -850,6 +850,13 @@ end
 addonTable.forever_ui_patterns = {
     -- Contacts formats these values before writing its pooled FontStrings.
     {
+        pattern = "^Social (|c%x%x%x%x%x%x%x%x)(%b())(|r)$",
+        replace = function (color, binding, reset)
+            local translated = social_label("Social")
+            return translated and (translated .. " " .. color .. binding .. reset) or nil
+        end,
+    },
+    {
         pattern = "^Level (%d+)%s+(|A:charactercreate%-customize%-dropdown%-linemouseover%-middle:[^|]+|a)%s+(.+)$",
         replace = function (level, divider, race)
             local key = race:lower():gsub("%s+", "")
@@ -1409,8 +1416,7 @@ addonTable.forever_ui_patterns = {
         -- whichever binding the player currently uses.
         pattern = "^(.-) %((.-)%)$",
         replace = function (label, binding)
-            local translated = addonTable.string and addonTable.string[label]
-                or ui[label]
+            local translated = social_label(label)
             if translated then return translated .. " (" .. binding .. ")" end
         end,
     },
