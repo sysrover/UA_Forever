@@ -57,6 +57,10 @@ local function match_dynamic_token(text)
 end
 
 local function localize_dynamic_value(value)
+    local format = tooltip_catalog.format
+    if format and type(format.dynamic_value_range) == "function" then
+        value = format.dynamic_value_range(value)
+    end
     return (value:gsub("([A-Za-z]+)", function (word)
         return dynamic_value_words[word:lower()] or word
     end))
