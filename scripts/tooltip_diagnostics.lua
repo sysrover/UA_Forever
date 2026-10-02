@@ -4,6 +4,30 @@ local diagnostics = addon_table.use("tooltip_diagnostics")
 local item_client_db = addon_table.use("item_client_db")
 local spell_client_db = addon_table.use("spell_client_db")
 
+-- Append diagnostic results, preserving reports saved before history support.
+diagnostics.append_report = function (key, report)
+    if not UA_ForeverDB then return report end
+    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+    local history = UA_ForeverDB.scan[key]
+    if type(history) ~= "table" or type(history.snapshots) ~= "table" then
+        local previous = history
+        history = { version = 1, snapshots = {}, totalCaptures = 0 }
+        if type(previous) == "table" then
+            history.snapshots[1] = previous
+            history.totalCaptures = tonumber(previous.sequence) or 1
+        elseif previous ~= nil then
+            history.snapshots[1] = { status = "error", error = tostring(previous) }
+            history.totalCaptures = 1
+        end
+        UA_ForeverDB.scan[key] = history
+    end
+    history.totalCaptures = math.max(tonumber(history.totalCaptures) or 0,
+        #history.snapshots) + 1
+    report.sequence = history.totalCaptures
+    history.snapshots[#history.snapshots + 1] = report
+    return report
+end
+
 diagnostics.install_full_scan = function (tooltips, api)
     local is_secret = api.is_secret
     local safe_number = api.safe_number
@@ -363,10 +387,7 @@ diagnostics.install = function (tooltips, api)
         mark_aura_tooltip(tooltip)
         after_aura_tooltip_rendered(tooltip)
         report.after = snapshot()
-        if UA_ForeverDB then
-            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-            UA_ForeverDB.scan.auraProbe = report
-        end
+        diagnostics.append_report("auraProbe", report)
         return report
     end
     
@@ -857,16 +878,7 @@ diagnostics.install = function (tooltips, api)
             report.tooltips = tooltips.capture_visible_tooltips(false)
         end
         if save ~= false and UA_ForeverDB then
-            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-            local history = UA_ForeverDB.scan.panelProbe
-            if type(history) ~= "table" or type(history.snapshots) ~= "table" then
-                history = { version = 1, snapshots = {}, totalCaptures = 0 }
-                UA_ForeverDB.scan.panelProbe = history
-            end
-            history.totalCaptures = (tonumber(history.totalCaptures) or 0) + 1
-            report.sequence = history.totalCaptures
-            history.snapshots[#history.snapshots + 1] = report
-            if #history.snapshots > 12 then table.remove(history.snapshots, 1) end
+            diagnostics.append_report("panelProbe", report)
         end
         return report
     end
@@ -1254,8 +1266,7 @@ diagnostics.install = function (tooltips, api)
                 tooltip_diagnostic_snapshot(entry)
         end
         if save ~= false and UA_ForeverDB then
-            UA_ForeverDB.scan = UA_ForeverDB.scan or {}
-            UA_ForeverDB.scan.tooltipProbe = report
+            diagnostics.append_report("tooltipProbe", report)
         end
         return report
     end

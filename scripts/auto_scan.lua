@@ -111,9 +111,8 @@ for _, descriptor in ipairs(groups) do
 end
 
 local technical_scan_fields = {
-    "ui", "ids", "menus", "mouseProbe", "tooltipProbe", "auraProbe",
-    "windowProbe", "fullObjectScan", "mapTextureProbe", "auraCapture",
-    "panelProbe", "panelProbeError",
+    "ui", "ids", "menus", "mouseProbe",
+    "windowProbe", "fullObjectScan", "mapTextureProbe",
 }
 
 local function diagnostics_enabled()
