@@ -310,8 +310,21 @@ adapter.add_structured_aura = function (tooltip, data)
             local source = contract.safe_string(line_data.leftText)
             if line_index then
                 max_line_index = math.max(max_line_index, line_index)
-                applied = translate_right_service(contract, tooltip, line_data,
-                    line_index, "aura.service-right:") or applied
+                local right_source = contract.safe_string(line_data.rightText)
+                local dispel_name = line_index == 1 and right_source
+                    and catalog.aura_dispel_names[right_source]
+                if dispel_name and options.can_translate("translate_spell") then
+                    local right_region = contract.line_region(tooltip, "Right", line_index)
+                    if right_region then
+                        applied = contract.set_translation(
+                            tooltip, right_region, right_source, dispel_name,
+                            "aura.dispel-type", nil, "spell-tooltip", "surface"
+                        ) or applied
+                    end
+                else
+                    applied = translate_right_service(contract, tooltip, line_data,
+                        line_index, "aura.service-right:") or applied
+                end
                 local region = contract.line_region(tooltip, "Left", line_index)
                 -- Build 70058 exposes every UnitAura row as type None (0).
                 -- Its stable structured slots are name first, description

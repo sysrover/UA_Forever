@@ -1058,7 +1058,28 @@ local function prepare_chat_tabs()
     registry.refresh("chat-tabs")
 end
 
+local function prepare_chat_headers()
+    hooks.once("chat-header-formatter", function()
+        local util = _G.ChatFrameUtil
+        local original = util and util.GetOutMessageFormatKey
+        if type(original) ~= "function" then return false end
+        -- Build 70170 reads CHAT_<subtype>_GET here before substituting the
+        -- speaker link and message. Localize only the native format template.
+        -- The existing UI catalog preserves printf arguments and channel hrefs.
+        return pcall(function()
+            util.GetOutMessageFormatKey = function(subtype)
+                local source = original(subtype)
+                if not options.can_lookup("translate_chat")
+                    or not options.can_translate("translate_chat")
+                    or not runtime.safe_string_or_nil(source) then return source end
+                return resolver.find_ui(source) or source
+            end
+        end)
+    end)
+end
+
 chats.prepare = function()
+    prepare_chat_headers()
     for event_name, _ in pairs(known_chat_msg_events) do
         ChatFrame_AddMessageEventFilter(event_name, filter_chat_msg)
     end

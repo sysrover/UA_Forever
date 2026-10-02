@@ -14,6 +14,13 @@ addonTable.addon_locale_uk = {
         error = "Помилка сканування смуги касту; подробиці збережено в castBarProbe",
         help = "; /uaf castbar [затримка] [тривалість]",
     },
+    combat_log_probe = {
+        disabled = "Пробу журналу бою вимкнено: виклик клієнтського форматтера спричиняв Lua-помилки.",
+        summary = "Перевірка шаблону журналу бою: %s",
+        before = "До підміни: ",
+        after = "Після підміни: ",
+        saved = "Зробіть /reload; результат: UA_ForeverDB.scan.combatLogProbe",
+    },
     panel_probe = {
         error = "Probe панелі завершився помилкою; її записано в SavedVariables",
         summary = "Probe панелі: %s; об'єктів %d; знімок %d%s",
