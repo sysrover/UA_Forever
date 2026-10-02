@@ -77,13 +77,22 @@ local function translate_chat_bubble(chat_text, chat_text_uk)
         if not options.can_translate("translate_chat_bubble") then return end
         local font_string = utils.chat_bubble_font_string_with_text(chat_text)
         if font_string then
-            local MAX_CHAT_BUBBLE_WIDTH = 314 -- value observed from default chat bubbles.
+            local combat_text_only = runtime.combat_locked()
+            local after_apply
+            if not combat_text_only then
+                after_apply = function (region)
+                    local MAX_CHAT_BUBBLE_WIDTH = 314 -- value observed from default chat bubbles.
+                    region:SetWidth(math_min(region:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
+                end
+            end
+            -- In combat, only replace public text on the existing region.
+            -- A short-lived bubble must not be queued for post-combat writes.
             if runtime.apply(font_string, { owner = "chat-bubble", slot = "chat.text",
                 source = chat_text, translated = chat_text_uk,
                 priority = runtime.PRIORITY.DOMAIN,
-                after_apply = function (region)
-                    region:SetWidth(math_min(region:GetStringWidth(), MAX_CHAT_BUBBLE_WIDTH))
-                end }) then return end
+                combat_text_only = combat_text_only,
+                defer_if_protected = false,
+                after_apply = after_apply }) then return end
         end
         return false
     end

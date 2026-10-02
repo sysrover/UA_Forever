@@ -1,8 +1,11 @@
 local _, addon_table = ...
 
-local lookup = addon_table.use("gossip_hashed")
+local module = addon_table.use("gossip_hashed")
 local utils = addon_table.use("utils")
 
+-- Separate indexes share one matcher; gossip scopes are IDs, chat scopes are names.
+local function create_lookup(database_key, scope_value, lookup, chat_mode)
+lookup = lookup or {}
 local index, anchors, identities, source_templates, actor_key
 local max_captures = 24
 lookup.version = 1
@@ -96,6 +99,11 @@ local function signature(text, actor)
 end
 
 local function conditional_variants(text, sex)
+    if chat_mode then
+        text = text:gsub("<([^<>/]+)/([^<>/]+)>", function(male, female)
+            return "$t" .. male .. ":" .. female .. ";"
+        end)
+    end
     text = text:gsub("<hero/heroine>", "$ghero:heroine;")
         :gsub("<sir/ma'am>", "$gsir:ma'am;")
     local variants = { { text = text, choices = {} } }
@@ -142,7 +150,27 @@ local function actor_source(text, actor)
 end
 
 local function compile_template(text, actor, row, id, choices)
-    text = actor_source(text, actor)
+    local english = text
+    if chat_mode then
+        local captures, next_capture = {}, 90000
+        local function dynamic(kind)
+            if not captures[kind] then
+                next_capture = next_capture + 1
+                captures[kind] = "$" .. next_capture .. "k"
+            end
+            return captures[kind]
+        end
+        text = text:gsub("<([%a]+)>", function(kind)
+            if kind == "name" or kind == "class" or kind == "race" or kind == "target" then
+                return dynamic(kind)
+            end
+            return "<" .. kind .. ">"
+        end):gsub("%$([nNcCrR])", function(token)
+            return dynamic(token:lower() == "n" and "name" or token:lower() == "c" and "class" or "race")
+        end)
+    else
+        text = actor_source(text, actor)
+    end
     if not text then return nil end
     local raw_source = exact_text(text)
     text = canonical(text)
@@ -164,7 +192,7 @@ local function compile_template(text, actor, row, id, choices)
     local literal_text = table.concat(literals, " ")
     if literal_text:find("$", 1, true) then return nil end
     return { row = row, id = id, pattern = table.concat(parts), tokens = tokens,
-        raw_source = raw_source,
+        raw_source = raw_source, english = english,
         choices = choices, signature = signature(text, actor),
         literals = signature(literal_text, actor) }
 end
@@ -193,7 +221,7 @@ end
 
 local function rebuild(actor)
     index, anchors, identities, source_templates = {}, {}, {}, {}
-    local database = addon_table.gossip_hashed
+    local database = addon_table[database_key]
     if type(database) ~= "table" or database.version ~= lookup.version then return end
     local compiled, frequencies = {}, {}
     local function compile_row(id, row)
@@ -204,7 +232,15 @@ local function rebuild(actor)
         end
         if type(row) == "table" and safe_string(row.text) and type(row.english) == "table" then
             for _, english in ipairs(row.english) do
-                for _, variant in ipairs(conditional_variants(english, actor.sex)) do
+                if chat_mode then
+                    local template = source_template(english)
+                    add_scoped(source_templates, row, utils.string_hash(template), {
+                        row = row, id = id, template = template, raw_source = exact_text(english),
+                    })
+                end
+                local source_sex = actor.sex
+                if chat_mode then source_sex = nil end
+                for _, variant in ipairs(conditional_variants(english, source_sex)) do
                     local template = source_template(variant.text)
                     local template_hash = utils.string_hash(template)
                     add_scoped(source_templates, row, template_hash, {
@@ -238,6 +274,8 @@ local function rebuild(actor)
             if anchor then
                 local anchor_hash = utils.string_hash(anchor)
                 add_scoped(anchors, candidate.row, anchor_hash, candidate)
+            elseif chat_mode then
+                add_scoped(anchors, candidate.row, "!unanchored", candidate)
             end
         end
     end
@@ -288,7 +326,7 @@ local function find_identity(npc_id, source, role, actor, raw_translation)
         if ambiguous then return nil end
         return best, best_id
     end
-    local scopes = { tonumber(npc_id) or false, false }
+    local scopes = { scope_value(npc_id) or false, false }
     for _, scope in ipairs(scopes) do
         for _, code in ipairs(codes) do
             local text, id = query("code", code, scope)
@@ -328,19 +366,20 @@ lookup.find = function(npc_id, source, role, raw_translation)
             if not seen[candidate] then candidates[#candidates + 1] = candidate; seen[candidate] = rank end
         end
     end
-    local scope = tonumber(npc_id)
+    local scope = scope_value(npc_id)
     local hash = utils.string_hash(normalized)
     local words = {}
     for word in normalized:gmatch("%S+") do words[#words + 1] = utils.string_hash(word) end
     for _, entry in ipairs({ { scope or false, 4 }, { common_scope, 2 } }) do
         add(scoped_bucket(index, entry[1], hash), entry[2])
+        if chat_mode then add(scoped_bucket(anchors, entry[1], "!unanchored"), entry[2]) end
         for _, word_hash in ipairs(words) do
             add(scoped_bucket(anchors, entry[1], word_hash), entry[2])
         end
     end
     local rendered_source = canonical(source)
     local raw_source = exact_text(source)
-    local best, best_rank, best_id, ambiguous
+    local best, best_rank, best_id, best_source, ambiguous
     for _, candidate in ipairs(candidates) do
         local row = candidate.row
         if not role or (row.roles and row.roles[role]) then
@@ -361,7 +400,7 @@ lookup.find = function(npc_id, source, role, raw_translation)
                             or substitute(row.text, actor, candidate, captured)
                         if translated and translated ~= source then
                             if not best_rank or rank > best_rank then
-                                best, best_rank, best_id, ambiguous = translated, rank, candidate.id, false
+                                best, best_rank, best_id, best_source, ambiguous = translated, rank, candidate.id, candidate.english, false
                             elseif rank == best_rank and best ~= translated then ambiguous = true end
                         end
                     end
@@ -369,7 +408,14 @@ lookup.find = function(npc_id, source, role, raw_translation)
             end
         end
     end
-    if best_rank and best_rank >= 200 and not ambiguous then return best, best_id end
+    if best_rank and best_rank >= 200 and not ambiguous then
+        if chat_mode then return best, best_id, best_source end
+        return best, best_id
+    end
+    if chat_mode then
+        if ambiguous then return nil end
+        return best, best_id, best_source
+    end
     local identified, identified_id = find_identity(npc_id, source, role, actor, raw_translation)
     if identified then return identified, identified_id end
     if ambiguous then return nil end
@@ -386,7 +432,7 @@ lookup.find_source = function(npc_id, source, role)
     local best, best_id, best_rank, ambiguous
     local candidates = {}
     local hash = utils.string_hash(template)
-    for _, entry in ipairs({ { tonumber(npc_id) or false, 4 }, { common_scope, 2 } }) do
+    for _, entry in ipairs({ { scope_value(npc_id) or false, 4 }, { common_scope, 2 } }) do
         for _, candidate in ipairs(scoped_bucket(source_templates, entry[1], hash) or {}) do
             candidates[#candidates + 1] = { candidate = candidate, rank = entry[2] }
         end
@@ -408,3 +454,9 @@ lookup.find_source = function(npc_id, source, role)
     if best and not ambiguous then return best, best_id end
     return lookup.find(npc_id, source, role, true)
 end
+
+return lookup
+end
+
+create_lookup("gossip_hashed", tonumber, module)
+module.create = create_lookup

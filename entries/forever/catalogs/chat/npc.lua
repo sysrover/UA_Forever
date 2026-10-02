@@ -1,4146 +1,9478 @@
--- Canonical UA Forever catalog. Maintain entries directly.
-
+-- Canonical NPC speech: hash/template rows and source-less legacy fallback.
 local _, addonTable = ...
 
-local chat = { -- [npc_name_en] = { [1] = npc_name_uk (optional), [hash]=translation, ..., [!code]={ [code]=hash, ...} (optional) }
-["!common"] = {
--- %s attempts to run away in fear!
-[2101560904] = [===[%s налякано тікає геть!]===],
--- %s becomes enraged!
-[1054177436] = [===[%s лютує!]===],
--- %s calls for help!
-[47867955] = [===[%s кличе на допомогу!]===],
--- %s charges!
-[3359642403] = [===[%s стрімко атакує!]===],
--- %s cries.
-[402894991] = [===[%s плаче.]===],
--- %s dies.
-[97473025] = [===[%s вмирає.]===],
--- %s emerges from the darkness, drawn out by the divination scryer!
-[833958517] = [===[%s з'являється з темряви, прикликаний кристалом провидіння!]===],
--- %s gives a negative shake of his head.
-[3306693484] = [===[%s заперечливо хитає головою.]===],
--- %s goes into a berserker rage!
-[3158386481] = [===[%s впадає в лють берсерка!]===],
--- %s goes into a killing frenzy!
-[2760472643] = [===[%s впадає в смертоносне шаленство!]===],
--- %s goes into a rage after seeing a friend fall in battle!
-[1752475137] = [===[%s впадає в лють, коли бачить, як його побратим гине в бою!]===],
--- %s laughs.
-[3343124007] = [===[%s сміється.]===],
--- %s lets out a shriek, calling for help!
-[3983722682] = [===[%s верещить, кличучи на допомогу!]===],
--- %s nods.
-[3309896393] = [===[%s киває.]===],
--- %s sighs.
-[80510248] = [===[%s зітхає.]===],
--- A fine trophy your head will make, <race>.
-[3549731622] = [===[З твоєї голови буде гарний трофей, {раса:к}.#will make, <race>.]===],
--- A foul trogg if ever I saw one.  Die!
-[2274155253] = [===[Ще не бачив таких бридких трогів. Здохни!]===],
--- Aaaaahhh! So close to escaping.
-[2643626745] = [===[Ааааааа! Я майже втік.]===],
--- Ah, a chance to use this freshly sharpened blade.
-[4033759137] = [===[О, а я саме лезо наточив.]===],
--- Aku'mai demands more sacrifices, now you must die!
-[3768695599] = [===[Аку'май вимагає нових жертв, ти маєш померти!]===],
--- Alright I'm going! Stop yelling!
-[1617086965] = [===[Гаразд, йду я! Не кричи!]===],
--- Ashbringer...
-[3077904620] = [===[Спопелитель...]===],
--- Bawk, bawk, bawk!  Happy Hallow's End, <name>!
-[2544152886] = [===[Куд-куд-кудак! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!]===],
--- Brain encaved... mortar... bas... hed... leaking... dyin... g...
-[564955336] = [===[В голову... прилетіло... мортира... я... вмираю...]===],
--- Chugga-chugga, woo-woo!  Happy Hallow's End, <name>!
-[616874991] = [===[Чух-чух-чух, ту-ту! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!]===],
--- Crush!
-[1057780043] = [===[Трощити!]===],
--- Death tarnishes %s's soul.
-[3098926150] = [===[Смерть залишила свій слід на душі %s.]===],
--- Destroy the Scourge invader now, before it's too late!
-[601895925] = [===[Знищте загарбників Скари, поки не пізно!]===],
--- Destroy!
-[2134163192] = [===[Нищити!]===],
--- Did you see that?  There's a Scourge over there!
-[3946184581] = [===[Ви це бачили? Там Скара!]===],
--- Dying... See the light... gloriouss...
-[2140050443] = [===[Вмираю... Бачу світло... прекрасне...]===],
--- Feel da big bad voodoo!
-[1780177135] = [===[Відчуй вуду!]===],
--- Feel the power of the Blackrock Orcs!
-[3482326861] = [===[Відчуй силу орків Чорнокаменю!]===],
--- Feel the power of the Brotherhood!
-[4160462004] = [===[Відчуй силу Братства!]===],
--- Feel the power of the Dark Iron Dwarves!
-[4182785871] = [===[Відчуй силу дворфів Темного Заліза!]===],
--- For the Dragonmaw!
-[1497963302] = [===[За Драконову Пащу!]===],
--- For the Horde!
-[507983674] = [===[За Орду!]===],
--- For the Warchief!
-[169663453] = [===[За вождя!]===],
--- Goodbye, cruel world... I'm leavin' you today... goodbye... goodbye... goodbye...
-[2700027791] = [===[Прощавай, жорстокий світ... Сьогодні я тебе покину... прощавай... прощавай... прощавай...]===],
--- Grrrr... fresh meat!
-[2176189237] = [===[Грррр... Свіже м'ясо!]===],
--- Guards!
-[843109697] = [===[Варта!]===],
--- Guards! Help me!
-[2097931599] = [===[Варта! Допоможіть!]===],
--- HOORAY! I AM SAVED!
-[3297333262] = [===[УРА! Я ВРЯТОВАНИЙ!]===],
--- Heeellp meee... ri... ribss... bro... broken.
-[3200050258] = [===[Допоможіть мені... рe... ребра... з... зламані.]===],
--- How can I get anything done with the Scourge running amok around here?!
-[1821764902] = [===[Як я можу щось робити, коли тут розгулює Скара?!]===],
--- How can I get anything done with the Scourge running amok in here?!
-[2524779254] = [===[Як я можу щось робити, коли тут розгулює Скара?!]===],
--- I gonna make you into mojo!
-[1739702883] = [===[Я з тебе моджо зроблю!]===],
--- I just saw a Scourge!  Kill it!
-[3081484674] = [===[Тут Скара! Захищайте місто!]===],
--- I may have ninety-nine problems, but dancin' ain't one of them!  Happy Hallow's End, <name>!
-[2196148534] = [===[Обожнюю танці! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!]===],
--- I'll crush you!
-[1105735521] = [===[Я тебе розчавлю!]===],
--- I'm not gonna make it... death comes...
-[4277758189] = [===[Я не виживу... смерть вже близько...]===],
--- I'm saved! Thank you, doctor!
-[1165139213] = [===[Я врятований! Дякую, лікарю!]===],
--- I... I think I see Blue...
-[681405596] = [===[Здається... я бачу небеса...]===],
--- Intruders!  The Hammer shall fall upon you.
-[2709654253] = [===[Чужинці! Молот покарає вас.]===],
--- Intruders! Attack the intruders!
-[2377395441] = [===[Чужинці! Вбийте їх!]===],
--- Just release me already! I've had enough!
-[1746354766] = [===[Та відпусти вже мене! З мене досить!]===],
--- Kill!
-[3787110592] = [===[Вбивати!]===],
--- Killing you be easy.
-[3287285933] = [===[Вбить тебе легко.]===],
--- Kneel! Kneel before the Ashbringer!
-[2701974162] = [===[На коліна! Схиліться перед Спопелителем!]===],
--- Long live the Dragonmaw! Die you worthless <race>!
-[140899419] = [===[Слава Драконовій Пащі! Помри, нікчемо!]===],
--- Make yourself useful and help me out here!
-[1159192658] = [===[Зроби хоч щось корисне і допоможи мені!]===],
--- Me no run from <class> like you!
-[3285418074] = [===[Я не тікати від {клас:н}!#from <class> like]===],
--- Me smash! You die!
-[233729184] = [===[Я бити! Ти вмирати!]===],
--- More bones to gnaw on...
-[3351208450] = [===[Ррр, погриземо кістки...]===],
--- My entrails are leaking out! HELP!
-[73387052] = [===[В мене кишки випадають! ДОПОМОЖІТЬ!]===],
--- My talons will shred your puny body, <race>.
-[2096984794] = [===[Мої пазурі розірвуть твоє нікчемне тіло, {раса:к}.#puny body, <race>.]===],
--- My weapon be thirsty!
-[2272647552] = [===[Моя зброя хоче крові!]===],
--- Never cross a Dark Iron, <class>.
-[3420974449] = [===[Ніколи не переходь дорогу Темному Залізу, {клас:к}.#Iron, <class>]===],
--- No gnome will be left behind.
-[2458564180] = [===[Не лишим жодного гнома в біді.]===],
--- Ooo, so strong!  Happy Hallow's End, <name>!
-[3791180207] = [===[Ого, яка сила! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!]===],
--- Raaaaaaaaaaaaaaaaaaaaaaaaaaaaaar!!! Me smash <target>!
-[2689863562] = [===[Рррааааааааааааааааааааааааррррр!!! Моя бити {ціль}!#Me smash <target>!]===],
--- Reporting for duty!
-[879047473] = [===[Заступаю на службу!]===],
--- Scourge spotted nearby!
-[3983113829] = [===[Неподалік бачили Скару!]===],
--- Sentinels, come to my defense!
-[890948796] = [===[Вартові, захистіть мене!]===],
--- Sweet, sweet embrace... take me...
-[2323969113] = [===[Ніжні обійми... смерті... заберіть мене...]===],
--- The Brotherhood will not tolerate your actions.
-[2169983480] = [===[Братство вам не пробачить.]===],
--- The Old Gods will be restored.  You will not be allowed to interfere!
-[2006095919] = [===[Старі Боги повернуться. Ви цьому не завадите!]===],
--- The Scarlet Crusade shall smite the wicked and drive evil from these lands!
-[3828955266] = [===[Багряний Похід покарає нечестивих і вижене зло з цих земель!]===],
--- The good doctor saves the day! HOORAY!
-[1524356560] = [===[Гарний лікар рятує ситуацію! УРА!]===],
--- The light condemns all who harbor evil.  Now you will die!
-[1269776197] = [===[Світло засуджує всіх, хто носить у собі зло. Тепер ти помреш!]===],
--- The troggs...they never stop coming.  Die trogg!  Die!
-[367722508] = [===[Троги... вони все лізуть й лізуть. Здохни, тварюко! Здохни!]===],
--- There is no escape for you.  The Crusade shall destroy all who carry the scourge's taint.
-[2992655228] = [===[Вам немає спасіння. Похід знищить усіх, хто заплямований Скарою.]===],
--- There's one of the Scourge, right over there!
-[3660307838] = [===[Скара! Прямо тут!]===],
--- This better be the last one!
-[266602064] = [===[Сподіваюсь, це останній!]===],
--- This has gone too far.  How dare the Scourge attack Stormwind!  Destroy it before more come!
-[1871382043] = [===[Це зайшло надто далеко. Як сміє Скара нападати на Штормовій? Знищте їх, поки не прийшло ще більше!]===],
--- This has gone too far.  How dare the Scourge attack Undercity!  Destroy it before more come!
-[3836565635] = [===[Це зайшло надто далеко. Як сміє Скара нападати на Підмістя? Знищте їх, поки не прийшло ще більше!]===],
--- This sickness clouds my vision, but I know you must be a trogg.  Die foul invader!
-[813337877] = [===[Ця хвороба затьмарює мій зір, але я знаю, що ти трог. Здохни, брудний загарбник!]===],
--- Time to die, <class>.
-[1846255862] = [===[Час вмирати, {клас:к}.#die, <class>]===],
--- Time to join us, <class>.
-[587092614] = [===[Приєднуйся до нас, {клас:к}.#us, <class>.]===],
--- Troll mojo da strongest mojo!
-[2958662936] = [===[Трольське моджо — найкраще моджо!]===],
--- What? You mean you can't kill this one by yourself?
-[627744934] = [===[Що? Хочеш сказати, що не зможеш вбити його самостійно?]===],
--- Will these unrelenting Scourge attacks never end?
-[90272537] = [===[Невже ці напади Скари ніколи не скінчаться?]===],
--- Yiieeeee! Me run!
-[1915097451] = [===[Їііііі! Я бігти!]===],
--- Yip! Me kill!
-[255528522] = [===[Йой! Я вбивати!]===],
--- You are no match for the Blackrock Orcs!
-[2261757394] = [===[Ти не рівня оркам Чорнокаменю!]===],
--- You be dead soon!
-[3704999839] = [===[Ти скоро здохнеш!]===],
--- You better back me up on this one!
-[2555134572] = [===[Краще допоможи мені!]===],
--- You carry the taint of the scourge.  Prepare to enter the twisting nether.
-[2934665551] = [===[Ви заплямовані Скарою. Приготуйтесь відправитись в Підсвітню Крутоверть.]===],
--- You no take candle!
-[4214926514] = [===[Не рухай свічу!]===],
--- You will be easy prey, <class>.
-[2818239379] = [===[Ти будеш легкою здобиччю, {клас:к}.#prey, <class>.]===],
--- Your blood shall be the catalyst for the Old Gods' return!
-[915344449] = [===[Твоя кров прискорить повернення Старих Богів!]===],
--- Your bones will break under my boot, <race>!
-[2044220370] = [===[Я розтопчу твої кістки, {раса:к}!#boot, <race>!]===],
--- Your skull gonna decorate our ritual altars!
-[771197595] = [===[Твій череп прикрасить наші ритуальні вівтарі!]===],
-["!code"] = {
-["fetyyrhdwlme.."] = 3549731622,
-["bkbkbkhyhsed.-"] = 2544152886,
-["cawohyhsed.-"] = 616874991,
-["myhenepsbtdnatoeoftmhyhsed.-"] = 2196148534,
-["lgletedwdeyuws.."] = 140899419,
-["menornfm..leyu"] = 3285418074,
-["mytswlsdyrpyby.."] = 2096984794,
-["nrcsdkin.."] = 3420974449,
-["oososghyhsed.-"] = 3791180207,
-["rrmesh.-"] = 2689863562,
-["tetode.."] = 1846255862,
-["tetojnus.."] = 587092614,
-["yuwlbeeypy.."] = 2818239379,
-["yrbswlbkurmybt.."] = 2044220370,
-},
-},
-["A-Me 01"] = { "Е-Мі 01",
--- <target>, no hurt A-Me. A-Me, good.
-[1723902132] = [===[{Ціль}, не шкодь Е-Мі. Е-Мі хороша.#<target>, no hurt]===],
--- A-Me good. Good, A-Me. Follow... follow A-Me. Home. A-Me go home.
-[2469927355] = [===[Е-Мі хороша. Е-Мі. Хороша. Йти... йти за Е-Мі. Дім. Е-Мі йти додому.]===],
--- A-Me home! A-Me, good! Good A-Me. Home. Home. Home.
-[984586274] = [===[Е-Мі вдома! Е-Мі хороша! Е-Мі хороша. Дім. Дім. Дім.]===],
--- A-Me, home. A-Me go home! <target>, no stop A-Me.
-[1905289744] = [===[Е-Мі, дім. Е-Мі йти додому! {Ціль} не зупинити Е-Мі.#go home! <target>, no stop]===],
--- Bad, <target>. <target>, bad!
-[366152338] = [===[Погано, {ціль}. {Ціль}, погано!#Bad, <target>.]===],
--- Danger. Danger! <target> try hurt A-Me.
-[3529954952] = [===[Небезпека. Небезпека! {Ціль} намагається зашкодити Е-Мі.#Danger! <target> try hurt]===],
--- Good... good, A-Me. A-Me good. Home. Find home.
-[1146351847] = [===[Хороша... хороша Е-Мі. Е-Мі хороша. Дім. Знайти дім.]===],
-["!code"] = {
-[".-nohtaeaegd"] = 1723902132,
-["aeheaegohe.-nospae"] = 1905289744,
-["bd.-.-bd"] = 366152338,
-["drdr.-tyhtae"] = 3529954952,
-},
-},
-["Acolyte Dellis"] = { "помічник Делліс",
--- I'm lucky to be alive!
-[4265399495] = [===[Мені пощастило, що я живий!]===],
--- It was a simple mistake. A wrong turn I tell you!
-[2080347245] = [===[Це було випадково. Кажу ж, я просто звернув не туди!]===],
--- It wasn't my fault, Master Mazen!
-[3192992274] = [===[Це не моя вина, майстре Мазене!]===],
--- The swamp was horrible! I was so... so... scared!
-[2735028224] = [===[Болото було жахливим! Мені було так... так... страшно!]===],
-},
-["Adam"] = { "Адам",
--- C'mon, let's try somewhere else.
-[1460143634] = [===[Пішли, спробуємо ще десь.]===],
--- If you could catch a fish big enough for your mouth we'd never be hungry again.
-[1944953726] = [===[Якби на твої вигадки ловилась риба — ми б нагодували весь Штормовій!]===],
--- If you fished as well as you talked the ocean wouldn't have any fish left.
-[1007517259] = [===[Якби ти рибалив так само добре, як ти базікаєш, в океані не залишилося б риби.]===],
--- Liar!
-[2552348317] = [===[Брехун!]===],
--- Maybe we should go to the bridge and fish.
-[3645278087] = [===[Може підемо ловити рибу з мосту?]===],
--- Nuh uh.
-[1819267878] = [===[Нє-а.]===],
--- Really?
-[2041867510] = [===[Справді?]===],
--- Shhh! You're scaring the fish away.
-[1879838754] = [===[Тссс! Ти розлякаєш всю рибу.]===],
--- You're making that up.
-[3979781423] = [===[Ти все це вигадав.]===],
-},
-["Adjutant Tesoran"] = { "ад'ютант Тесоран",
--- Right away, sir.
-[4157499221] = [===[Слухаюсь, сер.]===],
-},
-["Aedis Brom"] = { "Едіс Бром",
--- Ahh the Glustewelt twins!
-[2202791333] = [===[Ух, ці близнюки Ґлустевельт!]===],
--- Ahh yes, now I remember, your wedding night wasn't it?
-[3554348730] = [===[А-а-а, так, згадав. Це ж в тебе тоді весілля було?]===],
--- Aye and thanks for letting me carry my own hand back to the priests that night.
-[506692380] = [===[Ага, і дякую що дозволив тоді мені самому нести свою руку до жерців.]===],
--- Battling that band of Twilight Hammer in the Morass, I could think of better places for a war.
-[1849810892] = [===[А бій з тою бандою Сутінкового Молота в Чорних драгвах? Еге, кращого місця для битви не придумаєш.]===],
--- Broke both me legs that night. How could I forget?
-[1075712578] = [===[Зламав обидві ноги тієї ночі. Як я міг таке забути?]===],
--- Course I remember that night. Two inches to the left and you'd be drinking with that elf, Morris. That was my best shirt, too.
-[3914840964] = [===[Звісно, я пам'ятаю ту ніч. Кілька перстів лівіше, і ти б зараз пиячив з тим ельфом, Моррісом. Ех, це була моя найкраща сорочка...]===],
--- Hehe, wimp.
-[1856009414] = [===[Хе-хе, слабак.]===],
--- Hey Reese, give me an' Christoph another round.
-[1184620804] = [===[Гей, Різз! Нам з Крістофом ще по одній.]===],
--- I have a piece of iron in my back that will remind me of that night for the rest of my days.
-[1945510360] = [===[З цим шматком заліза в спині я ту ніч до скону не забуду.]===],
--- I miss the dwarven ale we used to get at that inn in Lordaeron. Remember that fight we started there?
-[3434480918] = [===[Я сумую за дворфійським елем, який ми пили у тій таверні в Лордероні. Пам'ятаєш, яку ми там бійку влаштували?]===],
--- I still have the scars from that night.
-[1273503923] = [===[У мене досі залишилися шрами з того дня.]===],
--- I tell ye, I don't miss the Great War at all. I remember when we fought at Darrowmere. All night in the fog, lying in a muddy trench.
-[2554416143] = [===[Еге, я зовсім не сумую за Великою Війною. Пам'ятаю, як ми билися при Дарроумері. Всю ніч тоді човгали окопами по пояс в багнюці.]===],
--- I woke up in a bed in Northshire three weeks later. Don't remember a damn thing.
-[3324038007] = [===[Я прокинувся тоді у Північнокраї через три тижні. Ніц не пам'ятаю.]===],
--- It all worked out in the end.
-[1596041019] = [===[Зрештою, у нас тоді все вийшло.]===],
--- Less than a hundred of us, and over a thousand orcs. Only a handful of us managed to walk away from that one.
-[851439666] = [===[Нас було менше сотні, а орків з тисячу. Не багатьом тоді вдалося вижити...]===],
--- Let's not even begin comparing battle scars, my friend.
-[3673265460] = [===[Давай навіть не починати мірятись шрамами, друже.]===],
--- Never seen anyone move so fast in my whole life.
-[2517211028] = [===[Ніколи в житті не бачив, щоб хтось рухався так швидко.]===],
--- Remember when Danath gathered all the mercenaries of Stormwind together and we marched to fight at Nethergarde?
-[1096086202] = [===[Пам'ятаєш, як Данат зібрав усіх найманців Штормовію і ми вирушили на битву до Підсвітньої Варти?]===],
--- The best had to have been the look on Perenolde's face when our army comes marchin' right up to his front door. What a battle!
-[309602857] = [===[От би побачити пику Перенольда, як наша армія підійшла прямо до його воріт. Ех, яка була битва!]===],
--- Was that the third or fourth time you nearly got me gutted trying one of your crazy stunts?
-[2979810240] = [===[То був третій чи четвертий раз, коли ми мало не подохли через твої божевільні витівки?]===],
--- Wasn't that the night we had to pick up my thumb and carry it in your smoke pouch?
-[2173204924] = [===[Хіба це не тоді ми пів ночі шукали мій палець в кущах?]===],
--- Well, you're still here. I'd say that is something worth drinking to.
-[1808577072] = [===[Ну, ти все ще тут. Думаю, за це варто випити.]===],
--- You are constantly surprising me with what a person can live through.
-[179147171] = [===[Ти не перестаєш мене дивувати своїми історіями.]===],
--- You can thank me anytime for making your life more interesting.
-[2860707376] = [===[Подякуєш якось потім за те, що я роблю твоє життя цікавішим.]===],
--- You screamed like a little girl, funniest thing I ever saw.
-[2835480692] = [===[Ти кричав, як мале дівчисько. Це було дуже кумедно.]===],
-},
-["Affray Challenger"] = { "претендент Побоїща",
--- %s is demoralized and runs!
-[2093730446] = [===[%s здається і втікає!]===],
-},
-["Agent Kearnen"] = { "агент Кірнен",
--- Be sure to read over the notes in my journal, <name>. You will find them to be invaluable in overcoming the tower's defenses.
-[2709498338] = [===[Обов'язково переглянь мої записи, {ім'я:к}. Вони значно спростять проникнення до вежі.#in my journal, <name>.]===],
-["!code"] = {
-["besetordortensinmyjl.-yuwlfdtmtobeieinogte"] = 2709498338,
-},
-},
-["Ak'Zeloth"] = { "Ак'Зелот",
--- Take a stone from the table, <name>.  You will need it for your quest.
-[3615298387] = [===[Візьми камінь зі столу, {ім'я:к}. Він знадобиться тобі для цього завдання.#from the table, <name>]===],
-["!code"] = {
-["tesefmtete.-yuwlnditfryrqt"] = 3615298387,
-},
-},
-["Alarm-a-bomb 2600"] = { "Тривого-бомба 2600",
--- Alarm-a-bomb unit 2600 has failed. Self-destruct override [ACTIVE]. Cooldown [ACTIVE].
-[3720166172] = [===[Тривого-бомба 2600 зазнала збою. Скасування самознищення [АКТИВНО]. Охолодження [АКТИВНО].]===],
--- Anti-escape countermeasures activated. Self-destruct in t-minus 20 seconds....
-[2286549921] = [===[Засоби протидії втечі активовано. Самознищення через 20 секунд....]===],
--- Self-destruct sequence activated.
-[2624863341] = [===[Процес самознищення активовано.]===],
-},
-["Alchemist Arbington"] = { "алхімік Арбінґтон",
--- It's done <name>, and I think you'll be satisfied with the results.
-[3486896047] = [===[Готово, {ім'я:к}, і я думаю, що тобі сподобається результат.#It's done <name>,]===],
--- The solution is ready in my cauldron.  It's just the matter of treating both the unfinished key and the scarab.
-[128165256] = [===[Розчин вже кипить у котлі. Залишилось лише обробити ним незавершений ключ і скарабея.]===],
-["!code"] = {
-["isde.-adtkylbesdwhters"] = 3486896047,
-},
-},
-["Alexi Barov"] = { "Алексій Баров",
--- HELP! ASSASSINS HAVE COME TO KILL ME!
-[259426270] = [===[ДОПОМОЖІТЬ! ВБИВЦІ ПРИЙШЛИ ПО МОЮ ДУШУ!]===],
--- The deeds are mine, brother! Soon you shall be out of my way for good!
-[350414861] = [===[Документи мої, брате! Скоро ти назавжди зникнеш з мого життя!]===],
-},
-["Aligar the Tormentor"] = { "Аліґар-Мучитель",
--- You cannot hide from us, little paladin!
-[3720565237] = [===[Ти не сховаєшся від нас, нікчемний паладине!]===],
-},
-["Alzzin the Wildshaper"] = { "Альззін-Диковертень",
--- I will not be lured from this place.
-[1117447247] = [===[Ви не виманите мене звідси.]===],
-},
-["Aman"] = { "Аман",
--- Ah, I see you toil with relics of the past.
-[1597360264] = [===[Бачу, ви бавитесь з реліквіями минулого.]===],
--- Be warned that even your creators are fallible.
-[1738667585] = [===[Будьте обережні, навіть ваші творці можуть помилятися.]===],
--- Digging too deep into your past might bring an abrupt end to your future.
-[2090208988] = [===[Надмірне копання в минулому може ненароком знищити твоє майбутнє.]===],
--- Who hath summoned forth Aman?
-[1263936040] = [===[Хто прикликав Амана?]===],
-},
-["Ambassador Berrybuck"] = { "посол Ягідний",
--- Our cause falls on deaf ears beyond the thick, stone walls of Stormwind.
-[487738159] = [===[Наші прохання не почують за товстими, кам'яними мурами Штормовію.]===],
--- The news from Stormwind does not bode well. . . .
-[2455573458] = [===[Новини зі Штормовію невтішні...]===],
-},
-["Ambassador Flamelash"] = { "посол Вогнехляст",
--- Your reign of terror ends now!  Face your doom mortals!
-[1052886018] = [===[Вашій тиранії кінець! Прийміть свою загибель, смертні!]===],
-},
-["Amnennar the Coldbringer"] = { "Амненнар Стужевій",
--- %s begins to summon wraiths out of the freezing cold air!
-[2486665637] = [===[%s починає викликати морозних привидів!]===],
--- Come, spirits - attend your master!
-[1379568606] = [===[Прийдіть, духи — служіть своєму володарю!]===],
--- I am the hand of the Lich King!
-[3598012517] = [===[Я — рука Короля-ліча!]===],
--- To me, my servants!
-[3353565053] = [===[До мене, мої слуги!]===],
--- Too easy.
-[1252767036] = [===[Занадто легко.]===],
--- You'll never leave this place alive.
-[366427846] = [===[Вам не вийти звідси живими.]===],
-},
-["Amy Davenport"] = { "Емі Дейвенпорт",
--- Hello, Antonio. It's good to see you safely made it here again. Let me know if you need anything.
-[3386259729] = [===[Привіт, Антоніо. Рада, що ти знову безнапасно дістався сюди. Дай знати, якщо тобі щось знадобиться.]===],
--- Take care of yourself, Antonio. I'll see you in another week.
-[3444230028] = [===[Бережи себе, Антоніо. Побачимось наступного тижня.]===],
-},
-["Anachronos the Ancient"] = { "Анахронос Древній",
--- %s hands the Scepter of the Shifting Sands to Fandral Staghelm.
-[2256885755] = [===[%s передає Фендралу Оленерогу скіпетр Мінливих Пісків.]===],
--- %s kneels down to pick up the fragments of the shattered scepter.
-[3998090577] = [===[%s схиляється над уламками розбитого скіпетра, щоб зібрати їх.]===],
--- %s shakes his head in disappointment.
-[1070781923] = [===[%s похитує головою від розчарування.]===],
--- And now you know all that there is to know, mortal...
-[3168470879] = [===[Тепер ти знаєш усе, що потрібно, {стать:смертний:смертна}...]===],
--- Before I leave this place, I make one final offering to you, Lord Staghelm. Should a time arise in which you must gain entry to this accursed fortress, use the Scepter of the Shifting Sands on the sacred gong. The magic holding the barrier together will dissipate and the horrors of Ahn'Qiraj will be unleashed upon the world once more.
-[2690426857] = [===[Перш ніж я покину це місце, я маю передати тобі останній обов'язок, лорд Оленеріг. Якщо коли-небудь виникне потреба увійти до цієї проклятої фортеці, вдар скіпетром Мінливих Пісків у священний гонг. Магія, що утримує бар'єр, розвіється, і жахи Ан'Кіража знову будуть випущені на волю.]===],
--- FINISH THE SPELL, STAGHELM! I CANNOT HOLD THE GLYPHS OF WARDING IN PLACE MUCH LONGER! CALL FORTH THE ROOTS!
-[2874678113] = [===[ЗАКІНЧИ ЗАКЛЯТТЯ, ОЛЕНЕРІГ! Я НЕ ЗМОЖУ ДОВГО УТРИМУВАТИ ПЕЧАТКУ! ВИКЛИЧ КОРІННЯ!]===],
--- It... It is over, Lord Staghelm. We are victorious. Albeit the cost for this victory was great.
-[3135359180] = [===[Все... Все скінчено, Оленеріг. Ми перемогли. Хоча ціна цієї перемоги була великою.]===],
--- Lord Staghelm, where are you going? You would shatter our bond for the sake of pride?
-[749423941] = [===[Оленеріг, куди ти йдеш? Невже ти готовий обірвати наш зв'язок через свою гордість?]===],
--- NOW, STAGHELM! WE GO NOW! Prepare your magic!
-[1826714446] = [===[ЗАРАЗ, ОЛЕНЕРІГ! ЦЕЙ МОМЕНТ НАСТАВ! Приготуй свою магію!]===],
--- Stay close...
-[3420136106] = [===[Тримайся поруч...]===],
--- The sands of time will halt, but only for a moment! I will now conjure the barrier.
-[3396214677] = [===[Піски часу зупинять їх, але лиш на мить! Зараз я вичарую бар'єр.]===],
--- There is but one duty that remains...
-[4146108681] = [===[Залишилася лиш одна справа...]===],
--- We must act quickly or all shall be lost!
-[75747258] = [===[Ми повинні діяти негайно, інакше все буде втрачено!]===],
-},
-["Anastasia Hartwell"] = { "Анастасія Гартвелл",
--- Take a chest of containment coffers and a cantation of manifestation, <name>.  You will need them for your mission.
-[601612190] = [===[Візьми ящик зі скринями стримування та закляття прояву, {ім'я:к}. Вони знадобляться тобі для цього завдання.#of manifestation, <name>.]===],
-["!code"] = {
-["tectofctcsadcnofmn.-yuwlndtmfryrmn"] = 601612190,
-},
-},
-["Anaya"] = { "Анайя",
--- %s's soft voice trails away into the mists, "Know that I love you always..."
-[1398542489] = [===[%s розчиняється в імлі, лишаючи за собою лиш відлуння останніх слів: «Знай, що я завжди кохатиму тебе...»]===],
--- Farewell, Cerellan, until we are joined once again...
-[1825920115] = [===[Прощавай, Цереліане, допоки смерть не возз'єднає нас...]===],
--- Let it not trouble your heart, beloved. You have freed me from slavery, and for that I love you all the more.
-[3766983620] = [===[Нехай це не мучить тебе, любий. Ти звільнив мене від цих кайданів, і за це я кохаю тебе ще сильніше.]===],
--- Sadly, even this must be cut short... The ties that bind me to this world weaken, and pull me away...
-[3799324508] = [===[На жаль, навіть цій зустрічі не судилось тривати довго... Зв'язок, що тримає мене у цьому світі, слабне... Я йду назавжди...]===],
--- The ages have been cruel to you and I, my love, but be assured, it is, and at long last we are reunited.
-[1829340748] = [===[Час не змилувався ні над тобою, ні наді мною, коханий мій, та все ж ми нарешті знову зустрілися.]===],
-},
-["Anaya Dawnrunner"] = { "Анайя Зорегін",
--- Finally, my soul may rest... Oh, dearest Cerellean...
-[1588376325] = [===[Нарешті, моя душа може спочити... О, любий Цереліане...]===],
-},
-["Ancient Equine Spirit"] = { "древній дух коня",
--- %s breaks free of its spectral bonds with a tremendous crash of thunder!
-[2338488513] = [===[%s виривається зі своїх примарних пут із приголомшливим гуркотом!]===],
-},
-["Angus Stern"] = { "Анґус Штерн",
--- All hail <name>, a <class> of worth!
-[1888085528] = [===[Шануймо {ім'я:з}! Гідний приклад для всіх {клас:мр}!#All hail <name>,#a <class> of worth]===],
--- Behold!  The Blue Recluse holds a feast in <his/her> honor!
-[3156629050] = [===["Синій Відлюдник" влаштовує бенкет на {стать:його:її} честь!#feast in <his/her> honor]===],
-["!code"] = {
-["alhl.-..ofwh"] = 1888085528,
-["bdteberehsftinh.hr"] = 3156629050,
-},
-},
-["Annalise Lerent"] = { "Анналіз Лерент",
--- And if you do not, then I am truly lost.
-[1223070823] = [===[А якщо ні, то я дійсно втрачена навіки.]===],
--- But of course I love you, Staffron. And it pains me to see you suffer so.
-[2405539747] = [===[Але я люблю тебе, Стаффроне. І мені боляче бачити, як ти страждаєш.]===],
--- I pledge my love to you forever. Death cannot erase that, even as I am sure that you still remember your love for me.
-[4098823109] = [===[Я вічно кохатиму тебе. Смерть не може стерти це, і я знаю, що ти все ще пам'ятаєш про своє кохання до мене.]===],
--- My dear Staffron, have you forgotten what it is to love? The love that we once shared?
-[455613596] = [===[Мій любий Стаффроне, невже ти забув, що таке кохання? Те почуття, що ми колись поділяли?]===],
--- Staffron...
-[3066683783] = [===[Стаффрон...]===],
-},
-["Antonio Perelli"] = { "Антоніо Переллі",
--- Farewell, citizens of Darkshire. Until next time...
-[4219946871] = [===[Бувайте, жителі Темнодолу. До наступної зустрічі...]===],
--- Good people of Goldshire, come take advantage of my incredible prices on rare goods. I shall not return for some time!
-[1744596131] = [===[Добрі люди Злотохрестя, скористайтеся нагодою придбати мої рідкісні товари за неймовірними цінами. Я ще не скоро повернуся!]===],
--- Good to see you again, Amy. Be safe, luv. I'm off to Goldshire now.
-[1735725932] = [===[Радий знову бачити тебе, Емі. Бережи себе, дорогенька. Я вирушаю до Злотохрестя.]===],
--- Home again, home again.
-[3596548516] = [===[Дім, любий дім.]===],
--- I've finally reached Lakeshire-- come one, come all, and take advantage of Antonio Perelli's wonderful deals.
-[1249399023] = [===[Нарешті я в Приозер'ї... Підходьте, скористайтеся чудовими пропозиціями від Антоніо Переллі.]===],
--- Thank you, all. I shall return again in about a week.
-[4081589696] = [===[Дякую вам усім. Побачимось приблизно за тиждень.]===],
-},
-["Antu'sul"] = { "Анту'сул",
--- Lunch has arrived, my beautiful children. Tear them to pieces!
-[3969549797] = [===[Час їсти, мої любі діти. Порвіть їх на шматки!]===],
--- Rise and defend your master!
-[3105574118] = [===[Повстань і захищай свого господаря!]===],
--- The children of Sul will protect their master. Rise once more Sul'lithuz!
-[13046448] = [===[Діти Сула захищатимуть свого господаря. Повстань, Сул'літуз!]===],
-},
-["Anub'Rekhan"] = { "Ануб'Рекан",
--- Ahh... welcome to my parlor.
-[1780972926] = [===[Ах... ласкаво прошу до моєї оселі.]===],
--- Closer now. Tasty morsels. I've been too long without food, without blood to drink.
-[3990222854] = [===[Ближче. Ближче! Я надто довго не їв... надто довго не пив кров.]===],
--- I hear little hearts beating. Yes... beating faster now... soon the beating will stop.
-[2062470228] = [===[Я чую стукіт ваших маленьких сердець. Так... тепер вони б'ються швидше... та скоро вони зупиняться.]===],
--- Just a little taste...
-[2126295736] = [===[Скуштуємо свіжини...]===],
--- Shhh... it will all be over soon.
-[630701700] = [===[Шшш... це все скоро закінчиться.]===],
--- There is no way out.
-[257681390] = [===[Вам не втекти.]===],
--- Where to go? What to do? So many choices that all end in pain, end in death.
-[3147804312] = [===[Куди йти? Що робити? Так багато варіантів, але все одно в результаті вас чекає лише смерть.]===],
--- Which one shall I eat first? So difficult to choose. They all smell so delicious...
-[4243563167] = [===[Кого ж мені з'їсти першим? Так тяжко вибрати. Ви всі такі апетитні...]===],
--- Yes, run! It makes the blood pump faster!
-[320391416] = [===[Біжіть, біжіть! Так м'ясо буде смачнішим!]===],
-},
-["Anubisath Sentinel"] = { "анубісат-страж",
--- %s shares his powers with his brethren.
-[3025329287] = [===[%s ділиться силами зі своїми побратимами.]===],
-},
-["Anvilrage Footman"] = { "піхотинець Лютого Ковадла",
--- %s barely grunts.
-[3806702915] = [===[%s ледь чутно стогне.]===],
-},
-["Anvilrage Guardsman"] = { "гвардієць Лютого Ковадла",
--- %s barely grunts.
-[3806702915] = [===[%s ледь чутно стогне.]===],
--- You can't hide from us.  Prepare to burn!
-[2759932824] = [===[Вам не сховатися. Ви згорите!]===],
-},
-["Anvilrage Warden"] = { "вартовий Лютого Ковадла",
--- %s barely grunts.
-[3806702915] = [===[%s ледь чутно стогне.]===],
-},
-["Apothecary Dithers"] = { "аптекар Дітерс",
--- It's done <name>, and I think you'll be satisfied with the results.
-[3486896047] = [===[Готово, {ім'я:к}, і я думаю, що тобі сподобається результат.#It's done <name>,]===],
--- The solution is ready in my cauldron.  It's just the matter of treating both the unfinished key and the scarab.
-[128165256] = [===[Розчин вже кипить у котлі. Залишилось лише обробити ним незавершений ключ і скарабея.]===],
-["!code"] = {
-["isde.-adtkylbesdwhters"] = 3486896047,
-},
-},
-["Apothecary Faustin"] = { "аптекар Фаустін",
--- Almost done...
-[133210999] = [===[Майже готово...]===],
--- At last, the serum is complete, <name>. Now, come closer. We must talk.
-[2020508815] = [===[Нарешті, сироватка готова. Тепер підійди ближче, {ім'я:к}. Нам потрібно поговорити.#is complete, <name>.]===],
--- The serum will only take a few minutes to prepare, <name>.
-[2402988584] = [===[Приготування сироватки займе всього кілька хвилин, {ім'я:к}.#to prepare, <name>.]===],
-["!code"] = {
-["atlttesmisce.-nwcecrwemttk"] = 2020508815,
-["tesmwloytefwmstope.-"] = 2402988584,
-},
-},
-["Apothecary Helbrim"] = { "аптекар Гелбрім",
--- %s places the spores within his alchemical instruments...
-[916565176] = [===[%s поміщає спори у свої алхімічні прилади...]===],
--- Ah, good.  These spores have rendered nicely.  Thank you, <name>.
-[3100550450] = [===[А, добре. Ці спори гарно сформувались. Дякую, {ім'я:к}.#Thank you, <name>.]===],
--- Thank you for the spores, <name>.  They are now prepared for transport.
-[2929047577] = [===[Дякую за спори, {ім'я:к}. Тепер вони готові до транспортування.#the spores, <name>.]===],
-["!code"] = {
-["ahgdtessherdnytkyu.-"] = 3100550450,
-["tkyufrtess.-tyaenwpdfrtt"] = 2929047577,
-},
-},
-["Apothecary Jorell"] = { "аптекар Джорел",
--- You have my word that I shall find a use for your body after I've killed you, <target>.
-[3286677349] = [===[Я знайду гарне застосування твоєму тілу після того, як вб'ю тебе, {ціль:к}.#killed you, <target>.]===],
--- You will never stop the Forsaken, <target>. The Dark Lady shall make you suffer.
-[1760515395] = [===[Ти ніколи не зупиниш відречених, {ціль:к}. Темна Леді змусить тебе страждати.#the Forsaken, <target>. The]===],
-["!code"] = {
-["yuhemywdttslfduefryrbyariekdyu.-"] = 3286677349,
-["yuwlnrsptefn.-tedklyslmeyusr"] = 1760515395,
-},
-},
-["Apothecary Keever"] = { "аптекар Ківер",
--- %s feeds the squirrel some of the viscous fluid.
-[29569834] = [===[%s годує білку в'язкою сумішшю.]===],
--- %s feeds the toad some of the strange liquid.
-[420553326] = [===[%s дає жабі попити дивної рідини.]===],
--- %s forces the fluid down the weary man's throat.
-[3476828457] = [===[%s вливає рідину в горло змученої людини.]===],
--- %s grabs the rabbit and pours the fluid down it's throat, then sets it back inside the cage.
-[2424546413] = [===[%s хапає кролика, заливає йому в горло рідину, а потім повертає його у клітку.]===],
--- %s pokes the skittish rabbit.
-[2888305722] = [===[%s штрикає пальцем полохливого кролика.]===],
--- %s pokes the small fuzzy squirrel with obvious disappointment.
-[4107240208] = [===[%s з очевидним розчаруванням штрикає пальцем маленьку пухнасту білку.]===],
--- %s pokes the small toad.
-[3399884994] = [===[%s штрикає пальцем маленьку жабу.]===],
--- %s pokes the wooly sheep repeatedly.
-[2147860885] = [===[%s штрикає пальцем вівцю знову і знову.]===],
--- Ahh, there we go. Now, Keever must try this vial and see if it works.
-[4028180226] = [===[Ага, ось так. Тепер Ківер має спробувати цю формулу і перевірити, чи спрацює вона.]===],
--- Hmm, it would seem Keever needs a new subject. If that fool Abernathy keeps taking Keever's subjects, Keever may have to have a word with him.
-[318609294] = [===[Хмм, здається, Ківеру потрібний новий об'єкт для досліджень. Якщо цей дурень Абернаті продовжить забирати об'єкти у Ківера, Ківеру доведеться з ним поговорити.]===],
--- Keever is most pleased.
-[1380063910] = [===[Ківер дуже задоволений.]===],
--- Keever is unhappy with this. Perhaps if Keever were to try a larger dose, that may fix this dilemma.
-[3798513322] = [===[Ківер незадоволений цим. Можливо, якщо Ківер спробує більшу дозу, це все вирішить.]===],
--- Not what Keever was hoping for. Keever may have added too much earthroot. Let's see if the second serum will do what I need.
-[3656995108] = [===[Не те, на що сподівався Ківер. Можливо, Ківер додав забагато землекореню. Подивимось, чи зробить інша сироватка те, що мені потрібно.]===],
--- Well, that is just not right. The creature is far too small. Let us see what Keever's third batch will do.
-[3265273335] = [===[Ні, це зовсім не те. Створіння надто маленьке. Подивимося, що зробить третя формула Ківера.]===],
--- What is this? Did Keever ask for a sheep? Keever wanted a weapon of great power and all he got was this sheep. Keever is very disappointed.
-[2280575392] = [===[Що це таке? Хіба Ківер хотів вівцю? Ківер хотів потужну зброю, а замість цього отримав лише цю вівцю. Ківер дуже розчарований.]===],
-},
-["Apothecary Lydon"] = { "аптекар Лідон",
--- %s creates his toxin...
-[311034595] = [===[%s створює свій токсин...]===],
--- There we are, <name>.  The toxin is ready.
-[2590159585] = [===[Ось так, {ім'я:к}. Токсин готовий.#There we are, <name>.]===],
-["!code"] = {
-["teweae.-tetnisry"] = 2590159585,
-},
-},
-["Apothecary Staffron Lerent"] = { "аптекар Стаффрон Лерент",
--- Annalise... You're right. I-I can't do this. I must find another way.
-[1689660285] = [===[Анналіз... Ти маєш рацію. Я... Я не можу це зробити. Я мушу знайти інший шлях.]===],
--- Annalise? Annalise! No, don't leave me!
-[2180022387] = [===[Анналіз? Анналіз! Ні, не покидай мене!]===],
--- Annalise? Is that you?
-[2630398725] = [===[Анналіз? Це ти?]===],
--- But I do know this - love makes the heart and body weak. It can be exploited. Without your love, I have only my work, Annalise.
-[835308547] = [===[Але я знаю, що любов робить серце і тіло слабкими. Її можна використати. Без твоєї любові у мене є лише моя робота, Анналіз.]===],
--- Have I forgotten? Of course I have... I have forgotten about love, happiness... of life itself.
-[3541837878] = [===[Чи забув я? Звісно, що забув... Я забув про любов, щастя... про саме життя.]===],
--- How could you love me, Annalise? Look at me. I am not the man you once knew.
-[33615730] = [===[Як ти можеш кохати мене, Анналіз? Поглянь на мене. Я не той чоловік, якого ти колись знала.]===],
--- You there. You're welcome to take the contents of my cauldron. It was to be the second stage of my plan - amorous clothing.
-[3017400878] = [===[Гей, ти. Можеш забирати все з цього казана. Це мав бути другий етап мого плану — любовний одяг.]===],
-},
-["Apothecary Zamah"] = { "аптекарка Зама",
--- The toxin is ready, <name>.
-[1548758209] = [===[Токсин готовий, {ім'я:к}.#ready, <name>.]===],
-["!code"] = {
-["tetnisry.-"] = 1548758209,
-},
-},
-["Aquementas"] = { "Акваментас",
--- <name>, you have disturbed me from my rest!
-[737656795] = [===[{Ім'я:н}, як ти смієш порушувати мій спокій?!]===],
--- Who dares awaken Aquementas?
-[3994679415] = [===[Хто сміє тривожити Акваментаса?]===],
-["!code"] = {
-[".-yuheddmefmmyrt"] = 737656795,
-},
-},
-["Araj the Summoner"] = { "Араж-Закликач",
--- Who dares to challenge me in my domain?!
-[1030129301] = [===[Хто посміє кинути мені виклик у моїх володіннях?!]===],
-},
-["Arathandris Silversky"] = { "Аратандріс Срібнонебесна",
--- Here is a beacon for you, <name>.  You must keep it in your possession if you are to find the corrupted items we will need.
-[2921104914] = [===[Ось твій маяк, {ім'я:к}. Ти маєш тримати його при собі, якщо хочеш знайти осквернені матеріали для бальзаму.]===],
-["!code"] = {
-["heisbnfryu.-yumtkpitinyrpnifyuaetofdtecdis"] = 2921104914,
-},
-},
-["Arcanist Doan"] = { "арканіст Доан",
--- Burn in righteous fire!
-[1884877335] = [===[Згоріть у праведному вогні!]===],
--- You will not defile these mysteries!
-[4085477136] = [===[Ви не спаплюжите ці таємниці!]===],
-},
-["Arch Druid Renferal"] = { "верховний друїд Лютоцвіт",
--- Come, brothers.
-[2878531745] = [===[Ходімо, браття.]===],
--- Onward!
-[3824045649] = [===[Вперед!]===],
--- Stormpike soldiers, aid and protect us! The Forest Lord has granted us his protection. The gateway must now be opened!
-[1108746048] = [===[Солдати Бурешпиля, допоможіть і захистіть нас! Повелитель лісу надасть нам свій захист. Тепер ми маємо відкрити браму!]===],
--- We must focus our thoughts upon the Circle of Calling if the Forest Lord is to come! We must hurry! Concentrate your energies!
-[1454967392] = [===[Ми маємо зосередитись на колі, щоб викликати Повелителя лісу! Хутчіше! Зосередьте свої сили!]===],
-},
-["Archaedas"] = { "Аркедас",
--- Awake, ye servants! Defend the Disks!
-[3503533118] = [===[Прокиньтесь, слуги! Захищайте диски!]===],
--- Reckless mortal!
-[2572027748] = [===[Бездумні смертні!]===],
--- To my side, brothers! For the Makers!
-[467851641] = [===[До мене, брати! За Творців!]===],
--- Who dares awaken Archaedas? Who dares the wrath of the Makers?
-[1664326422] = [===[Хто сміє будити Аркедаса? Хто сміє гнівати Творців?]===],
-},
-["Archaeologist Flagongut"] = { "археолог Флягопуз",
--- By the stars! A spirit has been summoned!
-[4207632010] = [===[Клянусь зірками! Ми викликали духа!]===],
--- It's a mystery of the past indeed! But a key to our future!
-[3879367690] = [===[Це справжня загадка минулого! Але це також ключ до нашого майбутнього!]===],
-},
-["Archmage Angela Dosantos"] = { "архімагиня Анжела Досантос",
--- Indeed... lovely dress, Jessica.
-[34787713] = [===[Справді, чудова сукня, Джессіко.]===],
--- Oh, quite succulent. Many thanks, Mrs. Chambers.
-[1811957995] = [===[О, яке соковите. Красно дякую, пані Чемберс.]===],
--- The boar is superb!
-[651741368] = [===[Порося неперевершене!]===],
--- What have you done? FOOL! You brought it... NO!
-[1829623765] = [===[Що ти {стать:накоїв:накоїла}? {стать:ДУРЕНЬ:ДУРЕПА}! Ти {стать:приніс:принесла}... НІ!]===],
-},
-["Archmage Ansirem Runeweaver"] = { "архімаг Ансірем Рунопис",
--- How interesting... the Stone possesses great magical potential, but in a purely raw form...
-[1539535848] = [===[Як цікаво... Камінь має надзвичайний магічний потенціал, але в абсолютно чистій формі...]===],
-},
-["Archmage Arugal"] = { "архімаг Аруґал",
--- Another falls!
-[2160407112] = [===[Чергова невдача!]===],
--- Release your rage!
-[467030363] = [===[Вивільни свою лють!]===],
--- Who dares interfere with the Sons of Arugal?
-[3360722367] = [===[Хто сміє перешкоджати Синам Аруґала?]===],
--- You, too, shall serve!
-[3042997807] = [===[Ви теж будете служити!]===],
-},
-["Archmage Tarsis Kir-Moldir"] = { "архімаг Тарсіс Кір-Молдір",
--- %s gets to one knee.
-[637549858] = [===[%s стає на одне коліно.]===],
-},
-["Archmage Tervosh"] = { "архімаг Тервош",
--- Ah, Private Hendel. A pleasure to meet one of the men who would betray his kingdom for pride.
-[2856017680] = [===[Ах, рядовий Гіндель. Радий зустріти одного з тих, хто готовий зрадити королівство через свою гордість.]===],
--- Farewell. We shall speak again, I'm sure.
-[3369569650] = [===[Бувай. Певен, ми ще зустрінемось.]===],
--- Go about your business. My errand does not require your attention.
-[1914710648] = [===[Займайся своїми справами. Моє доручення не потребує твоєї уваги.]===],
--- Go with grace, and may the Lady's magic protect you.
-[1584195484] = [===[Йди з миром, і нехай магія Леді захистить тебе.]===],
--- I apologize for taking so long to get here. I wanted Lady Proudmoore to be present also.
-[4198826476] = [===[Прошу вибачення, що так довго добирався сюди. Я хотів, щоб Леді Праудмур теж була присутня.]===],
--- We can only stay a few moments before returning to the tower. If you wish to speak to us more you may find us there.
-[2307364207] = [===[Ми затримаємося на кілька хвилин перед поверненням до вежі. Якщо захочеш продовжити розмову — зустрінемось там.]===],
--- Why don't we deal with you now, Hendel? Lady Proudmoore will speak to you back in the tower.
-[3334184221] = [===[Чому б нам не розібратися з тобою прямо зараз, Гіндель? Леді Праудмур поговорить з тобою у вежі.]===],
-},
-["Arei"] = { "Арей",
--- <name>, my form has now changed! The true strength of my spirit is returning to me now... The cursed grasp of the forest is leaving me.
-[448726927] = [===[{ім'я:к}, я змінився! Я відчуваю, як справжня сила мого духу повертається... Прокляття лісу полишає мене.]===],
--- Help me with this <target>!
-[3084819251] = [===[Допоможи мені, тут {ціль}!#this <target>!]===],
--- I can sense it now, <name>. Ashenvale lies down this path.
-[2790504842] = [===[Я відчуваю це, {ім'я:к}. Ясенеділ знаходиться там.]===],
--- I feel... something strange...
-[797569848] = [===[Я відчуваю... щось дивне...]===],
--- I regret that I must fight this <target>.
-[2800264874] = [===[Мені дуже шкода, але {ціль} має померти.#fight this <target>.]===],
--- I sense the taint of corruption upon this <target>. Help me destroy it!
-[39007914] = [===[Я відчуваю, як {ціль} страждає від скверни. Ми маємо припинити ці муки!#upon this <target>.]===],
--- Please, help me to get through this cursed forest, <race>.
-[3114309360] = [===[Прошу, допоможи мені пройти через цей проклятий ліс, {раса:к}.#cursed forest, <race>.]===],
--- Thank you, <name>. Now my spirit will finally be at peace.
-[1690150379] = [===[Дякую тобі, {ім'я:к}. Мій дух нарешті може спочити з миром.#Thank you, <name>.]===],
--- That I must fight against my own kind deeply saddens me.
-[2625527617] = [===[Мене глибоко засмучує те, що я змушений битися проти свого ж роду.]===],
--- The corruption of the fel has not left any of the creatures of Felwood untouched, <name>. Please, be on your guard.
-[3465496111] = [===[Скверна не оминула жодної істоти в Скверноліссі, {ім'я:к}. Будь ласка, будь насторожі.#untouched, <name>.]===],
--- This <target> has been driven mad from the corruption!
-[317468712] = [===[{Ціль} божеволіє від скверни!#This <target> has been]===],
--- This creature suffers from the effects of the fel... We must end its misery.
-[1634699872] = [===[Ця істота страждає від скверни... Ми повинні покласти край її стражданням.]===],
-["!code"] = {
-[".-myfmhsnwcdteteshofmystisrgtomenwtecdgpof"] = 448726927,
-["hpmewhts.-"] = 3084819251,
-["cnseitnw.-aelsdntsph"] = 2790504842,
-["rtttmtftts.-"] = 2800264874,
-["setettofcnunts.-hpmedyit"] = 39007914,
-["pehpmetogtthtscdft.."] = 3114309360,
-["tkyu.-nwmystwlfybeatpe"] = 1690150379,
-["tecnofteflhsntltayoftecsoffdud.-pebeonyrgd"] = 3465496111,
-["ts.-hsbndnmdfmtecn"] = 317468712,
-},
-},
-["Argent Guard Thaelrid"] = { "вартовий Сріблястого Світанку Талрід",
--- Help arrives at last...
-[2591205306] = [===[Допомога нарешті прибула...]===],
-},
-["Argent Sentry"] = { "караульний Сріблястого Світанку",
--- Lay down your weapons, your feuds have no place here!
-[3939316833] = [===[Складіть зброю, вашим чварам тут не місце!]===],
--- You will abide by our rules around here, miscreant!
-[2928146937] = [===[Ти підкорятимешся нашим правилам, мерзото!]===],
--- Your actions will not be tolerated!
-[3095622983] = [===[Ми не терпітимемо такої поведінки!]===],
-},
-["Artist Renfray"] = { "художниця Ренфрі",
--- Are they all... dead?
-[1969389060] = [===[Вони всі... мертві?]===],
--- Is someone there? Tirion my old friend, is that you? Have you come to save us?
-[3698504886] = [===[Тут хтось є? Тіріоне, мій старий друже, це ти? Ти прийшов врятувати нас?]===],
--- So dark...
-[2238634998] = [===[Як темно...]===],
-},
-["Artorius the Amiable"] = { "Арторій Привітний",
--- Only a fool would remain in this battle. Farewell, coward.
-[3577917781] = [===[Тільки дурень продовжував би цю битву. Бувай, {стать:боягузе:боягузко}.]===],
--- Your soul is mine, weakling.
-[3622008866] = [===[Твоя душа буде моєю, нікчемо.]===],
-},
-["Arugal"] = { "Аруґал",
--- I have changed my mind loyal servants, you do not need to bring the prisoner all the way to my study, I will deal with him here and now.
-[4255016249] = [===[Я передумав, мої вірні слуги, немає потреби тягнути в'язня до мого кабінету, я розберуся з ним тут і зараз.]===],
--- If you will not serve my Master with your sword and knowledge of his enemies...
-[1939065914] = [===[Якщо ти не будеш служити моєму майстру своїм мечем і знаннями про його ворогів...]===],
--- Vincent!  You and your pathetic ilk will find no more success in routing my sons and I than those beggardly remnants of the Kirin Tor.
-[307243455] = [===[Вінсент! Спроби твого поріддя здолати мене та моїх синів ще нікчемніші за намагання жалюгідних решток Кірін-Тору.]===],
--- Your moldering remains will serve ME as a testament to what happens when one is foolish enough to trespass in my domain!
-[311698368] = [===[Твої гнилі рештки служитимуть МЕНІ, як приклад того, що трапляється, коли хтось бездумно вдирається в мої володіння!]===],
-},
-["Arygos"] = { "Ариґос",
--- %s nods knowingly.
-[3767616289] = [===[%s киває.]===],
--- Anachronos, this diversion will give you and the young druid time enough to seal the gate. Do not falter. Now, let us see how they deal with chaotic magic.
-[2561065033] = [===[Анахроносе, це дасть тобі та юному друїду вдосталь часу, щоб запечатати ворота. Не відступайте. Подивимося, як вони впораються з хаотичною магією.]===],
--- Let them feel the wrath of the Blue Flight! May Malygos protect me!
-[2863205161] = [===[Нехай вони пізнають гнів синіх драконів! Маліґос, захисти мене!]===],
-},
-["Atiesh"] = { "Атієш",
--- %s drops its weapon.
-[522092020] = [===[%s впустив з рук зброю.]===],
-},
-["Augustus the Touched"] = { "Август Зворушений",
--- Commerce!  I crave it!
-[2873151215] = [===[Комерція! Обожнюю її!]===],
--- I'm Augustus!  You want it, I got it!  You wanna sell it, then I want it!
-[2443299200] = [===[Я Август! Хочеш щось купити — я це продам! Хочеш щось продати — я це куплю!]===],
--- I'm Augustus, and my prices are INSANE!
-[453763440] = [===[Я Август, і мої ціни ШАЛЕНІ!]===],
--- You won't find better prices anywhere!
-[3590975022] = [===[Ви ніде не знайдете кращих цін!]===],
-},
-["Aurius"] = { "Аурій",
--- Argh!
-[3922600971] = [===[Агх!]===],
--- Rivendare!  I come for you!
-[2016562275] = [===[Рівендер! Я прийшов за тобою!]===],
-},
-["Aurora Skycaller"] = { "Аврора Небоклич",
--- Please wait while I attempt to bind the shards together so that they will be whole once again.
-[2687204469] = [===[Будь ласка, зачекай, поки я спробую поєднати уламки в одне ціле.]===],
--- Yes, I was able to reseal the relic, <name>.
-[882913432] = [===[Так, я змогла відновити реліквію, {ім'я:к}.#the relic, <name>.]===],
-["!code"] = {
-["yswsaetorlterc.-"] = 882913432,
-},
-},
-["Avalanchion"] = { "Лавиніон",
--- Tiny mortals - me HERE! Doom you meet!
-[4199974909] = [===[Малі смертні, Я ТУТ! Я ваш кінець!]===],
--- What?!  You no can beat me!  Me will return!
-[1940417663] = [===[Що?! Ви не перемогти мене! Я повернусь!]===],
--- You be too scared!  Me find you!
-[2751371603] = [===[Ви боятися! Я вас знайти!]===],
-},
-["Avarus Kharag"] = { "Аварій Караґ",
--- Attack!!
-[3789840477] = [===[В атаку!!]===],
--- Get in position lads! The beasties are upon us. Wait for my signal!
-[2255274652] = [===[Займіть позиції, хлопці! Звірі вже тут. Чекайте на мій сигнал!]===],
-},
-["Awbee"] = { "Авбі",
--- %s whimpers.
-[3856803688] = [===[%s скиглить.]===],
-},
-["Azure Templar"] = { "лазурний храмовник",
--- It is my duty and honor to die for the Abyssal Council!
-[4244820855] = [===[Мій обов'язок і честь — померти за Раду Безодні!]===],
--- My lord will be outraged to learn of this ambush.  Let us hope your death will appease him.
-[4264868898] = [===[Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.]===],
--- The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!
-[602586440] = [===[Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!]===],
--- Your life is a fitting sacrifice for my master, <class>.
-[322865156] = [===[Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.]===],
-["!code"] = {
-["tealcldsnttedtflorwhle.."] = 602586440,
-["yrleisfgsefrmymr.."] = 322865156,
-},
-},
-["Azuregos"] = { "Азуреґос",
--- Come, little ones. Face me!
-[119077835] = [===[Підходьте, малята. Відчуйте мій гнів!]===],
--- Such is the price of curiosity.
-[3628531521] = [===[Така ціна допитливості.]===],
--- This place is under my protection. The mysteries of the arcane shall remain inviolate.
-[4175832698] = [===[Це місце знаходиться під моїм захистом. Таємниці аркани залишаться непорушними.]===],
--- You challenge the charge of the Blue Dragonflight? DIE, vermin.
-[3577903710] = [===[Ви кидаєте виклик синім драконам? ПОМРІТЬ, паразити.]===],
-},
-["Bael'Gar"] = { "Бель'Ґар",
--- %s begins to summon a lava spawn!
-[2682603865] = [===[%s починає викликати породження лави!]===],
-},
-["Balgaras the Foul"] = { "Балґарас Паскудний",
--- <name>!  Betrayer of Ragnaros!
-[2449643246] = [===[{ім'я:н}! {стать:Зрадник:Зрадниця} Раґнароса!#<name>!  Betrayer]===],
--- <name>!  Prepare to meet your doom!
-[2753768394] = [===[{ім'я:н}! Приготуйся зустріти свою загибель!#<name>!  Prepare]===],
--- A worthless <race> such as you, <name>, has no right to walk these lands!
-[1692302095] = [===[{стать:Такий нікчемний:Така нікчемна} {раса:н} як ти, {ім'я:к}, не має права ходити цією землею!#worthless <race> such#you, <name>, has]===],
--- Foolish <class>!  You are no match for the minions of Ragnaros!
-[232282228] = [===[{стать:Дурний:Дурна} {клас:н}! Ти не рівня слугам Раґнароса!#Foolish <class>!]===],
--- I am Balgaras the Foul.  And you, <name>, are about to become nothing more than ash and dust.
-[2980465660] = [===[Я — Балґарас Паскудний. А ти, {ім'я:к}, скоро станеш нікчемною купою попелу.#you, <name>, are]===],
--- The Dark Iron Dwarves shall reclaim their rightful lands!
-[569395220] = [===[Дворфи Темного Заліза повернуть свої законні землі!]===],
--- This land belongs to the Dark Iron Dwarves.  Prepare to see the afterlife, <class>!
-[2006902243] = [===[Ця земля належить дворфам Темного Заліза. Готуйся до смерті, {клас:к}!#afterlife, <class>!]===],
--- Who is this weak <class> who challenges my might?  Die fool!
-[657430326] = [===[Що за {стать:нікчемний:нікчемна} {раса:н} кидає виклик моїй могутності? Помри, {стать:дурню:дурепо}!#weak <class> who]===],
-["!code"] = {
-[".-brofrs"] = 2449643246,
-[".-petomtyrdm"] = 2753768394,
-["ws..shasyu.-hsnorttowktels"] = 1692302095,
-["fh..yuaenomhfrtemsofrs"] = 232282228,
-["ambstefladyu.-aeattobengmetnahaddt"] = 2980465660,
-["tsldbstotedkindspetoseteae.."] = 2006902243,
-["woistswk..wocsmymtdefl"] = 657430326,
-},
-},
-["Balizar the Umbrage"] = { "Балізар-Кривдник",
--- Not quite so sure of yourself without the Purifier, hm?
-[4172072511] = [===[А ви вже не такі впевнені без Очистителя, га?]===],
-},
-["Balnazzar"] = { "Бальназар",
--- Damn you mortals! All my plans of revenge, all my hate... all burned to ash...
-[2046447542] = [===[Кляті смертні! Всі мої плани помсти, вся моя лють... усе перетворилося на попіл...]===],
--- You fools think you can defeat me so easily? Face the true might of the Nathrezim!
-[3340575194] = [===[Ви, дурні, думаєте, що можете так легко мене перемогти? Відчуйте справжню міць натрезима!]===],
-},
-["Balos Jacken"] = { "Балос Джекен",
--- Alright! Alright! We surrender... Just put your weapons down, I'll cooperate!
-[1932449259] = [===[Гаразд! Гаразд! Ми здаємося... Опустіть зброю, я все розкажу!]===],
-},
-["Baristolth of the Shifting Sands"] = { "Барістольт Мінливих Пісків",
--- %s shifts uncomfortably.
-[656651995] = [===[%s стривожено сіпається.]===],
--- When the time is right, my lady. All will be clear when the time is right. The master stirs even now. Look to the skies for the Brood of Nozdormu have returned.
-[1890650978] = [===[Коли настане час, моя пані. Все буде зрозуміло, коли настане час. Майстер готується навіть зараз. Погляньте на небеса, бо рід Ноздорму повернувся.]===],
-},
-["Barithras Moonshade"] = { "Барітрас Місячна Тінь",
--- Cliffspring Falls lies along the mountains to the east and north.
-[1790470271] = [===[Скельноджерельні водоспади розташовані вздовж гір на північному сході.]===],
--- Eburi ash, <name>.  Ala mush ri ash.
-[4070425144] = [===[Eburi ash, {ім'я:к}.  Ala mush ri ash.#Eburi ash, <name>.]===],
--- Thank you, <name>.  And luck to you.
-[15987728] = [===[Дякую, {ім'я:к}. І нехай тобі щастить.#Thank you, <name>.]===],
-["!code"] = {
-["eiah.-aamhriah"] = 4070425144,
-["tkyu.-adlktoyu"] = 15987728,
-},
-},
-["Barkeep Daniels"] = { "бармен Деніелс",
--- Pull up a stool and have a drink!
-[1512045678] = [===[Сідайте на стілець та візьміть щось випити!]===],
--- The bottles are dusty but the liquor goes down clean!
-[880046353] = [===[Пляшки трохи вкрились пилом, але випивка в них просто чудова!]===],
-},
-["Barkeep Hann"] = { "бармен Ганн",
--- Psssst.  We just got some Moonshine in. . . .
-[2916633754] = [===[Псс. Ми щойно отримали відмінний самогон...]===],
--- Step right up and wet your whistle.
-[2015546310] = [===[Підходьте і візьміть щось випити.]===],
-},
-["Barnil Stonepot"] = { "Барніл Камнекухоль",
--- I see you misplaced that chapter you worked so hard to put together, <name>. Well, you left it right here!
-[1258163037] = [===[Здається, тут розділи зібрані в неправильному порядку, {ім'я:к}. Ну нічого, залишай їх так, я розберусь!#put together, <name>.]===],
-["!code"] = {
-["seyumdttcryuwdsohdtopttr.-wlyultitrthe"] = 1258163037,
-},
-},
-["Baron Charr"] = { "барон Жарр",
--- Hear me, denizens of the Crater!  I come to burn this land of its impurity!
-[272927630] = [===[Слухайте сюди, мешканці кратеру! Я прийшов, щоб випалити нечисть з цієї землі!]===],
--- Where are the so-called heroes of this world?  Too frightened to come out and play?
-[775022159] = [===[Де ж так звані герої цього світу? Занадто налякані, щоб вийти і битись?]===],
--- You have not seen the last of me fools!  All shall be consumed in the end!
-[4041361574] = [===[Це ще не кінець, жалюгідні дурні! Вас всіх врешті-решт пожере полум'я!]===],
-},
-["Baron Geddon"] = { "барон Геддон",
--- %s performs one last service for Ragnaros...
-[1068079626] = [===[%s виконує останнє доручення Раґнароса...]===],
-},
-["Baron Kazum"] = { "барон Казум",
--- What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!
-[1092151934] = [===[Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!]===],
--- Your treachery only speeds your doom.  This world will fall to darkness!
-[1149361862] = [===[Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!]===],
-["!code"] = {
-["wtshslfltgbsmesladyrbstomyte.."] = 1092151934,
-},
-},
-["Baron Rivendare"] = { "барон Рівендер",
--- %s attempts to casts Death Pact on his servants!
-[1641301060] = [===[%s намагається накласти Пакт Смерті на своїх слуг!]===],
--- %s raises an undead servant back to life!
-[2050811429] = [===[%s воскрешає невмерлого слугу!]===],
--- I shall take great pleasure in taking this poor wretch's life!  It's not too late, she needn't suffer in vain.  Turn back and her death shall be merciful!
-[291839565] = [===[Вбивство цієї нікчеми розважить мене! Ви ж не хочете, щоб вона страждала? Йдіть геть, і я подарую їй швидку смерть!]===],
--- Intruders!  More pawns of the Argent Dawn, no doubt.  I already count one of their number among my prisoners.  Withdraw from my domain before she is executed!
-[28073367] = [===[Чужинці! Чергові пішаки Сріблястого Світанку, ну звісно. Одна з них вже у мене в полоні. Покиньте мої володіння, поки її не стратили!]===],
--- May this prisoner's death serve as a warning.  None shall defy the scourge and live!
-[2013154314] = [===[Нехай смерть цього дівчиська послужить застереженням. Нікому не вдасться кинути виклик Скарі та лишитися живим!]===],
--- So you see fit to toy with the Lich King's creations? Ramstein, be sure to give the intruders a proper greeting.
-[1580199154] = [===[То ви вирішили побавитися з творіннями Короля-ліча? Рамштайн, подбай про наших непроханих гостей.]===],
--- The Ash'ari Crystals have been destroyed! The Slaughterhouse is vulnerable!
-[1858026807] = [===[Кристали Аш'арі знищено! Бійня втратила захист!]===],
--- Time to take matters into my own hands. Come. Enter my domain and challenge the might of the Scourge!
-[2335849233] = [===[Час взяти все у свої руки. Вперед, увійдіть у мої володіння та киньте виклик могутності Скари!]===],
--- You're still here?  Your foolishness is amusing!  The Argent Dawn wench needn't suffer in vain.  Leave at once and she shall be spared!
-[433684595] = [===[Ви досі тут? Ваша дурість мене веселить! Це дівчисько зі Сріблястого Світанку не має страждати марно. Йдіть геть, і я її помилую!]===],
-},
-["Baron Silverlaine"] = { "барон Срібляр",
--- I hope your spirit finds solace.
-[2509099507] = [===[Сподіваюсь, твоя душа знайде спокій.]===],
--- Leave this accursed place at once!
-[1579335637] = [===[Покиньте це прокляте місце негайно!]===],
--- May your soul rest in peace.
-[2137705767] = [===[Спочивай з миром.]===],
--- This death is only a temporary respite from my curse.
-[3098218602] = [===[Ця смерть — лиш тимчасовий перепочинок від мого прокляття.]===],
-},
-["Bartleby"] = { "Бартлбі",
--- Ok, enough!  I give up!
-[3924357779] = [===[Гаразд, досить! Я здаюся!]===],
-},
-["Bath'rah the Windwatcher"] = { "Бат'рах Вітрогляд",
--- %s begins a spell of summoning...
-[1996563328] = [===[%s починає читати закляття виклику...]===],
--- %s surveys the ground and nods approvingly.
-[3054697045] = [===[%s оглядає землю і схвально киває.]===],
--- Follow, <name>.  I will soon begin the summoning...
-[632265318] = [===[Ходімо, {ім'я:к}. Скоро я почну виклик...#Follow, <name>.]===],
--- I don't think it's strong enough.
-[2835729909] = [===[Здається, цього буде недостатньо.]===],
-["!code"] = {
-["fw.-wlsnbntesg"] = 632265318,
-},
-},
-["Battleguard Sartura"] = { "боєстраж Сартура",
--- I sentence you to death!
-[1106092425] = [===[Я засуджую вас до смерті!]===],
--- I serve to the last!
-[1228387305] = [===[Я служу до кінця!]===],
--- You will be judged for defiling these sacred grounds!  The laws of the Ancients will not be challenged!  Trespassers will be annihilated!
-[1911888767] = [===[Вас судитимуть за осквернення цих священних земель! Закони древніх незмінні! Порушників буде знищено!]===],
-},
-["Bazil Thredd"] = { "Базіл Тредд",
--- Death to the Warden's men!
-[4061880385] = [===[Смерть людям наглядача!]===],
--- Fresh meat!
-[4157528091] = [===[Свіже м'ясо!]===],
--- I'll crush your skull beneath my boot!
-[1926378372] = [===[Я розчавлю твій череп своїм чоботом!]===],
--- It'll be quick, but it won't be painless!
-[272845343] = [===[Це буде швидко, але не безболісно!]===],
--- More of the Warden's errand boys!
-[619369637] = [===[Нарешті, нові лакеї наглядача!]===],
--- Outsiders! Kill em all!
-[1312180711] = [===[Чужинці! Вбийте їх всіх!]===],
--- Tell the Warden this prison is ours now!
-[1153774846] = [===[Скажіть наглядачу, що ця в'язниця тепер наша!]===],
--- Welcome to the Stockade!
-[1142311961] = [===[Ласкаво просимо до в'язниці!]===],
-},
-["Beetix Ficklespragg"] = { "Бітікс Хиткожвав",
--- You were always the troublemaker in the family, Noggle.  Always!
-[1620392510] = [===[Постійно ти вляпуєшся у щось, Ноґґл. Постійно!]===],
-},
-["Belnistrasz"] = { "Белністраз",
--- All right, stay close.  These fiends will jump right out of the shadows at you if you let your guard down.
-[3800660740] = [===[Гаразд, тримайтесь поруч. Ці почвари можуть вискочити прямо з тіней, якщо втратити пильність.]===],
--- Argh, I need help here!
-[2738702649] = [===[Аргх, мені потрібна допомога!]===],
--- Incoming <target> - look sharp, friends!
-[3905580468] = [===[Сюди йде {ціль} — будьте напоготові, друзі!#Incoming <target> - look]===],
--- Just two minutes to go!  We're half way there, but don't let your guard down!
-[4104421457] = [===[Залишилося лише дві хвилини! Ми на півдорозі, але не втрачайте пильність!]===],
--- Okay, here we go.  It's going to take about five minutes to shut this thing down through the ritual.  Once I start, keep the vermin off of me or it will be the end of us all!
-[881609253] = [===[Гаразд, починаємо. Мені знадобиться близько п'яти хвилин на проведення ритуалу, який відключить цю річ. Коли я почну, тримайте цих почвар подалі від мене, інакше все це буде дарма!]===],
--- One more minute!  Hold on now, the ritual is about to take hold!
-[3559739940] = [===[Ще одна хвилина! Тримайтесь, ритуал от-от завершиться!]===],
--- That's it -- we made it!  The ritual is set in motion, and idol fires are about to go out for good!  You truly are the heroes I thought you would be!
-[1734981631] = [===[Ось і все — нам вдалося! Ритуал завершено, і вогні ідолів ось-ось згаснуть назавжди! Ви справді ті герої, яких я чекав!]===],
--- Three minutes left -- I can feel the energy starting to build!  Keep up the solid defense!
-[3997228685] = [===[Залишилося три хвилини — я відчуваю, як енергія починає накопичуватися! Продовжуйте тримати оборону!]===],
--- Watch out for the <target>!
-[748675530] = [===[Обережно, {ціль}!#the <target>!]===],
--- You'll rue the day you crossed me, <target>.
-[3640800407] = [===[Ти пошкодуєш про зустріч зі мною, {ціль}.#me, <target>.]===],
-["!code"] = {
-["ig.-lkspfs"] = 3905580468,
-["whotfrte.-"] = 748675530,
-["ylretedyyucdme.-"] = 3640800407,
-},
-},
-["Bethor Iceshard"] = { "Бетор Кригозлам",
--- %s chants words of power...
-[490962550] = [===[%s начитує слова сили...]===],
--- <name>, I have the information you seek...
-[1439989805] = [===[{ім'я:к}, у мене є інформація, що тебе зацікавить...#<name>, I have]===],
--- Farewell, my friend.
-[1313602369] = [===[До зустрічі, мій друже.]===],
--- Incredible!  I know he who wrought these enchantments...
-[1250274903] = [===[Неймовірно! Я знаю того, хто створив ці чари...]===],
--- No!  It can't be...
-[1113734037] = [===[Ні! Цього не може бути...]===],
--- This is unforseen.  The being who enchanted this is known to me...
-[132035702] = [===[Цього я не очікував. Я знаю того, хто зачарував це...]===],
-["!code"] = {
-[".-heteinyusk"] = 1439989805,
-},
-},
-["Big Will"] = { "здоровань Вілл",
--- Ready when you are, <class>.
-[362649005] = [===[Ну, нападай, {клас:к}.#you are, <class>.]===],
-["!code"] = {
-["rywnyuae.."] = 362649005,
-},
-},
-["Bile Spewer"] = { "жовчеплюй",
--- %s belches out a disgusting Bile Slime!
-[3882127901] = [===[%s виригує огидний жовчний слиз!]===],
--- %s explodes and releases several Bile Slimes!
-[1035160661] = [===[%s вибухає і вивільняє жовчний слиз!]===],
-},
-["Billy"] = { "Біллі",
--- And one time, at camp, I caught a fish that was bigger than I am!!
-[1036325904] = [===[А одного разу в таборі я зловив рибу, яка була більшою за мене самого!]===],
--- C'mon, let's try somewhere else.
-[1460143634] = [===[Пішли, спробуємо ще десь.]===],
--- I caught a big one last week, it had three eyes!
-[1803166653] = [===[Я таку величезну рибину спіймав на тому тижні, ще й з трьома очима!]===],
--- I heard a story about this golden fish, and if you caught it you would get three wishes!
-[2388096878] = [===[Я чув історію про золоту рибку. Здається, якщо її зловиш, то зможеш загадати три бажання!]===],
--- I heard that there are these huge fish that can walk on land to hunt, and eat people!
-[1922809974] = [===[Я чув про величезних риб, які можуть ходити по суші, щоб вбивати і їсти людей!]===],
--- Look! Look! I caught something! Aww....it's just a stinky ol' boot.
-[836168549] = [===[Дивись! Дивись! Я щось зловив! Ех... це просто старий смердючий чобіт.]===],
--- My daddy can catch more fish than your daddy!
-[69454766] = [===[Мій тато може зловити більше риби, ніж твій тато!]===],
--- My daddy says that in the ocean, there are fish so big they could swallow a whole ship.
-[764884215] = [===[Мій тато каже, що в океані є такі великі риби, що можуть проковтнути цілий корабель.]===],
--- Think there are any fish in here?
-[1584947857] = [===[Думаєш, тут є риба?]===],
-},
-["Bimble Longberry"] = { "Бімбль Ожинка",
--- Juicy fruits for sale!
-[3483107944] = [===[Купуйте соковиті фрукти!]===],
--- Sink your teeth into a fresh, ripe apple.
-[1811569927] = [===[Спробуйте мої свіжі, стиглі яблука.]===],
--- Straight from the lush forests of Elwynn, get your fresh fruit right here.
-[154921396] = [===[Найсвіжіші фрукти, щойно з пишних лісів Ельвинну.]===],
-},
-["Bingles Blastenheimer"] = { "Бінґлс Підривайченко",
--- If Gnoarn finds out about this, it'll be my hide!
-[187027466] = [===[Якщо Ґноарн дізнається про це, мені гайки!]===],
-},
-["Black Guard Sentry"] = { "караульний Чорної Варти",
--- Who dares disturb our master?
-[3096012755] = [===[Хто сміє турбувати нашого господаря?]===],
-},
-["Black Guard Swordsmith"] = { "зброяр Чорної Варти",
--- Payment for those plans comes in bones - YOUR BONES!
-[1305398727] = [===[Ви заплатите за ці креслення СВОЇМИ КІСТКАМИ!]===],
-},
-["Blackhand Elite"] = { "гвардієць Чорнорука",
--- We're doomed!
-[2985966305] = [===[Нам кінець!]===],
-},
-["Blackhand Summoner"] = { "закликач Чорнорука",
--- %s begins to summon in a Blackhand Dreadweaver!
-[2839291088] = [===[%s починає викликати жахоткача Чорнорука!]===],
--- %s begins to summon in a Blackhand Veteran!
-[2262083242] = [===[%s починає викликати ветерана Чорнорука!]===],
--- %s summons a Blackhand Dreadweaver to his aid!
-[2863874437] = [===[%s викликає жахоткача Чорнорука на допомогу!]===],
--- %s summons a Blackhand Veteran to his aid!
-[538414898] = [===[%s викликає ветерана Чорнорука на допомогу!]===],
-},
-["Blackhand Thug"] = { "бандит Чорнорука",
--- %s start pushing each other back and forth.
-[3810618032] = [===[%s починає штовхатись.]===],
--- My turn, meathead! I get to throw now.
-[2431212618] = [===[Моя черга, придурок! Зараз я кидаю.]===],
--- OK, OK! It's your turn!
-[291494010] = [===[Гаразд, гаразд! Твоя черга!]===],
--- You threw last one, idiot. It's my turn.
-[1110621179] = [===[Ти кидав минулого разу, недоумок. Тепер моя черга.]===],
-},
-["Blackwing Technician"] = { "технік Чорного Крила",
--- Run! They are coming!
-[3174793144] = [===[Тікайте! Вони наближаються!]===],
-},
-["Blastmaster Emi Shortfuse"] = { "підривниця Емі Куций Запал",
--- ...too quiet.
-[3396598166] = [===[...занадто тихо.]===],
--- 10 seconds to blast! Stand back!!!
-[3660334242] = [===[10 секунд до вибуху! Відійдіть!!!]===],
--- 5 seconds until detonation!!!!!
-[1382444029] = [===[5 секунд до детонації!!!!!]===],
--- <target> attacking! Help!
-[1579792297] = [===[{Ціль} атакує! Допоможіть!#<target> attacking!]===],
--- Did you hear something?
-[4088504696] = [===[Ви щось чули?]===],
--- FIRE IN THE HOLE!
-[1688529508] = [===[ПІДРИВАЮ!]===],
--- Get this, <target> off of me!
-[675943235] = [===[{Ціль}! Заберіть його від мене!#this, <target> off]===],
--- Help!
-[2719533950] = [===[Допоможіть!]===],
--- I don't think one charge is going to cut it. Keep fending them off!
-[3165421339] = [===[Не думаю, що одного заряду вистачить. Продовжуйте стримувати їх!]===],
--- I heard something over there.
-[3458693954] = [===[Я чула щось звідти.]===],
--- I need help!
-[2843803955] = [===[Мені потрібна допомога!]===],
--- Incoming blast in 10 seconds!
-[1318220478] = [===[Вибух через 10 секунд!]===],
--- Incoming blast in 5 seconds. Clear the tunnel! Stay back!
-[1219469663] = [===[Вибух через 5 секунд. Покиньте тунель! Назад!]===],
--- It's quiet here....
-[4183863513] = [===[Тут тихо....]===],
--- Let's see if we can find out where these Troggs are coming from.... and put a stop to the invasion!
-[4216779478] = [===[Спробуймо з'ясувати, звідки з'являються ці троги... і покінчимо з цим!]===],
--- Look! Over there at the tunnel wall!
-[3828470716] = [===[Погляньте! Там, у стіні тунелю!]===],
--- More troggs! Ward them off as I prepare the explosives!
-[132504735] = [===[Ще троги! Стримуйте їх, поки я готую вибухівку!]===],
--- Nice work! I'll set off the charges to prevent any more troggs from making it to the surface.
-[3628828817] = [===[Чудова робота! Я підірву заряди, щоб троги більше не лізли на поверхню.]===],
--- Such devastation... what a horrible mess...
-[3314734570] = [===[Така руїна... який жахливий безлад...]===],
--- Superb! Because of your help, my people stand a chance of re-taking our beloved city. Three cheers to you!
-[3267096158] = [===[Супер! Завдяки вашій допомозі у мого народу з'явився шанс повернути наше рідне місто. Ви найкращі!]===],
--- The charges are set. Get back before they blow!
-[2490125146] = [===[Заряди встановлені. Відійдіть, поки вони не вибухнули!]===],
--- The final charge is set. Stand back!
-[1559457464] = [===[Останній заряд встановлено. Відійдіть!]===],
--- Trogg incursion! Defend me while I blast the hole closed!
-[1181122061] = [===[Це троги! Прикрийте мене, поки я закладаю вибухівку!]===],
--- Well done! Without your help I would have never been able to thwart that wave of troggs.
-[3284293977] = [===[Гарна робота! Без вашої допомоги я б ніколи не впоралась з цими трогами.]===],
--- With your help, I can evaluate these tunnels.
-[4192468796] = [===[З вашою допомогою я зможу дослідити ці тунелі.]===],
-["!code"] = {
-[".-aghp"] = 1579792297,
-["gtts.-ofofme"] = 675943235,
-},
-},
-["Blood Elf Defender"] = { "ельф крові-захисник",
--- Ha! Now your death is ensured!
-[1453227378] = [===[Ха! Тобі кінець!]===],
--- Mistress!! They seek to destroy your work!!
-[2557944483] = [===[Володарко!! Вони хочуть знищити вашу працю!!]===],
--- Who dares?! I will destroy you!
-[1982025304] = [===[Хто посмів?! Я тебе знищу!]===],
-},
-["Bloodlord Mandokir"] = { "повелитель крові Мандокір",
--- %s goes into a rage after seeing his raptor fall in battle!
-[3674435145] = [===[%s впадає в лють, коли бачить, як його раптор гине в бою!]===],
--- <name>! I'm watching you!
-[1065318059] = [===[{Ім'я}! Я стежу за тобою!#<name>! I'm]===],
--- DING!
-[2863626944] = [===[ДЗИНЬ!]===],
--- Don't make me angry! You wouldn't like me when I'm angry!
-[3955704566] = [===[Не зли мене! Тобі не сподобається мій гнів!]===],
--- I'll feed your souls to Hakkar himself!
-[27160099] = [===[Я згодую ваші душі самому Гаккару!]===],
--- You've angered me for the last time <name>!
-[1617139051] = [===[Пізнай мій гнів, {ім'я}!#time <name>!]===],
--- Your deaths feed my strength!
-[1284323713] = [===[Ваші смерті наповнюють мене силою!]===],
-["!code"] = {
-[".-imwgyu"] = 1065318059,
-["yeadmefrteltte.-"] = 1617139051,
-},
-},
-["Bloodmage Thalnos"] = { "кривавий маг Талнос",
--- More... More souls!
-[857169305] = [===[Більше... Більше душ!]===],
--- No rest... for the angry dead!
-[1382835866] = [===[Немає спокою... для розгніваних мерців!]===],
--- We hunger for vengeance.
-[2493098160] = [===[Ми прагнемо помсти.]===],
-},
-["Bogling"] = { "болотянчик",
--- KILL!!!
-[961347096] = [===[ВБИВАТИ!!!]===],
-},
-["Boss Galgosh"] = { "бос Ґалґош",
--- A <class> called <name>? You'll make a fine breakfast!
-[775067910] = [===[{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?]===],
--- Die, <race>!  These lands belong to the Stonesplinter Tribe!
-[1317393778] = [===[Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!]===],
--- The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!
-[716981480] = [===[Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!]===],
--- The Stonesplinter Tribe shall see to your doom!
-[3941481951] = [===[Плем'я Каменедробів знищить вас!]===],
--- The only good <race> is a dead <race>!
-[2368504048] = [===[{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!]===],
--- Weak <class>! You are no match for the Stonesplinter Tribe!
-[2539742921] = [===[{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!]===],
-["!code"] = {
-["..cd.-ylmefebt"] = 775067910,
-["de..telsbgtotesrte"] = 1317393778,
-["telhbstotesrtenw.-nwde"] = 716981480,
-["teoygd..isdd.."] = 2368504048,
-["wk..yuaenomhfrtesrte"] = 2539742921,
-},
-},
-["Brandon"] = { "Брендон",
--- My father says that's just a story.
-[663376984] = [===[Мій тато каже, що це все вигадки.]===],
--- Oh c'mon, that's not true.
-[3978017356] = [===[Ой, та ну. Це не правда.]===],
--- Oh yeah, I heard about that.
-[1579605495] = [===[А, так, я чув про це.]===],
--- Sounds kinda like one of Billy's fish stories to me.
-[2253542321] = [===[Звучить, як одна з вигадок Біллі.]===],
-},
-["Braug Dimspirit"] = { "Брауґ Тьмяний Дух",
--- That is the wrong answer, <name>. Be off with you.
-[2634157291] = [===[Це неправильна відповідь, {ім'я:к}. Йди звідси.#answer, <name>.]===],
-["!code"] = {
-["ttistewgar.-beofwhyu"] = 2634157291,
-},
-},
-["Brewmeister Bilger"] = { "майстер-бровар Білґер",
--- Hiccup!
-[3162055176] = [===[Гик!]===],
-},
-["Broodlord Lashlayer"] = { "володар роду Хлист Бича",
--- Clever, mortals - but I am not so easily lured away from my sanctum!
-[272455808] = [===[Розумно, смертні — але мене не так легко виманити з мого святилища!]===],
--- None of your kind should be here!  You've doomed only yourselves!
-[66833651] = [===[Ніхто з вас не має бути тут! Ви прирекли себе на загибель!]===],
-},
-["Brother Kristoff"] = { "брат Крістофф",
--- Thank you, <name>.  May the Light bless you, <brother/sister>, and guide your path.
-[4268511530] = [===[Дякую тобі, {ім'я:к}. Нехай Світло благословить тебе, {стать:брате:сестро}, і вказує тобі шлях.]===],
-["!code"] = {
-["tkyu.-myteltbsyu.radgeyrph"] = 4268511530,
-},
-},
-["Brother Malach"] = { "брат Малах",
--- Edward. Tyler. Prepare for your first challenge.
-[2340797632] = [===[Едвард. Тайлер. Приготуйтесь до першого випробування.]===],
--- It is time to face your final challenge young warriors! Prepare for your hardest fight yet.
-[3021715985] = [===[Час зіткнутись з вашим останнім випробуванням, юні воїни! Готуйтеся до вашого найважчого бою.]===],
--- Lysta, summon forth... the abomination!
-[3732036582] = [===[Лайсто, виклич... потвору!]===],
--- Lysta, summon in the captives.
-[2408862368] = [===[Лайсто, виклич полонених.]===],
--- Lysta, summon in undead captives.
-[2350960992] = [===[Лайсто, виклич полонених невмерлих.]===],
--- Not a challenge at all it seems. Let us see how you handle your second test. Lysta, bring forth the minions of the Lich King.
-[2119246472] = [===[Здається, для вас це зовсім не виклик. Погляньмо, як ви справитесь із другим випробуванням. Лайсто, приведи слуг Короля-ліча.]===],
--- Well done Edward and Tyler. You are progressing along in your training quite nicely. We shall test your mettle again soon.
-[1431918718] = [===[Молодці, Едвард і Тайлер. Ви чудово просунулися у своєму навчанні. Скоро ми знову перевіримо ваші сили.]===],
-},
-["Brother Sarno"] = { "брат Сарно",
--- Greetings, <class>!  Welcome to the Cathedral of Light!
-[351131910] = [===[Вітаю, {клас:к}! Ласкаво просимо до собору Світла!#Greetings, <class>!]===],
-["!code"] = {
-["gs..wetotecloflt"] = 351131910,
-},
-},
-["Bruegal Ironknuckle"] = { "Бруґал Залізний Кулак",
--- Death to the Warden's men!
-[4061880385] = [===[Смерть людям наглядача!]===],
--- Fresh meat!
-[4157528091] = [===[Свіже м'ясо!]===],
--- I'll crush your skull beneath my boot!
-[1926378372] = [===[Я розчавлю твій череп своїм чоботом!]===],
--- It'll be quick, but it won't be painless!
-[272845343] = [===[Це буде швидко, але не безболісно!]===],
--- More of the Warden's errand boys!
-[619369637] = [===[Нарешті, нові лакеї наглядача!]===],
--- Outsiders! Kill em all!
-[1312180711] = [===[Чужинці! Вбийте їх всіх!]===],
--- Tell the Warden this prison is ours now!
-[1153774846] = [===[Скажіть наглядачу, що ця в'язниця тепер наша!]===],
--- Welcome to the Stockade!
-[1142311961] = [===[Ласкаво просимо до в'язниці!]===],
-},
-["Burning Blade Toxicologist"] = { "токсиколог Палаючого Леза",
--- You've interfered with our plans for the last time, foolish <class>!
-[4101778386] = [===[Ти востаннє втручаєшся в наші плани, {клас:к}!#foolish <class>!]===],
-["!code"] = {
-["yeidwhorpsfrtelttefh.."] = 4101778386,
-},
-},
-["Buru the Gorger"] = { "Буру-Пожирач",
--- %s sets eyes on <name>!
-[1414866619] = [===[%s спрямовує погляд на {ім'я:з}!#eyes on <name>!]===],
-["!code"] = {
-["sseson.-"] = 1414866619,
-},
-},
-["C'Thun"] = { "К'Тун",
--- %s is weakened!
-[3129544794] = [===[%s ослаблений!]===],
-},
-["Caedakar the Vicious"] = { "Цедакар Порочний",
--- Tonight, your blood will run red on the stones of our altars.
-[2791033887] = [===[Ваша кров тектиме каменями наших жертовників.]===],
-},
-["Caelestrasz"] = { "Келестраз",
--- Alexstrasza grant me the resolve to drive our enemies back!
-[2413243812] = [===[Алекстразо, даруй мені сил дати відсіч нашим ворогам!]===],
--- Aye, Fandral, remember these words: Let not your grief guide your faith. These thoughts you hold... dark places you go, night elf. Absolution cannot be had through misguided vengeance.
-[1619714591] = [===[Гаразд, Фендрале, запам'ятай ці слова: не дозволяй своєму горю керувати твоєю вірою. Думки, в які ти занурюєшся... це темні речі, нічний ельфе. Сліпа помста — це хибний шлях до прощення.]===],
--- Do not forget the sacrifices made on this day, night elf. We have all suffered immensely at the hands of these beasts.
-[35523535] = [===[Не забувай про жертви, принесені в цей день, нічний ельфе. Ми всі безмірно постраждали від цих звірів.]===],
-},
-["Calvin Montague"] = { "Кальвін Монтеґ'ю",
--- Okay, okay... gimmie a minute to rest now. You gone and beat me up good.
-[2014750486] = [===[Гаразд, гаразд... Дай мені хвильку перепочити. Ти добряче мене {стать:побив:побила}.]===],
-},
-["Cannoneer Smythe"] = { "канонір Смайт",
--- Enemy ho! Fire!
-[3938682826] = [===[Ворог попереду! Вогонь!]===],
-},
-["Captain Balinda Stonehearth"] = { "капітан Балінда Кам'яне Вогнище",
--- Begone, uncouth scum!  The Alliance shall prevail in Alterac Valley!
-[1371594139] = [===[Геть, неотесані виродки! Альянс здобуде перемогу в Альтерацькій долині!]===],
--- Filthy Frostwolf cowards! If you want a fight, you'll have to come to me!
-[4231085302] = [===[Брудні боягузи Морозних Вовків! Як хочете битись — приходьте до мене самі!]===],
--- Take heart, Alliance!  Throw these villains from Alterac Valley!
-[1728984980] = [===[Вище носа, Альянс! Проженіть цих покидьків з Альтерацької долини!]===],
-},
-["Captain Blackanvil"] = { "капітан Чорноков",
--- Aye, lads!  Things are about to get quite ugly.
-[1517833689] = [===[Гаразд, народ! Зараз почнеться місиво.]===],
--- Footmen, make a line!
-[1987851011] = [===[Піхотинці, шикуйсь!]===],
--- I should've grabbed a bigger sword.
-[1778868189] = [===[Треба було взяти меча побільше.]===],
--- Looks like it's going to be one of those days.
-[2340035752] = [===[Схоже, що сьогодні буде весело.]===],
--- Open fire!
-[2103885792] = [===[Вогонь!]===],
--- Stand ready!
-[2445261194] = [===[Готуйсь!]===],
--- This better be important!
-[256665921] = [===[Сподіваюсь, це щось важливе!]===],
-},
-["Captain Danuvin"] = { "капітан Данувін",
--- All clear on Sentinel Hill, Lord Stoutmantle.  Heavy Defias movement reported in Moonbrook, however.
-[2876933296] = [===[На Сторожовому пагорбі все чисто, лорде Міцнокрив. Проте повідомляється про значну активність Непокірних у Місяцеграї.]===],
--- Stormwind's desertion shall not be forgiven by the people of Westfall.
-[3989345374] = [===[Мешканці Західного краю не пробачать зраду Штормовію.]===],
-},
-["Captain Galvangar"] = { "капітан Ґальванґар",
--- Die!  Your kind has no place in Alterac Valley!
-[3301521119] = [===[Згиньте! Таким, як ви, не місце в Альтерацькій долині!]===],
--- I'll never fall for that, fool! If you want a battle, it will be on my terms and in my lair.
-[3688572337] = [===[Я на це не поведуся, дурні! Якщо хочете битви, то вона буде на моїх умовах і в моїй твердині!]===],
--- Now is the time to attack!  For the Horde!
-[1923370996] = [===[Настав час наступати! За Орду!]===],
-},
-["Captain Garran Vimes"] = { "капітан Ґарран Ваймс",
--- %s places the scroll on the table, and reads...
-[2191519285] = [===[%s кладе сувій на стіл і читає...]===],
--- By the Light!  This cursed spy was a good one!  I'm glad he's dead.
-[212216446] = [===[Світлом клянуся! Цей проклятий шпигун був справжнім майстром своєї справи! Я радий, що він тепер мертвий.]===],
--- Tesoran! I need someone--Falgran Hastil, preferably--to take care of <name>'s lead on the prints near the Shady Rest Inn.
-[2961950009] = [===[Тесоране! Мені потрібно, щоб хтось — бажано, Фальґран Гастіл — зайнявся зачіпками {ім'я:р} щодо слідів біля таверни «Відпочинок у затінку».]===],
--- Thank you for this report, <name>.  It is now clear that we must tighten our patrols near Theramore.
-[423630119] = [===[Дякую за звіт, {ім'я:к}. Вочевидь, ми маємо посилити патрулювання навколо Терамора.#report, <name>.]===],
-["!code"] = {
-["tnndsnhlpoteceof.-ldontepsnrtesyrtin"] = 2961950009,
-["tkyufrtsrt.-itisnwcrttwemttnorpsnrte"] = 423630119,
-},
-},
-["Captain Halyndor"] = { "капітан Галиндор",
--- A living <race>... soon to be a dead like me.
-[1423218468] = [===[{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...]===],
--- Brains...
-[3661762526] = [===[Мізки...]===],
-["!code"] = {
-["lg..sntobeddleme"] = 1423218468,
-},
-},
-["Captain Kromcrush"] = { "капітан Дужохруст",
--- %s begins to retaliate all attacks against him!
-[3631474090] = [===[%s починає контратакувати у відповідь на всі атаки!]===],
--- Help me crush these punys!
-[1755988605] = [===[Допоможіть мені розчавити цих шмаркачів!]===],
--- Hey, who Fengus callin' a gnoll lover?!  Take da prisoners to da king; you smart to bring them with their weapons and show da king that they a threat.  I'll go see if Fengus talk smack when I give him da beatdown!  HAR!
-[605287202] = [===[Гей, кого там Фенґ гнололюбом назвав?! Веди цих полонених до короля. Мудро було лишить їм зброю, зразу видно — угроза. А я піду гляну, шо скаже Фенґ, коли я його поб'ю! ГРРР!]===],
--- No one get past me and threaten da king!  Ungh, take it!!
-[2226782816] = [===[Я нікому не дозволю погрожувать королю! На, ось тобі!!]===],
--- OK Fengus, where you at?!  You come call me a gnoll lover while I give you da hammer upside da head!
-[1532928] = [===[Ну, Фенґ, ти де?! Давай, скажи мені хто тут гнололюб, поки я тобі молотом по макітрі не гепнув!]===],
-},
-["Captain Nials"] = { "капітан Ніалс",
--- ...Sampson, Yorick, Chamley...
-[4268512181] = [===[...Семпсон, Йорік, Чамлі...]===],
--- Clemens, Bartholemew, Enderman, Wyles...
-[741033274] = [===[Клеменс, Варфоломій, Ендермен, Вайлс...]===],
--- Martens, Reblock, Adinay, Nikeson...
-[1442861620] = [===[Мартенс, Реблок, Адіней, Ніксон...]===],
--- Privates Fontane, MacDugal, Wilcott...
-[2257273925] = [===[Рядові Фонтейн, МакДуґал, Вілкот...]===],
--- Privates Horus, Tilling, Rockwell...
-[3508941530] = [===[Рядові Горус, Тіллінг, Роквелл...]===],
--- Privates Marcus, Tremane, Osgood, Lampret...
-[2645264341] = [===[Рядові Маркус, Треман, Осґуд, Лампрет...]===],
--- Privates Theoric, Kitrin, Blythe, Agmond...
-[3102042338] = [===[Рядові Теорик, Кітрін, Блайт, Аґмонд...]===],
--- So many lost.  And so many more we must lose before this battle ends.
-[1810684401] = [===[Стільки втрат. І ще багатьох ми втратимо, перш ніж ця битва закінчиться.]===],
--- Thank you for these badges, <name>.  I will send news to the families of the deceased.
-[121018574] = [===[Дякую за ці значки, {ім'я:к}. Я сповіщу родини загиблих.#badges, <name>.]===],
--- Tormil, Gamlor, Shefferd, Cowry...
-[1805306747] = [===[Торміл, Ґамлор, Шефферд, Коврі...]===],
-["!code"] = {
-["tkyufrtebs.-wlsdnstotefsoftedd"] = 121018574,
-},
-},
-["Captain Redpath"] = { "капітан Редпат",
--- Defenders of Darrowshire!  Rally!  We must prevail!
-[4121097725] = [===[Захисники Дарроуширу! Зберіться! Ми повинні перемогти!]===],
-},
-["Captain Tuubid"] = { "капітан Туубід",
--- Kill <target>!
-[1778867007] = [===[Вбийте {ціль:з}!#Kill <target>!]===],
-["!code"] = {
-["kl.-"] = 1778867007,
-},
-},
-["Captain Vanessa Beltis"] = { "капітан Ванесса Белтіс",
--- Stand prepared! The naga won't wait long to press their advantage once they know we're alive.
-[4203675925] = [===[Приготуйтеся! Наги не зволікатимуть з атакою коли дізнаються, що ми живі.]===],
-},
-["Captured Arko'narin"] = { "ув'язнена Арко'нарін",
--- Ah! Fresh air at last! I never thought I'd see the day...
-[2577116859] = [===[Ах! Нарешті свіже повітря! Я вже й не сподівалася, що дочекаюся цього...]===],
--- All I need now is a golden lasso.
-[3629662650] = [===[Мені потрібно лиш моє золоте ласо.]===],
--- DIE, DEMON DOGS!
-[3835335579] = [===[ЗДОХНІТЬ, КЛЯТІ ДЕМОНИ!]===],
--- I'm ready, <name>. Let's find my equipment and get out of here. I think I know where it is.
-[2758958107] = [===[Я готова, {ім'я:к}. Ходімо, знайдемо моє спорядження та виберемось звідси. Думаю, я знаю, де воно знаходиться.]===],
--- NO! What have they done to you!?
-[2508488588] = [===[НІ! Що вони з тобою зробили!?]===],
--- No! My friend... what's happened? This is all my fault...
-[3953306249] = [===[Ні! Друже мій... що сталося? Це все моя провина...]===],
--- Oh my! Look at this... all these candles. I'm sure they're used for some terrible ritual or dark summoning. We best make haste!
-[4256865728] = [===[Ох! Поглянь на це... всі ці свічки. Я впевнена, що їх використовують для якогось жахливого ритуалу або темного закликання. Нам краще поквапитись!]===],
--- There! Over there!
-[4202713103] = [===[Сюди! Нам сюди!]===],
--- What was that?! Trey? TREY!?
-[1304928578] = [===[Що це було?! Трей? ТРЕЙ?!]===],
--- You kept me in that cell for too long, monster!
-[3852998080] = [===[Ви занадто довго тримали мене в тій клітці, чудовисько!]===],
--- You will not stop me from escaping here, <target>!
-[3142518824] = [===[Ти не завадиш мені втекти звідси, {ціль}!#here, <target>!]===],
--- You will pay for what you've done to Trey!
-[3767761532] = [===[Ти заплатиш за те, що сталось з Треєм!]===],
--- You will pay for what you've done to Trey, <target>!
-[3408401762] = [===[Ти заплатиш за те, що сталось з Треєм, {ціль}!#Trey, <target>!]===],
-["!code"] = {
-["imry.-lsfdmyetadgtotofhetkkwweitis"] = 2758958107,
-["yuwlntspmefmeghe.-"] = 3142518824,
-["yuwlpyfrwtyedetoty.-"] = 3408401762,
-},
-},
-["Captured Farmer"] = { "полонений фермер",
--- And Shindigger Stout too!  Thank the Light!  I was parched!
-[218870966] = [===[Ще й "Землекопське міцне"! Хвала Світлу! Я вмираю від спраги!]===],
--- Finally they show mercy!  They've given us something to drink!
-[1212288730] = [===[Нарешті вони проявили милосердя! Вони дали нам щось випити!]===],
-},
-["Captured Hakkari Zealot"] = { "полонений ревнитель Гаккарі",
--- %s drops his shoulders and exposes his neck.
-[664383686] = [===[%s опускає плечі та оголює шию.]===],
--- %s laughs maniacally.
-[291321759] = [===[%s несамовито сміється.]===],
--- And now, even those nations that you would have called allies have recoiled and joined forces with us... Yes, old one, do not look so surprised.
-[3147407079] = [===[І тепер навіть ті, кого ви вважали союзниками, приєдналися до нас... Так, старий, не дивуйся.]===],
--- And... do you expect to defeat the Primal Gods?
-[2708045785] = [===[І... ви очікуєте перемогти Первісних Богів?]===],
--- Bloodscalp, Sandfury, Skullsplitter, Vilebranch and Witherbark. They all pledge their allegiance to Jin - their souls to Hakkar. You have lost.
-[1164662096] = [===[Кровоскальпі, Піщанолюті, Черепотрощителі, Миршаве Гілля і Зів'яла Кора. Усі вони присягли на вірність Джину — їхні душі належать Гаккару. Ви програли.]===],
--- Curious. A Servitor of Rastakhan that does not know the Hakkari do not converse in the old tongue?
-[1892655863] = [===[Цікаво. Слуга Растахана, який не знає, що Гаккарі не розмовляють старою мовою?]===],
--- Do you really need to ask? Can you not feel him? Has the almighty King Rastakhan sent his Servitor and Hand here on a mission of diplomacy?
-[902577064] = [===[Тобі справді потрібна моя відповідь? Хіба ти не відчуваєш його? Невже всемогутній король Растахан послав сюди своїх Слугу та Руку з дипломатичною місією?]===],
--- FOOL! Do you purport to have even one-tenth of the power you held during the Uprising? The nations were united and still were nearly consumed by a shadow of Hakkar. You stand no chance.
-[4141052431] = [===[ДУРЕНЬ! Думаєш, у вас є хоча б десятина від тієї сили, яку ви мали під час Повстання? Племена були об'єднані, і їх все одно ледь не поглинула тінь Гаккара. У вас немає жодного шансу.]===],
--- How pathetic. I am infused with the power of the Soulflayer. I fear nothing but the wrath of the almighty Hakkar. I serve no one but my master, Jin.
-[2818513147] = [===[Як жалюгідно. Я сповнений силою Здирача Душ. Я не боюся нічого, окрім гніву всемогутнього Гаккара. Я не служу нікому, крім свого повелителя, Джина.]===],
--- Is it? Call out to them, Servitor.
-[4023408270] = [===[Невже? Звернись до них, Слуго.]===],
--- It shall NEVER happen. We are legion. We are united. Where are your heroes? Vol'jin sits in sanctuary at the side of the young Warchief, unaware. Zul'jin missing, probably dead.
-[2734348061] = [===[Цього НІКОЛИ не станеться. Ми — легіон. Ми єдині. Де ваші герої? Вол'джин сидить у безпеці поряд з юним вождем, ні про що не підозрюючи. Зул'джин зник, ймовірно, загинув.]===],
--- Oh yes, old one, Hakkar has returned. Soon the world shall crumble beneath his might. Consumed. Left in ruin...
-[1903854084] = [===[О, так, старий, Гаккар повернувся. Скоро світ здригнеться від його сили. Спопеліє і лежатиме в руїнах...]===],
--- Strike me down. I shall be reborn... Even more powerful...
-[325494198] = [===[Вбий мене! Я відроджусь... Могутнішим...]===],
--- The young races? The infants? Humans? Orcs? Dwarves? You expect to defeat the Hakkari? To destroy a GOD?
-[934092520] = [===[Молоді раси? Ті немовлята? Люди? Орки? Дворфи? І ви збираєтесь перемогти Гаккарі? Знищити БОГА?]===],
--- Where are your Gods now? WHERE, SERVITOR?
-[1169390528] = [===[Де тепер твої Боги? ДЕ, СЛУГО?]===],
--- You are a fool, soon to forfeit his life. No?
-[2930352498] = [===[Ти дурень, що скоро розпрощається з життям. Хіба ні?]===],
-},
-["Captured Leper Gnome"] = { "пійманий лепрогном",
--- Oh, great.
-[539088995] = [===[Ох, чудово.]===],
-},
-["Captured Mountaineer"] = { "полонений горянин",
--- I raise my brew and hope to be rid of the likes of you!  Cheers, you no good scoundrel, <name>!
-[1625155266] = [===[Я підіймаю цей келих за знищення таких, як ти! За твоє нездоров'я, {ім'я:к}!scoundrel, <name>!]===],
-["!code"] = {
-["remybwadhetoberdoftelsofyucsyunogdsl.-"] = 1625155266,
-},
-},
-["Captured Scarlet Zealot"] = { "полонений ревнитель Багряного Походу",
--- I. . .I. . .don't. . .feel. . .right. . .
-[3883006166] = [===[Щ... Щось... мені... не... добре...]===],
--- My mind. . .my flesh. . .I'm. . .rotting. . . .!
-[3492394895] = [===[Мій розум... моя плоть... я... гнию!]===],
-},
-["Caretaker Alen"] = { "доглядач Ален",
--- And then the Tauren said, '13 INCHES!'
-[668457277] = [===[А таурен каже: '30 САНТИМЕТРІВ!']===],
--- Hey! Do you like the sauce? The sauce is good, no?
-[1955818156] = [===[Можна бути нічим не ліпшим... Можна померти і стати іншим...]===],
--- I can't take these taxes! F.I.C.A. me? F.I.C.A. YOU!
-[2979811118] = [===[Скільки можна терпіти всі ці податки? ПДФО? ПДНХ!]===],
--- I come from the land down under... where women plague and men sunder.
-[3595477418] = [===[І гуля нема, немає вже гуля... Немає ніц вопше, сама сира земля...]===],
--- I don't get paid enough for this bull excrement!
-[2597719801] = [===[Мені надто мало платять для такого лайна!]===],
--- I should have taken the translucent pill.
-[147298155] = [===[Треба було обрати іншу таблетку.]===],
--- Just sit right back and you'll hear a ta... *hic* a tai... *hic* a taiiii *hic* Damnit!
-[1499227062] = [===[Нехай проблеми та незгоди не роб... *гик* не роооб... *гик* роб...*гик* Трясця!]===],
--- The what-bringer? Oh, ASHbringer? Never heard of it... What? Stop bothering me!
-[1734539088] = [===[Спопо-як? А, Спопелитель? Ніколи не чув про нього... Що? Відчепись від мене!]===],
-},
-["Caretaker Caice"] = { "доглядач Кайс",
--- My bones are weak, my eyes see only darkness, and my body feels only pain; but these things are good because my will is my own.
-[271109146] = [===[Мої кістки слабкі, мої очі бачать лише пітьму, а тіло відчуває лише біль. Але це ніщо, адже моя воля належить мені.]===],
--- Terror, darkness, power? The Forsaken crave not these things; the Forsaken ARE these things.
-[1908926355] = [===[Страх, пітьма, сила? Відречені не прагнуть цього. Відречені і є цим.]===],
--- You are free of His control. And while you will be judged by lesser beings, at least you have chances that the Scourge do not!
-[2707894409] = [===[Ми вільні від Його контролю. І хоча нас зневажатимуть нижчі істоти, принаймні у вас є воля, якої не має Скара!]===],
--- Your undeath is not the end of your life, but the beginning. It is up to you to decide where your fate lies now.
-[3415591140] = [===[Твоє нежиття — це не кінець твого життя, а лише початок. Твоя доля залежить лише від тебе.]===],
-},
-["Carrion Devourer"] = { "трупний пожирач",
--- %s explodes into poisonous goo!
-[3082491081] = [===[%s вибухає отруйним слизом!]===],
-},
-["Cat"] = { "кішка",
--- %s jumps out of the shadows!
-[1399803625] = [===[%s вискакує з тіней!]===],
-},
-["Cauldron Lord Bilemaw"] = { "хранитель котла Жовчерот",
--- <race> flesh... must feed!
-[20730558] = [===[{Раса:н}... плоть... мушу їсти...]===],
-["!code"] = {
-["..fhmtfd"] = 20730558,
-},
-},
-["Cauldron Lord Malvinious"] = { "хранитель котла Злобин",
--- Who dares to approach this cauldron?  Taste my dark blade!
-[1136680317] = [===[Хто сміє наближатися до цього котла? Відчуй мій темний клинок!]===],
-},
-["Cauldron Lord Razarch"] = { "хранитель котла Разарх",
--- The Scourge beckons you, foolish <race>.
-[1056241744] = [===[Скара кличе тебе, {стать:дурний:дурна} {раса:к}.#foolish <race>.]===],
-["!code"] = {
-["tesebsyufh.."] = 1056241744,
-},
-},
-["Cauldron Lord Soulwrath"] = { "хранитель котла Душегнів",
--- <class> - I will consume your light!
-[1751897367] = [===[{Клас:н} — я пожру твою душу!#<class> - I]===],
-["!code"] = {
-["..wlceyrlt"] = 1751897367,
-},
-},
-["Caverndeep Ambusher"] = { "печерний душитель",
--- %s is splashed by the blood and becomes irradiated!
-[273250980] = [===[%s вкривається кров'ю і стає опроміненим!]===],
-},
-["Caverndeep Burrower"] = { "печерний землерий",
--- %s is splashed by the blood and becomes irradiated!
-[273250980] = [===[%s вкривається кров'ю і стає опроміненим!]===],
-},
-["Caverndeep Invader"] = { "печерний загарбник",
--- %s is splashed by the blood and becomes irradiated!
-[273250980] = [===[%s вкривається кров'ю і стає опроміненим!]===],
-},
-["Caverndeep Pillager"] = { "печерний грабіжник",
--- %s is splashed by the blood and becomes irradiated!
-[273250980] = [===[%s вкривається кров'ю і стає опроміненим!]===],
-},
-["Caverndeep Reaver"] = { "печерний розоритель",
--- %s is splashed by the blood and becomes irradiated!
-[273250980] = [===[%s вкривається кров'ю і стає опроміненим!]===],
-},
-["Celebras the Redeemed"] = { "Келебрас Спокутий",
--- %s begins to channel his energy, focusing on the stone.
-[183895707] = [===[%s починає спрямовувати свою енергію, зосереджуючись на камені.]===],
--- For so long I have drifted in my cursed form. You have freed me... Your hard work shall be repaid.
-[3206429797] = [===[Я так довго блукав у своїй проклятій подобі. Ви звільнили мене... і ви не залишитесь без винагороди.]===],
--- My scepter will once again become whole!
-[1729509759] = [===[Мій скіпетр знову стане цілісним!]===],
--- Please do as I instruct you, <name>.
-[3662953976] = [===[Будь ласка, роби так, як я тобі скажу, {ім'я:к}.#you, <name>.]===],
--- Read this tome I have placed before you, and speak the words aloud.
-[1090112340] = [===[Прочитай фоліант, що я поклав біля каменю, і промовляй слова вголос.]===],
--- Together, the two parts shall become one, once again.
-[777102463] = [===[Разом ці частини знову стануть єдиним цілим.]===],
--- You wish to learn of the stone? Follow me.
-[1576798731] = [===[Хочеш побачити камінь? Ходи за мною.]===],
-["!code"] = {
-["pedoasityu.-"] = 3662953976,
-},
-},
-["Celebrian Dryad"] = { "келебрійська дріада",
--- Nothing must befoul the gardens! You must be destroyed!
-[757441668] = [===[Ніщо не має оскверняти сади! Вас необхідно знищити!]===],
--- You do not belong in these gardens.  Your body shall nourish our lovely creations!
-[96004164] = [===[Вам не місце в цих садах. Ваші тіла стануть поживою для цих прекрасних створінь!]===],
-},
-["Cenarion Hold Infantry"] = { "піхотинець Кенарійської цитаделі",
--- As if we don't have enough problems, you go and create more!
-[2107571779] = [===[Нам тут вистачає проблем і без твоїх витівок!]===],
--- Believe me when I tell you this: You're gonna wish you weren't born, sissy!
-[2033362439] = [===[Ти пошкодуєш про це, мерзото!]===],
--- Get a rope!
-[3785003013] = [===[Несіть мотузку!]===],
--- Please tell me that you didn't just do what I think you just did. Please tell me that I'm not going to have to hurt you...
-[2654955622] = [===[Прошу, скажи, що це не те, що я думаю. Скажи, що мені не доведеться робити тобі боляче...]===],
--- Taste blade, mongrel!
-[3166277165] = [===[Скуштуй клинка, падло!]===],
--- We don't take kindly to miscreants, <race>.
-[554360574] = [===[Ми не терпітимемо тут злочинців, {раса:к}.#miscreants, <race>.]===],
--- You dare spill blood on neutral ground? OUT! OUT, I SAY!
-[1901191019] = [===[Ти насмілюєшся проливати кров на нейтральній землі? ГЕТЬ! ГЕТЬ, КАЖУ!]===],
--- Your actions shame us all, <class>. I hurt inside as I beat you senseless.
-[1484695459] = [===[Ти ганьбиш нас всіх, {клас:к}. Серце кров'ю обливається, але я мушу тебе провчити.]===],
--- Your actions shame us all, <class>. It pains me to beat you senseless!
-[653642717] = [===[Ти ганьбиш нас всіх, {клас:к}. Мені шкода, але я мушу тебе провчити.]===],
-["!code"] = {
-["wedttekytoms.."] = 554360574,
-["yrasseusal..htieasbtyuss"] = 1484695459,
-["yrasseusal..itpsmetobtyuss"] = 653642717,
-},
-},
-["Cenarion Hold Reservist"] = { "резервіст Кенарійської цитаделі",
--- As if we don't have enough problems, you go and create more!
-[2107571779] = [===[Нам тут вистачає проблем і без твоїх витівок!]===],
--- Please tell me that you didn't just do what I think you just did. Please tell me that I'm not going to have to hurt you...
-[2654955622] = [===[Прошу, скажи, що це не те, що я думаю. Скажи, що мені не доведеться робити тобі боляче...]===],
--- You dare spill blood on neutral ground? OUT! OUT, I SAY!
-[1901191019] = [===[Ти насмілюєшся проливати кров на нейтральній землі? ГЕТЬ! ГЕТЬ, КАЖУ!]===],
--- Your actions shame us all, <class>. It pains me to beat you senseless!
-[653642717] = [===[Ти ганьбиш нас всіх, {клас:к}. Мені шкода, але я мушу тебе провчити.]===],
-["!code"] = {
-["yrasseusal..itpsmetobtyuss"] = 653642717,
-},
-},
-["Cerellean Whiteclaw"] = { "Цереліан Білопазур",
--- Anaya...? Do my eyes deceive me? Is it really you?
-[3604749006] = [===[Анайя...? Може, я марю? Невже це дійсно ти?]===],
--- Do you hate me, my love? That I was forced to destroy your living form, that your spirit be released from unhappy bondage.
-[2594912878] = [===[Чи ненавидиш ти мене, любове моя? За те, що змушений був знищити твоє втілення в надії врятувати твою душу.]===],
--- How, my love? How will I find the strength to face the ages of the world without you by my side...
-[641372979] = [===[Як, кохана моя? Як мені жити у світі, в якому немає тебе...]===],
--- No! Anaya... Anaya! Don't leave me! Please...
-[2887099998] = [===[Ні! Анайя... Анайя! Не покидай мене! Прошу...]===],
--- That the fates should be so cruel as to permit us only this after a thousand years apart...
-[945719626] = [===[Невже доля настільки жорстока, що після тисячі років розлуки це все, що лишається нам...]===],
-},
-["Chained Spirit"] = { "прикутий дух",
--- I am released through you! Avenge me!
-[2099424499] = [===[Я вільний завдяки тобі! Помстись за мене!]===],
-},
-["Charlga Razorflank"] = { "Чарлґа Бритвобока",
--- Bah! My power rules here!
-[2925531799] = [===[Ха! Тут панує моя сила!]===],
--- Our new allies will avenge us!
-[1216630075] = [===[Наші нові союзники помстяться за нас!]===],
--- Troublesome whelps. I'll teach you to interfere!
-[1260258193] = [===[Набридливі вилупки. Я покажу, що стається з тими, хто заважає нам!]===],
--- Who's next?
-[1418160633] = [===[Хто наступний?]===],
--- You outsiders will pay for encroaching on our land!
-[2259865576] = [===[Ви, чужинці, поплатитесь за вторгнення на нашу землю!]===],
-},
-["Chef Breanna"] = { "шеф-кухарка Бренна",
--- Hopefully the reinforcements from Stormwind show up soon. . . .
-[2117704757] = [===[Сподіваюся, підмога зі Штормовію скоро прибуде...]===],
-},
-["Chemist Cuely"] = { "хімік К'юлі",
--- There! Job's done.
-[1040703516] = [===[Ось так! Все готово.]===],
-},
-["Chicken"] = { "курка",
--- %s looks at you expectantly.
-[4002245215] = [===[%s очікує від вас чогось смачного.]===],
-},
-["Chief Engineer Hinderweir VII"] = { "старший інженер Греблер",
--- The Stonewrought Dam has been saved!  Three cheers for <name>!
-[1860081449] = [===[Каменярську дамбу врятовано! Славімо {ім'я:з}!#for <name>!]===],
-["!code"] = {
-["testdmhsbnsdtecsfr.-"] = 1860081449,
-},
-},
-["Chief Murgut"] = { "вождь Мурґут",
--- No!  You cannot be stronger than the Foulweald!  No!!
-[529247113] = [===[Ні! Ти не можеш бути сильніше за Гидколісових! Ні!!]===],
--- You are a little gnat to the Foulweald!  Die!
-[2552379074] = [===[Ти — лиш дрібна комаха для Гидколісових! Помри!]===],
-},
-["Chief Ukorz Sandscalp"] = { "вождь Укорз Піщаний Скальп",
--- Die, outlander!
-[22490369] = [===[Помріть, чужинці!]===],
--- Feel the fury of the sands!
-[675016845] = [===[Відчуй лють пісків!]===],
--- The Sandfury reign supreme!
-[3950515609] = [===[Піщанолютих не спинити!]===],
--- This desert be mine!
-[272557243] = [===[Пустеля буде моєю!]===],
--- Who dares step into my domain!  Come!  Come, and be consumed!
-[680898637] = [===[Хто сміє заходити в мої володіння? Вас поглинуть піски!]===],
-},
-["Cho'Rush the Observer"] = { "Чо'Раш-Спостерігач",
--- The king is dead - OH NOES!  Summon Mizzle da Crafty!  He knows what to do next!
-[2402606586] = [===[Король мертвий — О НІ! Покличте Міззла Кмітливого! Він знає, шо робить далі!]===],
-},
-["Chok'sul"] = { "Чок'сул",
--- Bash it!
-[2102451766] = [===[Бити! Ламати!]===],
--- Dat <race> look gud to eat!
-[1511051154] = [===[Ми їсти {раса:н}!#Dat <race> look]===],
--- Huh? What dat?
-[586495170] = [===[Га? Це шо?]===],
--- Me smash you!
-[1685116539] = [===[Я тебе бити!]===],
-["!code"] = {
-["dt..lkgdtoet"] = 1511051154,
-},
-},
-["Christoph Faral"] = { "Крістоф Ферел",
--- A warm tavern and a cold ale. What more could we ask for?
-[2296559617] = [===[Тепла таверна і холодний ель. Що ще потрібно для щастя?]===],
--- Ahh the Glustewelt twins!
-[2202791333] = [===[Ух, ці близнюки Ґлустевельт!]===],
--- Ahh yes, now I remember, your wedding night wasn't it?
-[3554348730] = [===[А-а-а, так, згадав. Це ж в тебе тоді весілля було?]===],
--- Aye and thanks for letting me carry my own hand back to the priests that night.
-[506692380] = [===[Ага, і дякую що дозволив тоді мені самому нести свою руку до жерців.]===],
--- Battling that band of Twilight Hammer in the Morass, I could think of better places for a war.
-[1849810892] = [===[А бій з тою бандою Сутінкового Молота в Чорних драгвах? Еге, кращого місця для битви не придумаєш.]===],
--- Broke both me legs that night. How could I forget?
-[1075712578] = [===[Зламав обидві ноги тієї ночі. Як я міг таке забути?]===],
--- Course I remember that night. Two inches to the left and you'd be drinking with that elf, Morris. That was my best shirt, too.
-[3914840964] = [===[Звісно, я пам'ятаю ту ніч. Кілька перстів лівіше, і ти б зараз пиячив з тим ельфом, Моррісом. Ех, це була моя найкраща сорочка...]===],
--- Hehe, wimp.
-[1856009414] = [===[Хе-хе, слабак.]===],
--- I have a piece of iron in my back that will remind me of that night for the rest of my days.
-[1945510360] = [===[З цим шматком заліза в спині я ту ніч до скону не забуду.]===],
--- I miss the dwarven ale we used to get at that inn in Lordaeron. Remember that fight we started there?
-[3434480918] = [===[Я сумую за дворфійським елем, який ми пили у тій таверні в Лордероні. Пам'ятаєш, яку ми там бійку влаштували?]===],
--- I still have the scars from that night.
-[1273503923] = [===[У мене досі залишилися шрами з тієї ночі.]===],
--- I tell ye, I don't miss the Great War at all. I remember when we fought at Darrowmere. All night in the fog, lying in a muddy trench.
-[2554416143] = [===[Кажу ж, я зовсім не сумую за Великою Війною. Пам'ятаю, як ми билися при Дарроумері. Всю ніч у тумані, ще й по пояс в багнюці.]===],
--- I woke up in a bed in Northshire three weeks later. Don't remember a damn thing.
-[3324038007] = [===[Я прокинувся тоді у Північнокраї через три тижні. Ні біса не пам'ятаю.]===],
--- It all worked out in the end.
-[1596041019] = [===[Зрештою, у нас тоді все вийшло.]===],
--- Less than a hundred of us, and over a thousand orcs. Only a handful of us managed to walk away from that one.
-[851439666] = [===[Нас було менше сотні, а орків з тисячу. Не багатьом тоді вдалося вижити...]===],
--- Let's not even begin comparing battle scars, my friend.
-[3673265460] = [===[Давай навіть не починати мірятись шрамами, друже.]===],
--- Never seen anyone move so fast in my whole life.
-[2517211028] = [===[Ніколи в житті не бачив, щоб хтось рухався так швидко.]===],
--- Remember when Danath gathered all the mercenaries of Stormwind together and we marched to fight at Nethergarde?
-[1096086202] = [===[Пам'ятаєш, як Данат зібрав усіх найманців Штормовію і ми вирушили на битву до Підсвітньої Варти?]===],
--- The best had to have been the look on Perenolde's face when our army comes marchin' right up to his front door. What a battle!
-[309602857] = [===[Хотів би я бачити пику Перенольда, коли наша армія підійшла прямо до його воріт. Ех, яка була битва!]===],
--- Was that the third or fourth time you nearly got me gutted trying one of your crazy stunts?
-[2979810240] = [===[То був третій чи четвертий раз, коли ми мало не подохли через твої божевільні витівки?]===],
--- Wasn't that the night we had to pick up my thumb and carry it in your smoke pouch?
-[2173204924] = [===[Хіба це не тоді ми пів ночі шукали мій палець в кущах?]===],
--- Well, you're still here. I'd say that is something worth drinking to.
-[1808577072] = [===[Ну, ти все ще тут. Думаю, за це варто випити.]===],
--- You are constantly surprising me with what a person can live through.
-[179147171] = [===[Ти не перестаєш мене дивувати своїми історіями.]===],
--- You can thank me anytime for making your life more interesting.
-[2860707376] = [===[Подякуєш якось потім за те, що я роблю твоє життя цікавішим.]===],
--- You screamed like a little girl, funniest thing I ever saw.
-[2835480692] = [===[Ти кричав, як мале дівчисько. Це було дуже кумедно.]===],
-},
-["Chromaggus"] = { "Хромаґґус",
--- %s flinches as its skin shimmers.
-[4279558791] = [===[%s здригається, коли його шкіра починає мерехтіти.]===],
-},
-["Chromie"] = { "Хромі",
--- <name>, can you hear me? I think the spell went a little haywire and dropped you and your friend in different locations. Hurry up and find him, then get what you need and get back to the Inn on the west side of town. The portal will be waiting!
-[2074803005] = [===[{Ім'я:н}, ти мене чуєш? Здається, заклинання спрацювало трішки не так і вас перенесло в різні місця. Поквапся і знайди свого друга, потім візьміть те, що вам потрібно, і повертайтесь в таверну на західному краю міста. Там буде портал!]===],
--- Let's find out the whole story.  That's going to take some magic...
-[3853568339] = [===[Давай дізнаємося всю історію. Нам потрібна лиш дрібка магії...]===],
--- There, it is done.  The book has been enhanced...
-[2955895145] = [===[Ось і все. Я дещо покращила цю книгу...]===],
-["!code"] = {
-[".-cnyuhrmetkteslwtleheadddyuadyrfdindtlshy"] = 2074803005,
-},
-},
-["Coleman Farthing"] = { "Коулмен Фартинг",
--- Hah!  Eternal undeath to the cursed Agamands!
-[377450141] = [===[Ха! Нехай кляті Аґаманди ніколи не знайдуть спокою в смерті!]===],
--- Thank you, <name>.  You have tempered the cold rage in my heart.
-[1263462081] = [===[Дякую тобі, {ім'я:к}. Ти {стать:вгамував:вгамувала} мою жагу помсти.#you, <name>.]===],
-["!code"] = {
-["tkyu.-yuhetdtecdreinmyht"] = 1263462081,
-},
-},
-["Collin Mauren"] = { "Коллін Морен",
--- This should only take a moment, <name>.
-[2598063859] = [===[Це займе лиш мить, {ім'я:к}.#moment, <name>.]===],
-["!code"] = {
-["tssdoytemt.-"] = 2598063859,
-},
-},
-["Commander Althea Ebonlocke"] = { "командир Альтея Чорнобрива",
--- Fear not.  The Night Watch will rid the land of this foul taint soon enough.
-[4277440575] = [===[Не бійтеся. Нічна варта незабаром очистить землю від цієї нечисті.]===],
--- It'll take more than a rotting corpse to stop us!
-[1881959392] = [===[Щоб зупинити нас, знадобиться щось більше за гнилий труп!]===],
--- Stay on the roads.  The forest is overrun with undead.
-[2338815172] = [===[Тримайтеся доріг. Ліс кишить невмерлими.]===],
--- This doesn't bode well.  Send scouts to gather more intelligence, and stay on alert.
-[3252111585] = [===[Це не віщує нічого доброго. Відправте розвідників і лишайтеся насторожі.]===],
-},
-["Commander Eligor Dawnbringer"] = { "командир Еліґор Світанковий",
--- %s lowers the sound of his voice to a whisper.
-[128204118] = [===[%s переходить на шепіт.]===],
--- Delicious!
-[2947532470] = [===[Смакота!]===],
--- Even demons are capable of fear...
-[816704883] = [===[Навіть демони здатні відчувати страх...]===],
--- It was your leadership that manipulated a grieving child to try and recover the sword. A child that has grown into a man with nothing but vengeance and hatred in his heart! And for what? You are no closer to the sword now than you were five years ago.
-[2360996199] = [===[Це ви маніпулювали скорботною дитиною, щоб спробувати повернути меч. І ця дитина стала чоловіком, серце якого сповнене лише помстою та ненавистю! І заради чого? Ви зараз не ближче до меча, ніж були п'ять років тому.]===],
--- My compliments to the chef!
-[1550101773] = [===[Мої компліменти шефу!]===],
--- Now be silent and note where you are, lest I inform Lord Fordring and his knights that you are no longer here on amicable terms. I am certain he would take great pleasure in seeing to your 'atonement.'
-[2481788805] = [===[А тепер помовчіть та згадайте, де знаходитесь, інакше я повідомлю лорду Фордрінґу та його лицарям, що вам тут більше не раді. Я впевнений, що він буде радий бачити вашу "спокуту".]===],
--- Scourge activity in the Plaguelands has increased ten-fold. We are receiving reports of Scourge attacks from as far away as Kalimdor! Now how do you suppose this has happened? How have the wretched undead done that which was previously thought impossible? Is nowhere safe?
-[105112261] = [===[Активність Скари в Зачумлених землях зросла в десятки разів. Ми отримуємо повідомлення про їх напади аж із Калімдору! Як же, на вашу думку, це сталося? Як ці кляті невмерлі зробили те, що раніше ми вважали неможливим? Невже ніде не залишилося безпечних місць?]===],
--- So this is what you have come for? To try and claim that which is the reason for the Dawn's existence and the Crusade's downfall? You open old wounds with your words, Commander!
-[364811161] = [===[То за цим ви прийшли? Ця одержимість вже занапастила Багряний Похід! Досить ятрити старі рани, командире!]===],
--- So why are you here? What are we to do if there is no hope?
-[3447518874] = [===[То чому ж ви тут? Що нам робити, якщо надії немає?]===],
--- Tauren.
-[1631192544] = [===[Таурени.]===],
--- The Ashbringer is dead and there will never be another like him. The lesser Mograine is a far cry from the man his father was. You know this, Commander! It was, after all, your own leadership that was responsible for the death of the Scarlet Highlord Mograine.
-[3143501708] = [===[Спопелитель мертвий, і такого, як він, більше не буде. Молодший Моґрейн далекий від того, яким був його батько. Ви знаєте це, командире! Зрештою, саме ваше керівництво призвело до загибелі верховного повелителя Моґрейна.]===],
--- The fish is exquisite, Jessica.
-[4156714007] = [===[Ця риба неперевершена, Джесіко.]===],
--- Yet you think that recovering Ashbringer will somehow turn the tide of battle? Let me let you in on a little secret, Commander: The power of the Ashbringer came from the man who would wield it... I was there, Commander. I watched him burn legions of undead in righteous fire before he would even unsheathe the blade. Alas, your grasp on history is ... lacking.
-[2835001628] = [===[Ви справді думаєте, що повернення Спопелителя може змінити хід битви? Дозвольте відкрити вам невелику таємницю, командире: сила Спопелителя походила від людини, що його носила... Я був там, командире. Я бачив, як він спопеляв легіони невмерлих праведним вогнем, навіть не оголюючи леза. На жаль, ваші знання історії... посередні.]===],
--- You lack tact, Commander. This is not surprising. However, you are right in that the Horde will be forced to act. But not just the Horde. They already come - heroes from across the world.
-[3209471463] = [===[Вам бракує тактовності, командире. Це й не дивно. Проте, ви маєте рацію щодо того, що Орда буде змушена діяти. Але не лише Орда. Вони вже прибули — герої з усього світу.]===],
--- Your leader takes residence at the doorstep to Naxxramas. Do you think he does not feel the pressure?
-[3462387118] = [===[Ваш очільник оселився прямо під самим Наксрамасом. Думаєте, він не відчуває загрози?]===],
-},
-["Commander Gor'shak"] = { "командир Ґор'шак",
--- HEY! HEY YOU! <race>! Get me out of here!
-[186057672] = [===[ЕЙ! ЕЙ ТИ! {Раса:к}! Витягни мене звідси!#YOU! <race>! Get]===],
--- Key... get the key... Gerstahn has... key.
-[1853746822] = [===[Ключ... Знайди ключ... Він у... Ґерштан.]===],
--- Try and make yourself useful, <race>. GET ME OUT OF HERE! The High Interrogator has the key.
-[3217790050] = [===[Спробуй зробити щось корисне, {раса:к}. ЗВІЛЬНИ МЕНЕ ЗВІДСИ! Ключ у верховного допитувача.#useful, <race>.]===],
-["!code"] = {
-["hyhyyu..gtmeotofhe"] = 186057672,
-["tyadmeyful..gtmeotofhetehhirhsteky"] = 3217790050,
-},
-},
-["Commander Mar'alith"] = { "командир Мар'аліт",
--- Soldiers of Kalimdor! Heroes of Silithus! One among you has dealt a vicious blow to our mortal enemies! <name> and <his/her> allies have relieved the Ruins of Ahn'Qiraj of its merciless leader! Ossirian the Unscarred, scourge of Silithus, has finally been destroyed and his armies wholly dismantled!
-[2437565958] = [===[Воїни Калімдору! Герої Силітуса! Одні з вас завдали нещадного удару нашим ворогам! {ім'я:к} та {стать:його:її} союзники звільнили руїни Ан'Кіражу від їх безжального ватажка! Оссіріан Невразливий, лихо Силітуса, нарешті знищений, а його війська повністю розгромлені!#enemies! <name> and#and <his/her> allies]===],
-["!code"] = {
-["ssofkrhsofssoeagyuhsdtvsbwtoormles.-adh.as"] = 2437565958,
-},
-},
-["Commander Springvale"] = { "командир Джерельний",
--- Intruders in the keep! To arms!
-[2122695541] = [===[Чужинці проникли до фортеці! До зброї!]===],
--- Our vigilance is eternal...
-[2428518472] = [===[Наша варта вічна...]===],
-},
-["Corbett Schneider"] = { "Корбет Шнайдер",
--- Business must be good down at the bazaar.  I'll get him resupplied right away!
-[2804246636] = [===[Певно продажі йдуть надзвичайно добре. Я негайно віднесу йому товари!]===],
--- Glad to see you're doing so well, Harlan.  And I hope to see you again soon...
-[2493772807] = [===[Радий бачити, що у тебе все гаразд, Гарлане. Сподіваюся, незабаром знову побачимось...]===],
--- Good day, Elling!  Hullo Elaine!  Let me have a wheel of bleu cheese, eh?
-[3450036535] = [===[Доброго дня, Елінг!  Вітаю, Елейн! Дайте мені трішки того чудового дарнаського блю.]===],
--- Hey, Harlan.  Here's a load of knitted cloth for you.
-[2140768436] = [===[Привіт, Гарлане. Я приніс нову партію в'язаних речей.]===],
--- Hm...after dropping this off, I think I'll head to that cheese shop for a snack.
-[1049450909] = [===[Хм... після того, як віднесу це, певно, схожу до сирного за смаколиком.]===],
--- Hullo, Trias clan!  A ball of your smoked mozzarella, if you please!
-[2310699347] = [===[Вітаю, Тріаси! Мені кульку вашої копченої моцарели, будь ласка!]===],
--- I should get back before Rema starts to worry...
-[1872881764] = [===[Треба повертатись, поки Рема не почала хвилюватися...]===],
--- I should have a few extra coins from this sale.  Maybe I'll buy myself some lunch...
-[1279584609] = [===[Я отримаю за цю партію чимало грошей. Може, варто купити чогось смачного...]===],
--- I'm back!
-[557369060] = [===[Я повернувся!]===],
--- My pleasure, sugar drop.  I'll be back soon...
-[3178091955] = [===[З радістю, люба. Скоро повернусь...]===],
--- Now for that snack...
-[1316916878] = [===[А тепер за смаколиком...]===],
--- Oomph!  Here's another load of supplies, Harlan.  It must be selling fast!
-[3579486760] = [===[Ох! Ось ще одна партія товарів, Гарлане. Бачу, у вас тут ажіотаж!]===],
--- Thank you kindly!
-[2075233499] = [===[Щиро вам вдячний!]===],
--- Thanks for the cheese!
-[2560897068] = [===[Дякую за сир!]===],
--- Time to get back to the shop...
-[3565400157] = [===[Пора повертатись до крамниці...]===],
--- Well, I'm off then.  Take care, Harlan.
-[978497094] = [===[Ну, я пішов. Бережи себе, Гарлане.]===],
--- Yes ma'am, business is brisk!
-[470701719] = [===[Так, пані, крамниця процвітає!]===],
-},
-["Core Hound"] = { "гончак ядра",
--- %s collapses and begins to smolder.
-[3198040626] = [===[%s падає і починає тліти.]===],
--- %s reignites from the heat of another Core Hound!
-[556253084] = [===[%s знову загоряється від жару іншого гончака ядра!]===],
-},
-["Core Rager"] = { "лютень Ядра",
--- %s refuses to die while its master is endangered!
-[3216440276] = [===[%s відмовляється помирати, поки його хазяїн в небезпеці!]===],
-},
-["Cork Gizelton"] = { "Корок Ґізельтон",
--- Blast those stupid centaurs! Sigh - well, it seems you kept your bargain. Up the road you shall find Smeed Scrabblescrew, he has your money.
-[3738709208] = [===[До біса цих тупих кентаврів! Фух... Що ж, здається, ти {стать:дотримався:дотрималася} своєї угоди. Далі по дорозі ти знайдеш Сміда Гвинтодряпа — у нього твої гроші.]===],
--- Hey, you call yourself a body guard? Get to work and protect us...
-[2740583002] = [===[І ти називаєшся охоронцем? То до роботи, захищай нас!]===],
--- I am looking for some bodyguards that would like to protect the Gizelton Caravan. We are stopped on the road east of Kormek's Hut, north of Kolkar Centaur Village.
-[1907083171] = [===[Шукаю охоронців для супроводу каравану Ґізельтона. Ми зупинилися на дорозі на схід від хатини Кормека, північніше селища Колкарів.]===],
--- Mister body guard, are you going to earn your money or what?
-[3697712670] = [===[То що, "охоронцю", ти збираєшся відпрацьовувати свої гроші чи як?]===],
--- So sorry to leave a customer but we have places to go and people to swindle. We will be back sometime later today. Good-bye!
-[4035944105] = [===[Завжди шкода покидати клієнтів, але нам ще є куди йти, і є кого обдурювати. Ми ще повернемося. До зустрічі!]===],
--- You're fired! <Cough...Cork clears throat.> I mean, help!
-[210703012] = [===[Тебе звільнено! Кхе-кхе... Тобто, допоможи!]===],
-},
-["Corporal Keeshan"] = { "капрал Кішан",
--- <name>, my wounds are grave.  Forgive my slow pace but my injuries won't allow me to walk any faster.
-[4143383170] = [===[{Ім'я:к}, я серйозно поранений. Пробач мені за повільну ходу, але мої травми не дозволяють мені йти швидше.#<name>, my]===],
--- <target> coming this way fast!  Prepare for attack!
-[2550831749] = [===[{Ціль} йде сюди! Готуйся до атаки!#<target> coming]===],
--- Ah, fresh air at last! I need a moment to rest, <name>.
-[1990468925] = [===[Ах, нарешті свіже повітря! Дай мені трохи перепочити, {ім'я:к}.#rest, <name>.]===],
--- Brave <class>, thank you for rescuing me! I am sure Marshal Marris will reward your kind deed, <name>.
-[1115544638] = [===[Дякую за порятунок, {стать:хоробрий:хоробра} {клас:к}! Я впевнений, що маршал Марріс винагородить тебе за цей добрий вчинок.#Brave <class>, thank#deed, <name>.]===],
--- Marshal Marris, sir.  Corporal Keeshan of the 12th Sabre Regiment returned from battle and reporting for duty!
-[3179164387] = [===[Маршале Марріс, сер. Капрал Кішан з дванадцятого кавалерійського полку повернувся з бою та готовий до служби!]===],
--- So close to blessed Lakeshire.  By the Light, let my legs carry me a bit further!
-[750886712] = [===[Так близько до мого любого Приозер'я. О, Світло, допоможи мені пройти ще трохи!]===],
--- The Blackrock infestation is thick in these parts.  I will do my best to keep the pace, <name>.  Let's go!
-[449509889] = [===[Орки Чорнокаменю міцно закріпились тут. Я постараюся не відставати, {ім'я:к}. Ходімо!#pace, <name>.]===],
--- We are under siege!  To arms!  Kill this <target>!
-[1433094550] = [===[Нас атакують! До зброї!]===],
-["!code"] = {
-[".-mywsaegefemyswpebtmyiswtawmetowkayfr"] = 4143383170,
-[".-cgtswyftpefrak"] = 2550831749,
-["ahfharatltndmttort.-"] = 1990468925,
-["be..tkyufrrgmeamsemlmswlrdyrkddd.-"] = 1115544638,
-["tebkinistkintepswldomybttokptepe.-lsgo"] = 449509889,
-["weaeursetoasklts.-"] = 1433094550,
-},
-},
-["Corporal Noreg Stormpike"] = { "капрал Нореґ Бурешпиль",
--- The Stormpike Quatermaster keeps his supplies under an awning, just west of here.
-[2833447782] = [===[Квартирмейстер Бурешпиля тримає свої припаси під навісом, трохи на захід звідси.]===],
-},
-["Corrupted Cat"] = { "осквернений кіт",
--- %s snarls ferociously.
-[843923798] = [===[%s лютo гарчить.]===],
-},
-["Councilman Millstipe"] = { "радник Млинченко",
--- The forest is crawling with Worgen and Ghouls.  Something must be done!
-[825166330] = [===[Ліс кишить воргенами та гулями. Треба з цим щось робити!]===],
--- We need better representation from Stormwind.  Our homes are falling to the undead.
-[581654073] = [===[Нам потрібно більше підтримки від Штормовію. Невмерлі захоплюють наші домівки!]===],
-},
-["Crank Fizzlebub"] = { "Вибрик Бульчук",
--- %s looks from side to side...
-[3704651144] = [===[%s озирається навсібіч...]===],
--- Hm... if you're looking to adle wits, <name>, then the secret behind Zanzil's zombies might just do the trick!
-[2306586681] = [===[Хм... Знаю, {ім'я:н}! Щоб задурити голову, нам можуть допомогти ті безмізкі зомбі Занзіла!#wits, <name>, then]===],
--- I'm sure I can find a use for this mixture...
-[1487846011] = [===[Думаю, я знайду де використати цю суміш...]===],
--- Thank you, <name>.
-[614315550] = [===[Дякую, {ім'я:к}.#you, <name>.]===],
-["!code"] = {
-["hmifyelgtoaews.-tntestbdzszsmtjtdotetk"] = 2306586681,
-["tkyu.-"] = 614315550,
-},
-},
-["Crest Killer"] = { "Гребінь Вбивця",
--- Doesn't anybody KNOCK anymore???!
-[4049035161] = [===[Невже ніхто більше НЕ СТУКАЄ У ДВЕРІ??!!]===],
--- Where I come from, you get shanked for opening another inmate's cell door!
-[898116041] = [===[У мене на батьківщині вас би вже порізали за те, що ви зайшли без дозволу до чужої камери!]===],
-},
-["Crimson Conjuror"] = { "багряний заклинатель",
--- Move back and hold the line!  We cannot fail or all will be lost!
-[3025511735] = [===[Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!]===],
--- Move to the stairs and defend!
-[1016984614] = [===[Рухайтеся до сходів і обороняйтеся!]===],
-},
-["Crimson Courier"] = { "кур'єр Багряного Походу",
--- Assassins! Guards! Guards!
-[15376703] = [===[Вбивці! Охорона! Охорона!]===],
--- I sense danger up ahead.
-[849172367] = [===[Я відчуваю небезпеку попереду.]===],
--- If I should fall, take my pouch. Make certain that it gets to the High General.
-[923000668] = [===[Якщо я поляжу — заберіть мою сумку. Переконайтеся, що вона потрапить до верховного генерала.]===],
--- My back is killing me.
-[876533537] = [===[Моя спина мене доконає.]===],
--- These orders must get to High General Abbendis!
-[3720672849] = [===[Ці накази мають дійти до верховного генерала Аббендіс!]===],
-},
-["Crimson Gallant"] = { "багряний сміливець",
--- Move to the stairs and defend!
-[1016984614] = [===[Рухайтеся до сходів і обороняйтеся!]===],
--- Our defenses are failing!  By the light we must prevail!
-[1290937955] = [===[Наша оборона слабшає! Ми повинні перемогти, заради світла!]===],
--- The Scourge have broken into the Bastion!  Redouble your efforts!  We must not fail!
-[1151222245] = [===[Скара прорвалася до Бастіону! Посильте оборону! Ми не маємо права програти!]===],
--- The Scourge have broken through in all wings!  May the light defeat these foul creatures!  We shall fight to the last!
-[1442139528] = [===[Скара прорвалася в усі зали! Нехай світло переможе цих мерзенних створінь! Ми будемо боротися до останнього!]===],
--- They have broken into the Hall of Lights!  We must stop the intruders!
-[1928982482] = [===[Вони увірвались до зали Світла! Ми маємо зупинити загарбників!]===],
-},
-["Crimson Guardsman"] = { "багряний гвардієць",
--- Move back and hold the line!  We cannot fail or all will be lost!
-[3025511735] = [===[Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!]===],
--- Move to the stairs and defend!
-[1016984614] = [===[Рухайтеся до сходів і обороняйтеся!]===],
-},
-["Crimson Hammersmith"] = { "багряний коваль молотів",
--- Thieves! I shall smelt your remains!
-[2303124667] = [===[Злодії! Я переплавлю ваші рештки!]===],
-},
-["Crimson Initiate"] = { "багряний посвячений",
--- Move back and hold the line!  We cannot fail or all will be lost!
-[3025511735] = [===[Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!]===],
-},
-["Crimson Monk"] = { "багряний монах",
--- This will not be the end of the Scarlet Crusade!  You will not break our line!
-[613692392] = [===[Це ще не кінець Багряного Походу! Вам не вдасться прорвати наші ряди!]===],
-},
-["Crimson Sorcerer"] = { "багряний чаклун",
--- This will not be the end of the Scarlet Crusade!  You will not break our line!
-[613692392] = [===[Це ще не кінець Багряного Походу! Вам не вдасться прорвати наші ряди!]===],
-},
-["Crimson Templar"] = { "багряний храмовник",
--- It is my duty and honor to die for the Abyssal Council!
-[4244820855] = [===[Мій обов'язок і честь — померти за Раду Безодні!]===],
--- My lord will be outraged to learn of this ambush.  Let us hope your death will appease him.
-[4264868898] = [===[Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.]===],
--- The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!
-[602586440] = [===[Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!]===],
--- Your life is a fitting sacrifice for my master, <class>.
-[322865156] = [===[Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.]===],
-["!code"] = {
-["tealcldsnttedtflorwhle.."] = 602586440,
-["yrleisfgsefrmymr.."] = 322865156,
-},
-},
-["Curator Thorius"] = { "куратор Торій",
--- I have just the spot for this horn!
-[2778345075] = [===[У мене є чудове місце для цього рога!]===],
--- I've been saving this spot for something special. I don't think it gets any more special than this, <name>.
-[2701434042] = [===[Я беріг це місце для чогось особливого. Не думаю, що ми знайдемо щось особливіше за це, {ім'я:к}.#this, <name>.]===],
--- Poor Dorius. If I ever get my hands on those Dark Irons, so help me...
-[4266492743] = [===[Бідний Дорій. Якщо я коли-небудь доберуся до цих дворфів Темного Заліза...]===],
--- There we go. All done!
-[4283756175] = [===[Ось так. Готово!]===],
-["!code"] = {
-["iebnsgtsstfrsgsldttkitgsaymesltnts.-"] = 2701434042,
-},
-},
-["Cursed Marine"] = { "проклятий морський піхотинець",
--- A living <race>... soon to be a dead like me.
-[1423218468] = [===[{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...]===],
--- Brains...
-[3661762526] = [===[Мізки...]===],
-["!code"] = {
-["lg..sntobeddleme"] = 1423218468,
-},
-},
-["Cursed Sailor"] = { "проклятий моряк",
--- A living <race>... soon to be a dead like me.
-[1423218468] = [===[{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...]===],
--- Brains...
-[3661762526] = [===[Мізки...]===],
-["!code"] = {
-["lg..sntobeddleme"] = 1423218468,
-},
-},
-["Cyriden Farseeker"] = { "Циріден Далекоходець",
--- And the cart is still salvageable. It will need repairs, but the damage could have been much worse.
-[1596323577] = [===[І віз ще можна врятувати. Його потрібно буде відремонтувати, але все могло бути значно гірше.]===],
--- Never better, Relathor. Come, let us return inside.
-[4064421613] = [===[Я в порядку, Релаторе. Ходімо, повернімось всередину.]===],
--- The cart! How did this happen? Relathor, come quickly, there's a fire!
-[3281845547] = [===[Віз! Як це сталося? Релаторе, швидше, тут пожежа!]===],
--- What's that smell?
-[3797524004] = [===[Що це за запах?]===],
-},
-["Daggerspine Marauder"] = { "мародер Клинкоспинів",
--- Nothing will stop us!  You will die!
-[2931401145] = [===[Ніщо не зупинить нас! Ти помреш!]===],
--- You've plundered our treasures too long.  Prepare to meet your watery grave!
-[479065494] = [===[Ви надто довго розкрадали наші скарби. Готуйтесь зустріти свою загибель!]===],
-},
-["Dalinda Malem"] = { "Далінда Малем",
--- Elune be with us! Let's make haste from this evil fortress.
-[4164088178] = [===[Нехай береже нас Елуна! Забираймося з цього мерзенного місця.]===],
--- I will hurry back to Vahlarriel. Finish off those that you can--I should be fine on my own from here.
-[4157303389] = [===[Я повернусь до Валарріеля. Добий тих, кого зможеш — далі я сама впораюся.]===],
-},
-["Daphne Stilwell"] = { "Дафна Стілвелл",
--- Meet me down by the orchard--I just need to put my gun away.
-[753303043] = [===[Почекай мене в саду — я поки сховаю зброю.]===],
--- One more down!
-[454119922] = [===[Влучила!]===],
--- The Light is with us this day!
-[315664060] = [===[Світло береже нас!]===],
--- To the house! Stay close to me, no matter what! I have my gun and ammo there!
-[4258093848] = [===[До хати! Тримайся поруч зі мною! У мене там зброя і набої!]===],
--- We showed that one!
-[361545900] = [===[Ми їх провчили!]===],
--- We've done it! We won!
-[947410581] = [===[Нам вдалося! Ми перемогли!]===],
--- We've done it! We've done it! We've driven them off!
-[965763484] = [===[Ми впорались! Вони вже не повернуться!]===],
--- You won't ruin my lands, you scum!
-[157926944] = [===[Ви не плюндруватимете мою землю, покидьки!]===],
-},
-["Dark Iron Bombardier"] = { "бомбардир Темного Заліза",
--- No sign of the final explosives shipment to the west either.  Where are those lollygaggers?
-[3139041594] = [===[На заході жодного вантажу вибухівки теж немає. Де ці ледацюги?]===],
--- Still no sign of the final shipment of explosives.
-[2659055032] = [===[Нової поставки вибухівки досі не видно.]===],
--- This bridge should have been destroyed by now.  How long does it take for those lazy sods to get here from the Highlands!
-[1678290462] = [===[Цей міст вже мав лежати в руїнах. Скільки часу потрібно цим неробам, щоб дістатися сюди з височини?]===],
-},
-["Dark Iron Kidnapper"] = { "викрадач Темного Заліза",
--- Humbug!  Die!
-[805314190] = [===[Падло! Здохни!]===],
--- It's a rescue attempt!  Slay them all!
-[938002426] = [===[Вони намагаються врятувати оленя! Вбийте їх усіх!]===],
--- Let me give you my regards for Greatfather Winter, scum...
-[3166034954] = [===[Передавай мої вітання Дідусю Зимі, мерзото...]===],
--- The only thing Metzen is going to be doing this Winter Veil is roasting on a spit!
-[3194759557] = [===[Цієї Зимової Покрови Метцен буде смажитися на рожні!]===],
-},
-["Dark Iron Land Mine"] = { "міна Темного Заліза",
--- %s is now armed!
-[273264594] = [===[%s активована!]===],
--- %s will be armed in 10 seconds!
-[1592013139] = [===[%s активується через 10 секунд!]===],
--- %s will be armed in 5 seconds!
-[3424761200] = [===[%s активується через 5 секунд!]===],
-},
-["Dark Iron Marksman"] = { "снайпер Темного Заліза",
--- He's mine...
-[350043122] = [===[Він мій...]===],
-},
-["Dark Iron Raider"] = { "рейдер Темного Заліза",
--- Get him!
-[2096701661] = [===[Схопіть {стать:його:її}!]===],
-},
-["Dark Iron Sapper"] = { "сапер Темного Заліза",
--- %s's eyes glow red as he lights his dynamite and begins to cackle madly!
-[562534426] = [===[%s починає божевільно реготати, запалюючи динаміт!]===],
--- All those who betray Ragnaros must die!
-[2943090952] = [===[Кожен, хто йде проти Раґнароса, має померти!]===],
--- Did you hear something?
-[4088504696] = [===[Ви щось чули?]===],
--- Die in the name of Ragnaros!
-[794847848] = [===[Помри в імʼя Раґнароса!]===],
--- I smell a <race>.
-[1936749167] = [===[Я чую запах {раса:р}.# a <race>.]===],
--- Kill the filthy <race>!
-[528832848] = [===[Вбийте {стать:цього:цю} {клас:з}.#filthy <race>!]===],
--- King Magni Bronzebeard is a fool and a charlatan!
-[2546813352] = [===[Король Маґні Бронзобородий — дурень і брехун!]===],
--- The Stonewrought Dam will be destroyed!  Long live Ragnaros!
-[1285687110] = [===[Ми знищимо Каменярську дамбу! Слава Раґнаросу!]===],
--- The Thandol Span fell to Ragnaros.  So shall the Stonewrought Dam!
-[1657121103] = [===[Віадук Тандола скорився волі Раґнароса. Каменярська дамба буде наступною!]===],
--- This <class> intrudes on our work! Die fool!
-[1098267361] = [===[{Раса:н} заважає нашій роботі! Здохни, нікчемо!#This <class> intrudes]===],
--- Wahehe! I'm taking you down with me!
-[2759381457] = [===[Вахаха! Я заберу тебе з собою!]===],
--- What have we here?  <name> the <class>?  Attack!
-[1299706956] = [===[Що це тут в нас? {Ім'я:н}-{клас:н}? В атаку!#here?  <name> the#the <class>?  Attack]===],
--- What was that?
-[3106407048] = [===[Що це було?]===],
-["!code"] = {
-["sl.."] = 1936749167,
-["kltefy.."] = 528832848,
-["ts..isonorwkdefl"] = 1098267361,
-["wthewehe.-te..ak"] = 1299706956,
-},
-},
-["Dark Iron Steelshifter"] = { "сталеріз Темного Заліза",
--- Ragnaros sees all, mortal.
-[4099759046] = [===[Раґнарос бачить усе, {стать:смертний:смертна}.]===],
--- The secrets of Suntara will not leave these lands.
-[221045965] = [===[Таємниці Сантари не покинуть ці землі.]===],
-},
-["Dark Strand Assassin"] = { "душогуб Темного Пасма",
--- For the Dark Strand!
-[822311711] = [===[За Темне Пасмо!]===],
--- Prepare to die, <class> scum!
-[1208492961] = [===[Готуйся здохнути, {стать:мерзенний:мерзенна} {клас:н}!#die, <class> scum]===],
--- We'll cut your throats and bleed you dry!
-[2262837276] = [===[Ми переріжемо ваші горлянки й випустимо всю кров!]===],
--- We'll have your heads!
-[3517079076] = [===[Ми відрубаємо вам голови!]===],
-["!code"] = {
-["petode..sm"] = 1208492961,
-},
-},
-["Darkcaller Yanka"] = { "Янка Темноклич",
--- The Wickerman Festival now begins!  Power to the Forsaken!
-[3631428161] = [===[Фестиваль Плетеного чоловічка починається! Силу відреченим!]===],
-},
-["Darkmaster Gandling"] = { "темний магістр Ґандлінґ",
--- School is in session!
-[3476960721] = [===[Заняття починаються!]===],
-},
-["Darkmoon Faire Carnie"] = { "працівник ярмарку Темного Місяця",
--- Can't you see I've got work to do here?
-[1752245442] = [===[Хіба не бачиш, що я тут зайнятий?]===],
--- Don't forget to buy refreshments and souvenirs!
-[3642562166] = [===[Не забудьте придбати напої та сувеніри!]===],
--- Faire's a coming!
-[2937636264] = [===[Ярмарок наближається!]===],
--- Having a good time?
-[2902496179] = [===[Розважаєтесь?]===],
--- Sure are a lot of litter bugs around here.
-[2690650590] = [===[Ну звісно, тут знову буде купа сміття]===],
--- That's right friend!  The Darkmoon Faire is going to be right here.  Just as soon as I unload those huge wagons, put up all the tents, erect the zoo and pour the drinks.  Make sure you come back!
-[3898949188] = [===[Це правда, друзі! Ярмарок Темного місяця відбудеться саме тут. Щойно я розвантажу ці величезні вози, розставлю всі намети, зведу загін і розіллю напої. Обов'язково приходьте!]===],
--- The Darkmoon Faire is the greatest event on all of Azeroth!
-[1622429277] = [===[Ярмарок Темного місяця — найвидатніша подія в усьому Азероті!]===],
--- Won't be long now until the Darkmoon Faire opens.  Come back later and check to see if we're done.
-[402604530] = [===[Ярмарок Темного місяця почнеться зовсім скоро. Повертайтесь пізніше і приєднуйтесь до свята!]===],
-},
-["Darrowshire Defender"] = { "захисник Дарроушира",
--- Captain Redpath is slain!
-[1941310392] = [===[Капітан Редпат мертвий!]===],
--- Darrowshire, to arms!  The Scourge approach!
-[451134110] = [===[Дарроушир, до зброї! Скара наближається!]===],
--- Davil Lightfire is defeated!  Darrowshire is lost!
-[3031771785] = [===[Дейвіл Сяйносвіт мертвий! Дарроушир приречений!]===],
--- Horgus is slain!  Take heart, defenders of Darrowshire!
-[3491563912] = [===[Горґус мертвий! Тримайтесь, захисники Дарроушира!]===],
--- The Scourge are defeated!  Darrowshire is saved!
-[3197241107] = [===[Ми перемогли Скару! Дарроушир врятовано!]===],
-},
-["Darrowshire Poltergeist"] = { "полтергейст Дарроушира",
--- Do not fail us!
-[2325812430] = [===[Не підведи нас!]===],
--- End our suffering!
-[3836475472] = [===[Поклади край нашим стражданням!]===],
--- Oh, Darrowshire!  I would give a thousand lives for you!
-[954147155] = [===[О, Дарроушир! Я б віддав за тебе тисячу життів!]===],
--- The Light must prevail!
-[1579816303] = [===[Світло має перемогти!]===],
--- You must save him!
-[317449904] = [===[Ти маєш врятувати його!]===],
-},
-["Daryn Lightwind"] = { "Дарін Легковій",
--- %s gestures at the piles of books.
-[2084332427] = [===[%s вказує на купу книг навколо.]===],
--- Take a look around, <name>. Perhaps you will find something that I have missed.
-[3335878221] = [===[Поглянь навкруги, {ім'я:к}. Можливо, ти знайдеш те, що я пропустила.#around, <name>.]===],
-["!code"] = {
-["telkad.-psyuwlfdsgtthemd"] = 3335878221,
-},
-},
-["Dashel Stonefist"] = { "Дешель Кам'яний Кулак",
--- It's okay, boys. Back off. You've done enough. I'll meet up with you later.
-[3517227850] = [===[Все гаразд, хлопці. Досить, ви добре впорались. Побачимось пізніше.]===],
--- Now you're gonna get it good, <name>!
-[1458512438] = [===[Зараз я тобі покажу, {ім'я:к}!#it good, <name>!]===],
--- Okay, okay! Enough fighting. No one else needs to get hurt.
-[2804871413] = [===[Гаразд, все! Досить битися. Ми можемо поговорити.]===],
-["!code"] = {
-["nwyegagtitgd.-"] = 1458512438,
-},
-},
-["Davil Lightfire"] = { "Дейвіл Сяйносвіт",
--- Ah!  My wounds are too severe.  Defenders, fight on without me!
-[606843393] = [===[Ах! Мої рани занадто тяжкі. Захисники, бийтеся без мене!]===],
--- Do not lose hope, Darrowshire!  We will not fall!
-[2430883155] = [===[Не втрачай надії, Дарроушире! Ми не здамося!]===],
--- Horgus, your nightmare ends!  Now!
-[2933078400] = [===[Горґус, твоєму злу прийшов кінець!]===],
-},
-["Death Knight Darkreaver"] = { "лицар смерті Тінегубитель",
--- ENOUGH - this ends now!  You fools will be added to my bone collection!
-[169740867] = [===[ДОСИТЬ! Я покінчу з вами тут і зараз! Ви, дурні, поповните мою колекцію кісток!]===],
-},
-["Death Talon Captain"] = { "капітан Кігтя Смерті",
--- Protect the flight!  These intruders die now!
-[1948564470] = [===[Захищайте зграю! Ці загарбники мають померти!]===],
-},
-["Death Talon Overseer"] = { "розпорядник Кігтя Смерті",
--- The blood samples must be protected!  Destroy the intruders!
-[3214665951] = [===[Захищайте зразки крові! Знищте загарбників!]===],
-},
-["Deathguard Bartholomew"] = { "смертестраж Варфоломій",
--- *sigh* It's about time to check on the cemetery again-- I'll be back in a few minutes.
-[1085853588] = [===[*зітхає* Пора знову оглянути кладовище... Я повернуся за кілька хвилин.]===],
-},
-["Deathguard Burgess"] = { "смертестраж Бурґесс",
--- Before you depart, <class>, check in with Jamie Nore in the town hall. She may have a task for you.
-[413461208] = [===[Перш ніж підеш, {клас:к}, зайди в ратушу й поговори з Джеймі Нор. У неї може знайтись завдання для тебе.#depart, <class>,]===],
-["!code"] = {
-["beyudt..ckinwhjeneintetnhlsemyhetkfryu"] = 413461208,
-},
-},
-["Deathguard Kel"] = { "смертестраж Кел",
--- Ah, <priest/priestess>, you came along just in time. I appreciate it.
-[3309956292] = [===[А, {стать:жрець:жриця}, ти вчасно. Я дуже тобі вдячний.#Ah, <priest/priestess>, you]===],
--- Argh, the pain. Will it ever leave me?
-[1490982862] = [===[Аргх, цей біль. Коли вже він мене полишить?]===],
--- Farewell to you, and may shadow always protect you!
-[500735517] = [===[Бувай, і нехай тіні завжди захищають тебе!]===],
--- Thank you! Thank you, <priest/priestess>. Now I can take on those gnolls with your power to back me!
-[371055456] = [===[Дякую! Щиро дякую, {стать:жерцю:жрице}. Завдяки тобі я знову зможу битись з гнолами!]===],
-["!code"] = {
-["ahp.yuceagjtinteaeit"] = 3309956292,
-["tkyutkyup.nwcnteontegswhyrprtobkme"] = 371055456,
-},
-},
-["Deathknight Understudy"] = { "лицар смерті-учень",
--- I am unworthy, master!
-[1092570404] = [===[Я нічого не вартий, вчителю!]===],
--- Sir, student requests that you beat him for his lack of understanding!
-[3388711179] = [===[Пане, учень просить, щоб ви побили його за нерозуміння!]===],
--- Student is worthless, master! Student apologizes for his deficiency!
-[800756733] = [===[Учень нікчемний, вчителю! Учень просить вибачення за свою недолугість!]===],
--- Student will work harder, master!
-[1961929919] = [===[Учень працюватиме старанніше, вчителю!]===],
-},
-["Deathstalker Adamant"] = { "смертолов Адамант",
--- %s fumbles with the rusty lock on the courtyard door.
-[2969683093] = [===[%s возиться з іржавим замком на дверях внутрішнього двору.]===],
--- About time someone killed the wretch.
-[1894889894] = [===[Давно вже пора було комусь вбити цього покидька.]===],
--- Free from this wretched cell at last! Let me show you to the courtyard....
-[2835891999] = [===[Нарешті я вибрався з цієї нікчемної камери! Дозвольте показати вам внутрішній двір...]===],
--- Good luck with Arugal. I must hurry back to Hadrec now.
-[3621759004] = [===[Нехай щастить з Аруґалом. Я маю негайно повертатися до Гадрека.]===],
--- There we go!
-[2937661199] = [===[Ось так!]===],
--- You are indeed courageous for wanting to brave the horrors that lie beyond this door.
-[833423798] = [===[А ви дійсно сміливі, якщо хочете зустрітись з жахами, що чекають на вас за цими дверима.]===],
-},
-["Deathstalker Erland"] = { "смертолов Ерланд",
--- A <target> attacks!
-[3572161721] = [===[{Ціль:н} атакує!#A <target> attacks]===],
--- Be careful, <name>.  Those wolves like to hide among the trees.
-[3886861748] = [===[Обережно, {ім'я:к}. Вовки люблять ховатись серед дерев.#careful, <name>.]===],
--- Beware!  A <target> is upon us!
-[2653272304] = [===[Стережися! {Ціль:н} йде на нас!]===],
--- Beware!  I am under attack!
-[1540598206] = [===[Обережно! На мене напали!]===],
--- Hello, Quinn.  How are you faring?
-[2782667029] = [===[Привіт, Квінн. Як справи?]===],
--- If I am excused, then I'd like to check on Quinn...
-[2891836007] = [===[Якщо можна, я б хотів поглянути, як там Квінн...]===],
--- Let's get to the others, and keep an eye open for those wolves outside...
-[161384637] = [===[Ну, ходімо до інших. І не забувай про вовків...]===],
--- Masses of wolves are to the east, and whoever lived at Malden's Orchard is gone.
-[955498519] = [===[На сході звідси купа вовків, а в саду Мальдена вже нікого немає.]===],
--- Try to take better care of yourself, Quinn.  You were lucky this time.
-[426077512] = [===[Бережи себе, Квінне. Цього разу тобі пощастило.]===],
--- We made it!  Thanks, <name>.  I couldn't have gotten here without you.
-[3958545699] = [===[Нам вдалося! Дякую, {ім'я:к}. Я б не дістався сюди без тебе.#Thanks, <name>.]===],
--- We're almost there!
-[1120569929] = [===[Ми майже на місці!]===],
-["!code"] = {
-[".-as"] = 3572161721,
-["becl.-tewsletoheagtets"] = 3886861748,
-["be.-isunus"] = 2653272304,
-["wemeitts.-cthegnhewtyu"] = 3958545699,
-},
-},
-["Deathstalker Faerleia"] = { "смертоловка Фарлея",
--- Be ready, <name>. I hear the council returning. Prepare to ambush!
-[4080648759] = [===[Приготуйся, {ім'я:к}. Я чую, як радники повертаються. Готуй засідку!#ready, <name>.]===],
--- Well done. A blow to Arugal no doubt!
-[2936017095] = [===[Гарна робота. І який потужний удар по Аруґалу!]===],
-["!code"] = {
-["bery.-hrteclrgpetoah"] = 4080648759,
-},
-},
-["Deathstalker Vincent"] = { "смертолов Вінсент",
--- Arrrgh!
-[3754424600] = [===[Арррґх!]===],
-},
-["Decrepit Guardian"] = { "дряхлий захисник",
--- You cannot save him!
-[556540772] = [===[Їх вже не врятувати!]===],
-},
-["Deepmoss Hatchling"] = { "густомохове дитинча",
--- %s hatches!
-[4278545298] = [===[%s вилуплюється!]===],
-},
-["Deepmoss Matriarch"] = { "густомоховий матріарх",
--- %s arrives!
-[732401472] = [===[%s наближається!]===],
-},
-["Defias Blackguard"] = { "лайдак Непокірних",
--- %s jumps out of the shadows!
-[1399803625] = [===[%s вискакує з тіней!]===],
-},
-["Defias Dockmaster"] = { "начальник доку Непокірних",
--- I smell an intruder...
-[2805587126] = [===[Я відчуваю непроханого гостя...]===],
--- Look alive, dogs! We got an operation to run here!
-[2435772989] = [===[Сюди, пси! У нас тут шпигун!]===],
--- The Brotherhood will not be hampered by insects.
-[1892509577] = [===[Непокірних не зупинять такі нікчеми.]===],
--- What's that noise?
-[928656847] = [===[Що це за шум?]===],
-},
-["Defias Messenger"] = { "гонець Непокірних",
--- Am I carrying any letters addressed to <name>? Why, no!  Looks like it's time for you to die!
-[3470112421] = [===[Хм, чи є в мене листи для {ім'я:р}? Ні! Здається, тобі доведеться вмерти!#to <name>?]===],
--- Death to any <race> that stands in my way!
-[2656952024] = [===[Смерть усім {раса:мн}, що стоять на моєму шляху!#any <race> that]===],
--- Die in the name of Edwin Van Cleef!
-[2233079587] = [===[Помри в імʼя Едвіна Ван-Кліфа!]===],
--- Here's a singing telegram for <name>: Roses are red, violets are blue, I will kill any <race> I see, including you!
-[268868155] = [===[Ось музичне послання для {ім'я:р}: Скільки себе пам'ятаю, завше хотілось мені, вбити нікчему-{раса:з}, прямо {стать:такого, як ти:таку, як і ти}!]===],
--- I have a special message for <name>.  And it says you must die!
-[1839139285] = [===[У мене є особливе повідомлення для {ім'я:р}. І в ньому сказано, що ти маєш померти!#for <name>.]===],
--- I'll deliver you, weak <class>, to the afterlife!
-[2913678441] = [===[Я відправлю тебе, {стать:нікчемний:нікчемна} {клас:к}, у потойбіччя!#weak <class>, to]===],
--- Stonemasons. . .errr. . Defias be warned:  The rusty anchor sinks tonight.
-[2729013794] = [===[Каменярі... еее... Непокірні, остерігайтеся: Іржавий якір опуститься цієї ночі.]===],
--- The boss wants all hands on high alert.  The rusty anchor sinks tonight.
-[509234053] = [===[Бос наказав всім бути напоготові. Іржавий якір опуститься цієї ночі.]===],
--- Who dares interfere with the business of the Defias Brotherhood?  Die <class>!
-[2459955564] = [===[Хто сміє втручатися в справи Братства Непокірних? Помри, {клас:к}!#Die <class>!]===],
--- Who dares to provoke the messenger of Edwin Van Cleef?  Die <race>!
-[1238356432] = [===[Хто насмілюється перешкоджати гінцю Едвіна Ван-Кліфа? Помри, {раса:к}!]===],
-["!code"] = {
-["amcgaylsadto.-wynolsleistefryutode"] = 3470112421,
-["dhtoay..ttssinmywy"] = 2656952024,
-["hssgtmfr.-rsaerdvsaebewlklay..seigyu"] = 268868155,
-["heslmefr.-aditssyumtde"] = 1839139285,
-["ildryuwk..toteae"] = 2913678441,
-["wodsiewhtebsoftedsbdde.."] = 2459955564,
-["wodstopetemrofenvncfde.."] = 1238356432,
-},
-},
-["Defias Raider"] = { "рейдер Непокірних",
--- First Westfall, next, all of Stormwind!
-[2282013531] = [===[Спочатку Західний край, а далі — весь Штормовій!]===],
--- Kill her! Take the farm!
-[3611397749] = [===[Вбийте її! Захопіть ферму!]===],
--- No farm woman can stand against the Defias!
-[1489973655] = [===[Жодна фермерка не зупинить Непокірних!]===],
--- This place is safe for the Defias to take over! Get the others.
-[917869544] = [===[Це місце належатиме Непокірним! Поклич інших.]===],
-},
-["Defias Rioter"] = { "заколотник Непокірних",
--- DIE!
-[2501661725] = [===[ЗДОХНИ!]===],
--- Death to the Warden!
-[2436880928] = [===[Смерть наглядачу!]===],
--- Death to the Warden's men!
-[4061880385] = [===[Смерть людям наглядача!]===],
--- Freedom!
-[526009539] = [===[Свобода!]===],
--- Kill the guards, take the Warden alive!
-[1472036349] = [===[Убийте вартових, схопіть наглядача!]===],
--- Kill them all!
-[2348432499] = [===[Вбийте їх усіх!]===],
--- We'll dance on your bones!
-[4206509574] = [===[Ми танцюватимемо на ваших кістках!]===],
--- Your jail is ours!
-[1908733875] = [===[Ця в'язниця — наша!]===],
-},
-["Defias Thug"] = { "розбійник Непокірних",
--- I see those fools at the Abbey sent some fresh meat for us.
-[4277617887] = [===[Бачу, ці дурні з абатства послали нам свіже м'ясо.]===],
--- This land belongs to the Defias Brotherhood now!
-[2225369516] = [===[Ці землі тепер належать Братству Непокірних!]===],
-},
-["Defias Tower Patroller"] = { "патрульна вежі Непокірних",
--- *Sigh* You're probably right, Raven. I'm going back on patrol....
-[3631142510] = [===[*Зітхає* Мабуть, ти маєш рацію, Вороно. Я повертаюсь на патрулювання....]===],
--- Can we take a break? My feet are killing me and those ... those things down there are creeping me out.
-[3414947130] = [===[Може, зробимо перерву? Мої ноги вже відпадають, і ті... ті створіння внизу мене лякають.]===],
--- Hey, Raven...
-[160174595] = [===[Гей, Вороно...]===],
--- I dunno, Jill. If Klaven comes down while we're slacking, we may end up as one of those things!
-[4163977046] = [===[Не знаю, Джил. Якщо Клейвен побачить, що ми байдикуємо, ми можемо стати одними з тих створінь!]===],
--- Klaven doesn't pay me enough to deal with zombies, drones, or whatever he calls 'em.
-[1043121982] = [===[Клейвен не платить мені стільки, щоб я водилася з зомбі, чи мерцями, чи як він їх там називає.]===],
--- Yea?
-[2560020184] = [===[А?]===],
-},
-["Devouring Ectoplasm"] = { "пожираюча ектоплазма",
--- %s begins to make a copy of itself!
-[881297792] = [===[%s створює робити копію самої себе!]===],
-},
-["Discordant Surge"] = { "збожеволілий сплеск",
--- %s is enraged!
-[663388843] = [===[%s лютує!]===],
-},
-["Doan Karhan"] = { "Доан Карган",
--- Pssst... <name>... Come closer, we need to talk.
-[3263720165] = [===[Псс... {ім'я:н}... Підійди ближче, нам потрібно поговорити.#Pssst... <name>... Come]===],
--- Ward yourself friend... dark magic is no game.
-[938667376] = [===[Бережи себе, {стать:друже:подруго}... темна магія — не забавка.]===],
-["!code"] = {
-["pt.-cecrwendtotk"] = 3263720165,
-},
-},
-["Doc Mixilpixil"] = { "Док Міксільпіксіль",
--- Just /lay down anywhere, <name>. I promise, this won't hurt a bit!
-[4209279697] = [===[Просто ляж десь тут, {ім'я:к}. Це не буде боляче, обіцяю!#anywhere, <name>.]===],
--- Very interesting!
-[4001677352] = [===[Дуже цікаво!]===],
-["!code"] = {
-["jtlydnae.-petswthtbt"] = 4209279697,
-},
-},
-["Doctor Weavil"] = { "доктор Жло",
--- %s yawns.
-[2505577163] = [===[%s позіхає.]===],
--- Evil makes me so sleepy...
-[2848529481] = [===[Від зла мені так зочеться спати...]===],
--- I see right through your disguise, <race>. Number Two! Number Two kill!
-[2210547466] = [===[Я бачу наскрізь твоє маскування, {раса:к}. Номер два! Номер два, вбити!#disguise, <race>.]===],
--- No hello for your old friend, Narain? Who were you expecting???
-[3338139917] = [===[Навіть не привітаєш свого старого друга, Нараін? Кого ти думав тут побачити???]===],
--- So... You thought you could fool me, did you? The greatest criminal mastermind Azeroth has ever known???
-[555752085] = [===[То... Ви думали, що зможете мене обдурити, так? Найгеніальнішого злодія в Азероті???]===],
-["!code"] = {
-["sertthyrde..nrtonrtokl"] = 2210547466,
-},
-},
-["Donna"] = { "Донна",
--- Betsy! Give me Betsy back!
-[892465876] = [===[Ні, Бетсі! Поверни мою Бетсі!]===],
--- Don't hurt Betsy, you meanie!
-[1218157097] = [===[Не кривдь Бетсі, негідник!]===],
--- Gimme my dolly!!
-[3135509075] = [===[Віддай мою ляльку!!]===],
--- I'm telling Mommy!
-[2581656095] = [===[Я скажу мамі!]===],
--- Stop pulling her hair out!
-[2237871519] = [===[Не виривай їй волосся!]===],
--- Stop! You'll pull her head off!
-[3573377595] = [===[Перестань! Ти відірвеш їй голову!]===],
--- WAAAHHH!!!
-[4243683744] = [===[И-И-А-А-А!!!]===],
--- You're hurting her!
-[756499617] = [===[Їй боляче!]===],
-},
-["Donova Snowden"] = { "Донова Снігосхов",
--- And I am determined to find out more... So if you need my help again, you know where I'll be.
-[782262517] = [===[І я маю намір дізнатися більше... Тож якщо тобі знову знадобиться моя допомога — ти знаєш, де мене знайти.]===],
--- Are you sure you weren't followed here? I have a very bad feeling all of a sudden...
-[607994370] = [===[Ти {стать:впевнений:впевнена}, що за тобою не стежили? У мене погане передчуття...]===],
--- Be on your guard!
-[925506138] = [===[Будь насторожі!]===],
--- I haven't really figured out what it is, but there's something strange about the hot springs...
-[3266069665] = [===[Я поки що не зовсім розібралася, але в цих гарячих джерелах є щось дивне...]===],
--- I've found that when I throw something into this water, it has improved incredibly when I retrieve it.
-[4083741030] = [===[Я виявила, що якщо занурити щось у цю воду, його характеристики значно поліпшуються.]===],
--- Please, follow me.
-[2600192313] = [===[Прошу, йди за мною.]===],
--- Well, whatever it is, it works quite well!
-[1100997069] = [===[Ну, що б це не було, працює воно досить добре!]===],
-},
-["Doom'rel"] = { "Згуб'рел",
--- You have challenged the Seven, and now you will die!
-[3903649064] = [===[Ви кинули виклик Сімом, і тепер ви помрете!]===],
--- Your challenge has failed!
-[3162950862] = [===[Не варто було кидати нам виклик!]===],
-},
-["Dreamscythe"] = { "Жнець Сну",
--- Turn back! Do not wake the dreamer!
-[950549708] = [===[Забирайтесь геть! Не будіть Сновиду!]===],
--- You know not what you do!  We must destroy you for your own good.
-[3515783640] = [===[Ви не знаєте, що робите! Ми маємо знищити вас заради вашого блага.]===],
-},
-["Earthen Templar"] = { "земляний храмовник",
--- It is my duty and honor to die for the Abyssal Council!
-[4244820855] = [===[Мій обов'язок і честь — померти за Раду Безодні!]===],
--- My lord will be outraged to learn of this ambush.  Let us hope your death will appease him.
-[4264868898] = [===[Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.]===],
--- The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!
-[602586440] = [===[Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!]===],
--- Your life is a fitting sacrifice for my master, <class>.
-[322865156] = [===[Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.]===],
-["!code"] = {
-["tealcldsnttedtflorwhle.."] = 602586440,
-["yrleisfgsefrmymr.."] = 322865156,
-},
-},
-["Ebonroc"] = { "Чорнокрил",
--- %s flaps its wings furiously!
-[415426053] = [===[%s несамовито розмахує крилами!]===],
-},
-["Edwin VanCleef"] = { "Едвін ван Кліф",
--- %s calls more of his allies out of the shadows.
-[1500841817] = [===[%s викликає більше союзників з тіней.]===],
--- And stay down!
-[3263823540] = [===[І не вставай!]===],
--- Fools! Our cause is righteous!
-[3919605005] = [===[Дурні! Ми прагнемо справедливості!]===],
--- Lapdogs, all of you!
-[1697917331] = [===[Ви нікчемні плазуни!]===],
--- None may challenge the Brotherhood!
-[203078977] = [===[Ніхто не сміє кидати виклик Братству!]===],
--- The Brotherhood shall prevail!
-[4010683188] = [===[Братство здобуде перемогу!]===],
-},
-["Effsee"] = { "Ефсі",
--- Meow!
-[1976649100] = [===[Няв!]===],
-},
-["Elaine Trias"] = { "Елейн Тріас",
--- Good day, Corbett.  Here's your cheese, fresh made this morning!  And how are things at your shop?
-[2751344743] = [===[Доброго дня, Корбете. Ось твій сир, вранішній! Як справи у крамниці?]===],
--- Hi Corbett!  Here, you go!  I trust business is faring well at your clothier shop...?
-[906076514] = [===[Привіт, Корбете! Ось, будь ласка! Сподіваюся, справи в крамниці йдуть добре?]===],
-},
-["Elder Torntusk"] = { "старійшина Розірваний Бивень",
--- Finally, I am free! I come home soon, my dear!
-[2906820234] = [===[Нарешті, я вільний! Я скоро вернусь, моя люба!]===],
-},
-["Eliza"] = { "Еліза",
--- Aber?  Is that you...?  Oh...I'm so hungry, Aber!  SO HUNGRY!!
-[23665151] = [===[Кромбі? Це ти...? Ох... Я така голодна, Кромбі! ТАКА ГОЛОДНА!]===],
--- Wait...you are not my husband.  But he must have sent you.  And you...look..delicious!
-[2697920918] = [===[Зачекай… ти не мій чоловік. Але він, мабуть, прислав тебе. А ти... виглядаєш... смачно!]===],
-},
-["Emberstrife"] = { "Вуглечвар",
--- %s's will falters.
-[3678497653] = [===[Воля %sа слабшає.]===],
-},
-["Emeriss"] = { "Емерісс",
--- Hope is a DISEASE of the soul! This land shall wither and die!
-[3022050934] = [===[Надія — це ХВОРОБА душі! Ця земля приречена на загибель!]===],
--- Taste your world's corruption!
-[4004696500] = [===[Відчуйте псування вашого світу!]===],
-},
-["Emissary Roman'khan"] = { "емісар Роман'хан",
--- Come, puny mortals. Come and face your end. The secrets of Ahn'Qiraj will die with Roman'khan!
-[1536573688] = [===[Йдіть, недолугі смертні. Йдіть і зустріньте свою загибель. Таємниці Ан'Кіража помруть разом з Роман'ханом!]===],
-},
-["Emperor Dagran Thaurissan"] = { "імператор Даґран Тауріссан",
--- Come to the aid of the Throne!
-[1583875010] = [===[Допоможіть Престолу!]===],
--- Ha! You can't even begin to imagine the futility of your efforts.
-[2473347045] = [===[Ха! Ви навіть не здатні уявити всю марність ваших зусиль.]===],
--- Hail to the king, baby!
-[1920234053] = [===[Слава королю, крихітко!]===],
--- Is that the best you can do?  Do you really expect that you could defeat someone as awe inspiring as me?
-[3703752227] = [===[Це все, що ви можете? Ви справді думаєте, що зможете здолати когось такого величного, як я?]===],
--- Thank you for clearing out those foolish senators.  Now prepare to meet your doom at the hands of Ragnaros' most powerful servant.
-[4223143274] = [===[Дякую, що позбулися тих дурних сенаторів. Тепер приготуйтеся зустріти свою загибель від рук наймогутнішого слуги Рагнароса.]===],
--- They were just getting in the way anyways.
-[1963466394] = [===[Вони все одно лише заважали.]===],
--- Your efforts are utterly pointless, fools!  You will never be able to defeat me!
-[769440050] = [===[Ваші зусилля абсолютно марні, дурні! Ви ніколи не зможете перемогти мене!]===],
-},
-["Emperor Vek'lor"] = { "імператор Век'лор",
--- Come, little ones.
-[2979483088] = [===[Підходьте, малята.]===],
--- My brother, no!
-[306071217] = [===[Брате мій, ні!]===],
--- Only flesh and bone. Mortals are such easy prey...
-[114378656] = [===[Сама лише плоть і кістки. Смертні — такі легка здобич...]===],
--- There will be pain...
-[608549811] = [===[Буде боляче...]===],
--- You will not escape death!
-[2798737973] = [===[Ви не втечете від смерті!]===],
-},
-["Emperor Vek'nilash"] = { "імператор Век'нілаш",
--- Oh so much pain...
-[2663519648] = [===[Ох, як боляче...]===],
--- The feast of souls begins now...
-[3232331725] = [===[Зараз ми поласуємо вашими душами...]===],
--- Vek'lor, I feel your pain!
-[682289332] = [===[Век'лор, я відчуваю твій біль!]===],
--- Where are your manners, brother. Let us properly welcome our guests.
-[4053383199] = [===[Де твої манери, брате? Привітаймо наших гостей як належить.]===],
--- Your fate is sealed!
-[4154089189] = [===[Вашу долю вирішено!]===],
-},
-["Erich Lohan"] = { "Еріх Логан",
--- Best drinks in Stormwind!
-[1263870715] = [===[Найкраща випивка у Штормовії!]===],
--- Free drinks at the Blue Recluse!
-[2225825820] = [===[Безплатні напої у "Синьому Відлюднику"!]===],
--- Magical studies stressing your brain? Relax at the Blue Recluse!
-[831769863] = [===[Магічні дослідження виснажують мозок? Відпочиньте у "Синьому Відлюднику"!]===],
-},
-["Eridan Bluewind"] = { "Ерідана Блакитновій",
--- I can feel the presence of evil leaving...
-[3017851498] = [===[Я відчуваю, як зло відступає...]===],
--- May this evil aura be banished from this artifact!
-[2963527754] = [===[Нехай зло покине цей артефакт!]===],
-},
-["Eris Havenfire"] = { "Ерида Мирожара",
--- Be healed!
-[125159650] = [===[Зцілися!]===],
--- I have failed once more...
-[3999130851] = [===[Я знову всіх підвела...]===],
--- I now return to whence I came, only to find myself here once more to relive the same epic tragedy.
-[1232537635] = [===[Тепер я повертаюсь туди, звідки прийшла, щоб знову опинитися тут і пережити цю жахливу трагедію.]===],
--- We are saved! The peasants have escaped the Scourge!
-[3285937107] = [===[Ми врятовані! Жителі втекли від Скари!]===],
-},
-["Exzhal"] = { "Ексжал",
--- %s uses his index finger to make a cutting motion across his neck.
-[3192909156] = [===[%s проводить пальцем по шиї]===],
--- Do you know who I am, zealot?
-[2571183889] = [===[Ти знаєш, хто я, ревнителю?]===],
--- Guard, Bring forth the prisoner. Place him in the Circle of Binding.
-[487652073] = [===[Варта, приведіть в'язня. Помістіть його у коло зв'язування.]===],
--- I could crush you with but a single motion. Do not anger me.
-[1560389029] = [===[Я можу знищити тебе одним помахом руки. Не гнівай мене.]===],
--- I said KNEEL!
-[831752674] = [===[Я сказав НА КОЛІНА!]===],
--- Kneel, heathen.
-[2787868111] = [===[На коліна, єретик.]===],
--- So Hakkar has returned?
-[881907244] = [===[То Гаккар повернувся?]===],
--- The Primal Gods? Impossible!
-[50107295] = [===[Первісні боги? Неможливо!]===],
--- Times have changed. The young races will join us. You will never succeed.
-[3080313064] = [===[Часи змінилися. Молоді раси приєднаються до нас. Ми вас зупинимо.]===],
--- We will never allow it... We have banished him from our world before and we will banish him again.
-[3957664507] = [===[Ми цього не допустимо... Ми вже одного разу вигнали його з нашого світу, і ми зробимо це знову.]===],
-},
-["Eye of Naxxramas"] = { "око Наксрамаса",
--- The living are here!
-[1372962101] = [===[Тут живі!]===],
-},
-["Ezra Grimm"] = { "Езра Ґрімм",
--- I'm going to wear your skin as a smoking jacket! The stogies? You'll have to pry them from my cold dead... er... RAWR!!!!
-[2360893354] = [===[Я з ваших шкур собі куртку зроблю! Сигари? Вам доведеться вирвати їх з моїх холодних.... мертвих... Е... РРРР!!!!]===],
--- Looking for these???? You'll never have em!
-[1697011773] = [===[Не це шукаєте???? Ви ніколи його не отримаєте!]===],
--- Welcome to flavor country!
-[1607615761] = [===[Вітаємо у світі ароматів!]===],
-},
-["Fallen Hero"] = { "полеглий герой",
--- Be cleansed by blade, filth!
-[3346081443] = [===[Очистись моїм клинком, погань!]===],
--- You dare defile this holy ground?
-[909397099] = [===[Як ти смієш оскверняти це священне місце?]===],
-},
-["Fandral Staghelm"] = { "Фендрал Оленеріг",
--- %s falls to one knee - exhausted.
-[487962429] = [===[%s падає на одне коліно від знесилля.]===],
--- %s hurls the Scepter of the Shifting Sands into the barrier, shattering it.
-[2348086744] = [===[%s кидає скіпетр Мінливих Пісків у бар'єр, розбиваючи його.]===],
--- After the savagery that my people have witnessed and felt, you expect me to accept another burden, dragon? Surely you are mad.
-[1531762875] = [===[Після всього зла, яке довелося пережити моєму народу, ти очікуєш, що я прийму ще один тягар, драконе? Ти, певно, несповна розуму.]===],
--- Ancient ones guide my hand... Wake from your slumber! WAKE AND SEAL THIS CURSED PLACE!
-[1166909719] = [===[Древні, направте мої руки... Прокиньтесь від свого сну! ПРОКИНЬТЕСЬ І ЗАПЕЧАТАЙТЕ ЦЕ ПРОКЛЯТЕ МІСЦЕ!]===],
--- I want nothing to do with Silithus, the Qiraji and least of all, any damned dragons!
-[2649662079] = [===[Я не хочу мати нічого спільного з Силітусом, кіражами, і тим паче з клятими драконами!]===],
--- It is done, dragon. Lead the way.
-[3999113537] = [===[Я готовий, драконе. Веди нас.]===],
--- My forces cannot overcome the Qiraji defenses. We will not be able to get close enough to place your precious barrier, dragon.
-[1200914664] = [===[Мої сили не можуть подолати оборону кіражів. Ми не зможемо підібратись достатньо близько, щоб встановити твій бар'єр, драконе.]===],
--- My son's soul will find no comfort in this hollow victory, dragon. I will have him back. Though it takes a millennia, I WILL have my son back!
-[2750494422] = [===[Душа мого сина не знайде спокою від цієї марної перемоги, драконе. Я поверну його. Навіть якщо для цього знадобляться тисяча років, Я ПОВЕРНУ свого сина!]===],
-},
-["Farmer Saldean"] = { "фермер Салден",
--- A bunch of thugs and thieves aren't going to get me to leave my land!
-[2041083316] = [===[Купка злодіїв і бандитів не змусить мене покинути свою землю!]===],
--- Now how am I supposed to get those mechanical wretches out of my fields?
-[3268175398] = [===[І як я маю позбутися тих механічних потвор на полях?]===],
--- They might have run all the other farmers off, but the Saldean's will never leave Westfall.
-[1597265505] = [===[Вони, можливо, й вигнали інших фермерів, але Салдени ніколи не покинуть Західний край.]===],
-},
-["Father Inigo Montoy"] = { "отець Ініґо Монтой",
--- Is this a mango? Stupendous!
-[2290350830] = [===[Це що, манго? Дивовижно!]===],
--- Thank you, Mrs. Chambers.
-[3779206450] = [===[Дякую, пані Чамберс.]===],
--- You've really outdone yourself this time, Mrs. Chambers. Not a spot of mold to be found!
-[2022235803] = [===[Ви перевершили себе, пані Чамберс. Жодних слідів плісняви!]===],
-},
-["Feero Ironhand"] = { "Фіро Залізорук",
--- Assassins from that cult you found... Let's get moving before someone else finds us out here.
-[3464553593] = [===[Душогуби з того нового культу... Потрібно рушати, поки нас тут хтось ще не знайшов.]===],
--- Hold! I sense an evil presence... Undead!
-[1161031934] = [===[Стій! Я відчуваю присутність зла... Невмерлі!]===],
--- I'll finish you off for good this time!
-[489399138] = [===[Цього разу я тебе остаточно знищу!]===],
--- It looks like we're in trouble. Look lively, here they come!
-[1350457698] = [===[Здається, у нас неприємності. Будьте насторожі, вони вже тут!]===],
--- Let's go <name>!
-[3001936519] = [===[Ходімо, {ім'я:к}!#Let's go <name>!]===],
--- These three again?
-[281329027] = [===[Знову ці троє?]===],
--- They're coming out of the woodwork today. Let's keep moving or we may find more things that want me dead.
-[2894411990] = [===[Вони сьогодні виповзають з усіх щілин. Продовжуймо рухатися, поки не натрапили ще на когось, хто хоче мене вбити.]===],
--- We must move quickly. Auberdine isn't too far away, but many enemies lurk in the forest.
-[465130956] = [===[Ми маємо рухатись швидко. Аубердін не надто далеко, але в лісі ховається багато ворогів.]===],
--- Well done! I should be fine on my own from here. Remember to talk to Delgren when you return to Maestra's Post in Ashenvale.
-[3135435259] = [===[Молодець! Далі я, певно, впораюся сам. Не забудь поговорити з Дельґреном, коли повернешся на заставу Маєстри в Ясенеділ.]===],
-["!code"] = {
-["lsgo.-"] = 3001936519,
-},
-},
-["Flamegor"] = { "Вогнеклик",
--- %s flaps its wings furiously!
-[415426053] = [===[%s несамовито розмахує крилами!]===],
--- %s goes into a frenzy!
-[2524513457] = [===[%s впадає в шаленство!]===],
-},
-["Fobeed"] = { "Фобід",
--- And it's the Gnome Racer coming through turn one!
-[2484404171] = [===[І гонщик гномів проходить перший поворот!]===],
--- And it's the Goblin Racer coming through turn one!
-[3560486642] = [===[І гонщик гоблінів проходить перший поворот!]===],
--- And they're off!
-[1350342203] = [===[І вони рушили!]===],
-},
-["Foreman Oslow"] = { "десятник Ослоу",
--- Come on boys, we've got to get this bridge rebuilt.
-[561652960] = [===[До роботи, хлопці. Ми маємо відбудувати цей міст.]===],
-},
-["Forsaken Scout"] = { "відречений-розвідник",
--- A paladin! Slaying him would please the master. Attack!
-[2799873790] = [===[Паладин! Його смерть задовольнить майстра. В атаку!]===],
-},
-["Franklin the Friendly"] = { "Франклін Дружній",
--- I shall enjoy this, <race>.
-[2409443554] = [===[Я насолоджуватимусь цим, {раса:к}.#this, <race>.]===],
--- Only a fool would remain in this battle. Farewell, coward.
-[3577917781] = [===[Тільки дурень продовжував би цю битву. Бувай, {стать:боягузе:боягузко}.]===],
-["!code"] = {
-["sleyts.."] = 2409443554,
-},
-},
-["Frostwolf"] = { "морозний вовк",
--- %s whimpers obediently.
-[2926983904] = [===[%s покірно скиглить.]===],
-},
-["Garr"] = { "Ґарр",
--- %s forces his Firesworn minions to regain their strength!
-[2915418226] = [===[%s змушує своїх вогнеклятів відновити сили!]===],
--- %s forces one of his Firesworn minions to erupt!
-[781081930] = [===[%s змушує одного зі своїх вогнеклятів вибухнути!]===],
-},
-["Gil"] = { "Джил",
--- Are we there yet?
-[472029605] = [===[Ми вже прийшли?]===],
--- Billy says Fizzles used to be a great wizard. But he got turned into a rabbit when one of his spells went bad.
-[2358623327] = [===[Біллі каже, що колись Бульчик був великим чарівником. Але він перетворився на кролика через невдале закляття.]===],
--- I need to pee.
-[1156867771] = [===[Хочу пісяти.]===],
--- I wanna see the Mage Tower.
-[809762041] = [===[Я хочу побачити вежу магів.]===],
--- Is it true? Are there really crocilisks in the canals?
-[1732189127] = [===[Це правда? В каналах водяться кроколіски?]===],
--- My feet hurt.
-[1668193331] = [===[Ноги болять.]===],
--- Where we goin'?
-[2135076495] = [===[Куди ми йдемо?]===],
--- Why are we goin' this way?
-[207184652] = [===[Чому ми йдемо цією дорогою?]===],
--- Why do we always go the same way?
-[411491298] = [===[Чому ми постійно ходимо тим самим шляхом?]===],
-},
-["Gluth"] = { "Ґлут",
--- %s devours all nearby zombies!
-[2860631378] = [===[%s пожирає всіх зомбі поблизу!]===],
--- %s goes into a frenzy!
-[2524513457] = [===[%s впадає в шаленство!]===],
--- %s spots a zombie to devour!
-[2516590261] = [===[%s помічає зомбі, якого можна зжерти!]===],
-},
-["Gnome Pit Boss"] = { "гном-начальник піт-стопу",
--- Look at what <name> brought us!  Let's drink up!
-[1401600312] = [===[Подивіться, що нам {стать:приніс:принесла} {ім'я:н}! Давайте вип'ємо!]===],
--- No time for beer!  The race is about to start.
-[2169209350] = [===[Немає часу на випивку! Перегони ось-ось почнуться.]===],
-["!code"] = {
-["lkatwt.-btuslsdkup"] = 1401600312,
-},
-},
-["Goblin Land Mine"] = { "гоблінська міна",
--- %s is now armed!
-[273264594] = [===[%s активована!]===],
--- %s will be armed in 10 seconds!
-[1592013139] = [===[%s активується через 10 секунд!]===],
--- %s will be armed in 5 seconds!
-[3424761200] = [===[%s активується через 5 секунд!]===],
-},
-["Goblin Pit Boss"] = { "гоблін-начальник піт-стопу",
--- <name> brought us booze!  Let's party!
-[2066772425] = [===[{ім'я:н} {стать:приніс:принесла} нам випивку! Влаштуймо вечірку!]===],
-["!code"] = {
-[".-btusbelspy"] = 2066772425,
-},
-},
-["Gothik the Harvester"] = { "Готик-Жнець",
--- Brazenly you have disregarded powers beyond your understanding.
-[2217772030] = [===[Ви зухвало знехтували силами, що виходять за межі вашого розуміння.]===],
--- Death is the only escape!
-[2328240315] = [===[Смерть — це єдиний порятунок!]===],
--- Foolishly you have sought your own demise.
-[3617044492] = [===[Ваша дурість привела вас до власної загибелі.]===],
--- I have waited long enough. Now you face the harvester of souls.
-[1314457718] = [===[Я довго цього чекав. Тепер ви зустрінетесь з женцем душ.]===],
--- I... am... undone.
-[1121391341] = [===[Я... знищений.]===],
--- Now there is only one way out- to walk the lonely path of the damned.
-[2763433507] = [===[Тепер є лиш один вихід — йти самотньою стежкою проклятих.]===],
--- You have fought hard to invade the realm of the harvester.
-[3754129807] = [===[Ви завзято билися, щоб вдертися в царину женця.]===],
-},
-["Grand Crusader Dathrohan"] = { "верховний лицар Датроган",
--- Damn you mortals! All my plans of revenge, all my hate... all burned to ash...
-[2046447542] = [===[Кляті смертні! Всі мої плани помсти, вся моя лють... усе перетворилося на попіл...]===],
--- Today you have unmade what took me years to create! For this you shall all die by my hand!
-[1199778238] = [===[Ви знищили те, що я створював роками! За це ви всі загинете від моєї руки!]===],
--- You fools think you can defeat me so easily? Face the true might of the Nathrezim!
-[3340575194] = [===[Ви, дурні, думаєте, що можете так легко мене перемогти? Відчуйте справжню міць натрезима!]===],
-},
-["Grand Widow Faerlina"] = { "велика вдова Фарліна",
--- Kneel before me, worm!
-[2127726651] = [===[На коліна переді мною, мерзото!]===],
--- Pathetic wretch!
-[657471394] = [===[Нікчемні виродки!]===],
--- Run while you still can!
-[1055970849] = [===[Біжіть, поки ще можете!]===],
--- Slay them in the master's name!
-[3733058985] = [===[Вбийте їх в ім'я повелителя!]===],
--- The master will avenge me!!
-[359057526] = [===[Повелитель помститься за мене!!]===],
--- You cannot hide from me!
-[4133367602] = [===[Вам не сховатись від мене!]===],
--- You have failed!
-[3503380824] = [===[Жалюгідно!]===],
--- Your old lives, your mortal desires mean nothing... you are acolytes of the master now, and you will serve the cause without question! The greatest glory is to die in the master's service!
-[1806848917] = [===[Ваші старі життя, ваші смертні бажання нічого не значать... Тепер ви — слуги повелителя, і ви віддано виконуватиме його волю! Найвища честь — померти в служінні повелителю!]===],
-},
-["Grawmug"] = { "Ґромаґ",
--- A <class> called <name>? You'll make a fine breakfast!
-[775067910] = [===[{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?]===],
--- Die, <race>!  These lands belong to the Stonesplinter Tribe!
-[1317393778] = [===[Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!]===],
--- The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!
-[716981480] = [===[Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!]===],
--- The Stonesplinter Tribe shall see to your doom!
-[3941481951] = [===[Плем'я Каменедробів принесе вам загибель!]===],
--- The only good <race> is a dead <race>!
-[2368504048] = [===[{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!]===],
--- Weak <class>! You are no match for the Stonesplinter Tribe!
-[2539742921] = [===[{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!]===],
-["!code"] = {
-["..cd.-ylmefebt"] = 775067910,
-["de..telsbgtotesrte"] = 1317393778,
-["telhbstotesrtenw.-nwde"] = 716981480,
-["teoygd..isdd.."] = 2368504048,
-["wk..yuaenomhfrtesrte"] = 2539742921,
-},
-},
-["Grubbis"] = { "Бубонник",
--- We come from below! You can never stop us!
-[1823684029] = [===[Ми йдемо з глибин! Ви нас не зупините!]===],
-},
-["Guard Lasiter"] = { "вартовий Ласітер",
--- Barely hit the target that time. Hmmm,... maybe I need to adjust back to the right.
-[2100716664] = [===[Ледь влучив у ціль цього разу. Хмм... може, потрібно цілитись трохи правіше.]===],
--- Oops! That was a bit off. I didn't even hit the target!
-[1679302578] = [===[Ой! Це було трохи мимо. Я навіть не влучив у ціль!]===],
--- That was a nice shot... but not perfect. Maybe a bit more to the left.
-[3729104260] = [===[Це був гарний постріл... але не ідеальний. Можливо, треба цілитись трохи лівіше.]===],
--- Whoa! Look at that bullseye!
-[420142467] = [===[Ого! Прямо в ціль!]===],
-},
-["Gunther Arcanus"] = { "Ґюнтер Арканус",
--- Take a Candle of Beckoning from this crate, <name>.
-[749181509] = [===[Візьми свічку поклику з цього ящика, {ім'я:к}.#crate, <name>.]===],
-["!code"] = {
-["teceofbgfmtsce.-"] = 749181509,
-},
-},
-["Gunther's Visage"] = { "образ Ґюнтера",
--- And thank you, <name>.  Without your aid I may never have found my way to the Forsaken.
-[2598451708] = [===[І дякую тобі, {ім'я:к}. Без твоєї допомоги я б можливо ніколи не знайшов свій шлях до відречених.#thank you, <name>.]===],
--- It has been a long time, Bethor, my friend.
-[1974919860] = [===[Беторе, друже мій, минуло багато часу.]===],
--- When time permits, we must speak at length.  For we have much to discuss.
-[650927014] = [===[Коли прийде час, нас чекає довга розмова. Бо нам є що обговорити.]===],
-["!code"] = {
-["adtkyu.-wtyradmynrhefdmywytotefn"] = 2598451708,
-},
-},
-["Harlan Bagley"] = { "Гарлан Баґлі",
--- Ah yes, and promptly delivered.  As always, it's a pleasure doing business with you, Corbett.
-[4184505903] = [===[Так, чудово, і дуже вчасно. Як завжди, приємно мати з вами справу, Корбете.]===],
--- Ah, much appreciated, Corbett.  We'll get these on the racks immediately.
-[1670365174] = [===[О, щиро вдячний, Корбете. Ми негайно розмістимо їх на полицях.]===],
-},
-["Herald of Thrall"] = { "вісник Тралла",
--- Be bathed in the power of the Warchief! Drink in his might! Battle for the glory of the Horde!
-[3800785804] = [===[Купайтеся в силі вождя! Сповнюйтесь його могутністю! Бийтеся за славу Орди!]===],
--- Honor your heroes! On this day, they have dealt a great blow against one of our most hated enemies! The false Warchief, Rend Blackhand, has fallen!
-[3974062951] = [===[Шануймо наших героїв! Цього дня вони завдали нищівного удару одному з наших найненависніших ворогів! Самозваний вождь, Ренд Чорнорук, нарешті мертвий!]===],
-},
-["High Overlord Saurfang"] = { "верховний надповелитель Саурфанґ",
--- Be lifted by <name>'s accomplishment! Revel in <his/her> rallying cry!
-[2560977067] = [===[Надихайтеся успіхом {ім'я:р}! Насолоджуйтесь {стать:його:її} кличем!#by <name>'s#in <his/her> rallying]===],
--- Is that the best you can do?
-[3541841561] = [===[Це все, що ти можеш?]===],
--- NEFARIAN IS SLAIN! People of Orgrimmar, bow down before the might of <name> and <his/her> allies for they have laid a blow against the Black Dragonflight that is sure to stir the Aspects from their malaise! This defeat shall surely be felt by the father of the Black Flight: Deathwing reels in pain and anguish this day!
-[416058140] = [===[НЕФАРІАН МЕРТВИЙ! Жителі Орґріммару, падіть ниць перед могутністю {ім'я:р} та {стать:його:її} союзників. Вони завдали чорним драконам потужного удару, здатного пробудити Аспекти від їх байдужості! Без сумніву, навіть батько чорних драконів, Смертекрил, відчуває цю втрату й здригається від болю та страждань!#might of <name> and#and <his/her> allies]===],
--- The battle is won! Watch as they flee to the safety of their precious temple. Soon all will be razed... Their leaders destroyed!
-[2770016986] = [===[Битву виграно! Вони втікають до свого дорогоцінного храму. Скоро ми зачистимо його... Їхніх ватажків буде знищено!]===],
-["!code"] = {
-["beldby.-atrlinh.rgcy"] = 2560977067,
-["nnissnpeoforbwdnbetemtof.-adh.asfrtyheldbw"] = 416058140,
-},
-},
-["Hoary Templar"] = { "сивий храмовник",
--- It is my duty and honor to die for the Abyssal Council!
-[4244820855] = [===[Мій обов'язок і честь — померти за Раду Безодні!]===],
--- My lord will be outraged to learn of this ambush.  Let us hope your death will appease him.
-[4264868898] = [===[Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.]===],
--- The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!
-[602586440] = [===[Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!]===],
--- Your life is a fitting sacrifice for my master, <class>.
-[322865156] = [===[Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.]===],
-["!code"] = {
-["tealcldsnttedtflorwhle.."] = 602586440,
-["yrleisfgsefrmymr.."] = 322865156,
-},
-},
-["Irradiated Invader"] = { "опромінений загарбник",
--- %s blood sprays into the air!
-[1226784262] = [===[%s забризкує все навколо кров'ю!]===],
-},
-["Irradiated Pillager"] = { "опромінений грабіжник",
--- %s blood sprays into the air!
-[1226784262] = [===[%s забризкує все навколо кров'ю!]===],
-},
-["J.D. Collie"] = { "Джей Ді Коллі",
--- <name>, that's it! I have finally figured it out!
-[758880484] = [===[{ім'я:н}, це воно! Нарешті я все зрозуміла!#<name>, that's]===],
--- Ahh... My experiments never seem to work out right. Maybe I should go back downstream.
-[2077702451] = [===[Ех... Мої експерименти ніколи не вдаються. Може, мені слід почати спочатку.]===],
--- Blue plus red... I predict...
-[2824099260] = [===[Сині та червоні... Я так і думала...]===],
--- I know it'll work this time...
-[1811273319] = [===[Цього разу точно все вийде...]===],
--- I think... I think it's working!
-[3943454163] = [===[Здається... Здається, воно працює!]===],
--- Now, if I add the yellow ones...
-[2204051357] = [===[Отже, якщо додати жовті...]===],
--- Now, let's see... If I am correct, then... Hmmm...
-[987719060] = [===[Такс, погляньмо... Якщо я не помиляюсь... Хммм...]===],
--- OW! That's not right!
-[4124489015] = [===[Ой! Так не годиться!]===],
--- Oh well... Maybe next time.
-[2730521272] = [===[Ну що ж... Може, якось іншим разом.]===],
--- This will be my best experiment yet!
-[2999204935] = [===[Це буде мій найкращий експеримент!]===],
-["!code"] = {
-[".-tsithefyfditot"] = 758880484,
-},
-},
-["Jandice Barov"] = { "Джандіс Барова",
--- %s loosens her grasp on the journal she had been clutching.
-[1186015685] = [===[%s випускає щоденник, який вона стискала в руці.]===],
-},
-["Jessica Chambers"] = { "Джессіка Чамберс",
--- And for the ladies, roast baby boar. Enjoy!
-[1971629161] = [===[А для пані — запечене порося. Смачного!]===],
--- Father, you had the bowl of fruit? Right?
-[3459181620] = [===[Отче, ви хотіли фрукти, правильно?]===],
--- Ok, you had the fish platter, Commander. Enjoy!
-[1421583693] = [===[Гаразд, ось ваша риба, командире. Смачного!]===],
--- Please let me know if you need anything else!
-[487742423] = [===[Будь ласка, дайте мені знати, якщо вам ще щось знадобиться!]===],
-},
-["Justin"] = { "Джастін",
--- And that's how Lothar killed thirty six orcs with his bare hands!
-[4064691744] = [===[І отак Лотар убив тридцять шість орків голіруч!]===],
--- And then the rabbit just bit his head off... I swear.
-[3823217388] = [===[А потім кролик просто відкусив йому голову... Я клянусь.]===],
--- They say he can turn into a raven sometimes.
-[4068250590] = [===[Кажуть, що він може перетворюватись на ворона.]===],
--- You know there are crocilisks in the Canals. They were brought from the swamp as pets, but got thrown in the canals.
-[2577265293] = [===[Ви знаєте, що в каналах водяться кроколіски? Їх привезли як домашніх улюбленців з болота, але викинули в канали.]===],
-},
-["Karlee Chaddis"] = { "Карлі Чаддіс",
--- Hello, Charys. I have my list, could you get me all of that, especially the last ingredient.
-[3165568186] = [===[Привіт, Черіс. Ось список, чи не могла б ти зібрати все це? Особливо останній інгредієнт.]===],
--- Sure, Paige. Just be gentle.
-[310723902] = [===[Звичайно, Пейдж. Тільки будь обережна.]===],
--- Thanks, Charys. C'mon Paige, sweetie.
-[3790904109] = [===[Дякую, Черіс. Пейдж, люба, ходімо.]===],
-},
-["Kernobee"] = { "Кернобі",
--- Get me out of here!
-[2195518448] = [===[Витягніть мене звідси!]===],
--- I see the exit! Hurry, hurry!
-[3551363608] = [===[Я бачу вихід! Швидше, швидше!]===],
--- Thank you for rescuing me! Word of your deed will not go unnoticed.
-[1834292233] = [===[Дякую за порятунок! Я всім розкажу про ваше геройство.]===],
-},
-["Krug Skullsplit"] = { "Краґ Череполам",
--- Attack!  For the Horde!
-[1039135411] = [===[В атаку! За Орду!]===],
--- Merok!  Shai!  To my side!
-[2492664721] = [===[Мерок! Шаї! До мене!]===],
--- The enemy is upon us, stand ready!
-[1676833340] = [===[Ворог вже близько, приготуйтесь!]===],
-},
-["Leper Gnome"] = { "лепрогном",
--- I'll cut you!
-[3631412734] = [===[Я тебе поріжу!]===],
-},
-["Lillith Nefara"] = { "Лілліт Нефара",
--- You have disturbed my rest, <class>.  Now face my wrath!
-[3070068773] = [===[Ти смієш порушувати мій спокій, {клас:н}? Пізнай мій гнів!#my rest, <class>.]===],
-["!code"] = {
-["yuheddmyrt..nwfemywh"] = 3070068773,
-},
-},
-["Lord Skwol"] = { "лорд Сквол",
--- Killing you and your cohorts, <class>, will amuse me.  I shall make it quick.
-[883031038] = [===[Вбивство тебе і твоїх друзів, {клас:к}, розважить мене. Це буде швидко.#cohorts, <class>, will]===],
--- What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!
-[1092151934] = [===[Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!]===],
--- Your treachery only speeds your doom.  This world will fall to darkness!
-[1149361862] = [===[Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!]===],
-["!code"] = {
-["kgyuadyrcs..wlaemeslmeitqk"] = 883031038,
-["wtshslfltgbsmesladyrbstomyte.."] = 1092151934,
-},
-},
-["Lord Victor Nefarius"] = { "лорд Віктор Нефарій",
--- %s paces back and forth in anticipation of the battle.
-[931945215] = [===[%s ходить взад-вперед в очікуванні битви.]===],
--- Concentrate your attacks upon the healer!
-[2501713200] = [===[Зосередьте атаки на цілителі!]===],
--- Do not force my hand, children! I shall use your hides to line my boots.
-[2953512755] = [===[Не випробовуйте мого терпіння, діти! Я обшию свої чоботи вашою шкірою.]===],
--- Excellent... it would appear as if the meddlesome insects have arrived just in time to feed my legion. Welcome, mortals!
-[3068117024] = [===[Прекрасно... схоже, ці нікчеми прибули якраз вчасно, щоб стати кормом для мого легіону. Ласкаво прошу, смертні!]===],
--- Foolsss... Kill the one in the dress!
-[2618955613] = [===[Недоумки... Вбийте того, що в сукні!]===],
--- Let not even a drop of their blood remain upon the arena floor, my children. Feast on their souls!
-[1440953412] = [===[Нехай жодної краплі їхньої крові не залишиться на арені, діти мої. Пожеріть їхні душі!]===],
--- THIS CANNOT BE!!! Rend, deal with these insects.
-[3279297740] = [===[ЦЬОГО НЕ МОЖЕ БУТИ!!! Ренд, розберись з цими нікчемами.]===],
--- Taste in my power!
-[2644594677] = [===[Відчуйте мою силу!]===],
--- The Warchief shall make quick work of you, mortals. Prepare yourselves!
-[3940653207] = [===[Воєвождь швидко впорається з вами, смертні. Готуйтесь!]===],
--- Use the freezing breath, imbecile!
-[411741774] = [===[Скористайся морозним диханням, йолопе!]===],
--- Your efforts will prove fruitless. None shall stand in our way!
-[4210638001] = [===[Ваші зусилля марні. Ніхто не зможе завадити нам!]===],
--- Your victory shall be short lived. The days of both the Alliance and Horde are coming to an end! The next time we meet shall be the last.
-[701236367] = [===[Недовго ви насолоджуватиметесь своєю перемогою. Дні Альянсу та Орди добігають кінця! Наша наступна зустріч буде останньою.]===],
-},
-["Magistrate Barthilas"] = { "війт Бартілас",
--- Intruders at the Service Gate! Baron Rivendare must be warned!
-[1676306788] = [===[Чужинці біля службових воріт! Попередьте барона Рівендера!]===],
-},
-["Magosh"] = { "Маґош",
--- A <class> called <name>? You'll make a fine breakfast!
-[775067910] = [===[{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?]===],
--- Die, <race>!  These lands belong to the Stonesplinter Tribe!
-[1317393778] = [===[Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!]===],
--- The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!
-[716981480] = [===[Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!]===],
--- The Stonesplinter Tribe shall see to your doom!
-[3941481951] = [===[Плем'я Каменедробів знищить вас!]===],
--- The only good <race> is a dead <race>!
-[2368504048] = [===[{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!]===],
--- Weak <class>! You are no match for the Stonesplinter Tribe!
-[2539742921] = [===[{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!]===],
-["!code"] = {
-["..cd.-ylmefebt"] = 775067910,
-["de..telsbgtotesrte"] = 1317393778,
-["telhbstotesrtenw.-nwde"] = 716981480,
-["teoygd..isdd.."] = 2368504048,
-["wk..yuaenomhfrtesrte"] = 2539742921,
-},
-},
-["Magus Rimtori"] = { "чаклунка Рімторі",
--- You dare! Now feel my wrath, <target>.
-[3083612335] = [===[Як ти смієш! Відчуй мій гнів, {ціль:к}.#wrath, <target>.]===],
-["!code"] = {
-["yudenwflmywh.-"] = 3083612335,
-},
-},
-["Majordomo Executus"] = { "мажордом Екзекутус",
--- Ashes to ashes!
-[561847920] = [===[Прах до праху.]===],
--- Behold Ragnaros - the Firelord! He who was ancient when this world was young! Bow before him, mortals! Bow before your ending!
-[153429995] = [===[Готуйтесь зустрітися з Раґнаросом — Володарем Вогню! Тим, хто був древнім ще в часи юності цього світу! Схиліться перед ним, смертні! Схиліться перед своєю загибеллю!]===],
--- Brashly, you have come to wrest the secrets of the Living Flame! You will soon regret the recklessness of your quest.
-[1781985468] = [===[Ви прийшли, щоб зухвало викрасти таємниці Живого Полум'я! Незабаром ви пошкодуєте про свою необачність.]===],
--- I go now to summon the lord whose house this is. Should you seek an audience with him, your paltry lives will surely be forfeit! Nevertheless, seek out his lair, if you dare!
-[4071976289] = [===[А тепер я покличу володаря цієї обителі. Аудієнція з ним, безсумнівно, буде останньою у вашому житті! Що ж, ходіть до його лігва, якщо наважитеся!]===],
--- Impossible! Stay your attack, mortals... I submit! I submit!
-[1669784066] = [===[Це неможливо! Зупиніться, смертні... Я здаюсь! Здаюсь!]===],
--- Impudent whelps! You've rushed headlong to your own deaths! See now, the master stirs!
-[1082533495] = [===[Нахабні виродки! Ви кинулися стрімголов назустріч власній смерті! Готуйтесь, бо володар прокинувся!]===],
--- Reckless mortals! None may challenge the Sons of the Living flame!
-[2426320674] = [===[Безрозсудні смертні! Ніхто не сміє кидати виклик Синам Живого Полум'я!]===],
--- The runes of warding have been destroyed! Hunt down the infidels, my brethren!
-[572393108] = [===[Захисні руни знищено! Вбийте невірних, брати мої!]===],
--- These mortal infidels, my lord! They have invaded your sanctum and seek to steal your secrets!
-[748856844] = [===[Ці невірні смертні, мій повелителю! Вони вдерлися в твою обитель і прагнуть викрасти твої таємниці!]===],
--- Very well, <name>.
-[2633782526] = [===[Добре, {ім'я:к}.#well, <name>.]===],
--- You think you've won already? Perhaps you'll need another lesson in pain!
-[2338899316] = [===[Думаєте, ви вже перемогли? Можливо, вам варто засвоїти ще один урок болю!]===],
-["!code"] = {
-["vywl.-"] = 2633782526,
-},
-},
-["Mekgineer Thermaplugg"] = { "мекженер Термоштепсель",
--- And STAY dead!
-[1124539967] = [===[І НЕ ВСТАВАЙ!]===],
--- Explosions! MORE explosions! I got to have more explosions!
-[1737895379] = [===[Вибухи! БІЛЬШЕ вибухів! Мені потрібно БІЛЬШЕ ВИБУХІВ!]===],
--- My machines are the future! They'll destroy you all!
-[2539557602] = [===[Мої машини — це майбутнє! Вони знищать вас усіх!]===],
--- Usurpers! Gnomeregan is mine!
-[3392640379] = [===[Загарбники! Гномреґан мій!]===],
-},
-["Merithra of the Dream"] = { "Мерітра зі Сну",
--- %s glances at her compatriots.
-[2734844591] = [===[%s дивиться на інших драконів.]===],
--- Succumb to the endless dream, little ones. Let it consume you!
-[2501324654] = [===[Скоріться вічному сну, виродки. Нехай він поглине вас!]===],
--- There is a way...
-[2117600080] = [===[Є спосіб...]===],
--- We will push them back, Anachronos. This I vow. Uphold your end of this task. Let not your hands falter as you seal our fates behind the barrier.
-[2471242898] = [===[Ми відтіснимо їх, Анахроносе. Я клянуся. Виконай свою частину справи. Нехай твої руки не тремтять, коли ти запечатуватимеш нашу долю за бар'єром.]===],
-},
-["Mikhail"] = { "Михайль",
--- I'm glad the commotions died down some around here. The last thing this place needs is another brawl.
-[2630946131] = [===[Я радий, що ця метушня трохи вщухла. Останнє, що потрібно цьому місцю, — це ще одне побоїще.]===],
-},
-["Mobile Alert System"] = { "мобільна система оповіщення",
--- Warning! Warning! Intruder alert! Intruder alert!
-[1904351712] = [===[Тривога! Тривога! Порушники! Порушники!]===],
-},
-["Myra Tyrngaarde"] = { "Міра Тірнґаард",
--- Come get yer fresh bread!
-[3388687722] = [===[Підходьте по свіжий хліб!]===],
--- Fresh bread for sale!
-[2026093713] = [===[Продається свіжий хліб!]===],
--- Fresh bread, baked this very morning.
-[4083092542] = [===[Свіжий хліб, спечений цього ранку.]===],
-},
-["Nefarian's Troops"] = { "війська Нефаріана",
--- %s flee as the controlling power of the orb is drained.
-[1180688703] = [===[%s втікають, коли сила сфери домінування вичерпується.]===],
-},
-["Number Two"] = { "номер два",
--- KILL!
-[3787110592] = [===[ВБИТИ!]===],
-},
-["Onyxia"] = { "Оніксія",
--- %s takes in a deep breath...
-[1175933178] = [===[%s робить глибокий вдих...]===],
--- How fortuitous. Usually, I must leave my lair in order to feed.
-[72308161] = [===[Як зручно. Зазвичай мені доводиться покидати своє лігво, щоб поїсти.]===],
--- It seems you'll need another lesson, mortals!
-[3726974953] = [===[Схоже, вас доведеться провчити ще раз, смертні!]===],
--- Learn your place, mortal!
-[2920668000] = [===[Знайте своє місце, смертні!]===],
--- This meaningless exertion bores me. I'll incinerate you all from above!
-[813230513] = [===[Ваші нікчемні зусилля починають мені набридати. Я спопелю вас усіх!]===],
--- You seek to lure me from my clutch? You shall pay for your insolence!
-[2842274590] = [===[Ви намагаєтеся виманити мене з мого гнізда? Ви заплатите за вашу зухвалість!]===],
-},
-["Overlord Runthak"] = { "властитель Рунтак",
--- Bear witness to the undeniable power of your Warchief! Be lifted by the rallying cry of your dragon slayers!
-[920112023] = [===[Будьте свідками незаперечної сили вашого вождя! Сповнюйтесь рвучким кличем ваших драконоборців!]===],
--- People of the Horde, citizens of Orgrimmar, come, gather round and celebrate a hero of the Horde. On this day, <name>, under the auspices of our glorious Warchief, laid a mortal blow against the Black Dragonflight. The brood mother, Onyxia, has been slain!
-[585013453] = [===[Ординці, жителі Орґріммару, виходьте, збирайтеся і вшановуйте героя Орди! Сьогодні руками {ім'я:р} було завдано смертельного удару чорним драконам під егідою нашого славного вождя. Матір виводка, Оніксію, знищено!#day, <name>, under]===],
-["!code"] = {
-["peoftehecsoforcegrrdadcehoofteheontsdy.-ur"] = 585013453,
-},
-},
-["Paige Chaddis"] = { "Пейдж Чаддіс",
--- Mommy? Can I pet Fizzles?
-[2329284955] = [===[Мамо? А можна я погладжу Бульчика?]===],
-},
-["Patchwerk"] = { "Клаптик",
--- Kel'thuzad make Patchwerk his avatar of war!
-[4215245369] = [===[Кел'Тузад зробити Клаптик богом війни!]===],
--- No more play?
-[469191131] = [===[Більше не хотіти гратись?]===],
--- Patchwerk want to play!
-[3811362668] = [===[Клаптик хоче грати!]===],
--- What... happen to-
-[2009678411] = [===[Що... сталось...]===],
-},
-["Polly"] = { "Поллі",
--- MmmmmMmmmm... Enormous chemically altered cracker....
-[1634154084] = [===[Мммммм... Величезний хімічно змінений крекер...]===],
--- SQUAWK!!!
-[1299224654] = [===[КРРРАА!!!]===],
--- What the squawk??? Squawk squawk, squawk? SQUAWK!
-[312646525] = [===[Що за крраа? Крра кррраа, крррааа! КРРРАА!]===],
-},
-["Prince Skaldrenox"] = { "принц Шпаренокс",
--- What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!
-[1092151934] = [===[Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!]===],
--- You dare!  Outrageous!  I curse you, <class>.  I curse you with... death!
-[1728342456] = [===[Як ти смієш! Це неприпустимо! Я проклинаю тебе, {клас:к}. Я проклинаю тебе... на смерть!#curse you, <class>.]===],
--- Your treachery only speeds your doom.  This world will fall to darkness!
-[1149361862] = [===[Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!]===],
-["!code"] = {
-["wtshslfltgbsmesladyrbstomyte.."] = 1092151934,
-["yudeosceyu..ceyuwhdh"] = 1728342456,
-},
-},
-["Private Hendel"] = { "рядовий Гіндель",
--- %s obviously beaten, tries to run.
-[1773526762] = [===[%s, сильно побитий, намагається втекти.]===],
--- %s, too injured, gives up the chase.
-[3222180413] = [===[%s надто поранений, щоб продовжувати спротив.]===],
--- Please... please... Miss Proudmore. I didn't mean to...
-[3622396216] = [===[Будь ласка... прошу вас... Пані Праудмур. Я не хотів...]===],
-},
-["Pyroguard Emberseer"] = { "вогнестраж Вуглегляд",
--- %s begins to regain its strength!
-[2203045855] = [===[%s починає відновлювати свої сили!]===],
--- %s is nearly at full strength!
-[3297564456] = [===[%s майже повністю відновив сили!]===],
--- %s regains its power and breaks free of its bonds!
-[2173460956] = [===[%s відновлює силу та звільняється від пут!]===],
--- Ha! Ha! Ha! Thank you for freeing me, fools. Now let me repay you by charring the flesh from your bones.
-[1643841173] = [===[Ха! Ха! Ха! Дякую, що звільнили мене, дурні. Дозвольте ж віддячити вам, випаливши плоть з ваших кісток.]===],
-},
-["Qiraji Captain Ka'ark"] = { "кіразький капітан Ка'арк",
--- Why ... won't you ... just dieeeee?
-[3646152366] = [===[Чому... ви... не помираєте?]===],
-},
-["Qiraji Officer Zod"] = { "кіразький офіцер Зод",
--- Kneel before me, mortal! Kneel before Zod!
-[3237535020] = [===[На коліна, смертні! На коліна перед Зодом!]===],
-},
-["Qiraji Slayer"] = { "кіразька вбивця",
--- %s lets out a battlecry!
-[1786520930] = [===[%s видає бойовий крик!]===],
-},
-["Quinn Yorick"] = { "Квінн Йорік",
--- I've been better.  Ivar the Foul got the better of me...
-[2463252334] = [===[Бувало й краще. Айвар Нечистий трохи попсував життя...]===],
-},
-["Quixxil"] = { "Квіксіль",
--- I'm jumpy as it is... and people insist on scaring me... Next time, though, I'll be ready!
-[3259821901] = [===[Я й так на нервах... а тут ще й всілякі недоумки лякають мене... Але наступного разу я буду готовий!]===],
--- Oh!!! Get that thing away from me!
-[4119293147] = [===[А-а-а!!! Забери від мене цю штуку!]===],
--- Why do you chase me, Mechanical Yeti?! WHY?!
-[1732367292] = [===[Чому ти переслідуєш мене, механічний єті?! ЧОМУ?!]===],
-},
-["Race Master Kronkrider"] = { "розпорядник перегонів Вайлоїзд",
--- And crossing the line is the gnome car! The gnomes win!
-[2143712154] = [===[І фінішну лінію перетинає машина гномів! Гноми перемогли!]===],
--- Get your seats, folks!  The race is starting in 2 minutes!
-[2560234548] = [===[Займайте місця, шановні! Перегони почнуться за 2 хвилини!]===],
--- The goblins win! The goblins win!
-[787301136] = [===[Гобліни перемогли! Гобліни перемогли!]===],
--- The race will start in 1 minute!
-[1633472919] = [===[Перегони почнуться через 1 хвилину!]===],
-},
-["Raging Agam'ar"] = { "лютий аґам'ар",
--- %s goes into a rage!
-[1254857525] = [===[%s впадає в лють!]===],
-},
-["Ragnaros"] = { "Раґнарос",
--- BY FIRE BE PURGED!
-[345562914] = [===[ВОГОНЬ ОЧИСТИТЬ ВАС!]===],
--- COME FORTH, MY SERVANTS! DEFEND YOUR MASTER!
-[186423165] = [===[СЮДИ, МОЇ СЛУГИ! ЗАХИСТІТЬ СВОГО ПОВЕЛИТЕЛЯ!]===],
--- DIE, INSECT!
-[276748922] = [===[ЗДОХНИ, КОМАХО!]===],
--- FOOL! YOU ALLOWED THESE INSECTS TO RUN RAMPANT THROUGH THE HALLOWED CORE? AND NOW YOU LEAD THEM TO MY VERY LAIR? YOU HAVE FAILED ME, EXECUTUS! JUSTICE SHALL BE MET, INDEED!
-[2348985311] = [===[ДУРЕНЬ! ТИ ДОЗВОЛИВ ЦИМ КОМАХАМ РОЗГУЛЮВАТИ ПО СВЯЩЕННОМУ ЯДРУ? І ТЕПЕР ТИ ПРИВІВ ЇХ ДО МОГО ЛІГВА? ТИ ПІДВІВ МЕНЕ, ЕКЗЕКУТУС! І ТИ ОТРИМАЄШ СПРАВЕДЛИВЕ ПОКАРАННЯ!]===],
--- NOW FOR YOU, INSECTS! BOLDLY, YOU SOUGHT THE POWER OF RAGNAROS. NOW YOU SHALL SEE IT FIRSTHAND!
-[860163496] = [===[А ВИ, КОМАХИ! ВИ ПРАГНУЛИ СИЛИ РАГНАРОСА. ТЕПЕР ВИ ВІДЧУЄТЕ ЇЇ НА ВЛАСНІЙ ШКУРІ!]===],
--- Ragnaros has withdrawn to the elemental plane.
-[3656900637] = [===[Рагнарос відійшов у вимір стихій.]===],
--- TASTE THE FLAMES OF SULFURON!
-[2465606605] = [===[СКУШТУЙТЕ ПОЛУМ'Я СУЛЬФУРОНА!]===],
--- TOO SOON! YOU HAVE AWAKENED ME TOO SOON, EXECUTUS! WHAT IS THE MEANING OF THIS INTRUSION???
-[1935244356] = [===[ЗАНАДТО РАНО! ТИ РОЗБУДИВ МЕНЕ ЗАНАДТО РАНО, ЕКЗЕКУТУС! ЩО ВСЕ ЦЕ ОЗНАЧАЄ?]===],
--- YOU CANNOT DEFEAT THE LIVING FLAME!
-[2905831805] = [===[ВАМ НЕ ЗДОЛАТИ ЖИВЕ ПОЛУМ'Я!]===],
-},
-["Ramstein the Gorger"] = { "Рамштайн-Ненажера",
--- Ramstein hunger for flesh!
-[2296240160] = [===[Рамштайн жадає плоті!]===],
-},
-["Rane Yorick"] = { "Рейна Йорік",
--- It's good to see you again, Erland.  What is your report?
-[1749608592] = [===[Рада знову бачити тебе, Ерланде. Які новини?]===],
--- Stay back vile creatures!
-[3462643851] = [===[Ідіть геть, мерзенні створіння!]===],
-},
-["Ravaged Cadaver"] = { "розтерзаний кадавр",
--- %s collapses but the broken body rises again!
-[396675881] = [===[%s падає, проте його понівечене тіло знову підіймається!]===],
-},
-["Rayne"] = { "Рейн",
--- That is wonderous, Rimblat! Even this foul, sundered earth is not beyond healing.
-[100592624] = [===[Це дивовижно, Рімблате! Навіть для такої нечистої й понівеченої землі ще є надія на зцілення.]===],
-},
-["Relathor Moonsong"] = { "Релатор Місячна Пісня",
--- I don't know how it started, but it hardly matters now. We need to extinguish it!
-[1321832724] = [===[Я не знаю, як це почалося, але це й не має значення. Нам потрібно погасити це!]===],
--- I'm coming Cyriden!
-[4004964776] = [===[Я йду, Циріден!]===],
--- Indeed it could have. Most importantly, you are unharmed, Cyriden?
-[4201812884] = [===[Так, могло. Ти не поранився, Цирідене?]===],
--- The last of the embers are gone.
-[2651574993] = [===[Здається, вже не тліє.]===],
-},
-["Rema Schneider"] = { "Рема Шнайдер",
--- Corbett, dear.  Harlan needs a load of knitted shirts and pants as soon as we can manage.
-[390596033] = [===[Корбет, любий. Гарлану потрібно багато в'язаних сорочок і штанів, і якомога швидше.]===],
--- Corbett, you there?  Harlan needs another load of knitted goods.  Can you take it to him?
-[2717536644] = [===[Корбете, ти там? Гарлану потрібна ще одна партія одягу. Зможеш віднести її?]===],
-},
-["Rigger Gizelton"] = { "Монтер Ґізельтон",
--- Eeck! Demons appear hungry for the kodos!
-[4126068573] = [===[Йоой! Демони хочуть зжерти кодо!]===],
--- Only if I were about five feet taller, then I would show these blasphemous demons a thing or two! Help!
-[950254540] = [===[Якби я був на кілька метрів вищий, то показав би цим клятим демонам! Рятуйте!]===],
--- This is Rigger Gizelton asking for assistance escorting my caravan past Mannoroc Coven. I'm on the road east of Shadowprey village.
-[1287473079] = [===[Агов! Я Монтер Ґізельтон, і мені потрібна допомога з супроводом мого каравану повз руїни Маннорок. Я стою на дорозі на схід від селища Тінездобич.]===],
--- Time for the Gizleton Caravan to head on out! We'll be back soon but if you cannot wait, head north to Kormek's Hut. We open shop in about an hour.
-[83370372] = [===[Час каравану Ґізельтона вирушати! Ми скоро повернемося, але якщо не хочете чекати, вирушайте на північ до халупи Кормека. Ми відкриємо лавку десь за годину.]===],
--- What am I paying you for? The kodos are nearly dead!
-[1394470132] = [===[За що я тобі плачу? Кодо ледь живі!]===],
--- Wow! We did it... not sure why we thought we needed the likes of you. Nevertheless, speak with Smeed Scrablescrew; he will give you your earnings!
-[1050836932] = [===[Вау! Ми впорались... Не знаю, нащо нам була твоя допомога... Та все ж поговори зі Смідом Гвинтодряпом — він віддасть тобі твій заробіток!]===],
-},
-["Rizzle Brassbolts"] = { "Різзл Латуноболт",
--- Bloody... Must have been the goblins... Let's see how bad the damage is.
-[2337038046] = [===[Трясця… Певно, це були гобліни… Подивимося, наскільки пошкодження серйозні.]===],
--- Guess there's nothing more to be done. Blast!
-[2282864288] = [===[Певно, тут вже нічого не вдієш. Прокляття!]===],
--- What was that!
-[2855240268] = [===[Що це було?!]===],
-},
-["Roman"] = { "Роман",
--- Eww... that's not a fish!
-[1525595495] = [===[Фуу... це не риба!]===],
--- I hope that was a fish!
-[2844111563] = [===[Сподіваюся, це риба!]===],
--- I thought I heard something.
-[209065595] = [===[Здається, я щось чув.]===],
-},
-["Samantha Shackleton"] = { "Саманта Сковка",
--- "Khadgar's Mystical Journal, Volume 8." I think this is the one I wanted.
-[1137814893] = [===["Містичний записник Кадґара, том 8". Думаю, це саме те, що я хотіла.]===],
--- "Magic Maladies", no. "Magic Matricies", no. Ahh here we go "Magic Mysteries".
-[3743883684] = [===["Магічні хвороби", ні. "Магічні матриці", ні. А, ось воно — "Магічні таємниці".]===],
--- "Magical Flows and How They Effect the World", by Maginor Dumas. That's the one I was looking for.
-[4202242594] = [===["Магічні потоки та їхній вплив на світ", автор Маґінор Дюма. Це те, що я шукала.]===],
--- Ahh there it is.
-[2245737145] = [===[Ага, ось воно.]===],
--- Ahh, "Mystical Conjurings of the Archmages of Dalaran." Perfect.
-[956011982] = [===[Ага, "Містичні вичарування архімагів Даларану". Ідеально.]===],
--- Back to the drawing board.
-[3288429795] = [===[Так, що там було в моїх записах...]===],
--- But this can't be right. Where did I put that other book?
-[2992182168] = [===[Але щось тут не сходиться. Куди я поклала іншу книгу?]===],
--- I really need a better system for filing these books. Ahh that's the one I wanted.
-[3107140130] = [===[Треба б придумати кращу систему сортування книг. Ага, ось те, що я шукала.]===],
--- If I could just find "Magic and the Ways of Power". Ahh here it is, what was it doing over here?
-[2922560754] = [===[Якби я тільки могла знайти "Магію і Шляхи Сили". О, а ось і вона. Що вона тут робила?]===],
--- If this is correct then I have a lot more research to do.
-[3577516266] = [===[Якщо це дійсно так, мені доведеться провести значно більше досліджень.]===],
--- So I was right about the energies. Let's see what the other tome has to say on the subject.
-[534946689] = [===[То я все-таки мала рацію щодо енергій. Погляньмо, що про це скаже інший фоліант.]===],
--- That wasn't very helpful. Let me check the other one.
-[370788064] = [===[Це не дуже допомогло. Доведеться проглянути інший.]===],
--- That's what I wanted to know. Now I just need to find where the flux variance is discussed.
-[869058643] = [===[Це те, що я хотіла знати. Тепер мені просто потрібно знайти щось про варіантність потоку.]===],
--- There's the mystical tome I was looking for.
-[174188134] = [===[А ось і той містичний фоліант, який я шукала.]===],
--- Very interesting. But if that's the case then my theory is wrong. I must reread the other sections to see what I missed.
-[3563165462] = [===[Дуже цікаво. Але якщо це так, то моя теорія помилкова. Мені потрібно перечитати інші розділи, щоб зрозуміти, що я пропустила.]===],
--- Yes, yes. Hmm, it seems to cross reference another tome. Guess I have to find that one too.
-[1195980826] = [===[Так, так. Хм, здається, це посилання на інший том. Певно, доведеться знайти і його.]===],
-},
-["Sandfury Executioner"] = { "кат Піщанолютих",
--- Justice is done!
-[2427712795] = [===[Правосуддя здійснено!]===],
--- Let the executions begin!
-[1003578350] = [===[Нехай почнеться страта!]===],
-},
-["Scarlet Commander Marjhan"] = { "командирка Багряного Походу Маржан",
--- And might I add, that dress is lovely! You must tell me where you got it from.
-[2255858794] = [===[Дозвольте зазначити, ця сукня неймовірно гарна! Вам дуже личить.]===],
--- Thank you, Jessica.
-[3299754592] = [===[Дякую, Джесіко.]===],
--- The heathens will be forced to react. Orcs, bull-men...
-[3788760361] = [===[Невірні не зможуть цього ігнорувати. Орки, биколюди...]===],
--- There is always... Ashbringer.
-[1908386489] = [===[Все ще є... Спопелитель.]===],
--- Too little, too late. The dam has broken. We are a bump in the road at best.
-[1070998807] = [===[Занадто мало, та й запізно. Скару вже не зупинити. В кращому випадку ми їх лише затримаємо.]===],
--- Whatever. The revolting, unkempt Horde filth...
-[1802790572] = [===[Хай там як. Огидне, брудне поріддя Орди...]===],
--- Your message did reach us, Commander, but by no means is our involvement here sanctioned by the Grand Crusader.
-[1907424612] = [===[Ми отримали ваше повідомлення, командире, але наша присутність тут не була схвалена верховним лицарем.]===],
-},
-["Scooty"] = { "Скуті",
--- Alright, <name>, your transponder is ready!
-[529291730] = [===[Ну от і все, {ім'я:к}, твій транспондер готовий!]===],
--- Give me a moment while I calibrate the transponder to your height and weight specifications, <name>.
-[743348165] = [===[Зачекай хвильку, {ім'я:к}, я відкалібрую транспондер відповідно до твоїх параметрів зросту та ваги.#specifications, <name>.]===],
-["!code"] = {
-["at.-yrtrisry"] = 529291730,
-["gememtwecetetrtoyrhtadwtss.-"] = 743348165,
-},
-},
-["Sentinel Shaya"] = { "вартова Шая",
--- Ah, <priest/priestess>, you came along just in time. I appreciate it.
-[3309956292] = [===[А, {стать:жрець:жриця}, ти вчасно. Я дуже тобі вдячна.#Ah, <priest/priestess>, you]===],
--- Farewell to you, and may Elune be with you always.
-[4052218981] = [===[Бувай, і нехай Елуна береже тебе.]===],
--- Thank you! Thank you, <priest/priestess>. Now I can take on those corrupt timberlings with Elune's power behind me!
-[119466824] = [===[Дякую! Щиро дякую, {стать:жерцю:жрице}. Завдяки тобі я знову зможу зайнятись цими оскверненими деревниками!]===],
-["!code"] = {
-["ahp.yuceagjtinteaeit"] = 3309956292,
-["tkyutkyup.nwcnteontecttswhesprbdme"] = 119466824,
-},
-},
-["Sergeant Bly"] = { "сержант Блай",
--- After all we've been through?  Well, I didn't like you anyway!!
-[2770019137] = [===[Після всього, що ми пережили? Ну, ти мені все одно не подобаєшся!!]===],
--- Let's move forward!
-[4151136740] = [===[Рухаймося вперед!]===],
--- What?  How dare you say that to me?!?
-[3552517599] = [===[Що? Як ти смієш таке казати?!?]===],
-},
-["Sorcerer Ashcrombe"] = { "чаклун Золомбі",
--- %s vanishes.
-[1727224170] = [===[%s щезає.]===],
--- Follow me and I'll open the courtyard door for you.
-[64232006] = [===[Йдіть за мною, і я відчиню вам двері у двір.]===],
--- For once I agree with you... scum.
-[1602551003] = [===[Вперше я з тобою згоден... виродок.]===],
--- I have just the spell to get this door open. Too bad the cell doors weren't locked so haphazardly.
-[1749707567] = [===[Я знаю гарне заклинання, щоб відкрити ці двері. Шкода, що камери не були зачинені так недбало.]===],
--- There it is! Wide open. Good luck to you conquering what lies beyond. I must report back to the Kirin Tor at once!
-[3192372511] = [===[Ось так! Бажаю успіху з тим, що чекає на вас попереду. Я маю негайно повертатися до Кірін-Тору!]===],
-},
-["Spirit of Trey Lightforge"] = { "дух Трея Світлогарта",
--- BETRAYER!
-[222817313] = [===[ЗРАДНИКИ!]===],
-},
-["Stormpike Quartermaster"] = { "квартирмейстер Бурешпилів",
--- Thanks a lot, <name>!
-[1508820764] = [===[Красно дякую, {ім'я:к}!#lot, <name>!]===],
-["!code"] = {
-["tslt.-"] = 1508820764,
-},
-},
-["Stormscale Toxicologist"] = { "штормолуский токсиколог",
--- You've interfered with our plans for the last time, foolish <class>!
-[4101778386] = [===[Ти востаннє втручаєшся в наші плани, {клас:к}!#foolish <class>!]===],
-["!code"] = {
-["yeidwhorpsfrtelttefh.."] = 4101778386,
-},
-},
-["Stormwind Elite Guard"] = { "штормовійський гвардієць",
--- Scourge in the Trade District!  Have at them!
-[502614670] = [===[Скара в Торговому районі! Знищте їх!]===],
-},
-["Tapoke \"Slim\" Jahn"] = { "Ян \"Пронира\" Тапокі",
--- I have a few notes from the job back at my place. I'll get them and then meet you back in the inn.
-[3900500865] = [===[У мене з тієї справи залишилось кілька записок. Я їх заберу і ми зустрінемось в таверні.]===],
--- Oh, it's on now! Bet you thought I'd be alone too, huh?!
-[2304120575] = [===[Ого, то все серйозно! Але ти ж не {стать:думав:думала}, що я теж буду сам, ге ж?!]===],
--- Okay, okay! No need to get all violent. I'll talk. I'll talk!
-[2507800932] = [===[Гаразд, гаразд! Досить цього насильства. Я все скажу!]===],
-},
-["Thaddius"] = { "Таддіус",
--- Break... you!!
-[3523209634] = [===[Нищити... вас!!]===],
--- Eat... your... bones...
-[2740256230] = [===[Їсти... ваші... кістки...]===],
--- Kill...
-[919033059] = [===[Вбивати...]===],
--- Now you feel pain...
-[966186076] = [===[Тепер ви відчуваєте біль...]===],
--- Thank... you...
-[1901570217] = [===[Спасибі...]===],
--- You are too late!! I... must... obey!!
-[4291805158] = [===[Ви запізнилися!! Я... мушу... підкоритися!!]===],
--- You... die now!!
-[3184902515] = [===[Ви... помрете!!]===],
-},
-["The Duke of Cynders"] = { "герцог попелу",
--- Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!
-[1501603116] = [===[{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!]===],
--- This act of defiance will not go unpunished.  You, and your world, will die!
-[3616868007] = [===[Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!]===],
--- What?  Such a small, frail thing beckons me?  This will not go unpunished!
-[2852446815] = [===[Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!]===],
--- You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!
-[3285806137] = [===[Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!]===],
-},
-["The Duke of Fathoms"] = { "герцог глибин",
--- Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!
-[1501603116] = [===[{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!]===],
--- This act of defiance will not go unpunished.  You, and your world, will die!
-[3616868007] = [===[Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!]===],
--- What?  Such a small, frail thing beckons me?  This will not go unpunished!
-[2852446815] = [===[Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!]===],
--- You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!
-[3285806137] = [===[Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!]===],
-},
-["The Duke of Shards"] = { "герцог осколків",
--- Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!
-[1501603116] = [===[{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!]===],
--- This act of defiance will not go unpunished.  You, and your world, will die!
-[3616868007] = [===[Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!]===],
--- What?  Such a small, frail thing beckons me?  This will not go unpunished!
-[2852446815] = [===[Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!]===],
--- You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!
-[3285806137] = [===[Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!]===],
-},
-["The Duke of Zephyrs"] = { "герцог вітрів",
--- Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!
-[1501603116] = [===[{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!]===],
--- This act of defiance will not go unpunished.  You, and your world, will die!
-[3616868007] = [===[Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!]===],
--- What?  Such a small, frail thing beckons me?  This will not go unpunished!
-[2852446815] = [===[Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!]===],
--- You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!
-[3285806137] = [===[Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!]===],
-},
-["The Prophet Skeram"] = { "пророк Скерам",
--- Are you so eager to die? I will be happy to accommodate you...
-[3353703483] = [===[Ви так жадаєте померти? Я з радістю допоможу вам...]===],
--- Let your death serve as an example!
-[1497093567] = [===[Твоя смерть стане прикладом для інших!]===],
--- You only delay the inevitable!
-[2927997206] = [===[Ви лише відкладаєте неминуче!]===],
-},
-["Theramore Sentry"] = { "тераморський караульний",
--- Don't let them catch you!
-[3413150736] = [===[Не дай їм себе спіймати!]===],
--- Get out of here!
-[1632665881] = [===[Забираймося звідси!]===],
--- It's Proudmoore! Get out of here!
-[224579938] = [===[Це Праудмур! Вшиваймося!]===],
--- Run!
-[19235320] = [===[Біжіть!]===],
--- She'll have our heads if we're caught!
-[1375653815] = [===[Вона нам голови знесе, якщо нас упіймають!]===],
-},
-["Thomas Miller"] = { "Томас Міллер",
--- Fresh bread for sale!
-[2026093713] = [===[Продається свіжий хліб!]===],
--- Freshly baked bread for sale!
-[1336896242] = [===[Свіжоспечений хліб!]===],
--- I am not worthy, sir.
-[1330712792] = [===[Я не гідний, пане.]===],
--- Rolls, buns and bread. Baked fresh!
-[4259127820] = [===[Пироги та хліб. Свіжоспечені!]===],
--- Warm, wholesome bread!
-[1817004874] = [===[Теплий, свіжий хліб!]===],
-},
-["Thrall"] = { "Тралл",
--- Be bathed in my power! Drink in my might! Battle for the glory of the Horde!
-[308550878] = [===[Купайтеся в моїй силі! Сповнюйтесь моєю могутністю! Бийтеся за славу Орди!]===],
--- Honor your heroes! On this day, they have dealt a great blow against one of our most hated enemies! The false Warchief, Rend Blackhand, has fallen!
-[3974062951] = [===[Шануймо наших героїв! Цього дня вони завдали нищівного удару одному з наших найненависніших ворогів! Самозваний вождь, Ренд Чорнорук, нарешті мертвий!]===],
--- Let it be known that <name> - Horde <class> - has earned the undying respect of the Warchief.   <He/She> has engaged in great diplomacy with Timbermaw Hold and performed valiant actions for them on our behalf.   <He/She> has gone above and beyond the call of duty.  Three cheers for <name> - a true hero of the Horde!
-[4277185839] = [===[Знайте ж, що {клас:н} Орди, {ім'я:н}, {стать:заслужив:заслужила} на безмежну повагу вождя. {стать:Він долучився:Вона долучилась} до великої дипломатичної місії з оплотом Деревопузих та {стать:здійснив:здійснила} відважні вчинки для них від нашого імені, перевершивши свій службовий обов'язок. Славімо {ім'я:з} — {стать:справжнього героя:справжню героїню} Орди!#that <name> - Horde#Horde <class> - has#<He/She> has engaged]===],
-["!code"] = {
-["ltitbekntt.-he..hsedteugrtoftewf.ehsedingt"] = 4277185839,
-},
-},
-["Thuzadin Acolyte"] = { "тузадінський послушник",
--- An Ash'ari Crystal has been toppled! Restore the ziggurat before the Necropolis is vulnerable!
-[50351489] = [===[Кристал Аш'арі розбито! Відновіть зіккурат, поки некрополь не втратив захист!]===],
--- An Ash'ari Crystal has fallen! Stay true to the Lich King, my brethren, and attempt to resummon it.
-[3049915890] = [===[Кристал Аш'арі знищено! Залишайтеся вірними Королю-лічу, брати мої, і спробуйте відновити його.]===],
--- One of the Ash'ari Crystals has been destroyed!  Slay the intruders!
-[1477822526] = [===[Один з кристалів Аш'арі знищено! Вбийте чужинців!]===],
-},
-["Timmy the Cruel"] = { "Тіммі-Нелюд",
--- TIMMY!
-[929480681] = [===[ТІММІ!]===],
-},
-["Town Crier"] = { "міський оповісник",
--- It isn't enough! Defenders, gather in the center of town. Together we will stand against the undead monster!
-[478231009] = [===[Цього недостатньо! Захисники, зберіться на площі міста. Разом ми вистоїмо проти цієї невмерлої потвори!]===],
--- Rouse and to arms, citizens of Darkshire! An abomination of the undead approaches along the road!
-[843996743] = [===[До зброї, жителі Темнодолу! Невмерла потвора наближається до міста!]===],
--- The abomination has come! Forward!
-[4155587916] = [===[Потвора вже тут! В атаку!]===],
--- The abomination has overrun the Night Watch camp! Quickly, we must intercept it before it reaches town!
-[2843177413] = [===[Потвора напала на табір Нічної варти! Швидше, ми маємо зупинити її, поки вона не дійшла до міста!]===],
--- The beast is slain! All's well in Darkshire!
-[2211939] = [===[Звіра переможено! Тепер Темноділ в безпеці!]===],
-},
-["Twiggy Flathead"] = { "Твіґґі Пласкоголов",
--- Challenger is down!
-[664424121] = [===[Претендента переможено!]===],
--- The Affray has begun.  <name>, get ready to fight!
-[655164008] = [===[Побоїще починається. {ім'я:к}, приготуйся до бою!# <name>, get]===],
--- The Affray is over!
-[1879798305] = [===[Побоїще завершено!]===],
--- The first stage is over.  Big Will... come on down!
-[2537023594] = [===[Перший етап завершено. Здоровань Вілл... до бою!]===],
--- You!  Enter the fray!
-[2090385145] = [===[Гей, ти! До бою!]===],
-["!code"] = {
-["teayhsbn.-gtrytoft"] = 655164008,
-},
-},
-["Wandering Eye of Kilrogg"] = { "блукаюче око Кілроґґа",
--- %s senses your presence and opens a nether portal!
-[680847002] = [===[%s відчуває вашу присутність і відкриває портал до Підсвіття!]===],
-},
-["Warchief Rend Blackhand"] = { "воєвождь Ренд Чорнорук",
--- %s is knocked off his drake!
-[1649641327] = [===[%s падає зі свого дракона!]===],
--- Flee while you still have a chance, mortals. You will pray for a swift death should I enter the arena.
-[2886096622] = [===[Тікайте, поки ще маєте шанс, смертні. Ви будете благати про швидку смерть, якщо я вийду на арену.]===],
--- Impossible!
-[1838236757] = [===[Неможливо!]===],
--- With pleasure...
-[2611723147] = [===[Із задоволенням...]===],
-},
-["Weegli Blastfuse"] = { "Віґлі Ґніт",
--- I'm out of here!
-[466353340] = [===[Я вшиваюсь звідси!]===],
--- Oh no!  Here they come!
-[424801872] = [===[О ні! Вони йдуть!]===],
--- Ok, here I go!
-[1897953309] = [===[Гаразд, я пішов!]===],
-},
-["Weldon Barov"] = { "Велдон Баров",
--- HELP! ASSASSINS HAVE COME TO KILL ME!
-[259426270] = [===[ДОПОМОЖІТЬ! ВБИВЦІ ПРИЙШЛИ ПО МОЮ ДУШУ!]===],
--- The fortune is mine, Alexi! Your end comes soon!
-[944656130] = [===[Статок мій, Алексій! Тобі кінець!]===],
-},
-["William"] = { "Вільям",
--- Baby wants her dolly!
-[3347873813] = [===[Малявка хоче свою ляльку!]===],
--- Crybaby! Crybaby!
-[1054392535] = [===[Плакса! Плакса!]===],
--- Ha ha! I have Betsy!
-[899937673] = [===[Ха-ха! А Бетсі у мене!]===],
--- I have your dolly! Nyah nyah!
-[2464402816] = [===[У мене твоя лялька! Бе-бе-бе!]===],
--- I wonder if your dolly can swim!
-[817871051] = [===[Цікаво, чи вміє твоя лялька плавати?!]===],
--- If you want her back you're gonna have to beg!
-[2471581622] = [===[Якщо хочеш повернути її — доведеться благати!]===],
--- Oops!
-[3235846580] = [===[Ой!]===],
--- What happens when I do this?!
-[2913129679] = [===[А що, якщо зроблю от так?!]===],
-},
-["Witch Doctor Zum'rah"] = { "знахар Зум'ра",
--- Come to me, my children!
-[4267058799] = [===[Ходіть до мене, діти мої!]===],
--- Fall!
-[989305921] = [===[Помри!]===],
--- How dare you enter my sanctum!
-[2603669844] = [===[Як ви смієте входити в мій храм!]===],
--- Sands consume you!
-[3562114341] = [===[Піски поглинуть вас!]===],
-},
-["Wolf Master Nandos"] = { "повелитель вовків Нандос",
--- I can't believe it! You've destroyed my pack... Now face my wrath!
-[2632300111] = [===[Не можу в це повірити! Ви знищили мою зграю... Тепер ви відчуєте мій гнів!]===],
-},
-["Yeh'kinya"] = { "Є'кінья",
--- Blood and souls for Hakkar!  HAHAHAH!
-[1741994312] = [===[Кров і душі для Гаккара! ХАХАХА!]===],
-},
-["Zaetar's Spirit"] = { "дух Заєтара",
--- Free! Free from my bonds at last!
-[1243705373] = [===[Свобода! Нарешті я вільний від цих пут!]===],
-},
-["Zamek"] = { "Замек",
--- Hehehe! Things go boom!
-[4000157120] = [===[Хехехе! Зараз буде БУМ!]===],
-},
-["Zandalar Enforcer"] = { "громило Зандаларів",
--- %s spits on the corpse of the fallen zealot.
-[1550382713] = [===[%s плює на труп ревнителя.]===],
--- Move!
-[3326678457] = [===[Ворушись!]===],
--- Right away, Servitor.
-[334368482] = [===[Слухаюсь, Слуго.]===],
--- Skam!
-[2276861490] = [===[Паскуда!]===],
-},
-["Zandalarian Emissary"] = { "емісар Зандаларів",
--- All Hail <name>, slayer of Hakkar, and hero of Azeroth!
-[609189386] = [===[Хвала {ім'я:д}, вбивці Гаккара, і герою Азероту!#All Hail <name>,]===],
--- The Blood God, the Soulflayer, has been defeated!  We are imperiled no longer!
-[3955580999] = [===[Кривавого Бога, Здирача душ, знищено! Він нам більше не загрожуватиме!]===],
-["!code"] = {
-["alhl.-srofhradhoofah"] = 609189386,
-},
+local chat_rows = {
+    [1054177436] = {
+        ["english"] = { [1] = "%s becomes enraged!" },
+        ["text"] = "%s лютує!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1057780043] = {
+        ["english"] = { [1] = "Crush!" },
+        ["text"] = "Трощити!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1105735521] = {
+        ["english"] = { [1] = "I'll crush you!" },
+        ["text"] = "Я тебе розчавлю!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1159192658] = {
+        ["english"] = { [1] = "Make yourself useful and help me out here!" },
+        ["text"] = "Зроби хоч щось корисне і допоможи мені!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1165139213] = {
+        ["english"] = { [1] = "I'm saved! Thank you, doctor!" },
+        ["text"] = "Я врятований! Дякую, лікарю!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1269776197] = {
+        ["english"] = { [1] = "The light condemns all who harbor evil.  Now you will die!" },
+        ["text"] = "Світло засуджує всіх, хто носить у собі зло. Тепер ти помреш!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [140899419] = {
+        ["english"] = { [1] = "Long live the Dragonmaw! Die you worthless <race>!" },
+        ["text"] = "Слава Драконовій Пащі! Помри, нікчемо!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1497963302] = {
+        ["english"] = { [1] = "For the Dragonmaw!" },
+        ["text"] = "За Драконову Пащу!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1524356560] = {
+        ["english"] = { [1] = "The good doctor saves the day! HOORAY!" },
+        ["text"] = "Гарний лікар рятує ситуацію! УРА!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1617086965] = {
+        ["english"] = { [1] = "Alright I'm going! Stop yelling!" },
+        ["text"] = "Гаразд, йду я! Не кричи!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [169663453] = {
+        ["english"] = { [1] = "For the Warchief!" },
+        ["text"] = "За вождя!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1739702883] = {
+        ["english"] = { [1] = "I gonna make you into mojo!" },
+        ["text"] = "Я з тебе моджо зроблю!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1746354766] = {
+        ["english"] = { [1] = "Just release me already! I've had enough!" },
+        ["text"] = "Та відпусти вже мене! З мене досить!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1752475137] = {
+        ["english"] = { [1] = "%s goes into a rage after seeing a friend fall in battle!" },
+        ["text"] = "%s впадає в лють, коли бачить, як його побратим гине в бою!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1780177135] = {
+        ["english"] = { [1] = "Feel da big bad voodoo!" },
+        ["text"] = "Відчуй вуду!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1821764902] = {
+        ["english"] = { [1] = "How can I get anything done with the Scourge running amok around here?!" },
+        ["text"] = "Як я можу щось робити, коли тут розгулює Скара?!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1846255862] = {
+        ["english"] = { [1] = "Time to die, <class>." },
+        ["text"] = "Час вмирати, {клас:к}.#die, <class>",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1871382043] = {
+        ["english"] = { [1] = "This has gone too far.  How dare the Scourge attack Stormwind!  Destroy it before more come!" },
+        ["text"] = "Це зайшло надто далеко. Як сміє Скара нападати на Штормовій? Знищте їх, поки не прийшло ще більше!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1915097451] = {
+        ["english"] = { [1] = "Yiieeeee! Me run!" },
+        ["text"] = "Їііііі! Я бігти!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2006095919] = {
+        ["english"] = { [1] = "The Old Gods will be restored.  You will not be allowed to interfere!" },
+        ["text"] = "Старі Боги повернуться. Ви цьому не завадите!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2044220370] = {
+        ["english"] = { [1] = "Your bones will break under my boot, <race>!" },
+        ["text"] = "Я розтопчу твої кістки, {раса:к}!#boot, <race>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2096984794] = {
+        ["english"] = { [1] = "My talons will shred your puny body, <race>." },
+        ["text"] = "Мої пазурі розірвуть твоє нікчемне тіло, {раса:к}.#puny body, <race>.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2097931599] = {
+        ["english"] = { [1] = "Guards! Help me!" },
+        ["text"] = "Варта! Допоможіть!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2101560904] = {
+        ["english"] = { [1] = "%s attempts to run away in fear!" },
+        ["text"] = "%s налякано тікає геть!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2134163192] = {
+        ["english"] = { [1] = "Destroy!" },
+        ["text"] = "Нищити!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2140050443] = {
+        ["english"] = { [1] = "Dying... See the light... gloriouss..." },
+        ["text"] = "Вмираю... Бачу світло... прекрасне...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2169983480] = {
+        ["english"] = { [1] = "The Brotherhood will not tolerate your actions." },
+        ["text"] = "Братство вам не пробачить.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2176189237] = {
+        ["english"] = { [1] = "Grrrr... fresh meat!" },
+        ["text"] = "Грррр... Свіже м'ясо!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2196148534] = {
+        ["english"] = { [1] = "I may have ninety-nine problems, but dancin' ain't one of them!  Happy Hallow's End, <name>!" },
+        ["text"] = "Обожнюю танці! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2261757394] = {
+        ["english"] = { [1] = "You are no match for the Blackrock Orcs!" },
+        ["text"] = "Ти не рівня оркам Чорнокаменю!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2272647552] = {
+        ["english"] = { [1] = "My weapon be thirsty!" },
+        ["text"] = "Моя зброя хоче крові!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2274155253] = {
+        ["english"] = { [1] = "A foul trogg if ever I saw one.  Die!" },
+        ["text"] = "Ще не бачив таких бридких трогів. Здохни!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2323969113] = {
+        ["english"] = { [1] = "Sweet, sweet embrace... take me..." },
+        ["text"] = "Ніжні обійми... смерті... заберіть мене...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [233729184] = {
+        ["english"] = { [1] = "Me smash! You die!" },
+        ["text"] = "Я бити! Ти вмирати!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2377395441] = {
+        ["english"] = { [1] = "Intruders! Attack the intruders!" },
+        ["text"] = "Чужинці! Вбийте їх!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2458564180] = {
+        ["english"] = { [1] = "No gnome will be left behind." },
+        ["text"] = "Не лишим жодного гнома в біді.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2524779254] = {
+        ["english"] = { [1] = "How can I get anything done with the Scourge running amok in here?!" },
+        ["text"] = "Як я можу щось робити, коли тут розгулює Скара?!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2544152886] = {
+        ["english"] = { [1] = "Bawk, bawk, bawk!  Happy Hallow's End, <name>!" },
+        ["text"] = "Куд-куд-кудак! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2555134572] = {
+        ["english"] = { [1] = "You better back me up on this one!" },
+        ["text"] = "Краще допоможи мені!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [255528522] = {
+        ["english"] = { [1] = "Yip! Me kill!" },
+        ["text"] = "Йой! Я вбивати!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2643626745] = {
+        ["english"] = { [1] = "Aaaaahhh! So close to escaping." },
+        ["text"] = "Ааааааа! Я майже втік.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [266602064] = {
+        ["english"] = { [1] = "This better be the last one!" },
+        ["text"] = "Сподіваюсь, це останній!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2689863562] = {
+        ["english"] = { [1] = "Raaaaaaaaaaaaaaaaaaaaaaaaaaaaaar!!! Me smash <target>!" },
+        ["text"] = "Рррааааааааааааааааааааааааррррр!!! Моя бити {ціль}!#Me smash <target>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2700027791] = {
+        ["english"] = { [1] = "Goodbye, cruel world... I'm leavin' you today... goodbye... goodbye... goodbye..." },
+        ["text"] = "Прощавай, жорстокий світ... Сьогодні я тебе покину... прощавай... прощавай... прощавай...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2701974162] = {
+        ["english"] = { [1] = "Kneel! Kneel before the Ashbringer!" },
+        ["text"] = "На коліна! Схиліться перед Спопелителем!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2709654253] = {
+        ["english"] = { [1] = "Intruders!  The Hammer shall fall upon you." },
+        ["text"] = "Чужинці! Молот покарає вас.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2760472643] = {
+        ["english"] = { [1] = "%s goes into a killing frenzy!" },
+        ["text"] = "%s впадає в смертоносне шаленство!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2818239379] = {
+        ["english"] = { [1] = "You will be easy prey, <class>." },
+        ["text"] = "Ти будеш легкою здобиччю, {клас:к}.#prey, <class>.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2934665551] = {
+        ["english"] = { [1] = "You carry the taint of the scourge.  Prepare to enter the twisting nether." },
+        ["text"] = "Ви заплямовані Скарою. Приготуйтесь відправитись в Підсвітню Крутоверть.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2958662936] = {
+        ["english"] = { [1] = "Troll mojo da strongest mojo!" },
+        ["text"] = "Трольське моджо — найкраще моджо!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [2992655228] = {
+        ["english"] = { [1] = "There is no escape for you.  The Crusade shall destroy all who carry the scourge's taint." },
+        ["text"] = "Вам немає спасіння. Похід знищить усіх, хто заплямований Скарою.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3077904620] = {
+        ["english"] = { [1] = "Ashbringer..." },
+        ["text"] = "Спопелитель...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3081484674] = {
+        ["english"] = { [1] = "I just saw a Scourge!  Kill it!" },
+        ["text"] = "Тут Скара! Захищайте місто!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3098926150] = {
+        ["english"] = { [1] = "Death tarnishes %s's soul." },
+        ["text"] = "Смерть залишила свій слід на душі %s.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3158386481] = {
+        ["english"] = { [1] = "%s goes into a berserker rage!" },
+        ["text"] = "%s впадає в лють берсерка!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3200050258] = {
+        ["english"] = { [1] = "Heeellp meee... ri... ribss... bro... broken." },
+        ["text"] = "Допоможіть мені... рe... ребра... з... зламані.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3285418074] = {
+        ["english"] = { [1] = "Me no run from <class> like you!" },
+        ["text"] = "Я не тікати від {клас:н}!#from <class> like",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3287285933] = {
+        ["english"] = { [1] = "Killing you be easy." },
+        ["text"] = "Вбить тебе легко.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3297333262] = {
+        ["english"] = { [1] = "HOORAY! I AM SAVED!" },
+        ["text"] = "УРА! Я ВРЯТОВАНИЙ!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3306693484] = {
+        ["english"] = { [1] = "%s gives a negative shake of his head." },
+        ["text"] = "%s заперечливо хитає головою.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3309896393] = {
+        ["english"] = { [1] = "%s nods." },
+        ["text"] = "%s киває.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3343124007] = {
+        ["english"] = { [1] = "%s laughs." },
+        ["text"] = "%s сміється.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3351208450] = {
+        ["english"] = { [1] = "More bones to gnaw on..." },
+        ["text"] = "Ррр, погриземо кістки...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3359642403] = {
+        ["english"] = { [1] = "%s charges!" },
+        ["text"] = "%s стрімко атакує!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3420974449] = {
+        ["english"] = { [1] = "Never cross a Dark Iron, <class>." },
+        ["text"] = "Ніколи не переходь дорогу Темному Залізу, {клас:к}.#Iron, <class>",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3482326861] = {
+        ["english"] = { [1] = "Feel the power of the Blackrock Orcs!" },
+        ["text"] = "Відчуй силу орків Чорнокаменю!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3549731622] = {
+        ["english"] = { [1] = "A fine trophy your head will make, <race>." },
+        ["text"] = "З твоєї голови буде гарний трофей, {раса:к}.#will make, <race>.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3660307838] = {
+        ["english"] = { [1] = "There's one of the Scourge, right over there!" },
+        ["text"] = "Скара! Прямо тут!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [367722508] = {
+        ["english"] = { [1] = "The troggs...they never stop coming.  Die trogg!  Die!" },
+        ["text"] = "Троги... вони все лізуть й лізуть. Здохни, тварюко! Здохни!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3704999839] = {
+        ["english"] = { [1] = "You be dead soon!" },
+        ["text"] = "Ти скоро здохнеш!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3768695599] = {
+        ["english"] = { [1] = "Aku'mai demands more sacrifices, now you must die!" },
+        ["text"] = "Аку'май вимагає нових жертв, ти маєш померти!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3787110592] = {
+        ["english"] = { [1] = "Kill!" },
+        ["text"] = "Вбивати!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "KILL!" },
+                ["text"] = "ВБИТИ!",
+                ["npcs"] = { [1] = "Number Two" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3791180207] = {
+        ["english"] = { [1] = "Ooo, so strong!  Happy Hallow's End, <name>!" },
+        ["text"] = "Ого, яка сила! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3828955266] = {
+        ["english"] = { [1] = "The Scarlet Crusade shall smite the wicked and drive evil from these lands!" },
+        ["text"] = "Багряний Похід покарає нечестивих і вижене зло з цих земель!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3836565635] = {
+        ["english"] = { [1] = "This has gone too far.  How dare the Scourge attack Undercity!  Destroy it before more come!" },
+        ["text"] = "Це зайшло надто далеко. Як сміє Скара нападати на Підмістя? Знищте їх, поки не прийшло ще більше!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3946184581] = {
+        ["english"] = { [1] = "Did you see that?  There's a Scourge over there!" },
+        ["text"] = "Ви це бачили? Там Скара!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3983113829] = {
+        ["english"] = { [1] = "Scourge spotted nearby!" },
+        ["text"] = "Неподалік бачили Скару!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [3983722682] = {
+        ["english"] = { [1] = "%s lets out a shriek, calling for help!" },
+        ["text"] = "%s верещить, кличучи на допомогу!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [402894991] = {
+        ["english"] = { [1] = "%s cries." },
+        ["text"] = "%s плаче.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [4033759137] = {
+        ["english"] = { [1] = "Ah, a chance to use this freshly sharpened blade." },
+        ["text"] = "О, а я саме лезо наточив.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [4160462004] = {
+        ["english"] = { [1] = "Feel the power of the Brotherhood!" },
+        ["text"] = "Відчуй силу Братства!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [4182785871] = {
+        ["english"] = { [1] = "Feel the power of the Dark Iron Dwarves!" },
+        ["text"] = "Відчуй силу дворфів Темного Заліза!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [4214926514] = {
+        ["english"] = { [1] = "You no take candle!" },
+        ["text"] = "Не рухай свічу!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [4277758189] = {
+        ["english"] = { [1] = "I'm not gonna make it... death comes..." },
+        ["text"] = "Я не виживу... смерть вже близько...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [47867955] = {
+        ["english"] = { [1] = "%s calls for help!" },
+        ["text"] = "%s кличе на допомогу!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [507983674] = {
+        ["english"] = { [1] = "For the Horde!" },
+        ["text"] = "За Орду!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [564955336] = {
+        ["english"] = { [1] = "Brain encaved... mortar... bas... hed... leaking... dyin... g..." },
+        ["text"] = "В голову... прилетіло... мортира... я... вмираю...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [587092614] = {
+        ["english"] = { [1] = "Time to join us, <class>." },
+        ["text"] = "Приєднуйся до нас, {клас:к}.#us, <class>.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [601895925] = {
+        ["english"] = { [1] = "Destroy the Scourge invader now, before it's too late!" },
+        ["text"] = "Знищте загарбників Скари, поки не пізно!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [616874991] = {
+        ["english"] = { [1] = "Chugga-chugga, woo-woo!  Happy Hallow's End, <name>!" },
+        ["text"] = "Чух-чух-чух, ту-ту! Щасливого Повечір'я святих, {ім'я:к}!#Hallow's End, <name>!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [627744934] = {
+        ["english"] = { [1] = "What? You mean you can't kill this one by yourself?" },
+        ["text"] = "Що? Хочеш сказати, що не зможеш вбити його самостійно?",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [681405596] = {
+        ["english"] = { [1] = "I... I think I see Blue..." },
+        ["text"] = "Здається... я бачу небеса...",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [73387052] = {
+        ["english"] = { [1] = "My entrails are leaking out! HELP!" },
+        ["text"] = "В мене кишки випадають! ДОПОМОЖІТЬ!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [771197595] = {
+        ["english"] = { [1] = "Your skull gonna decorate our ritual altars!" },
+        ["text"] = "Твій череп прикрасить наші ритуальні вівтарі!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [80510248] = {
+        ["english"] = { [1] = "%s sighs." },
+        ["text"] = "%s зітхає.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [813337877] = {
+        ["english"] = { [1] = "This sickness clouds my vision, but I know you must be a trogg.  Die foul invader!" },
+        ["text"] = "Ця хвороба затьмарює мій зір, але я знаю, що ти трог. Здохни, брудний загарбник!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [833958517] = {
+        ["english"] = { [1] = "%s emerges from the darkness, drawn out by the divination scryer!" },
+        ["text"] = "%s з'являється з темряви, прикликаний кристалом провидіння!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [843109697] = {
+        ["english"] = { [1] = "Guards!" },
+        ["text"] = "Варта!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [879047473] = {
+        ["english"] = { [1] = "Reporting for duty!" },
+        ["text"] = "Заступаю на службу!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [890948796] = {
+        ["english"] = { [1] = "Sentinels, come to my defense!" },
+        ["text"] = "Вартові, захистіть мене!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [90272537] = {
+        ["english"] = { [1] = "Will these unrelenting Scourge attacks never end?" },
+        ["text"] = "Невже ці напади Скари ніколи не скінчаться?",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [915344449] = {
+        ["english"] = { [1] = "Your blood shall be the catalyst for the Old Gods' return!" },
+        ["text"] = "Твоя кров прискорить повернення Старих Богів!",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [97473025] = {
+        ["english"] = { [1] = "%s dies." },
+        ["text"] = "%s вмирає.",
+        ["npcs"] = {},
+        ["priority"] = 1,
+    },
+    [1146351847] = {
+        ["english"] = { [1] = "Good... good, A-Me. A-Me good. Home. Find home." },
+        ["text"] = "Хороша... хороша Е-Мі. Е-Мі хороша. Дім. Знайти дім.",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [1723902132] = {
+        ["english"] = { [1] = "<target>, no hurt A-Me. A-Me, good." },
+        ["text"] = "{Ціль}, не шкодь Е-Мі. Е-Мі хороша.#<target>, no hurt",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [1905289744] = {
+        ["english"] = { [1] = "A-Me, home. A-Me go home! <target>, no stop A-Me." },
+        ["text"] = "Е-Мі, дім. Е-Мі йти додому! {Ціль} не зупинити Е-Мі.#go home! <target>, no stop",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [2469927355] = {
+        ["english"] = { [1] = "A-Me good. Good, A-Me. Follow... follow A-Me. Home. A-Me go home." },
+        ["text"] = "Е-Мі хороша. Е-Мі. Хороша. Йти... йти за Е-Мі. Дім. Е-Мі йти додому.",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [3529954952] = {
+        ["english"] = { [1] = "Danger. Danger! <target> try hurt A-Me." },
+        ["text"] = "Небезпека. Небезпека! {Ціль} намагається зашкодити Е-Мі.#Danger! <target> try hurt",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [366152338] = {
+        ["english"] = { [1] = "Bad, <target>. <target>, bad!" },
+        ["text"] = "Погано, {ціль}. {Ціль}, погано!#Bad, <target>.",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [984586274] = {
+        ["english"] = { [1] = "A-Me home! A-Me, good! Good A-Me. Home. Home. Home." },
+        ["text"] = "Е-Мі вдома! Е-Мі хороша! Е-Мі хороша. Дім. Дім. Дім.",
+        ["npcs"] = { [1] = "A-Me 01" },
+        ["priority"] = 1,
+    },
+    [2080347245] = {
+        ["english"] = { [1] = "It was a simple mistake. A wrong turn I tell you!" },
+        ["text"] = "Це було випадково. Кажу ж, я просто звернув не туди!",
+        ["npcs"] = { [1] = "Acolyte Dellis" },
+        ["priority"] = 1,
+    },
+    [2735028224] = {
+        ["english"] = { [1] = "The swamp was horrible! I was so... so... scared!" },
+        ["text"] = "Болото було жахливим! Мені було так... так... страшно!",
+        ["npcs"] = { [1] = "Acolyte Dellis" },
+        ["priority"] = 1,
+    },
+    [3192992274] = {
+        ["english"] = { [1] = "It wasn't my fault, Master Mazen!" },
+        ["text"] = "Це не моя вина, майстре Мазене!",
+        ["npcs"] = { [1] = "Acolyte Dellis" },
+        ["priority"] = 1,
+    },
+    [4265399495] = {
+        ["english"] = { [1] = "I'm lucky to be alive!" },
+        ["text"] = "Мені пощастило, що я живий!",
+        ["npcs"] = { [1] = "Acolyte Dellis" },
+        ["priority"] = 1,
+    },
+    [1007517259] = {
+        ["english"] = { [1] = "If you fished as well as you talked the ocean wouldn't have any fish left." },
+        ["text"] = "Якби ти рибалив так само добре, як ти базікаєш, в океані не залишилося б риби.",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [1460143634] = {
+        ["english"] = { [1] = "C'mon, let's try somewhere else." },
+        ["text"] = "Пішли, спробуємо ще десь.",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "C'mon, let's try somewhere else." },
+                ["text"] = "Пішли, спробуємо ще десь.",
+                ["npcs"] = { [1] = "Billy" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1819267878] = {
+        ["english"] = { [1] = "Nuh uh." },
+        ["text"] = "Нє-а.",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [1879838754] = {
+        ["english"] = { [1] = "Shhh! You're scaring the fish away." },
+        ["text"] = "Тссс! Ти розлякаєш всю рибу.",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [1944953726] = {
+        ["english"] = { [1] = "If you could catch a fish big enough for your mouth we'd never be hungry again." },
+        ["text"] = "Якби на твої вигадки ловилась риба — ми б нагодували весь Штормовій!",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [2041867510] = {
+        ["english"] = { [1] = "Really?" },
+        ["text"] = "Справді?",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [2552348317] = {
+        ["english"] = { [1] = "Liar!" },
+        ["text"] = "Брехун!",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [3645278087] = {
+        ["english"] = { [1] = "Maybe we should go to the bridge and fish." },
+        ["text"] = "Може підемо ловити рибу з мосту?",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [3979781423] = {
+        ["english"] = { [1] = "You're making that up." },
+        ["text"] = "Ти все це вигадав.",
+        ["npcs"] = { [1] = "Adam" },
+        ["priority"] = 1,
+    },
+    [4157499221] = {
+        ["english"] = { [1] = "Right away, sir." },
+        ["text"] = "Слухаюсь, сер.",
+        ["npcs"] = { [1] = "Adjutant Tesoran" },
+        ["priority"] = 1,
+    },
+    [1075712578] = {
+        ["english"] = { [1] = "Broke both me legs that night. How could I forget?" },
+        ["text"] = "Зламав обидві ноги тієї ночі. Як я міг таке забути?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Broke both me legs that night. How could I forget?" },
+                ["text"] = "Зламав обидві ноги тієї ночі. Як я міг таке забути?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1096086202] = {
+        ["english"] = { [1] = "Remember when Danath gathered all the mercenaries of Stormwind together and we marched to fight at Nethergarde?" },
+        ["text"] = "Пам'ятаєш, як Данат зібрав усіх найманців Штормовію і ми вирушили на битву до Підсвітньої Варти?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Remember when Danath gathered all the mercenaries of Stormwind together and we marched to fight at Nethergarde?" },
+                ["text"] = "Пам'ятаєш, як Данат зібрав усіх найманців Штормовію і ми вирушили на битву до Підсвітньої Варти?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1184620804] = {
+        ["english"] = { [1] = "Hey Reese, give me an' Christoph another round." },
+        ["text"] = "Гей, Різз! Нам з Крістофом ще по одній.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+    },
+    [1273503923] = {
+        ["english"] = { [1] = "I still have the scars from that night." },
+        ["text"] = "У мене досі залишилися шрами з того дня.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I still have the scars from that night." },
+                ["text"] = "У мене досі залишилися шрами з тієї ночі.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1596041019] = {
+        ["english"] = { [1] = "It all worked out in the end." },
+        ["text"] = "Зрештою, у нас тоді все вийшло.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "It all worked out in the end." },
+                ["text"] = "Зрештою, у нас тоді все вийшло.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [179147171] = {
+        ["english"] = { [1] = "You are constantly surprising me with what a person can live through." },
+        ["text"] = "Ти не перестаєш мене дивувати своїми історіями.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You are constantly surprising me with what a person can live through." },
+                ["text"] = "Ти не перестаєш мене дивувати своїми історіями.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1808577072] = {
+        ["english"] = { [1] = "Well, you're still here. I'd say that is something worth drinking to." },
+        ["text"] = "Ну, ти все ще тут. Думаю, за це варто випити.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Well, you're still here. I'd say that is something worth drinking to." },
+                ["text"] = "Ну, ти все ще тут. Думаю, за це варто випити.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1849810892] = {
+        ["english"] = { [1] = "Battling that band of Twilight Hammer in the Morass, I could think of better places for a war." },
+        ["text"] = "А бій з тою бандою Сутінкового Молота в Чорних драгвах? Еге, кращого місця для битви не придумаєш.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Battling that band of Twilight Hammer in the Morass, I could think of better places for a war." },
+                ["text"] = "А бій з тою бандою Сутінкового Молота в Чорних драгвах? Еге, кращого місця для битви не придумаєш.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1856009414] = {
+        ["english"] = { [1] = "Hehe, wimp." },
+        ["text"] = "Хе-хе, слабак.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Hehe, wimp." },
+                ["text"] = "Хе-хе, слабак.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1945510360] = {
+        ["english"] = { [1] = "I have a piece of iron in my back that will remind me of that night for the rest of my days." },
+        ["text"] = "З цим шматком заліза в спині я ту ніч до скону не забуду.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I have a piece of iron in my back that will remind me of that night for the rest of my days." },
+                ["text"] = "З цим шматком заліза в спині я ту ніч до скону не забуду.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2173204924] = {
+        ["english"] = { [1] = "Wasn't that the night we had to pick up my thumb and carry it in your smoke pouch?" },
+        ["text"] = "Хіба це не тоді ми пів ночі шукали мій палець в кущах?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Wasn't that the night we had to pick up my thumb and carry it in your smoke pouch?" },
+                ["text"] = "Хіба це не тоді ми пів ночі шукали мій палець в кущах?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2202791333] = {
+        ["english"] = { [1] = "Ahh the Glustewelt twins!" },
+        ["text"] = "Ух, ці близнюки Ґлустевельт!",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Ahh the Glustewelt twins!" },
+                ["text"] = "Ух, ці близнюки Ґлустевельт!",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2517211028] = {
+        ["english"] = { [1] = "Never seen anyone move so fast in my whole life." },
+        ["text"] = "Ніколи в житті не бачив, щоб хтось рухався так швидко.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Never seen anyone move so fast in my whole life." },
+                ["text"] = "Ніколи в житті не бачив, щоб хтось рухався так швидко.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2554416143] = {
+        ["english"] = { [1] = "I tell ye, I don't miss the Great War at all. I remember when we fought at Darrowmere. All night in the fog, lying in a muddy trench." },
+        ["text"] = "Еге, я зовсім не сумую за Великою Війною. Пам'ятаю, як ми билися при Дарроумері. Всю ніч тоді човгали окопами по пояс в багнюці.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I tell ye, I don't miss the Great War at all. I remember when we fought at Darrowmere. All night in the fog, lying in a muddy trench." },
+                ["text"] = "Кажу ж, я зовсім не сумую за Великою Війною. Пам'ятаю, як ми билися при Дарроумері. Всю ніч у тумані, ще й по пояс в багнюці.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2835480692] = {
+        ["english"] = { [1] = "You screamed like a little girl, funniest thing I ever saw." },
+        ["text"] = "Ти кричав, як мале дівчисько. Це було дуже кумедно.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You screamed like a little girl, funniest thing I ever saw." },
+                ["text"] = "Ти кричав, як мале дівчисько. Це було дуже кумедно.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2860707376] = {
+        ["english"] = { [1] = "You can thank me anytime for making your life more interesting." },
+        ["text"] = "Подякуєш якось потім за те, що я роблю твоє життя цікавішим.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You can thank me anytime for making your life more interesting." },
+                ["text"] = "Подякуєш якось потім за те, що я роблю твоє життя цікавішим.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2979810240] = {
+        ["english"] = { [1] = "Was that the third or fourth time you nearly got me gutted trying one of your crazy stunts?" },
+        ["text"] = "То був третій чи четвертий раз, коли ми мало не подохли через твої божевільні витівки?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Was that the third or fourth time you nearly got me gutted trying one of your crazy stunts?" },
+                ["text"] = "То був третій чи четвертий раз, коли ми мало не подохли через твої божевільні витівки?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [309602857] = {
+        ["english"] = { [1] = "The best had to have been the look on Perenolde's face when our army comes marchin' right up to his front door. What a battle!" },
+        ["text"] = "От би побачити пику Перенольда, як наша армія підійшла прямо до його воріт. Ех, яка була битва!",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The best had to have been the look on Perenolde's face when our army comes marchin' right up to his front door. What a battle!" },
+                ["text"] = "Хотів би я бачити пику Перенольда, коли наша армія підійшла прямо до його воріт. Ех, яка була битва!",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3324038007] = {
+        ["english"] = { [1] = "I woke up in a bed in Northshire three weeks later. Don't remember a damn thing." },
+        ["text"] = "Я прокинувся тоді у Північнокраї через три тижні. Ніц не пам'ятаю.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I woke up in a bed in Northshire three weeks later. Don't remember a damn thing." },
+                ["text"] = "Я прокинувся тоді у Північнокраї через три тижні. Ні біса не пам'ятаю.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3434480918] = {
+        ["english"] = { [1] = "I miss the dwarven ale we used to get at that inn in Lordaeron. Remember that fight we started there?" },
+        ["text"] = "Я сумую за дворфійським елем, який ми пили у тій таверні в Лордероні. Пам'ятаєш, яку ми там бійку влаштували?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I miss the dwarven ale we used to get at that inn in Lordaeron. Remember that fight we started there?" },
+                ["text"] = "Я сумую за дворфійським елем, який ми пили у тій таверні в Лордероні. Пам'ятаєш, яку ми там бійку влаштували?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3554348730] = {
+        ["english"] = { [1] = "Ahh yes, now I remember, your wedding night wasn't it?" },
+        ["text"] = "А-а-а, так, згадав. Це ж в тебе тоді весілля було?",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Ahh yes, now I remember, your wedding night wasn't it?" },
+                ["text"] = "А-а-а, так, згадав. Це ж в тебе тоді весілля було?",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3673265460] = {
+        ["english"] = { [1] = "Let's not even begin comparing battle scars, my friend." },
+        ["text"] = "Давай навіть не починати мірятись шрамами, друже.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Let's not even begin comparing battle scars, my friend." },
+                ["text"] = "Давай навіть не починати мірятись шрамами, друже.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3914840964] = {
+        ["english"] = { [1] = "Course I remember that night. Two inches to the left and you'd be drinking with that elf, Morris. That was my best shirt, too." },
+        ["text"] = "Звісно, я пам'ятаю ту ніч. Кілька перстів лівіше, і ти б зараз пиячив з тим ельфом, Моррісом. Ех, це була моя найкраща сорочка...",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Course I remember that night. Two inches to the left and you'd be drinking with that elf, Morris. That was my best shirt, too." },
+                ["text"] = "Звісно, я пам'ятаю ту ніч. Кілька перстів лівіше, і ти б зараз пиячив з тим ельфом, Моррісом. Ех, це була моя найкраща сорочка...",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [506692380] = {
+        ["english"] = { [1] = "Aye and thanks for letting me carry my own hand back to the priests that night." },
+        ["text"] = "Ага, і дякую що дозволив тоді мені самому нести свою руку до жерців.",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Aye and thanks for letting me carry my own hand back to the priests that night." },
+                ["text"] = "Ага, і дякую що дозволив тоді мені самому нести свою руку до жерців.",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [851439666] = {
+        ["english"] = { [1] = "Less than a hundred of us, and over a thousand orcs. Only a handful of us managed to walk away from that one." },
+        ["text"] = "Нас було менше сотні, а орків з тисячу. Не багатьом тоді вдалося вижити...",
+        ["npcs"] = { [1] = "Aedis Brom" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Less than a hundred of us, and over a thousand orcs. Only a handful of us managed to walk away from that one." },
+                ["text"] = "Нас було менше сотні, а орків з тисячу. Не багатьом тоді вдалося вижити...",
+                ["npcs"] = { [1] = "Christoph Faral" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2093730446] = {
+        ["english"] = { [1] = "%s is demoralized and runs!" },
+        ["text"] = "%s здається і втікає!",
+        ["npcs"] = { [1] = "Affray Challenger" },
+        ["priority"] = 1,
+    },
+    [2709498338] = {
+        ["english"] = { [1] = "Be sure to read over the notes in my journal, <name>. You will find them to be invaluable in overcoming the tower's defenses." },
+        ["text"] = "Обов'язково переглянь мої записи, {ім'я:к}. Вони значно спростять проникнення до вежі.#in my journal, <name>.",
+        ["npcs"] = { [1] = "Agent Kearnen" },
+        ["priority"] = 1,
+    },
+    [3615298387] = {
+        ["english"] = { [1] = "Take a stone from the table, <name>.  You will need it for your quest." },
+        ["text"] = "Візьми камінь зі столу, {ім'я:к}. Він знадобиться тобі для цього завдання.#from the table, <name>",
+        ["npcs"] = { [1] = "Ak'Zeloth" },
+        ["priority"] = 1,
+    },
+    [2286549921] = {
+        ["english"] = { [1] = "Anti-escape countermeasures activated. Self-destruct in t-minus 20 seconds...." },
+        ["text"] = "Засоби протидії втечі активовано. Самознищення через 20 секунд....",
+        ["npcs"] = { [1] = "Alarm-a-bomb 2600" },
+        ["priority"] = 1,
+    },
+    [2624863341] = {
+        ["english"] = { [1] = "Self-destruct sequence activated." },
+        ["text"] = "Процес самознищення активовано.",
+        ["npcs"] = { [1] = "Alarm-a-bomb 2600" },
+        ["priority"] = 1,
+    },
+    [3720166172] = {
+        ["english"] = { [1] = "Alarm-a-bomb unit 2600 has failed. Self-destruct override [ACTIVE]. Cooldown [ACTIVE]." },
+        ["text"] = "Тривого-бомба 2600 зазнала збою. Скасування самознищення [АКТИВНО]. Охолодження [АКТИВНО].",
+        ["npcs"] = { [1] = "Alarm-a-bomb 2600" },
+        ["priority"] = 1,
+    },
+    [128165256] = {
+        ["english"] = { [1] = "The solution is ready in my cauldron.  It's just the matter of treating both the unfinished key and the scarab." },
+        ["text"] = "Розчин вже кипить у котлі. Залишилось лише обробити ним незавершений ключ і скарабея.",
+        ["npcs"] = { [1] = "Alchemist Arbington" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The solution is ready in my cauldron.  It's just the matter of treating both the unfinished key and the scarab." },
+                ["text"] = "Розчин вже кипить у котлі. Залишилось лише обробити ним незавершений ключ і скарабея.",
+                ["npcs"] = { [1] = "Apothecary Dithers" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3486896047] = {
+        ["english"] = { [1] = "It's done <name>, and I think you'll be satisfied with the results." },
+        ["text"] = "Готово, {ім'я:к}, і я думаю, що тобі сподобається результат.#It's done <name>,",
+        ["npcs"] = { [1] = "Alchemist Arbington" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "It's done <name>, and I think you'll be satisfied with the results." },
+                ["text"] = "Готово, {ім'я:к}, і я думаю, що тобі сподобається результат.#It's done <name>,",
+                ["npcs"] = { [1] = "Apothecary Dithers" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [259426270] = {
+        ["english"] = { [1] = "HELP! ASSASSINS HAVE COME TO KILL ME!" },
+        ["text"] = "ДОПОМОЖІТЬ! ВБИВЦІ ПРИЙШЛИ ПО МОЮ ДУШУ!",
+        ["npcs"] = { [1] = "Alexi Barov" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "HELP! ASSASSINS HAVE COME TO KILL ME!" },
+                ["text"] = "ДОПОМОЖІТЬ! ВБИВЦІ ПРИЙШЛИ ПО МОЮ ДУШУ!",
+                ["npcs"] = { [1] = "Weldon Barov" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [350414861] = {
+        ["english"] = { [1] = "The deeds are mine, brother! Soon you shall be out of my way for good!" },
+        ["text"] = "Документи мої, брате! Скоро ти назавжди зникнеш з мого життя!",
+        ["npcs"] = { [1] = "Alexi Barov" },
+        ["priority"] = 1,
+    },
+    [3720565237] = {
+        ["english"] = { [1] = "You cannot hide from us, little paladin!" },
+        ["text"] = "Ти не сховаєшся від нас, нікчемний паладине!",
+        ["npcs"] = { [1] = "Aligar the Tormentor" },
+        ["priority"] = 1,
+    },
+    [1117447247] = {
+        ["english"] = { [1] = "I will not be lured from this place." },
+        ["text"] = "Ви не виманите мене звідси.",
+        ["npcs"] = { [1] = "Alzzin the Wildshaper" },
+        ["priority"] = 1,
+    },
+    [1263936040] = {
+        ["english"] = { [1] = "Who hath summoned forth Aman?" },
+        ["text"] = "Хто прикликав Амана?",
+        ["npcs"] = { [1] = "Aman" },
+        ["priority"] = 1,
+    },
+    [1597360264] = {
+        ["english"] = { [1] = "Ah, I see you toil with relics of the past." },
+        ["text"] = "Бачу, ви бавитесь з реліквіями минулого.",
+        ["npcs"] = { [1] = "Aman" },
+        ["priority"] = 1,
+    },
+    [1738667585] = {
+        ["english"] = { [1] = "Be warned that even your creators are fallible." },
+        ["text"] = "Будьте обережні, навіть ваші творці можуть помилятися.",
+        ["npcs"] = { [1] = "Aman" },
+        ["priority"] = 1,
+    },
+    [2090208988] = {
+        ["english"] = { [1] = "Digging too deep into your past might bring an abrupt end to your future." },
+        ["text"] = "Надмірне копання в минулому може ненароком знищити твоє майбутнє.",
+        ["npcs"] = { [1] = "Aman" },
+        ["priority"] = 1,
+    },
+    [2455573458] = {
+        ["english"] = { [1] = "The news from Stormwind does not bode well. . . ." },
+        ["text"] = "Новини зі Штормовію невтішні...",
+        ["npcs"] = { [1] = "Ambassador Berrybuck" },
+        ["priority"] = 1,
+    },
+    [487738159] = {
+        ["english"] = { [1] = "Our cause falls on deaf ears beyond the thick, stone walls of Stormwind." },
+        ["text"] = "Наші прохання не почують за товстими, кам'яними мурами Штормовію.",
+        ["npcs"] = { [1] = "Ambassador Berrybuck" },
+        ["priority"] = 1,
+    },
+    [1052886018] = {
+        ["english"] = { [1] = "Your reign of terror ends now!  Face your doom mortals!" },
+        ["text"] = "Вашій тиранії кінець! Прийміть свою загибель, смертні!",
+        ["npcs"] = { [1] = "Ambassador Flamelash" },
+        ["priority"] = 1,
+    },
+    [1252767036] = {
+        ["english"] = { [1] = "Too easy." },
+        ["text"] = "Занадто легко.",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [1379568606] = {
+        ["english"] = { [1] = "Come, spirits - attend your master!" },
+        ["text"] = "Прийдіть, духи — служіть своєму володарю!",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [2486665637] = {
+        ["english"] = { [1] = "%s begins to summon wraiths out of the freezing cold air!" },
+        ["text"] = "%s починає викликати морозних привидів!",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [3353565053] = {
+        ["english"] = { [1] = "To me, my servants!" },
+        ["text"] = "До мене, мої слуги!",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [3598012517] = {
+        ["english"] = { [1] = "I am the hand of the Lich King!" },
+        ["text"] = "Я — рука Короля-ліча!",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [366427846] = {
+        ["english"] = { [1] = "You'll never leave this place alive." },
+        ["text"] = "Вам не вийти звідси живими.",
+        ["npcs"] = { [1] = "Amnennar the Coldbringer" },
+        ["priority"] = 1,
+    },
+    [3386259729] = {
+        ["english"] = { [1] = "Hello, Antonio. It's good to see you safely made it here again. Let me know if you need anything." },
+        ["text"] = "Привіт, Антоніо. Рада, що ти знову безнапасно дістався сюди. Дай знати, якщо тобі щось знадобиться.",
+        ["npcs"] = { [1] = "Amy Davenport" },
+        ["priority"] = 1,
+    },
+    [3444230028] = {
+        ["english"] = { [1] = "Take care of yourself, Antonio. I'll see you in another week." },
+        ["text"] = "Бережи себе, Антоніо. Побачимось наступного тижня.",
+        ["npcs"] = { [1] = "Amy Davenport" },
+        ["priority"] = 1,
+    },
+    [1070781923] = {
+        ["english"] = { [1] = "%s shakes his head in disappointment." },
+        ["text"] = "%s похитує головою від розчарування.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [1826714446] = {
+        ["english"] = { [1] = "NOW, STAGHELM! WE GO NOW! Prepare your magic!" },
+        ["text"] = "ЗАРАЗ, ОЛЕНЕРІГ! ЦЕЙ МОМЕНТ НАСТАВ! Приготуй свою магію!",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [2256885755] = {
+        ["english"] = { [1] = "%s hands the Scepter of the Shifting Sands to Fandral Staghelm." },
+        ["text"] = "%s передає Фендралу Оленерогу скіпетр Мінливих Пісків.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [2690426857] = {
+        ["english"] = { [1] = "Before I leave this place, I make one final offering to you, Lord Staghelm. Should a time arise in which you must gain entry to this accursed fortress, use the Scepter of the Shifting Sands on the sacred gong. The magic holding the barrier together will dissipate and the horrors of Ahn'Qiraj will be unleashed upon the world once more." },
+        ["text"] = "Перш ніж я покину це місце, я маю передати тобі останній обов'язок, лорд Оленеріг. Якщо коли-небудь виникне потреба увійти до цієї проклятої фортеці, вдар скіпетром Мінливих Пісків у священний гонг. Магія, що утримує бар'єр, розвіється, і жахи Ан'Кіража знову будуть випущені на волю.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [2874678113] = {
+        ["english"] = { [1] = "FINISH THE SPELL, STAGHELM! I CANNOT HOLD THE GLYPHS OF WARDING IN PLACE MUCH LONGER! CALL FORTH THE ROOTS!" },
+        ["text"] = "ЗАКІНЧИ ЗАКЛЯТТЯ, ОЛЕНЕРІГ! Я НЕ ЗМОЖУ ДОВГО УТРИМУВАТИ ПЕЧАТКУ! ВИКЛИЧ КОРІННЯ!",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [3135359180] = {
+        ["english"] = { [1] = "It... It is over, Lord Staghelm. We are victorious. Albeit the cost for this victory was great." },
+        ["text"] = "Все... Все скінчено, Оленеріг. Ми перемогли. Хоча ціна цієї перемоги була великою.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [3168470879] = {
+        ["english"] = { [1] = "And now you know all that there is to know, mortal..." },
+        ["text"] = "Тепер ти знаєш усе, що потрібно, {стать:смертний:смертна}...",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [3396214677] = {
+        ["english"] = { [1] = "The sands of time will halt, but only for a moment! I will now conjure the barrier." },
+        ["text"] = "Піски часу зупинять їх, але лиш на мить! Зараз я вичарую бар'єр.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [3420136106] = {
+        ["english"] = { [1] = "Stay close..." },
+        ["text"] = "Тримайся поруч...",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [3998090577] = {
+        ["english"] = { [1] = "%s kneels down to pick up the fragments of the shattered scepter." },
+        ["text"] = "%s схиляється над уламками розбитого скіпетра, щоб зібрати їх.",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [4146108681] = {
+        ["english"] = { [1] = "There is but one duty that remains..." },
+        ["text"] = "Залишилася лиш одна справа...",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [749423941] = {
+        ["english"] = { [1] = "Lord Staghelm, where are you going? You would shatter our bond for the sake of pride?" },
+        ["text"] = "Оленеріг, куди ти йдеш? Невже ти готовий обірвати наш зв'язок через свою гордість?",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [75747258] = {
+        ["english"] = { [1] = "We must act quickly or all shall be lost!" },
+        ["text"] = "Ми повинні діяти негайно, інакше все буде втрачено!",
+        ["npcs"] = { [1] = "Anachronos the Ancient" },
+        ["priority"] = 1,
+    },
+    [601612190] = {
+        ["english"] = { [1] = "Take a chest of containment coffers and a cantation of manifestation, <name>.  You will need them for your mission." },
+        ["text"] = "Візьми ящик зі скринями стримування та закляття прояву, {ім'я:к}. Вони знадобляться тобі для цього завдання.#of manifestation, <name>.",
+        ["npcs"] = { [1] = "Anastasia Hartwell" },
+        ["priority"] = 1,
+    },
+    [1398542489] = {
+        ["english"] = { [1] = "%s's soft voice trails away into the mists, \"Know that I love you always...\"" },
+        ["text"] = "%s розчиняється в імлі, лишаючи за собою лиш відлуння останніх слів: «Знай, що я завжди кохатиму тебе...»",
+        ["npcs"] = { [1] = "Anaya" },
+        ["priority"] = 1,
+    },
+    [1825920115] = {
+        ["english"] = { [1] = "Farewell, Cerellan, until we are joined once again..." },
+        ["text"] = "Прощавай, Цереліане, допоки смерть не возз'єднає нас...",
+        ["npcs"] = { [1] = "Anaya" },
+        ["priority"] = 1,
+    },
+    [1829340748] = {
+        ["english"] = { [1] = "The ages have been cruel to you and I, my love, but be assured, it is, and at long last we are reunited." },
+        ["text"] = "Час не змилувався ні над тобою, ні наді мною, коханий мій, та все ж ми нарешті знову зустрілися.",
+        ["npcs"] = { [1] = "Anaya" },
+        ["priority"] = 1,
+    },
+    [3766983620] = {
+        ["english"] = { [1] = "Let it not trouble your heart, beloved. You have freed me from slavery, and for that I love you all the more." },
+        ["text"] = "Нехай це не мучить тебе, любий. Ти звільнив мене від цих кайданів, і за це я кохаю тебе ще сильніше.",
+        ["npcs"] = { [1] = "Anaya" },
+        ["priority"] = 1,
+    },
+    [3799324508] = {
+        ["english"] = { [1] = "Sadly, even this must be cut short... The ties that bind me to this world weaken, and pull me away..." },
+        ["text"] = "На жаль, навіть цій зустрічі не судилось тривати довго... Зв'язок, що тримає мене у цьому світі, слабне... Я йду назавжди...",
+        ["npcs"] = { [1] = "Anaya" },
+        ["priority"] = 1,
+    },
+    [1588376325] = {
+        ["english"] = { [1] = "Finally, my soul may rest... Oh, dearest Cerellean..." },
+        ["text"] = "Нарешті, моя душа може спочити... О, любий Цереліане...",
+        ["npcs"] = { [1] = "Anaya Dawnrunner" },
+        ["priority"] = 1,
+    },
+    [2338488513] = {
+        ["english"] = { [1] = "%s breaks free of its spectral bonds with a tremendous crash of thunder!" },
+        ["text"] = "%s виривається зі своїх примарних пут із приголомшливим гуркотом!",
+        ["npcs"] = { [1] = "Ancient Equine Spirit" },
+        ["priority"] = 1,
+    },
+    [1888085528] = {
+        ["english"] = { [1] = "All hail <name>, a <class> of worth!" },
+        ["text"] = "Шануймо {ім'я:з}! Гідний приклад для всіх {клас:мр}!#All hail <name>,#a <class> of worth",
+        ["npcs"] = { [1] = "Angus Stern" },
+        ["priority"] = 1,
+    },
+    [3156629050] = {
+        ["english"] = { [1] = "Behold!  The Blue Recluse holds a feast in <his/her> honor!" },
+        ["text"] = "\"Синій Відлюдник\" влаштовує бенкет на {стать:його:її} честь!#feast in <his/her> honor",
+        ["npcs"] = { [1] = "Angus Stern" },
+        ["priority"] = 1,
+    },
+    [1223070823] = {
+        ["english"] = { [1] = "And if you do not, then I am truly lost." },
+        ["text"] = "А якщо ні, то я дійсно втрачена навіки.",
+        ["npcs"] = { [1] = "Annalise Lerent" },
+        ["priority"] = 1,
+    },
+    [2405539747] = {
+        ["english"] = { [1] = "But of course I love you, Staffron. And it pains me to see you suffer so." },
+        ["text"] = "Але я люблю тебе, Стаффроне. І мені боляче бачити, як ти страждаєш.",
+        ["npcs"] = { [1] = "Annalise Lerent" },
+        ["priority"] = 1,
+    },
+    [3066683783] = {
+        ["english"] = { [1] = "Staffron..." },
+        ["text"] = "Стаффрон...",
+        ["npcs"] = { [1] = "Annalise Lerent" },
+        ["priority"] = 1,
+    },
+    [4098823109] = {
+        ["english"] = { [1] = "I pledge my love to you forever. Death cannot erase that, even as I am sure that you still remember your love for me." },
+        ["text"] = "Я вічно кохатиму тебе. Смерть не може стерти це, і я знаю, що ти все ще пам'ятаєш про своє кохання до мене.",
+        ["npcs"] = { [1] = "Annalise Lerent" },
+        ["priority"] = 1,
+    },
+    [455613596] = {
+        ["english"] = { [1] = "My dear Staffron, have you forgotten what it is to love? The love that we once shared?" },
+        ["text"] = "Мій любий Стаффроне, невже ти забув, що таке кохання? Те почуття, що ми колись поділяли?",
+        ["npcs"] = { [1] = "Annalise Lerent" },
+        ["priority"] = 1,
+    },
+    [1249399023] = {
+        ["english"] = { [1] = "I've finally reached Lakeshire-- come one, come all, and take advantage of Antonio Perelli's wonderful deals." },
+        ["text"] = "Нарешті я в Приозер'ї... Підходьте, скористайтеся чудовими пропозиціями від Антоніо Переллі.",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [1735725932] = {
+        ["english"] = { [1] = "Good to see you again, Amy. Be safe, luv. I'm off to Goldshire now." },
+        ["text"] = "Радий знову бачити тебе, Емі. Бережи себе, дорогенька. Я вирушаю до Злотохрестя.",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [1744596131] = {
+        ["english"] = { [1] = "Good people of Goldshire, come take advantage of my incredible prices on rare goods. I shall not return for some time!" },
+        ["text"] = "Добрі люди Злотохрестя, скористайтеся нагодою придбати мої рідкісні товари за неймовірними цінами. Я ще не скоро повернуся!",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [3596548516] = {
+        ["english"] = { [1] = "Home again, home again." },
+        ["text"] = "Дім, любий дім.",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [4081589696] = {
+        ["english"] = { [1] = "Thank you, all. I shall return again in about a week." },
+        ["text"] = "Дякую вам усім. Побачимось приблизно за тиждень.",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [4219946871] = {
+        ["english"] = { [1] = "Farewell, citizens of Darkshire. Until next time..." },
+        ["text"] = "Бувайте, жителі Темнодолу. До наступної зустрічі...",
+        ["npcs"] = { [1] = "Antonio Perelli" },
+        ["priority"] = 1,
+    },
+    [13046448] = {
+        ["english"] = { [1] = "The children of Sul will protect their master. Rise once more Sul'lithuz!" },
+        ["text"] = "Діти Сула захищатимуть свого господаря. Повстань, Сул'літуз!",
+        ["npcs"] = { [1] = "Antu'sul" },
+        ["priority"] = 1,
+    },
+    [3105574118] = {
+        ["english"] = { [1] = "Rise and defend your master!" },
+        ["text"] = "Повстань і захищай свого господаря!",
+        ["npcs"] = { [1] = "Antu'sul" },
+        ["priority"] = 1,
+    },
+    [3969549797] = {
+        ["english"] = { [1] = "Lunch has arrived, my beautiful children. Tear them to pieces!" },
+        ["text"] = "Час їсти, мої любі діти. Порвіть їх на шматки!",
+        ["npcs"] = { [1] = "Antu'sul" },
+        ["priority"] = 1,
+    },
+    [1780972926] = {
+        ["english"] = { [1] = "Ahh... welcome to my parlor." },
+        ["text"] = "Ах... ласкаво прошу до моєї оселі.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [2062470228] = {
+        ["english"] = { [1] = "I hear little hearts beating. Yes... beating faster now... soon the beating will stop." },
+        ["text"] = "Я чую стукіт ваших маленьких сердець. Так... тепер вони б'ються швидше... та скоро вони зупиняться.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [2126295736] = {
+        ["english"] = { [1] = "Just a little taste..." },
+        ["text"] = "Скуштуємо свіжини...",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [257681390] = {
+        ["english"] = { [1] = "There is no way out." },
+        ["text"] = "Вам не втекти.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [3147804312] = {
+        ["english"] = { [1] = "Where to go? What to do? So many choices that all end in pain, end in death." },
+        ["text"] = "Куди йти? Що робити? Так багато варіантів, але все одно в результаті вас чекає лише смерть.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [320391416] = {
+        ["english"] = { [1] = "Yes, run! It makes the blood pump faster!" },
+        ["text"] = "Біжіть, біжіть! Так м'ясо буде смачнішим!",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [3990222854] = {
+        ["english"] = { [1] = "Closer now. Tasty morsels. I've been too long without food, without blood to drink." },
+        ["text"] = "Ближче. Ближче! Я надто довго не їв... надто довго не пив кров.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [4243563167] = {
+        ["english"] = { [1] = "Which one shall I eat first? So difficult to choose. They all smell so delicious..." },
+        ["text"] = "Кого ж мені з'їсти першим? Так тяжко вибрати. Ви всі такі апетитні...",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [630701700] = {
+        ["english"] = { [1] = "Shhh... it will all be over soon." },
+        ["text"] = "Шшш... це все скоро закінчиться.",
+        ["npcs"] = { [1] = "Anub'Rekhan" },
+        ["priority"] = 1,
+    },
+    [3025329287] = {
+        ["english"] = { [1] = "%s shares his powers with his brethren." },
+        ["text"] = "%s ділиться силами зі своїми побратимами.",
+        ["npcs"] = { [1] = "Anubisath Sentinel" },
+        ["priority"] = 1,
+    },
+    [3806702915] = {
+        ["english"] = { [1] = "%s barely grunts." },
+        ["text"] = "%s ледь чутно стогне.",
+        ["npcs"] = { [1] = "Anvilrage Footman" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s barely grunts." },
+                ["text"] = "%s ледь чутно стогне.",
+                ["npcs"] = { [1] = "Anvilrage Guardsman" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "%s barely grunts." },
+                ["text"] = "%s ледь чутно стогне.",
+                ["npcs"] = { [1] = "Anvilrage Warden" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2759932824] = {
+        ["english"] = { [1] = "You can't hide from us.  Prepare to burn!" },
+        ["text"] = "Вам не сховатися. Ви згорите!",
+        ["npcs"] = { [1] = "Anvilrage Guardsman" },
+        ["priority"] = 1,
+    },
+    [133210999] = {
+        ["english"] = { [1] = "Almost done..." },
+        ["text"] = "Майже готово...",
+        ["npcs"] = { [1] = "Apothecary Faustin" },
+        ["priority"] = 1,
+    },
+    [2020508815] = {
+        ["english"] = { [1] = "At last, the serum is complete, <name>. Now, come closer. We must talk." },
+        ["text"] = "Нарешті, сироватка готова. Тепер підійди ближче, {ім'я:к}. Нам потрібно поговорити.#is complete, <name>.",
+        ["npcs"] = { [1] = "Apothecary Faustin" },
+        ["priority"] = 1,
+    },
+    [2402988584] = {
+        ["english"] = { [1] = "The serum will only take a few minutes to prepare, <name>." },
+        ["text"] = "Приготування сироватки займе всього кілька хвилин, {ім'я:к}.#to prepare, <name>.",
+        ["npcs"] = { [1] = "Apothecary Faustin" },
+        ["priority"] = 1,
+    },
+    [2929047577] = {
+        ["english"] = { [1] = "Thank you for the spores, <name>.  They are now prepared for transport." },
+        ["text"] = "Дякую за спори, {ім'я:к}. Тепер вони готові до транспортування.#the spores, <name>.",
+        ["npcs"] = { [1] = "Apothecary Helbrim" },
+        ["priority"] = 1,
+    },
+    [3100550450] = {
+        ["english"] = { [1] = "Ah, good.  These spores have rendered nicely.  Thank you, <name>." },
+        ["text"] = "А, добре. Ці спори гарно сформувались. Дякую, {ім'я:к}.#Thank you, <name>.",
+        ["npcs"] = { [1] = "Apothecary Helbrim" },
+        ["priority"] = 1,
+    },
+    [916565176] = {
+        ["english"] = { [1] = "%s places the spores within his alchemical instruments..." },
+        ["text"] = "%s поміщає спори у свої алхімічні прилади...",
+        ["npcs"] = { [1] = "Apothecary Helbrim" },
+        ["priority"] = 1,
+    },
+    [1760515395] = {
+        ["english"] = { [1] = "You will never stop the Forsaken, <target>. The Dark Lady shall make you suffer." },
+        ["text"] = "Ти ніколи не зупиниш відречених, {ціль:к}. Темна Леді змусить тебе страждати.#the Forsaken, <target>. The",
+        ["npcs"] = { [1] = "Apothecary Jorell" },
+        ["priority"] = 1,
+    },
+    [3286677349] = {
+        ["english"] = { [1] = "You have my word that I shall find a use for your body after I've killed you, <target>." },
+        ["text"] = "Я знайду гарне застосування твоєму тілу після того, як вб'ю тебе, {ціль:к}.#killed you, <target>.",
+        ["npcs"] = { [1] = "Apothecary Jorell" },
+        ["priority"] = 1,
+    },
+    [1380063910] = {
+        ["english"] = { [1] = "Keever is most pleased." },
+        ["text"] = "Ківер дуже задоволений.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [2147860885] = {
+        ["english"] = { [1] = "%s pokes the wooly sheep repeatedly." },
+        ["text"] = "%s штрикає пальцем вівцю знову і знову.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [2280575392] = {
+        ["english"] = { [1] = "What is this? Did Keever ask for a sheep? Keever wanted a weapon of great power and all he got was this sheep. Keever is very disappointed." },
+        ["text"] = "Що це таке? Хіба Ківер хотів вівцю? Ківер хотів потужну зброю, а замість цього отримав лише цю вівцю. Ківер дуже розчарований.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [2424546413] = {
+        ["english"] = { [1] = "%s grabs the rabbit and pours the fluid down it's throat, then sets it back inside the cage." },
+        ["text"] = "%s хапає кролика, заливає йому в горло рідину, а потім повертає його у клітку.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [2888305722] = {
+        ["english"] = { [1] = "%s pokes the skittish rabbit." },
+        ["text"] = "%s штрикає пальцем полохливого кролика.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [29569834] = {
+        ["english"] = { [1] = "%s feeds the squirrel some of the viscous fluid." },
+        ["text"] = "%s годує білку в'язкою сумішшю.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [318609294] = {
+        ["english"] = { [1] = "Hmm, it would seem Keever needs a new subject. If that fool Abernathy keeps taking Keever's subjects, Keever may have to have a word with him." },
+        ["text"] = "Хмм, здається, Ківеру потрібний новий об'єкт для досліджень. Якщо цей дурень Абернаті продовжить забирати об'єкти у Ківера, Ківеру доведеться з ним поговорити.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [3265273335] = {
+        ["english"] = { [1] = "Well, that is just not right. The creature is far too small. Let us see what Keever's third batch will do." },
+        ["text"] = "Ні, це зовсім не те. Створіння надто маленьке. Подивимося, що зробить третя формула Ківера.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [3399884994] = {
+        ["english"] = { [1] = "%s pokes the small toad." },
+        ["text"] = "%s штрикає пальцем маленьку жабу.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [3476828457] = {
+        ["english"] = { [1] = "%s forces the fluid down the weary man's throat." },
+        ["text"] = "%s вливає рідину в горло змученої людини.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [3656995108] = {
+        ["english"] = { [1] = "Not what Keever was hoping for. Keever may have added too much earthroot. Let's see if the second serum will do what I need." },
+        ["text"] = "Не те, на що сподівався Ківер. Можливо, Ківер додав забагато землекореню. Подивимось, чи зробить інша сироватка те, що мені потрібно.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [3798513322] = {
+        ["english"] = { [1] = "Keever is unhappy with this. Perhaps if Keever were to try a larger dose, that may fix this dilemma." },
+        ["text"] = "Ківер незадоволений цим. Можливо, якщо Ківер спробує більшу дозу, це все вирішить.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [4028180226] = {
+        ["english"] = { [1] = "Ahh, there we go. Now, Keever must try this vial and see if it works." },
+        ["text"] = "Ага, ось так. Тепер Ківер має спробувати цю формулу і перевірити, чи спрацює вона.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [4107240208] = {
+        ["english"] = { [1] = "%s pokes the small fuzzy squirrel with obvious disappointment." },
+        ["text"] = "%s з очевидним розчаруванням штрикає пальцем маленьку пухнасту білку.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [420553326] = {
+        ["english"] = { [1] = "%s feeds the toad some of the strange liquid." },
+        ["text"] = "%s дає жабі попити дивної рідини.",
+        ["npcs"] = { [1] = "Apothecary Keever" },
+        ["priority"] = 1,
+    },
+    [2590159585] = {
+        ["english"] = { [1] = "There we are, <name>.  The toxin is ready." },
+        ["text"] = "Ось так, {ім'я:к}. Токсин готовий.#There we are, <name>.",
+        ["npcs"] = { [1] = "Apothecary Lydon" },
+        ["priority"] = 1,
+    },
+    [311034595] = {
+        ["english"] = { [1] = "%s creates his toxin..." },
+        ["text"] = "%s створює свій токсин...",
+        ["npcs"] = { [1] = "Apothecary Lydon" },
+        ["priority"] = 1,
+    },
+    [1689660285] = {
+        ["english"] = { [1] = "Annalise... You're right. I-I can't do this. I must find another way." },
+        ["text"] = "Анналіз... Ти маєш рацію. Я... Я не можу це зробити. Я мушу знайти інший шлях.",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [2180022387] = {
+        ["english"] = { [1] = "Annalise? Annalise! No, don't leave me!" },
+        ["text"] = "Анналіз? Анналіз! Ні, не покидай мене!",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [2630398725] = {
+        ["english"] = { [1] = "Annalise? Is that you?" },
+        ["text"] = "Анналіз? Це ти?",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [3017400878] = {
+        ["english"] = { [1] = "You there. You're welcome to take the contents of my cauldron. It was to be the second stage of my plan - amorous clothing." },
+        ["text"] = "Гей, ти. Можеш забирати все з цього казана. Це мав бути другий етап мого плану — любовний одяг.",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [33615730] = {
+        ["english"] = { [1] = "How could you love me, Annalise? Look at me. I am not the man you once knew." },
+        ["text"] = "Як ти можеш кохати мене, Анналіз? Поглянь на мене. Я не той чоловік, якого ти колись знала.",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [3541837878] = {
+        ["english"] = { [1] = "Have I forgotten? Of course I have... I have forgotten about love, happiness... of life itself." },
+        ["text"] = "Чи забув я? Звісно, що забув... Я забув про любов, щастя... про саме життя.",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [835308547] = {
+        ["english"] = { [1] = "But I do know this - love makes the heart and body weak. It can be exploited. Without your love, I have only my work, Annalise." },
+        ["text"] = "Але я знаю, що любов робить серце і тіло слабкими. Її можна використати. Без твоєї любові у мене є лише моя робота, Анналіз.",
+        ["npcs"] = { [1] = "Apothecary Staffron Lerent" },
+        ["priority"] = 1,
+    },
+    [1548758209] = {
+        ["english"] = { [1] = "The toxin is ready, <name>." },
+        ["text"] = "Токсин готовий, {ім'я:к}.#ready, <name>.",
+        ["npcs"] = { [1] = "Apothecary Zamah" },
+        ["priority"] = 1,
+    },
+    [3994679415] = {
+        ["english"] = { [1] = "Who dares awaken Aquementas?" },
+        ["text"] = "Хто сміє тривожити Акваментаса?",
+        ["npcs"] = { [1] = "Aquementas" },
+        ["priority"] = 1,
+    },
+    [737656795] = {
+        ["english"] = { [1] = "<name>, you have disturbed me from my rest!" },
+        ["text"] = "{Ім'я:н}, як ти смієш порушувати мій спокій?!",
+        ["npcs"] = { [1] = "Aquementas" },
+        ["priority"] = 1,
+    },
+    [1030129301] = {
+        ["english"] = { [1] = "Who dares to challenge me in my domain?!" },
+        ["text"] = "Хто посміє кинути мені виклик у моїх володіннях?!",
+        ["npcs"] = { [1] = "Araj the Summoner" },
+        ["priority"] = 1,
+    },
+    [2921104914] = {
+        ["english"] = { [1] = "Here is a beacon for you, <name>.  You must keep it in your possession if you are to find the corrupted items we will need." },
+        ["text"] = "Ось твій маяк, {ім'я:к}. Ти маєш тримати його при собі, якщо хочеш знайти осквернені матеріали для бальзаму.",
+        ["npcs"] = { [1] = "Arathandris Silversky" },
+        ["priority"] = 1,
+    },
+    [1884877335] = {
+        ["english"] = { [1] = "Burn in righteous fire!" },
+        ["text"] = "Згоріть у праведному вогні!",
+        ["npcs"] = { [1] = "Arcanist Doan" },
+        ["priority"] = 1,
+    },
+    [4085477136] = {
+        ["english"] = { [1] = "You will not defile these mysteries!" },
+        ["text"] = "Ви не спаплюжите ці таємниці!",
+        ["npcs"] = { [1] = "Arcanist Doan" },
+        ["priority"] = 1,
+    },
+    [1108746048] = {
+        ["english"] = { [1] = "Stormpike soldiers, aid and protect us! The Forest Lord has granted us his protection. The gateway must now be opened!" },
+        ["text"] = "Солдати Бурешпиля, допоможіть і захистіть нас! Повелитель лісу надасть нам свій захист. Тепер ми маємо відкрити браму!",
+        ["npcs"] = { [1] = "Arch Druid Renferal" },
+        ["priority"] = 1,
+    },
+    [1454967392] = {
+        ["english"] = { [1] = "We must focus our thoughts upon the Circle of Calling if the Forest Lord is to come! We must hurry! Concentrate your energies!" },
+        ["text"] = "Ми маємо зосередитись на колі, щоб викликати Повелителя лісу! Хутчіше! Зосередьте свої сили!",
+        ["npcs"] = { [1] = "Arch Druid Renferal" },
+        ["priority"] = 1,
+    },
+    [2878531745] = {
+        ["english"] = { [1] = "Come, brothers." },
+        ["text"] = "Ходімо, браття.",
+        ["npcs"] = { [1] = "Arch Druid Renferal" },
+        ["priority"] = 1,
+    },
+    [3824045649] = {
+        ["english"] = { [1] = "Onward!" },
+        ["text"] = "Вперед!",
+        ["npcs"] = { [1] = "Arch Druid Renferal" },
+        ["priority"] = 1,
+    },
+    [1664326422] = {
+        ["english"] = { [1] = "Who dares awaken Archaedas? Who dares the wrath of the Makers?" },
+        ["text"] = "Хто сміє будити Аркедаса? Хто сміє гнівати Творців?",
+        ["npcs"] = { [1] = "Archaedas" },
+        ["priority"] = 1,
+    },
+    [2572027748] = {
+        ["english"] = { [1] = "Reckless mortal!" },
+        ["text"] = "Бездумні смертні!",
+        ["npcs"] = { [1] = "Archaedas" },
+        ["priority"] = 1,
+    },
+    [3503533118] = {
+        ["english"] = { [1] = "Awake, ye servants! Defend the Disks!" },
+        ["text"] = "Прокиньтесь, слуги! Захищайте диски!",
+        ["npcs"] = { [1] = "Archaedas" },
+        ["priority"] = 1,
+    },
+    [467851641] = {
+        ["english"] = { [1] = "To my side, brothers! For the Makers!" },
+        ["text"] = "До мене, брати! За Творців!",
+        ["npcs"] = { [1] = "Archaedas" },
+        ["priority"] = 1,
+    },
+    [3879367690] = {
+        ["english"] = { [1] = "It's a mystery of the past indeed! But a key to our future!" },
+        ["text"] = "Це справжня загадка минулого! Але це також ключ до нашого майбутнього!",
+        ["npcs"] = { [1] = "Archaeologist Flagongut" },
+        ["priority"] = 1,
+    },
+    [4207632010] = {
+        ["english"] = { [1] = "By the stars! A spirit has been summoned!" },
+        ["text"] = "Клянусь зірками! Ми викликали духа!",
+        ["npcs"] = { [1] = "Archaeologist Flagongut" },
+        ["priority"] = 1,
+    },
+    [1811957995] = {
+        ["english"] = { [1] = "Oh, quite succulent. Many thanks, Mrs. Chambers." },
+        ["text"] = "О, яке соковите. Красно дякую, пані Чемберс.",
+        ["npcs"] = { [1] = "Archmage Angela Dosantos" },
+        ["priority"] = 1,
+    },
+    [1829623765] = {
+        ["english"] = { [1] = "What have you done? FOOL! You brought it... NO!" },
+        ["text"] = "Що ти {стать:накоїв:накоїла}? {стать:ДУРЕНЬ:ДУРЕПА}! Ти {стать:приніс:принесла}... НІ!",
+        ["npcs"] = { [1] = "Archmage Angela Dosantos" },
+        ["priority"] = 1,
+    },
+    [34787713] = {
+        ["english"] = { [1] = "Indeed... lovely dress, Jessica." },
+        ["text"] = "Справді, чудова сукня, Джессіко.",
+        ["npcs"] = { [1] = "Archmage Angela Dosantos" },
+        ["priority"] = 1,
+    },
+    [651741368] = {
+        ["english"] = { [1] = "The boar is superb!" },
+        ["text"] = "Порося неперевершене!",
+        ["npcs"] = { [1] = "Archmage Angela Dosantos" },
+        ["priority"] = 1,
+    },
+    [1539535848] = {
+        ["english"] = { [1] = "How interesting... the Stone possesses great magical potential, but in a purely raw form..." },
+        ["text"] = "Як цікаво... Камінь має надзвичайний магічний потенціал, але в абсолютно чистій формі...",
+        ["npcs"] = { [1] = "Archmage Ansirem Runeweaver" },
+        ["priority"] = 1,
+    },
+    [2160407112] = {
+        ["english"] = { [1] = "Another falls!" },
+        ["text"] = "Чергова невдача!",
+        ["npcs"] = { [1] = "Archmage Arugal" },
+        ["priority"] = 1,
+    },
+    [3042997807] = {
+        ["english"] = { [1] = "You, too, shall serve!" },
+        ["text"] = "Ви теж будете служити!",
+        ["npcs"] = { [1] = "Archmage Arugal" },
+        ["priority"] = 1,
+    },
+    [3360722367] = {
+        ["english"] = { [1] = "Who dares interfere with the Sons of Arugal?" },
+        ["text"] = "Хто сміє перешкоджати Синам Аруґала?",
+        ["npcs"] = { [1] = "Archmage Arugal" },
+        ["priority"] = 1,
+    },
+    [467030363] = {
+        ["english"] = { [1] = "Release your rage!" },
+        ["text"] = "Вивільни свою лють!",
+        ["npcs"] = { [1] = "Archmage Arugal" },
+        ["priority"] = 1,
+    },
+    [637549858] = {
+        ["english"] = { [1] = "%s gets to one knee." },
+        ["text"] = "%s стає на одне коліно.",
+        ["npcs"] = { [1] = "Archmage Tarsis Kir-Moldir" },
+        ["priority"] = 1,
+    },
+    [1584195484] = {
+        ["english"] = { [1] = "Go with grace, and may the Lady's magic protect you." },
+        ["text"] = "Йди з миром, і нехай магія Леді захистить тебе.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [1914710648] = {
+        ["english"] = { [1] = "Go about your business. My errand does not require your attention." },
+        ["text"] = "Займайся своїми справами. Моє доручення не потребує твоєї уваги.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [2307364207] = {
+        ["english"] = { [1] = "We can only stay a few moments before returning to the tower. If you wish to speak to us more you may find us there." },
+        ["text"] = "Ми затримаємося на кілька хвилин перед поверненням до вежі. Якщо захочеш продовжити розмову — зустрінемось там.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [2856017680] = {
+        ["english"] = { [1] = "Ah, Private Hendel. A pleasure to meet one of the men who would betray his kingdom for pride." },
+        ["text"] = "Ах, рядовий Гіндель. Радий зустріти одного з тих, хто готовий зрадити королівство через свою гордість.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [3334184221] = {
+        ["english"] = { [1] = "Why don't we deal with you now, Hendel? Lady Proudmoore will speak to you back in the tower." },
+        ["text"] = "Чому б нам не розібратися з тобою прямо зараз, Гіндель? Леді Праудмур поговорить з тобою у вежі.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [3369569650] = {
+        ["english"] = { [1] = "Farewell. We shall speak again, I'm sure." },
+        ["text"] = "Бувай. Певен, ми ще зустрінемось.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [4198826476] = {
+        ["english"] = { [1] = "I apologize for taking so long to get here. I wanted Lady Proudmoore to be present also." },
+        ["text"] = "Прошу вибачення, що так довго добирався сюди. Я хотів, щоб Леді Праудмур теж була присутня.",
+        ["npcs"] = { [1] = "Archmage Tervosh" },
+        ["priority"] = 1,
+    },
+    [1634699872] = {
+        ["english"] = { [1] = "This creature suffers from the effects of the fel... We must end its misery." },
+        ["text"] = "Ця істота страждає від скверни... Ми повинні покласти край її стражданням.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [1690150379] = {
+        ["english"] = { [1] = "Thank you, <name>. Now my spirit will finally be at peace." },
+        ["text"] = "Дякую тобі, {ім'я:к}. Мій дух нарешті може спочити з миром.#Thank you, <name>.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [2625527617] = {
+        ["english"] = { [1] = "That I must fight against my own kind deeply saddens me." },
+        ["text"] = "Мене глибоко засмучує те, що я змушений битися проти свого ж роду.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [2790504842] = {
+        ["english"] = { [1] = "I can sense it now, <name>. Ashenvale lies down this path." },
+        ["text"] = "Я відчуваю це, {ім'я:к}. Ясенеділ знаходиться там.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [2800264874] = {
+        ["english"] = { [1] = "I regret that I must fight this <target>." },
+        ["text"] = "Мені дуже шкода, але {ціль} має померти.#fight this <target>.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [3084819251] = {
+        ["english"] = { [1] = "Help me with this <target>!" },
+        ["text"] = "Допоможи мені, тут {ціль}!#this <target>!",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [3114309360] = {
+        ["english"] = { [1] = "Please, help me to get through this cursed forest, <race>." },
+        ["text"] = "Прошу, допоможи мені пройти через цей проклятий ліс, {раса:к}.#cursed forest, <race>.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [317468712] = {
+        ["english"] = { [1] = "This <target> has been driven mad from the corruption!" },
+        ["text"] = "{Ціль} божеволіє від скверни!#This <target> has been",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [3465496111] = {
+        ["english"] = { [1] = "The corruption of the fel has not left any of the creatures of Felwood untouched, <name>. Please, be on your guard." },
+        ["text"] = "Скверна не оминула жодної істоти в Скверноліссі, {ім'я:к}. Будь ласка, будь насторожі.#untouched, <name>.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [39007914] = {
+        ["english"] = { [1] = "I sense the taint of corruption upon this <target>. Help me destroy it!" },
+        ["text"] = "Я відчуваю, як {ціль} страждає від скверни. Ми маємо припинити ці муки!#upon this <target>.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [448726927] = {
+        ["english"] = { [1] = "<name>, my form has now changed! The true strength of my spirit is returning to me now... The cursed grasp of the forest is leaving me." },
+        ["text"] = "{ім'я:к}, я змінився! Я відчуваю, як справжня сила мого духу повертається... Прокляття лісу полишає мене.",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [797569848] = {
+        ["english"] = { [1] = "I feel... something strange..." },
+        ["text"] = "Я відчуваю... щось дивне...",
+        ["npcs"] = { [1] = "Arei" },
+        ["priority"] = 1,
+    },
+    [2591205306] = {
+        ["english"] = { [1] = "Help arrives at last..." },
+        ["text"] = "Допомога нарешті прибула...",
+        ["npcs"] = { [1] = "Argent Guard Thaelrid" },
+        ["priority"] = 1,
+    },
+    [2928146937] = {
+        ["english"] = { [1] = "You will abide by our rules around here, miscreant!" },
+        ["text"] = "Ти підкорятимешся нашим правилам, мерзото!",
+        ["npcs"] = { [1] = "Argent Sentry" },
+        ["priority"] = 1,
+    },
+    [3095622983] = {
+        ["english"] = { [1] = "Your actions will not be tolerated!" },
+        ["text"] = "Ми не терпітимемо такої поведінки!",
+        ["npcs"] = { [1] = "Argent Sentry" },
+        ["priority"] = 1,
+    },
+    [3939316833] = {
+        ["english"] = { [1] = "Lay down your weapons, your feuds have no place here!" },
+        ["text"] = "Складіть зброю, вашим чварам тут не місце!",
+        ["npcs"] = { [1] = "Argent Sentry" },
+        ["priority"] = 1,
+    },
+    [1969389060] = {
+        ["english"] = { [1] = "Are they all... dead?" },
+        ["text"] = "Вони всі... мертві?",
+        ["npcs"] = { [1] = "Artist Renfray" },
+        ["priority"] = 1,
+    },
+    [2238634998] = {
+        ["english"] = { [1] = "So dark..." },
+        ["text"] = "Як темно...",
+        ["npcs"] = { [1] = "Artist Renfray" },
+        ["priority"] = 1,
+    },
+    [3698504886] = {
+        ["english"] = { [1] = "Is someone there? Tirion my old friend, is that you? Have you come to save us?" },
+        ["text"] = "Тут хтось є? Тіріоне, мій старий друже, це ти? Ти прийшов врятувати нас?",
+        ["npcs"] = { [1] = "Artist Renfray" },
+        ["priority"] = 1,
+    },
+    [3577917781] = {
+        ["english"] = { [1] = "Only a fool would remain in this battle. Farewell, coward." },
+        ["text"] = "Тільки дурень продовжував би цю битву. Бувай, {стать:боягузе:боягузко}.",
+        ["npcs"] = { [1] = "Artorius the Amiable" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Only a fool would remain in this battle. Farewell, coward." },
+                ["text"] = "Тільки дурень продовжував би цю битву. Бувай, {стать:боягузе:боягузко}.",
+                ["npcs"] = { [1] = "Franklin the Friendly" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3622008866] = {
+        ["english"] = { [1] = "Your soul is mine, weakling." },
+        ["text"] = "Твоя душа буде моєю, нікчемо.",
+        ["npcs"] = { [1] = "Artorius the Amiable" },
+        ["priority"] = 1,
+    },
+    [1939065914] = {
+        ["english"] = { [1] = "If you will not serve my Master with your sword and knowledge of his enemies..." },
+        ["text"] = "Якщо ти не будеш служити моєму майстру своїм мечем і знаннями про його ворогів...",
+        ["npcs"] = { [1] = "Arugal" },
+        ["priority"] = 1,
+    },
+    [307243455] = {
+        ["english"] = { [1] = "Vincent!  You and your pathetic ilk will find no more success in routing my sons and I than those beggardly remnants of the Kirin Tor." },
+        ["text"] = "Вінсент! Спроби твого поріддя здолати мене та моїх синів ще нікчемніші за намагання жалюгідних решток Кірін-Тору.",
+        ["npcs"] = { [1] = "Arugal" },
+        ["priority"] = 1,
+    },
+    [311698368] = {
+        ["english"] = { [1] = "Your moldering remains will serve ME as a testament to what happens when one is foolish enough to trespass in my domain!" },
+        ["text"] = "Твої гнилі рештки служитимуть МЕНІ, як приклад того, що трапляється, коли хтось бездумно вдирається в мої володіння!",
+        ["npcs"] = { [1] = "Arugal" },
+        ["priority"] = 1,
+    },
+    [4255016249] = {
+        ["english"] = { [1] = "I have changed my mind loyal servants, you do not need to bring the prisoner all the way to my study, I will deal with him here and now." },
+        ["text"] = "Я передумав, мої вірні слуги, немає потреби тягнути в'язня до мого кабінету, я розберуся з ним тут і зараз.",
+        ["npcs"] = { [1] = "Arugal" },
+        ["priority"] = 1,
+    },
+    [2561065033] = {
+        ["english"] = { [1] = "Anachronos, this diversion will give you and the young druid time enough to seal the gate. Do not falter. Now, let us see how they deal with chaotic magic." },
+        ["text"] = "Анахроносе, це дасть тобі та юному друїду вдосталь часу, щоб запечатати ворота. Не відступайте. Подивимося, як вони впораються з хаотичною магією.",
+        ["npcs"] = { [1] = "Arygos" },
+        ["priority"] = 1,
+    },
+    [2863205161] = {
+        ["english"] = { [1] = "Let them feel the wrath of the Blue Flight! May Malygos protect me!" },
+        ["text"] = "Нехай вони пізнають гнів синіх драконів! Маліґос, захисти мене!",
+        ["npcs"] = { [1] = "Arygos" },
+        ["priority"] = 1,
+    },
+    [3767616289] = {
+        ["english"] = { [1] = "%s nods knowingly." },
+        ["text"] = "%s киває.",
+        ["npcs"] = { [1] = "Arygos" },
+        ["priority"] = 1,
+    },
+    [522092020] = {
+        ["english"] = { [1] = "%s drops its weapon." },
+        ["text"] = "%s впустив з рук зброю.",
+        ["npcs"] = { [1] = "Atiesh" },
+        ["priority"] = 1,
+    },
+    [2443299200] = {
+        ["english"] = { [1] = "I'm Augustus!  You want it, I got it!  You wanna sell it, then I want it!" },
+        ["text"] = "Я Август! Хочеш щось купити — я це продам! Хочеш щось продати — я це куплю!",
+        ["npcs"] = { [1] = "Augustus the Touched" },
+        ["priority"] = 1,
+    },
+    [2873151215] = {
+        ["english"] = { [1] = "Commerce!  I crave it!" },
+        ["text"] = "Комерція! Обожнюю її!",
+        ["npcs"] = { [1] = "Augustus the Touched" },
+        ["priority"] = 1,
+    },
+    [3590975022] = {
+        ["english"] = { [1] = "You won't find better prices anywhere!" },
+        ["text"] = "Ви ніде не знайдете кращих цін!",
+        ["npcs"] = { [1] = "Augustus the Touched" },
+        ["priority"] = 1,
+    },
+    [453763440] = {
+        ["english"] = { [1] = "I'm Augustus, and my prices are INSANE!" },
+        ["text"] = "Я Август, і мої ціни ШАЛЕНІ!",
+        ["npcs"] = { [1] = "Augustus the Touched" },
+        ["priority"] = 1,
+    },
+    [2016562275] = {
+        ["english"] = { [1] = "Rivendare!  I come for you!" },
+        ["text"] = "Рівендер! Я прийшов за тобою!",
+        ["npcs"] = { [1] = "Aurius" },
+        ["priority"] = 1,
+    },
+    [3922600971] = {
+        ["english"] = { [1] = "Argh!" },
+        ["text"] = "Агх!",
+        ["npcs"] = { [1] = "Aurius" },
+        ["priority"] = 1,
+    },
+    [2687204469] = {
+        ["english"] = { [1] = "Please wait while I attempt to bind the shards together so that they will be whole once again." },
+        ["text"] = "Будь ласка, зачекай, поки я спробую поєднати уламки в одне ціле.",
+        ["npcs"] = { [1] = "Aurora Skycaller" },
+        ["priority"] = 1,
+    },
+    [882913432] = {
+        ["english"] = { [1] = "Yes, I was able to reseal the relic, <name>." },
+        ["text"] = "Так, я змогла відновити реліквію, {ім'я:к}.#the relic, <name>.",
+        ["npcs"] = { [1] = "Aurora Skycaller" },
+        ["priority"] = 1,
+    },
+    [1940417663] = {
+        ["english"] = { [1] = "What?!  You no can beat me!  Me will return!" },
+        ["text"] = "Що?! Ви не перемогти мене! Я повернусь!",
+        ["npcs"] = { [1] = "Avalanchion" },
+        ["priority"] = 1,
+    },
+    [2751371603] = {
+        ["english"] = { [1] = "You be too scared!  Me find you!" },
+        ["text"] = "Ви боятися! Я вас знайти!",
+        ["npcs"] = { [1] = "Avalanchion" },
+        ["priority"] = 1,
+    },
+    [4199974909] = {
+        ["english"] = { [1] = "Tiny mortals - me HERE! Doom you meet!" },
+        ["text"] = "Малі смертні, Я ТУТ! Я ваш кінець!",
+        ["npcs"] = { [1] = "Avalanchion" },
+        ["priority"] = 1,
+    },
+    [2255274652] = {
+        ["english"] = { [1] = "Get in position lads! The beasties are upon us. Wait for my signal!" },
+        ["text"] = "Займіть позиції, хлопці! Звірі вже тут. Чекайте на мій сигнал!",
+        ["npcs"] = { [1] = "Avarus Kharag" },
+        ["priority"] = 1,
+    },
+    [3789840477] = {
+        ["english"] = { [1] = "Attack!!" },
+        ["text"] = "В атаку!!",
+        ["npcs"] = { [1] = "Avarus Kharag" },
+        ["priority"] = 1,
+    },
+    [3856803688] = {
+        ["english"] = { [1] = "%s whimpers." },
+        ["text"] = "%s скиглить.",
+        ["npcs"] = { [1] = "Awbee" },
+        ["priority"] = 1,
+    },
+    [322865156] = {
+        ["english"] = { [1] = "Your life is a fitting sacrifice for my master, <class>." },
+        ["text"] = "Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.",
+        ["npcs"] = { [1] = "Azure Templar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Your life is a fitting sacrifice for my master, <class>." },
+                ["text"] = "Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.",
+                ["npcs"] = { [1] = "Crimson Templar" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Your life is a fitting sacrifice for my master, <class>." },
+                ["text"] = "Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.",
+                ["npcs"] = { [1] = "Earthen Templar" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "Your life is a fitting sacrifice for my master, <class>." },
+                ["text"] = "Ти будеш гарною жертвою для мого повелителя, {клас:к}.#my master, <class>.",
+                ["npcs"] = { [1] = "Hoary Templar" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [4244820855] = {
+        ["english"] = { [1] = "It is my duty and honor to die for the Abyssal Council!" },
+        ["text"] = "Мій обов'язок і честь — померти за Раду Безодні!",
+        ["npcs"] = { [1] = "Azure Templar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "It is my duty and honor to die for the Abyssal Council!" },
+                ["text"] = "Мій обов'язок і честь — померти за Раду Безодні!",
+                ["npcs"] = { [1] = "Crimson Templar" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "It is my duty and honor to die for the Abyssal Council!" },
+                ["text"] = "Мій обов'язок і честь — померти за Раду Безодні!",
+                ["npcs"] = { [1] = "Earthen Templar" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "It is my duty and honor to die for the Abyssal Council!" },
+                ["text"] = "Мій обов'язок і честь — померти за Раду Безодні!",
+                ["npcs"] = { [1] = "Hoary Templar" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [4264868898] = {
+        ["english"] = { [1] = "My lord will be outraged to learn of this ambush.  Let us hope your death will appease him." },
+        ["text"] = "Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.",
+        ["npcs"] = { [1] = "Azure Templar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "My lord will be outraged to learn of this ambush.  Let us hope your death will appease him." },
+                ["text"] = "Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.",
+                ["npcs"] = { [1] = "Crimson Templar" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "My lord will be outraged to learn of this ambush.  Let us hope your death will appease him." },
+                ["text"] = "Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.",
+                ["npcs"] = { [1] = "Earthen Templar" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "My lord will be outraged to learn of this ambush.  Let us hope your death will appease him." },
+                ["text"] = "Мій повелитель буде розлючений, коли дізнається про цю засідку. Сподіваюсь, його втішить твоя смерть.",
+                ["npcs"] = { [1] = "Hoary Templar" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [602586440] = {
+        ["english"] = { [1] = "The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!" },
+        ["text"] = "Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!",
+        ["npcs"] = { [1] = "Azure Templar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!" },
+                ["text"] = "Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!",
+                ["npcs"] = { [1] = "Crimson Templar" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!" },
+                ["text"] = "Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!",
+                ["npcs"] = { [1] = "Earthen Templar" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "The Abyssal Council does not tolerate deceit!  Feel our wrath, little <race>!" },
+                ["text"] = "Рада Безодні не терпить обману! Відчуй наш гнів, {раса:к}!#little <race>!",
+                ["npcs"] = { [1] = "Hoary Templar" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [119077835] = {
+        ["english"] = { [1] = "Come, little ones. Face me!" },
+        ["text"] = "Підходьте, малята. Відчуйте мій гнів!",
+        ["npcs"] = { [1] = "Azuregos" },
+        ["priority"] = 1,
+    },
+    [3577903710] = {
+        ["english"] = { [1] = "You challenge the charge of the Blue Dragonflight? DIE, vermin." },
+        ["text"] = "Ви кидаєте виклик синім драконам? ПОМРІТЬ, паразити.",
+        ["npcs"] = { [1] = "Azuregos" },
+        ["priority"] = 1,
+    },
+    [3628531521] = {
+        ["english"] = { [1] = "Such is the price of curiosity." },
+        ["text"] = "Така ціна допитливості.",
+        ["npcs"] = { [1] = "Azuregos" },
+        ["priority"] = 1,
+    },
+    [4175832698] = {
+        ["english"] = { [1] = "This place is under my protection. The mysteries of the arcane shall remain inviolate." },
+        ["text"] = "Це місце знаходиться під моїм захистом. Таємниці аркани залишаться непорушними.",
+        ["npcs"] = { [1] = "Azuregos" },
+        ["priority"] = 1,
+    },
+    [2682603865] = {
+        ["english"] = { [1] = "%s begins to summon a lava spawn!" },
+        ["text"] = "%s починає викликати породження лави!",
+        ["npcs"] = { [1] = "Bael'Gar" },
+        ["priority"] = 1,
+    },
+    [1692302095] = {
+        ["english"] = { [1] = "A worthless <race> such as you, <name>, has no right to walk these lands!" },
+        ["text"] = "{стать:Такий нікчемний:Така нікчемна} {раса:н} як ти, {ім'я:к}, не має права ходити цією землею!#worthless <race> such#you, <name>, has",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [2006902243] = {
+        ["english"] = { [1] = "This land belongs to the Dark Iron Dwarves.  Prepare to see the afterlife, <class>!" },
+        ["text"] = "Ця земля належить дворфам Темного Заліза. Готуйся до смерті, {клас:к}!#afterlife, <class>!",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [232282228] = {
+        ["english"] = { [1] = "Foolish <class>!  You are no match for the minions of Ragnaros!" },
+        ["text"] = "{стать:Дурний:Дурна} {клас:н}! Ти не рівня слугам Раґнароса!#Foolish <class>!",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [2449643246] = {
+        ["english"] = { [1] = "<name>!  Betrayer of Ragnaros!" },
+        ["text"] = "{ім'я:н}! {стать:Зрадник:Зрадниця} Раґнароса!#<name>!  Betrayer",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [2753768394] = {
+        ["english"] = { [1] = "<name>!  Prepare to meet your doom!" },
+        ["text"] = "{ім'я:н}! Приготуйся зустріти свою загибель!#<name>!  Prepare",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [2980465660] = {
+        ["english"] = { [1] = "I am Balgaras the Foul.  And you, <name>, are about to become nothing more than ash and dust." },
+        ["text"] = "Я — Балґарас Паскудний. А ти, {ім'я:к}, скоро станеш нікчемною купою попелу.#you, <name>, are",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [569395220] = {
+        ["english"] = { [1] = "The Dark Iron Dwarves shall reclaim their rightful lands!" },
+        ["text"] = "Дворфи Темного Заліза повернуть свої законні землі!",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [657430326] = {
+        ["english"] = { [1] = "Who is this weak <class> who challenges my might?  Die fool!" },
+        ["text"] = "Що за {стать:нікчемний:нікчемна} {раса:н} кидає виклик моїй могутності? Помри, {стать:дурню:дурепо}!#weak <class> who",
+        ["npcs"] = { [1] = "Balgaras the Foul" },
+        ["priority"] = 1,
+    },
+    [4172072511] = {
+        ["english"] = { [1] = "Not quite so sure of yourself without the Purifier, hm?" },
+        ["text"] = "А ви вже не такі впевнені без Очистителя, га?",
+        ["npcs"] = { [1] = "Balizar the Umbrage" },
+        ["priority"] = 1,
+    },
+    [2046447542] = {
+        ["english"] = { [1] = "Damn you mortals! All my plans of revenge, all my hate... all burned to ash..." },
+        ["text"] = "Кляті смертні! Всі мої плани помсти, вся моя лють... усе перетворилося на попіл...",
+        ["npcs"] = { [1] = "Balnazzar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Damn you mortals! All my plans of revenge, all my hate... all burned to ash..." },
+                ["text"] = "Кляті смертні! Всі мої плани помсти, вся моя лють... усе перетворилося на попіл...",
+                ["npcs"] = { [1] = "Grand Crusader Dathrohan" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3340575194] = {
+        ["english"] = { [1] = "You fools think you can defeat me so easily? Face the true might of the Nathrezim!" },
+        ["text"] = "Ви, дурні, думаєте, що можете так легко мене перемогти? Відчуйте справжню міць натрезима!",
+        ["npcs"] = { [1] = "Balnazzar" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You fools think you can defeat me so easily? Face the true might of the Nathrezim!" },
+                ["text"] = "Ви, дурні, думаєте, що можете так легко мене перемогти? Відчуйте справжню міць натрезима!",
+                ["npcs"] = { [1] = "Grand Crusader Dathrohan" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1932449259] = {
+        ["english"] = { [1] = "Alright! Alright! We surrender... Just put your weapons down, I'll cooperate!" },
+        ["text"] = "Гаразд! Гаразд! Ми здаємося... Опустіть зброю, я все розкажу!",
+        ["npcs"] = { [1] = "Balos Jacken" },
+        ["priority"] = 1,
+    },
+    [1890650978] = {
+        ["english"] = { [1] = "When the time is right, my lady. All will be clear when the time is right. The master stirs even now. Look to the skies for the Brood of Nozdormu have returned." },
+        ["text"] = "Коли настане час, моя пані. Все буде зрозуміло, коли настане час. Майстер готується навіть зараз. Погляньте на небеса, бо рід Ноздорму повернувся.",
+        ["npcs"] = { [1] = "Baristolth of the Shifting Sands" },
+        ["priority"] = 1,
+    },
+    [656651995] = {
+        ["english"] = { [1] = "%s shifts uncomfortably." },
+        ["text"] = "%s стривожено сіпається.",
+        ["npcs"] = { [1] = "Baristolth of the Shifting Sands" },
+        ["priority"] = 1,
+    },
+    [15987728] = {
+        ["english"] = { [1] = "Thank you, <name>.  And luck to you." },
+        ["text"] = "Дякую, {ім'я:к}. І нехай тобі щастить.#Thank you, <name>.",
+        ["npcs"] = { [1] = "Barithras Moonshade" },
+        ["priority"] = 1,
+    },
+    [1790470271] = {
+        ["english"] = { [1] = "Cliffspring Falls lies along the mountains to the east and north." },
+        ["text"] = "Скельноджерельні водоспади розташовані вздовж гір на північному сході.",
+        ["npcs"] = { [1] = "Barithras Moonshade" },
+        ["priority"] = 1,
+    },
+    [4070425144] = {
+        ["english"] = { [1] = "Eburi ash, <name>.  Ala mush ri ash." },
+        ["text"] = "Eburi ash, {ім'я:к}.  Ala mush ri ash.#Eburi ash, <name>.",
+        ["npcs"] = { [1] = "Barithras Moonshade" },
+        ["priority"] = 1,
+    },
+    [1512045678] = {
+        ["english"] = { [1] = "Pull up a stool and have a drink!" },
+        ["text"] = "Сідайте на стілець та візьміть щось випити!",
+        ["npcs"] = { [1] = "Barkeep Daniels" },
+        ["priority"] = 1,
+    },
+    [880046353] = {
+        ["english"] = { [1] = "The bottles are dusty but the liquor goes down clean!" },
+        ["text"] = "Пляшки трохи вкрились пилом, але випивка в них просто чудова!",
+        ["npcs"] = { [1] = "Barkeep Daniels" },
+        ["priority"] = 1,
+    },
+    [2015546310] = {
+        ["english"] = { [1] = "Step right up and wet your whistle." },
+        ["text"] = "Підходьте і візьміть щось випити.",
+        ["npcs"] = { [1] = "Barkeep Hann" },
+        ["priority"] = 1,
+    },
+    [2916633754] = {
+        ["english"] = { [1] = "Psssst.  We just got some Moonshine in. . . ." },
+        ["text"] = "Псс. Ми щойно отримали відмінний самогон...",
+        ["npcs"] = { [1] = "Barkeep Hann" },
+        ["priority"] = 1,
+    },
+    [1258163037] = {
+        ["english"] = { [1] = "I see you misplaced that chapter you worked so hard to put together, <name>. Well, you left it right here!" },
+        ["text"] = "Здається, тут розділи зібрані в неправильному порядку, {ім'я:к}. Ну нічого, залишай їх так, я розберусь!#put together, <name>.",
+        ["npcs"] = { [1] = "Barnil Stonepot" },
+        ["priority"] = 1,
+    },
+    [272927630] = {
+        ["english"] = { [1] = "Hear me, denizens of the Crater!  I come to burn this land of its impurity!" },
+        ["text"] = "Слухайте сюди, мешканці кратеру! Я прийшов, щоб випалити нечисть з цієї землі!",
+        ["npcs"] = { [1] = "Baron Charr" },
+        ["priority"] = 1,
+    },
+    [4041361574] = {
+        ["english"] = { [1] = "You have not seen the last of me fools!  All shall be consumed in the end!" },
+        ["text"] = "Це ще не кінець, жалюгідні дурні! Вас всіх врешті-решт пожере полум'я!",
+        ["npcs"] = { [1] = "Baron Charr" },
+        ["priority"] = 1,
+    },
+    [775022159] = {
+        ["english"] = { [1] = "Where are the so-called heroes of this world?  Too frightened to come out and play?" },
+        ["text"] = "Де ж так звані герої цього світу? Занадто налякані, щоб вийти і битись?",
+        ["npcs"] = { [1] = "Baron Charr" },
+        ["priority"] = 1,
+    },
+    [1068079626] = {
+        ["english"] = { [1] = "%s performs one last service for Ragnaros..." },
+        ["text"] = "%s виконує останнє доручення Раґнароса...",
+        ["npcs"] = { [1] = "Baron Geddon" },
+        ["priority"] = 1,
+    },
+    [1092151934] = {
+        ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!" },
+        ["text"] = "Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!",
+        ["npcs"] = { [1] = "Baron Kazum" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!" },
+                ["text"] = "Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!",
+                ["npcs"] = { [1] = "Lord Skwol" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  I shall add your bones to my throne, <race>!!" },
+                ["text"] = "Що? Мене кличе така маленька, квола істота? Я прикрашу свій трон твоїми кістками, {раса:к}!!#throne, <race>!",
+                ["npcs"] = { [1] = "Prince Skaldrenox" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1149361862] = {
+        ["english"] = { [1] = "Your treachery only speeds your doom.  This world will fall to darkness!" },
+        ["text"] = "Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!",
+        ["npcs"] = { [1] = "Baron Kazum" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Your treachery only speeds your doom.  This world will fall to darkness!" },
+                ["text"] = "Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!",
+                ["npcs"] = { [1] = "Lord Skwol" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Your treachery only speeds your doom.  This world will fall to darkness!" },
+                ["text"] = "Твоє віроломство лише прискорить твою загибель. Цей світ порине у пітьму!",
+                ["npcs"] = { [1] = "Prince Skaldrenox" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1580199154] = {
+        ["english"] = { [1] = "So you see fit to toy with the Lich King's creations? Ramstein, be sure to give the intruders a proper greeting." },
+        ["text"] = "То ви вирішили побавитися з творіннями Короля-ліча? Рамштайн, подбай про наших непроханих гостей.",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [1641301060] = {
+        ["english"] = { [1] = "%s attempts to casts Death Pact on his servants!" },
+        ["text"] = "%s намагається накласти Пакт Смерті на своїх слуг!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [1858026807] = {
+        ["english"] = { [1] = "The Ash'ari Crystals have been destroyed! The Slaughterhouse is vulnerable!" },
+        ["text"] = "Кристали Аш'арі знищено! Бійня втратила захист!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [2013154314] = {
+        ["english"] = { [1] = "May this prisoner's death serve as a warning.  None shall defy the scourge and live!" },
+        ["text"] = "Нехай смерть цього дівчиська послужить застереженням. Нікому не вдасться кинути виклик Скарі та лишитися живим!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [2050811429] = {
+        ["english"] = { [1] = "%s raises an undead servant back to life!" },
+        ["text"] = "%s воскрешає невмерлого слугу!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [2335849233] = {
+        ["english"] = { [1] = "Time to take matters into my own hands. Come. Enter my domain and challenge the might of the Scourge!" },
+        ["text"] = "Час взяти все у свої руки. Вперед, увійдіть у мої володіння та киньте виклик могутності Скари!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [28073367] = {
+        ["english"] = { [1] = "Intruders!  More pawns of the Argent Dawn, no doubt.  I already count one of their number among my prisoners.  Withdraw from my domain before she is executed!" },
+        ["text"] = "Чужинці! Чергові пішаки Сріблястого Світанку, ну звісно. Одна з них вже у мене в полоні. Покиньте мої володіння, поки її не стратили!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [291839565] = {
+        ["english"] = { [1] = "I shall take great pleasure in taking this poor wretch's life!  It's not too late, she needn't suffer in vain.  Turn back and her death shall be merciful!" },
+        ["text"] = "Вбивство цієї нікчеми розважить мене! Ви ж не хочете, щоб вона страждала? Йдіть геть, і я подарую їй швидку смерть!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [433684595] = {
+        ["english"] = { [1] = "You're still here?  Your foolishness is amusing!  The Argent Dawn wench needn't suffer in vain.  Leave at once and she shall be spared!" },
+        ["text"] = "Ви досі тут? Ваша дурість мене веселить! Це дівчисько зі Сріблястого Світанку не має страждати марно. Йдіть геть, і я її помилую!",
+        ["npcs"] = { [1] = "Baron Rivendare" },
+        ["priority"] = 1,
+    },
+    [1579335637] = {
+        ["english"] = { [1] = "Leave this accursed place at once!" },
+        ["text"] = "Покиньте це прокляте місце негайно!",
+        ["npcs"] = { [1] = "Baron Silverlaine" },
+        ["priority"] = 1,
+    },
+    [2137705767] = {
+        ["english"] = { [1] = "May your soul rest in peace." },
+        ["text"] = "Спочивай з миром.",
+        ["npcs"] = { [1] = "Baron Silverlaine" },
+        ["priority"] = 1,
+    },
+    [2509099507] = {
+        ["english"] = { [1] = "I hope your spirit finds solace." },
+        ["text"] = "Сподіваюсь, твоя душа знайде спокій.",
+        ["npcs"] = { [1] = "Baron Silverlaine" },
+        ["priority"] = 1,
+    },
+    [3098218602] = {
+        ["english"] = { [1] = "This death is only a temporary respite from my curse." },
+        ["text"] = "Ця смерть — лиш тимчасовий перепочинок від мого прокляття.",
+        ["npcs"] = { [1] = "Baron Silverlaine" },
+        ["priority"] = 1,
+    },
+    [3924357779] = {
+        ["english"] = { [1] = "Ok, enough!  I give up!" },
+        ["text"] = "Гаразд, досить! Я здаюся!",
+        ["npcs"] = { [1] = "Bartleby" },
+        ["priority"] = 1,
+    },
+    [1996563328] = {
+        ["english"] = { [1] = "%s begins a spell of summoning..." },
+        ["text"] = "%s починає читати закляття виклику...",
+        ["npcs"] = { [1] = "Bath'rah the Windwatcher" },
+        ["priority"] = 1,
+    },
+    [2835729909] = {
+        ["english"] = { [1] = "I don't think it's strong enough." },
+        ["text"] = "Здається, цього буде недостатньо.",
+        ["npcs"] = { [1] = "Bath'rah the Windwatcher" },
+        ["priority"] = 1,
+    },
+    [3054697045] = {
+        ["english"] = { [1] = "%s surveys the ground and nods approvingly." },
+        ["text"] = "%s оглядає землю і схвально киває.",
+        ["npcs"] = { [1] = "Bath'rah the Windwatcher" },
+        ["priority"] = 1,
+    },
+    [632265318] = {
+        ["english"] = { [1] = "Follow, <name>.  I will soon begin the summoning..." },
+        ["text"] = "Ходімо, {ім'я:к}. Скоро я почну виклик...#Follow, <name>.",
+        ["npcs"] = { [1] = "Bath'rah the Windwatcher" },
+        ["priority"] = 1,
+    },
+    [1106092425] = {
+        ["english"] = { [1] = "I sentence you to death!" },
+        ["text"] = "Я засуджую вас до смерті!",
+        ["npcs"] = { [1] = "Battleguard Sartura" },
+        ["priority"] = 1,
+    },
+    [1228387305] = {
+        ["english"] = { [1] = "I serve to the last!" },
+        ["text"] = "Я служу до кінця!",
+        ["npcs"] = { [1] = "Battleguard Sartura" },
+        ["priority"] = 1,
+    },
+    [1911888767] = {
+        ["english"] = { [1] = "You will be judged for defiling these sacred grounds!  The laws of the Ancients will not be challenged!  Trespassers will be annihilated!" },
+        ["text"] = "Вас судитимуть за осквернення цих священних земель! Закони древніх незмінні! Порушників буде знищено!",
+        ["npcs"] = { [1] = "Battleguard Sartura" },
+        ["priority"] = 1,
+    },
+    [1142311961] = {
+        ["english"] = { [1] = "Welcome to the Stockade!" },
+        ["text"] = "Ласкаво просимо до в'язниці!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Welcome to the Stockade!" },
+                ["text"] = "Ласкаво просимо до в'язниці!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1153774846] = {
+        ["english"] = { [1] = "Tell the Warden this prison is ours now!" },
+        ["text"] = "Скажіть наглядачу, що ця в'язниця тепер наша!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Tell the Warden this prison is ours now!" },
+                ["text"] = "Скажіть наглядачу, що ця в'язниця тепер наша!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1312180711] = {
+        ["english"] = { [1] = "Outsiders! Kill em all!" },
+        ["text"] = "Чужинці! Вбийте їх всіх!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Outsiders! Kill em all!" },
+                ["text"] = "Чужинці! Вбийте їх всіх!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1926378372] = {
+        ["english"] = { [1] = "I'll crush your skull beneath my boot!" },
+        ["text"] = "Я розчавлю твій череп своїм чоботом!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "I'll crush your skull beneath my boot!" },
+                ["text"] = "Я розчавлю твій череп своїм чоботом!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [272845343] = {
+        ["english"] = { [1] = "It'll be quick, but it won't be painless!" },
+        ["text"] = "Це буде швидко, але не безболісно!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "It'll be quick, but it won't be painless!" },
+                ["text"] = "Це буде швидко, але не безболісно!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [4061880385] = {
+        ["english"] = { [1] = "Death to the Warden's men!" },
+        ["text"] = "Смерть людям наглядача!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Death to the Warden's men!" },
+                ["text"] = "Смерть людям наглядача!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Death to the Warden's men!" },
+                ["text"] = "Смерть людям наглядача!",
+                ["npcs"] = { [1] = "Defias Rioter" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [4157528091] = {
+        ["english"] = { [1] = "Fresh meat!" },
+        ["text"] = "Свіже м'ясо!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Fresh meat!" },
+                ["text"] = "Свіже м'ясо!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [619369637] = {
+        ["english"] = { [1] = "More of the Warden's errand boys!" },
+        ["text"] = "Нарешті, нові лакеї наглядача!",
+        ["npcs"] = { [1] = "Bazil Thredd" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "More of the Warden's errand boys!" },
+                ["text"] = "Нарешті, нові лакеї наглядача!",
+                ["npcs"] = { [1] = "Bruegal Ironknuckle" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1620392510] = {
+        ["english"] = { [1] = "You were always the troublemaker in the family, Noggle.  Always!" },
+        ["text"] = "Постійно ти вляпуєшся у щось, Ноґґл. Постійно!",
+        ["npcs"] = { [1] = "Beetix Ficklespragg" },
+        ["priority"] = 1,
+    },
+    [1734981631] = {
+        ["english"] = { [1] = "That's it -- we made it!  The ritual is set in motion, and idol fires are about to go out for good!  You truly are the heroes I thought you would be!" },
+        ["text"] = "Ось і все — нам вдалося! Ритуал завершено, і вогні ідолів ось-ось згаснуть назавжди! Ви справді ті герої, яких я чекав!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [2738702649] = {
+        ["english"] = { [1] = "Argh, I need help here!" },
+        ["text"] = "Аргх, мені потрібна допомога!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [3559739940] = {
+        ["english"] = { [1] = "One more minute!  Hold on now, the ritual is about to take hold!" },
+        ["text"] = "Ще одна хвилина! Тримайтесь, ритуал от-от завершиться!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [3640800407] = {
+        ["english"] = { [1] = "You'll rue the day you crossed me, <target>." },
+        ["text"] = "Ти пошкодуєш про зустріч зі мною, {ціль}.#me, <target>.",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [3800660740] = {
+        ["english"] = { [1] = "All right, stay close.  These fiends will jump right out of the shadows at you if you let your guard down." },
+        ["text"] = "Гаразд, тримайтесь поруч. Ці почвари можуть вискочити прямо з тіней, якщо втратити пильність.",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [3905580468] = {
+        ["english"] = { [1] = "Incoming <target> - look sharp, friends!" },
+        ["text"] = "Сюди йде {ціль} — будьте напоготові, друзі!#Incoming <target> - look",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [3997228685] = {
+        ["english"] = { [1] = "Three minutes left -- I can feel the energy starting to build!  Keep up the solid defense!" },
+        ["text"] = "Залишилося три хвилини — я відчуваю, як енергія починає накопичуватися! Продовжуйте тримати оборону!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [4104421457] = {
+        ["english"] = { [1] = "Just two minutes to go!  We're half way there, but don't let your guard down!" },
+        ["text"] = "Залишилося лише дві хвилини! Ми на півдорозі, але не втрачайте пильність!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [748675530] = {
+        ["english"] = { [1] = "Watch out for the <target>!" },
+        ["text"] = "Обережно, {ціль}!#the <target>!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [881609253] = {
+        ["english"] = { [1] = "Okay, here we go.  It's going to take about five minutes to shut this thing down through the ritual.  Once I start, keep the vermin off of me or it will be the end of us all!" },
+        ["text"] = "Гаразд, починаємо. Мені знадобиться близько п'яти хвилин на проведення ритуалу, який відключить цю річ. Коли я почну, тримайте цих почвар подалі від мене, інакше все це буде дарма!",
+        ["npcs"] = { [1] = "Belnistrasz" },
+        ["priority"] = 1,
+    },
+    [1113734037] = {
+        ["english"] = { [1] = "No!  It can't be..." },
+        ["text"] = "Ні! Цього не може бути...",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [1250274903] = {
+        ["english"] = { [1] = "Incredible!  I know he who wrought these enchantments..." },
+        ["text"] = "Неймовірно! Я знаю того, хто створив ці чари...",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [1313602369] = {
+        ["english"] = { [1] = "Farewell, my friend." },
+        ["text"] = "До зустрічі, мій друже.",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [132035702] = {
+        ["english"] = { [1] = "This is unforseen.  The being who enchanted this is known to me..." },
+        ["text"] = "Цього я не очікував. Я знаю того, хто зачарував це...",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [1439989805] = {
+        ["english"] = { [1] = "<name>, I have the information you seek..." },
+        ["text"] = "{ім'я:к}, у мене є інформація, що тебе зацікавить...#<name>, I have",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [490962550] = {
+        ["english"] = { [1] = "%s chants words of power..." },
+        ["text"] = "%s начитує слова сили...",
+        ["npcs"] = { [1] = "Bethor Iceshard" },
+        ["priority"] = 1,
+    },
+    [362649005] = {
+        ["english"] = { [1] = "Ready when you are, <class>." },
+        ["text"] = "Ну, нападай, {клас:к}.#you are, <class>.",
+        ["npcs"] = { [1] = "Big Will" },
+        ["priority"] = 1,
+    },
+    [1035160661] = {
+        ["english"] = { [1] = "%s explodes and releases several Bile Slimes!" },
+        ["text"] = "%s вибухає і вивільняє жовчний слиз!",
+        ["npcs"] = { [1] = "Bile Spewer" },
+        ["priority"] = 1,
+    },
+    [3882127901] = {
+        ["english"] = { [1] = "%s belches out a disgusting Bile Slime!" },
+        ["text"] = "%s виригує огидний жовчний слиз!",
+        ["npcs"] = { [1] = "Bile Spewer" },
+        ["priority"] = 1,
+    },
+    [1036325904] = {
+        ["english"] = { [1] = "And one time, at camp, I caught a fish that was bigger than I am!!" },
+        ["text"] = "А одного разу в таборі я зловив рибу, яка була більшою за мене самого!",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [1584947857] = {
+        ["english"] = { [1] = "Think there are any fish in here?" },
+        ["text"] = "Думаєш, тут є риба?",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [1803166653] = {
+        ["english"] = { [1] = "I caught a big one last week, it had three eyes!" },
+        ["text"] = "Я таку величезну рибину спіймав на тому тижні, ще й з трьома очима!",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [1922809974] = {
+        ["english"] = { [1] = "I heard that there are these huge fish that can walk on land to hunt, and eat people!" },
+        ["text"] = "Я чув про величезних риб, які можуть ходити по суші, щоб вбивати і їсти людей!",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [2388096878] = {
+        ["english"] = { [1] = "I heard a story about this golden fish, and if you caught it you would get three wishes!" },
+        ["text"] = "Я чув історію про золоту рибку. Здається, якщо її зловиш, то зможеш загадати три бажання!",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [69454766] = {
+        ["english"] = { [1] = "My daddy can catch more fish than your daddy!" },
+        ["text"] = "Мій тато може зловити більше риби, ніж твій тато!",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [764884215] = {
+        ["english"] = { [1] = "My daddy says that in the ocean, there are fish so big they could swallow a whole ship." },
+        ["text"] = "Мій тато каже, що в океані є такі великі риби, що можуть проковтнути цілий корабель.",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [836168549] = {
+        ["english"] = { [1] = "Look! Look! I caught something! Aww....it's just a stinky ol' boot." },
+        ["text"] = "Дивись! Дивись! Я щось зловив! Ех... це просто старий смердючий чобіт.",
+        ["npcs"] = { [1] = "Billy" },
+        ["priority"] = 1,
+    },
+    [154921396] = {
+        ["english"] = { [1] = "Straight from the lush forests of Elwynn, get your fresh fruit right here." },
+        ["text"] = "Найсвіжіші фрукти, щойно з пишних лісів Ельвинну.",
+        ["npcs"] = { [1] = "Bimble Longberry" },
+        ["priority"] = 1,
+    },
+    [1811569927] = {
+        ["english"] = { [1] = "Sink your teeth into a fresh, ripe apple." },
+        ["text"] = "Спробуйте мої свіжі, стиглі яблука.",
+        ["npcs"] = { [1] = "Bimble Longberry" },
+        ["priority"] = 1,
+    },
+    [3483107944] = {
+        ["english"] = { [1] = "Juicy fruits for sale!" },
+        ["text"] = "Купуйте соковиті фрукти!",
+        ["npcs"] = { [1] = "Bimble Longberry" },
+        ["priority"] = 1,
+    },
+    [187027466] = {
+        ["english"] = { [1] = "If Gnoarn finds out about this, it'll be my hide!" },
+        ["text"] = "Якщо Ґноарн дізнається про це, мені гайки!",
+        ["npcs"] = { [1] = "Bingles Blastenheimer" },
+        ["priority"] = 1,
+    },
+    [3096012755] = {
+        ["english"] = { [1] = "Who dares disturb our master?" },
+        ["text"] = "Хто сміє турбувати нашого господаря?",
+        ["npcs"] = { [1] = "Black Guard Sentry" },
+        ["priority"] = 1,
+    },
+    [1305398727] = {
+        ["english"] = { [1] = "Payment for those plans comes in bones - YOUR BONES!" },
+        ["text"] = "Ви заплатите за ці креслення СВОЇМИ КІСТКАМИ!",
+        ["npcs"] = { [1] = "Black Guard Swordsmith" },
+        ["priority"] = 1,
+    },
+    [2985966305] = {
+        ["english"] = { [1] = "We're doomed!" },
+        ["text"] = "Нам кінець!",
+        ["npcs"] = { [1] = "Blackhand Elite" },
+        ["priority"] = 1,
+    },
+    [2262083242] = {
+        ["english"] = { [1] = "%s begins to summon in a Blackhand Veteran!" },
+        ["text"] = "%s починає викликати ветерана Чорнорука!",
+        ["npcs"] = { [1] = "Blackhand Summoner" },
+        ["priority"] = 1,
+    },
+    [2839291088] = {
+        ["english"] = { [1] = "%s begins to summon in a Blackhand Dreadweaver!" },
+        ["text"] = "%s починає викликати жахоткача Чорнорука!",
+        ["npcs"] = { [1] = "Blackhand Summoner" },
+        ["priority"] = 1,
+    },
+    [2863874437] = {
+        ["english"] = { [1] = "%s summons a Blackhand Dreadweaver to his aid!" },
+        ["text"] = "%s викликає жахоткача Чорнорука на допомогу!",
+        ["npcs"] = { [1] = "Blackhand Summoner" },
+        ["priority"] = 1,
+    },
+    [538414898] = {
+        ["english"] = { [1] = "%s summons a Blackhand Veteran to his aid!" },
+        ["text"] = "%s викликає ветерана Чорнорука на допомогу!",
+        ["npcs"] = { [1] = "Blackhand Summoner" },
+        ["priority"] = 1,
+    },
+    [1110621179] = {
+        ["english"] = { [1] = "You threw last one, idiot. It's my turn." },
+        ["text"] = "Ти кидав минулого разу, недоумок. Тепер моя черга.",
+        ["npcs"] = { [1] = "Blackhand Thug" },
+        ["priority"] = 1,
+    },
+    [2431212618] = {
+        ["english"] = { [1] = "My turn, meathead! I get to throw now." },
+        ["text"] = "Моя черга, придурок! Зараз я кидаю.",
+        ["npcs"] = { [1] = "Blackhand Thug" },
+        ["priority"] = 1,
+    },
+    [291494010] = {
+        ["english"] = { [1] = "OK, OK! It's your turn!" },
+        ["text"] = "Гаразд, гаразд! Твоя черга!",
+        ["npcs"] = { [1] = "Blackhand Thug" },
+        ["priority"] = 1,
+    },
+    [3810618032] = {
+        ["english"] = { [1] = "%s start pushing each other back and forth." },
+        ["text"] = "%s починає штовхатись.",
+        ["npcs"] = { [1] = "Blackhand Thug" },
+        ["priority"] = 1,
+    },
+    [3174793144] = {
+        ["english"] = { [1] = "Run! They are coming!" },
+        ["text"] = "Тікайте! Вони наближаються!",
+        ["npcs"] = { [1] = "Blackwing Technician" },
+        ["priority"] = 1,
+    },
+    [1181122061] = {
+        ["english"] = { [1] = "Trogg incursion! Defend me while I blast the hole closed!" },
+        ["text"] = "Це троги! Прикрийте мене, поки я закладаю вибухівку!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1219469663] = {
+        ["english"] = { [1] = "Incoming blast in 5 seconds. Clear the tunnel! Stay back!" },
+        ["text"] = "Вибух через 5 секунд. Покиньте тунель! Назад!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1318220478] = {
+        ["english"] = { [1] = "Incoming blast in 10 seconds!" },
+        ["text"] = "Вибух через 10 секунд!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [132504735] = {
+        ["english"] = { [1] = "More troggs! Ward them off as I prepare the explosives!" },
+        ["text"] = "Ще троги! Стримуйте їх, поки я готую вибухівку!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1382444029] = {
+        ["english"] = { [1] = "5 seconds until detonation!!!!!" },
+        ["text"] = "5 секунд до детонації!!!!!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1559457464] = {
+        ["english"] = { [1] = "The final charge is set. Stand back!" },
+        ["text"] = "Останній заряд встановлено. Відійдіть!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1579792297] = {
+        ["english"] = { [1] = "<target> attacking! Help!" },
+        ["text"] = "{Ціль} атакує! Допоможіть!#<target> attacking!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1688529508] = {
+        ["english"] = { [1] = "FIRE IN THE HOLE!" },
+        ["text"] = "ПІДРИВАЮ!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [2490125146] = {
+        ["english"] = { [1] = "The charges are set. Get back before they blow!" },
+        ["text"] = "Заряди встановлені. Відійдіть, поки вони не вибухнули!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [2719533950] = {
+        ["english"] = { [1] = "Help!" },
+        ["text"] = "Допоможіть!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [2843803955] = {
+        ["english"] = { [1] = "I need help!" },
+        ["text"] = "Мені потрібна допомога!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3165421339] = {
+        ["english"] = { [1] = "I don't think one charge is going to cut it. Keep fending them off!" },
+        ["text"] = "Не думаю, що одного заряду вистачить. Продовжуйте стримувати їх!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3267096158] = {
+        ["english"] = { [1] = "Superb! Because of your help, my people stand a chance of re-taking our beloved city. Three cheers to you!" },
+        ["text"] = "Супер! Завдяки вашій допомозі у мого народу з'явився шанс повернути наше рідне місто. Ви найкращі!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3284293977] = {
+        ["english"] = { [1] = "Well done! Without your help I would have never been able to thwart that wave of troggs." },
+        ["text"] = "Гарна робота! Без вашої допомоги я б ніколи не впоралась з цими трогами.",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3314734570] = {
+        ["english"] = { [1] = "Such devastation... what a horrible mess..." },
+        ["text"] = "Така руїна... який жахливий безлад...",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3396598166] = {
+        ["english"] = { [1] = "...too quiet." },
+        ["text"] = "...занадто тихо.",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3458693954] = {
+        ["english"] = { [1] = "I heard something over there." },
+        ["text"] = "Я чула щось звідти.",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3628828817] = {
+        ["english"] = { [1] = "Nice work! I'll set off the charges to prevent any more troggs from making it to the surface." },
+        ["text"] = "Чудова робота! Я підірву заряди, щоб троги більше не лізли на поверхню.",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3660334242] = {
+        ["english"] = { [1] = "10 seconds to blast! Stand back!!!" },
+        ["text"] = "10 секунд до вибуху! Відійдіть!!!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [3828470716] = {
+        ["english"] = { [1] = "Look! Over there at the tunnel wall!" },
+        ["text"] = "Погляньте! Там, у стіні тунелю!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [4088504696] = {
+        ["english"] = { [1] = "Did you hear something?" },
+        ["text"] = "Ви щось чули?",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Did you hear something?" },
+                ["text"] = "Ви щось чули?",
+                ["npcs"] = { [1] = "Dark Iron Sapper" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [4183863513] = {
+        ["english"] = { [1] = "It's quiet here...." },
+        ["text"] = "Тут тихо....",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [4192468796] = {
+        ["english"] = { [1] = "With your help, I can evaluate these tunnels." },
+        ["text"] = "З вашою допомогою я зможу дослідити ці тунелі.",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [4216779478] = {
+        ["english"] = { [1] = "Let's see if we can find out where these Troggs are coming from.... and put a stop to the invasion!" },
+        ["text"] = "Спробуймо з'ясувати, звідки з'являються ці троги... і покінчимо з цим!",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [675943235] = {
+        ["english"] = { [1] = "Get this, <target> off of me!" },
+        ["text"] = "{Ціль}! Заберіть його від мене!#this, <target> off",
+        ["npcs"] = { [1] = "Blastmaster Emi Shortfuse" },
+        ["priority"] = 1,
+    },
+    [1453227378] = {
+        ["english"] = { [1] = "Ha! Now your death is ensured!" },
+        ["text"] = "Ха! Тобі кінець!",
+        ["npcs"] = { [1] = "Blood Elf Defender" },
+        ["priority"] = 1,
+    },
+    [1982025304] = {
+        ["english"] = { [1] = "Who dares?! I will destroy you!" },
+        ["text"] = "Хто посмів?! Я тебе знищу!",
+        ["npcs"] = { [1] = "Blood Elf Defender" },
+        ["priority"] = 1,
+    },
+    [2557944483] = {
+        ["english"] = { [1] = "Mistress!! They seek to destroy your work!!" },
+        ["text"] = "Володарко!! Вони хочуть знищити вашу працю!!",
+        ["npcs"] = { [1] = "Blood Elf Defender" },
+        ["priority"] = 1,
+    },
+    [1065318059] = {
+        ["english"] = { [1] = "<name>! I'm watching you!" },
+        ["text"] = "{Ім'я}! Я стежу за тобою!#<name>! I'm",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [1284323713] = {
+        ["english"] = { [1] = "Your deaths feed my strength!" },
+        ["text"] = "Ваші смерті наповнюють мене силою!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [1617139051] = {
+        ["english"] = { [1] = "You've angered me for the last time <name>!" },
+        ["text"] = "Пізнай мій гнів, {ім'я}!#time <name>!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [27160099] = {
+        ["english"] = { [1] = "I'll feed your souls to Hakkar himself!" },
+        ["text"] = "Я згодую ваші душі самому Гаккару!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [2863626944] = {
+        ["english"] = { [1] = "DING!" },
+        ["text"] = "ДЗИНЬ!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [3674435145] = {
+        ["english"] = { [1] = "%s goes into a rage after seeing his raptor fall in battle!" },
+        ["text"] = "%s впадає в лють, коли бачить, як його раптор гине в бою!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [3955704566] = {
+        ["english"] = { [1] = "Don't make me angry! You wouldn't like me when I'm angry!" },
+        ["text"] = "Не зли мене! Тобі не сподобається мій гнів!",
+        ["npcs"] = { [1] = "Bloodlord Mandokir" },
+        ["priority"] = 1,
+    },
+    [1382835866] = {
+        ["english"] = { [1] = "No rest... for the angry dead!" },
+        ["text"] = "Немає спокою... для розгніваних мерців!",
+        ["npcs"] = { [1] = "Bloodmage Thalnos" },
+        ["priority"] = 1,
+    },
+    [2493098160] = {
+        ["english"] = { [1] = "We hunger for vengeance." },
+        ["text"] = "Ми прагнемо помсти.",
+        ["npcs"] = { [1] = "Bloodmage Thalnos" },
+        ["priority"] = 1,
+    },
+    [857169305] = {
+        ["english"] = { [1] = "More... More souls!" },
+        ["text"] = "Більше... Більше душ!",
+        ["npcs"] = { [1] = "Bloodmage Thalnos" },
+        ["priority"] = 1,
+    },
+    [961347096] = {
+        ["english"] = { [1] = "KILL!!!" },
+        ["text"] = "ВБИВАТИ!!!",
+        ["npcs"] = { [1] = "Bogling" },
+        ["priority"] = 1,
+    },
+    [1317393778] = {
+        ["english"] = { [1] = "Die, <race>!  These lands belong to the Stonesplinter Tribe!" },
+        ["text"] = "Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Die, <race>!  These lands belong to the Stonesplinter Tribe!" },
+                ["text"] = "Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Die, <race>!  These lands belong to the Stonesplinter Tribe!" },
+                ["text"] = "Помри, {раса:н}! Ці землі належать племені Каменедробів!#Die, <race>!",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2368504048] = {
+        ["english"] = { [1] = "The only good <race> is a dead <race>!" },
+        ["text"] = "{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The only good <race> is a dead <race>!" },
+                ["text"] = "{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "The only good <race> is a dead <race>!" },
+                ["text"] = "{стать:Хороший:Хороша} {раса:н} — {стать:мертвий:мертва} {раса:н}!#dead <race>!",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2539742921] = {
+        ["english"] = { [1] = "Weak <class>! You are no match for the Stonesplinter Tribe!" },
+        ["text"] = "{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Weak <class>! You are no match for the Stonesplinter Tribe!" },
+                ["text"] = "{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Weak <class>! You are no match for the Stonesplinter Tribe!" },
+                ["text"] = "{стать:Слабкий:Слабка} {клас:н}! Ти не рівня племені Каменедробів!#Weak <class>!",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3941481951] = {
+        ["english"] = { [1] = "The Stonesplinter Tribe shall see to your doom!" },
+        ["text"] = "Плем'я Каменедробів знищить вас!",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The Stonesplinter Tribe shall see to your doom!" },
+                ["text"] = "Плем'я Каменедробів принесе вам загибель!",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "The Stonesplinter Tribe shall see to your doom!" },
+                ["text"] = "Плем'я Каменедробів знищить вас!",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [716981480] = {
+        ["english"] = { [1] = "The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!" },
+        ["text"] = "Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!" },
+                ["text"] = "Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "The Loch belongs to the Stonesplinter Tribe now, <name>!  Now die!" },
+                ["text"] = "Це озеро тепер належить племені Каменедробів, {ім'я:н}! Помри!#now, <name>!",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [775067910] = {
+        ["english"] = { [1] = "A <class> called <name>? You'll make a fine breakfast!" },
+        ["text"] = "{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?",
+        ["npcs"] = { [1] = "Boss Galgosh" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "A <class> called <name>? You'll make a fine breakfast!" },
+                ["text"] = "{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?",
+                ["npcs"] = { [1] = "Grawmug" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "A <class> called <name>? You'll make a fine breakfast!" },
+                ["text"] = "{Клас:к} на ім'я {ім'я:н}? Звучить, як чудовий сніданок!#A <class> called#called <name>?",
+                ["npcs"] = { [1] = "Magosh" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1579605495] = {
+        ["english"] = { [1] = "Oh yeah, I heard about that." },
+        ["text"] = "А, так, я чув про це.",
+        ["npcs"] = { [1] = "Brandon" },
+        ["priority"] = 1,
+    },
+    [2253542321] = {
+        ["english"] = { [1] = "Sounds kinda like one of Billy's fish stories to me." },
+        ["text"] = "Звучить, як одна з вигадок Біллі.",
+        ["npcs"] = { [1] = "Brandon" },
+        ["priority"] = 1,
+    },
+    [3978017356] = {
+        ["english"] = { [1] = "Oh c'mon, that's not true." },
+        ["text"] = "Ой, та ну. Це не правда.",
+        ["npcs"] = { [1] = "Brandon" },
+        ["priority"] = 1,
+    },
+    [663376984] = {
+        ["english"] = { [1] = "My father says that's just a story." },
+        ["text"] = "Мій тато каже, що це все вигадки.",
+        ["npcs"] = { [1] = "Brandon" },
+        ["priority"] = 1,
+    },
+    [2634157291] = {
+        ["english"] = { [1] = "That is the wrong answer, <name>. Be off with you." },
+        ["text"] = "Це неправильна відповідь, {ім'я:к}. Йди звідси.#answer, <name>.",
+        ["npcs"] = { [1] = "Braug Dimspirit" },
+        ["priority"] = 1,
+    },
+    [3162055176] = {
+        ["english"] = { [1] = "Hiccup!" },
+        ["text"] = "Гик!",
+        ["npcs"] = { [1] = "Brewmeister Bilger" },
+        ["priority"] = 1,
+    },
+    [272455808] = {
+        ["english"] = { [1] = "Clever, mortals - but I am not so easily lured away from my sanctum!" },
+        ["text"] = "Розумно, смертні — але мене не так легко виманити з мого святилища!",
+        ["npcs"] = { [1] = "Broodlord Lashlayer" },
+        ["priority"] = 1,
+    },
+    [66833651] = {
+        ["english"] = { [1] = "None of your kind should be here!  You've doomed only yourselves!" },
+        ["text"] = "Ніхто з вас не має бути тут! Ви прирекли себе на загибель!",
+        ["npcs"] = { [1] = "Broodlord Lashlayer" },
+        ["priority"] = 1,
+    },
+    [4268511530] = {
+        ["english"] = { [1] = "Thank you, <name>.  May the Light bless you, <brother/sister>, and guide your path." },
+        ["text"] = "Дякую тобі, {ім'я:к}. Нехай Світло благословить тебе, {стать:брате:сестро}, і вказує тобі шлях.",
+        ["npcs"] = { [1] = "Brother Kristoff" },
+        ["priority"] = 1,
+    },
+    [1431918718] = {
+        ["english"] = { [1] = "Well done Edward and Tyler. You are progressing along in your training quite nicely. We shall test your mettle again soon." },
+        ["text"] = "Молодці, Едвард і Тайлер. Ви чудово просунулися у своєму навчанні. Скоро ми знову перевіримо ваші сили.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [2119246472] = {
+        ["english"] = { [1] = "Not a challenge at all it seems. Let us see how you handle your second test. Lysta, bring forth the minions of the Lich King." },
+        ["text"] = "Здається, для вас це зовсім не виклик. Погляньмо, як ви справитесь із другим випробуванням. Лайсто, приведи слуг Короля-ліча.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [2340797632] = {
+        ["english"] = { [1] = "Edward. Tyler. Prepare for your first challenge." },
+        ["text"] = "Едвард. Тайлер. Приготуйтесь до першого випробування.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [2350960992] = {
+        ["english"] = { [1] = "Lysta, summon in undead captives." },
+        ["text"] = "Лайсто, виклич полонених невмерлих.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [2408862368] = {
+        ["english"] = { [1] = "Lysta, summon in the captives." },
+        ["text"] = "Лайсто, виклич полонених.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [3021715985] = {
+        ["english"] = { [1] = "It is time to face your final challenge young warriors! Prepare for your hardest fight yet." },
+        ["text"] = "Час зіткнутись з вашим останнім випробуванням, юні воїни! Готуйтеся до вашого найважчого бою.",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [3732036582] = {
+        ["english"] = { [1] = "Lysta, summon forth... the abomination!" },
+        ["text"] = "Лайсто, виклич... потвору!",
+        ["npcs"] = { [1] = "Brother Malach" },
+        ["priority"] = 1,
+    },
+    [351131910] = {
+        ["english"] = { [1] = "Greetings, <class>!  Welcome to the Cathedral of Light!" },
+        ["text"] = "Вітаю, {клас:к}! Ласкаво просимо до собору Світла!#Greetings, <class>!",
+        ["npcs"] = { [1] = "Brother Sarno" },
+        ["priority"] = 1,
+    },
+    [4101778386] = {
+        ["english"] = { [1] = "You've interfered with our plans for the last time, foolish <class>!" },
+        ["text"] = "Ти востаннє втручаєшся в наші плани, {клас:к}!#foolish <class>!",
+        ["npcs"] = { [1] = "Burning Blade Toxicologist" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You've interfered with our plans for the last time, foolish <class>!" },
+                ["text"] = "Ти востаннє втручаєшся в наші плани, {клас:к}!#foolish <class>!",
+                ["npcs"] = { [1] = "Stormscale Toxicologist" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1414866619] = {
+        ["english"] = { [1] = "%s sets eyes on <name>!" },
+        ["text"] = "%s спрямовує погляд на {ім'я:з}!#eyes on <name>!",
+        ["npcs"] = { [1] = "Buru the Gorger" },
+        ["priority"] = 1,
+    },
+    [3129544794] = {
+        ["english"] = { [1] = "%s is weakened!" },
+        ["text"] = "%s ослаблений!",
+        ["npcs"] = { [1] = "C'Thun" },
+        ["priority"] = 1,
+    },
+    [2791033887] = {
+        ["english"] = { [1] = "Tonight, your blood will run red on the stones of our altars." },
+        ["text"] = "Ваша кров тектиме каменями наших жертовників.",
+        ["npcs"] = { [1] = "Caedakar the Vicious" },
+        ["priority"] = 1,
+    },
+    [1619714591] = {
+        ["english"] = { [1] = "Aye, Fandral, remember these words: Let not your grief guide your faith. These thoughts you hold... dark places you go, night elf. Absolution cannot be had through misguided vengeance." },
+        ["text"] = "Гаразд, Фендрале, запам'ятай ці слова: не дозволяй своєму горю керувати твоєю вірою. Думки, в які ти занурюєшся... це темні речі, нічний ельфе. Сліпа помста — це хибний шлях до прощення.",
+        ["npcs"] = { [1] = "Caelestrasz" },
+        ["priority"] = 1,
+    },
+    [2413243812] = {
+        ["english"] = { [1] = "Alexstrasza grant me the resolve to drive our enemies back!" },
+        ["text"] = "Алекстразо, даруй мені сил дати відсіч нашим ворогам!",
+        ["npcs"] = { [1] = "Caelestrasz" },
+        ["priority"] = 1,
+    },
+    [35523535] = {
+        ["english"] = { [1] = "Do not forget the sacrifices made on this day, night elf. We have all suffered immensely at the hands of these beasts." },
+        ["text"] = "Не забувай про жертви, принесені в цей день, нічний ельфе. Ми всі безмірно постраждали від цих звірів.",
+        ["npcs"] = { [1] = "Caelestrasz" },
+        ["priority"] = 1,
+    },
+    [2014750486] = {
+        ["english"] = { [1] = "Okay, okay... gimmie a minute to rest now. You gone and beat me up good." },
+        ["text"] = "Гаразд, гаразд... Дай мені хвильку перепочити. Ти добряче мене {стать:побив:побила}.",
+        ["npcs"] = { [1] = "Calvin Montague" },
+        ["priority"] = 1,
+    },
+    [3938682826] = {
+        ["english"] = { [1] = "Enemy ho! Fire!" },
+        ["text"] = "Ворог попереду! Вогонь!",
+        ["npcs"] = { [1] = "Cannoneer Smythe" },
+        ["priority"] = 1,
+    },
+    [1371594139] = {
+        ["english"] = { [1] = "Begone, uncouth scum!  The Alliance shall prevail in Alterac Valley!" },
+        ["text"] = "Геть, неотесані виродки! Альянс здобуде перемогу в Альтерацькій долині!",
+        ["npcs"] = { [1] = "Captain Balinda Stonehearth" },
+        ["priority"] = 1,
+    },
+    [1728984980] = {
+        ["english"] = { [1] = "Take heart, Alliance!  Throw these villains from Alterac Valley!" },
+        ["text"] = "Вище носа, Альянс! Проженіть цих покидьків з Альтерацької долини!",
+        ["npcs"] = { [1] = "Captain Balinda Stonehearth" },
+        ["priority"] = 1,
+    },
+    [4231085302] = {
+        ["english"] = { [1] = "Filthy Frostwolf cowards! If you want a fight, you'll have to come to me!" },
+        ["text"] = "Брудні боягузи Морозних Вовків! Як хочете битись — приходьте до мене самі!",
+        ["npcs"] = { [1] = "Captain Balinda Stonehearth" },
+        ["priority"] = 1,
+    },
+    [1517833689] = {
+        ["english"] = { [1] = "Aye, lads!  Things are about to get quite ugly." },
+        ["text"] = "Гаразд, народ! Зараз почнеться місиво.",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [1778868189] = {
+        ["english"] = { [1] = "I should've grabbed a bigger sword." },
+        ["text"] = "Треба було взяти меча побільше.",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [1987851011] = {
+        ["english"] = { [1] = "Footmen, make a line!" },
+        ["text"] = "Піхотинці, шикуйсь!",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [2103885792] = {
+        ["english"] = { [1] = "Open fire!" },
+        ["text"] = "Вогонь!",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [2340035752] = {
+        ["english"] = { [1] = "Looks like it's going to be one of those days." },
+        ["text"] = "Схоже, що сьогодні буде весело.",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [2445261194] = {
+        ["english"] = { [1] = "Stand ready!" },
+        ["text"] = "Готуйсь!",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [256665921] = {
+        ["english"] = { [1] = "This better be important!" },
+        ["text"] = "Сподіваюсь, це щось важливе!",
+        ["npcs"] = { [1] = "Captain Blackanvil" },
+        ["priority"] = 1,
+    },
+    [2876933296] = {
+        ["english"] = { [1] = "All clear on Sentinel Hill, Lord Stoutmantle.  Heavy Defias movement reported in Moonbrook, however." },
+        ["text"] = "На Сторожовому пагорбі все чисто, лорде Міцнокрив. Проте повідомляється про значну активність Непокірних у Місяцеграї.",
+        ["npcs"] = { [1] = "Captain Danuvin" },
+        ["priority"] = 1,
+    },
+    [3989345374] = {
+        ["english"] = { [1] = "Stormwind's desertion shall not be forgiven by the people of Westfall." },
+        ["text"] = "Мешканці Західного краю не пробачать зраду Штормовію.",
+        ["npcs"] = { [1] = "Captain Danuvin" },
+        ["priority"] = 1,
+    },
+    [1923370996] = {
+        ["english"] = { [1] = "Now is the time to attack!  For the Horde!" },
+        ["text"] = "Настав час наступати! За Орду!",
+        ["npcs"] = { [1] = "Captain Galvangar" },
+        ["priority"] = 1,
+    },
+    [3301521119] = {
+        ["english"] = { [1] = "Die!  Your kind has no place in Alterac Valley!" },
+        ["text"] = "Згиньте! Таким, як ви, не місце в Альтерацькій долині!",
+        ["npcs"] = { [1] = "Captain Galvangar" },
+        ["priority"] = 1,
+    },
+    [3688572337] = {
+        ["english"] = { [1] = "I'll never fall for that, fool! If you want a battle, it will be on my terms and in my lair." },
+        ["text"] = "Я на це не поведуся, дурні! Якщо хочете битви, то вона буде на моїх умовах і в моїй твердині!",
+        ["npcs"] = { [1] = "Captain Galvangar" },
+        ["priority"] = 1,
+    },
+    [212216446] = {
+        ["english"] = { [1] = "By the Light!  This cursed spy was a good one!  I'm glad he's dead." },
+        ["text"] = "Світлом клянуся! Цей проклятий шпигун був справжнім майстром своєї справи! Я радий, що він тепер мертвий.",
+        ["npcs"] = { [1] = "Captain Garran Vimes" },
+        ["priority"] = 1,
+    },
+    [2191519285] = {
+        ["english"] = { [1] = "%s places the scroll on the table, and reads..." },
+        ["text"] = "%s кладе сувій на стіл і читає...",
+        ["npcs"] = { [1] = "Captain Garran Vimes" },
+        ["priority"] = 1,
+    },
+    [2961950009] = {
+        ["english"] = { [1] = "Tesoran! I need someone--Falgran Hastil, preferably--to take care of <name>'s lead on the prints near the Shady Rest Inn." },
+        ["text"] = "Тесоране! Мені потрібно, щоб хтось — бажано, Фальґран Гастіл — зайнявся зачіпками {ім'я:р} щодо слідів біля таверни «Відпочинок у затінку».",
+        ["npcs"] = { [1] = "Captain Garran Vimes" },
+        ["priority"] = 1,
+    },
+    [423630119] = {
+        ["english"] = { [1] = "Thank you for this report, <name>.  It is now clear that we must tighten our patrols near Theramore." },
+        ["text"] = "Дякую за звіт, {ім'я:к}. Вочевидь, ми маємо посилити патрулювання навколо Терамора.#report, <name>.",
+        ["npcs"] = { [1] = "Captain Garran Vimes" },
+        ["priority"] = 1,
+    },
+    [1423218468] = {
+        ["english"] = { [1] = "A living <race>... soon to be a dead like me." },
+        ["text"] = "{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...",
+        ["npcs"] = { [1] = "Captain Halyndor" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "A living <race>... soon to be a dead like me." },
+                ["text"] = "{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...",
+                ["npcs"] = { [1] = "Cursed Marine" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "A living <race>... soon to be a dead like me." },
+                ["text"] = "{стать:Живий:Жива} {раса:н}. Скоро будеш {стать:мертвий:мертва}, як і я.#living <race>...",
+                ["npcs"] = { [1] = "Cursed Sailor" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3661762526] = {
+        ["english"] = { [1] = "Brains..." },
+        ["text"] = "Мізки...",
+        ["npcs"] = { [1] = "Captain Halyndor" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Brains..." },
+                ["text"] = "Мізки...",
+                ["npcs"] = { [1] = "Cursed Marine" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Brains..." },
+                ["text"] = "Мізки...",
+                ["npcs"] = { [1] = "Cursed Sailor" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1532928] = {
+        ["english"] = { [1] = "OK Fengus, where you at?!  You come call me a gnoll lover while I give you da hammer upside da head!" },
+        ["text"] = "Ну, Фенґ, ти де?! Давай, скажи мені хто тут гнололюб, поки я тобі молотом по макітрі не гепнув!",
+        ["npcs"] = { [1] = "Captain Kromcrush" },
+        ["priority"] = 1,
+    },
+    [1755988605] = {
+        ["english"] = { [1] = "Help me crush these punys!" },
+        ["text"] = "Допоможіть мені розчавити цих шмаркачів!",
+        ["npcs"] = { [1] = "Captain Kromcrush" },
+        ["priority"] = 1,
+    },
+    [2226782816] = {
+        ["english"] = { [1] = "No one get past me and threaten da king!  Ungh, take it!!" },
+        ["text"] = "Я нікому не дозволю погрожувать королю! На, ось тобі!!",
+        ["npcs"] = { [1] = "Captain Kromcrush" },
+        ["priority"] = 1,
+    },
+    [3631474090] = {
+        ["english"] = { [1] = "%s begins to retaliate all attacks against him!" },
+        ["text"] = "%s починає контратакувати у відповідь на всі атаки!",
+        ["npcs"] = { [1] = "Captain Kromcrush" },
+        ["priority"] = 1,
+    },
+    [605287202] = {
+        ["english"] = { [1] = "Hey, who Fengus callin' a gnoll lover?!  Take da prisoners to da king; you smart to bring them with their weapons and show da king that they a threat.  I'll go see if Fengus talk smack when I give him da beatdown!  HAR!" },
+        ["text"] = "Гей, кого там Фенґ гнололюбом назвав?! Веди цих полонених до короля. Мудро було лишить їм зброю, зразу видно — угроза. А я піду гляну, шо скаже Фенґ, коли я його поб'ю! ГРРР!",
+        ["npcs"] = { [1] = "Captain Kromcrush" },
+        ["priority"] = 1,
+    },
+    [121018574] = {
+        ["english"] = { [1] = "Thank you for these badges, <name>.  I will send news to the families of the deceased." },
+        ["text"] = "Дякую за ці значки, {ім'я:к}. Я сповіщу родини загиблих.#badges, <name>.",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [1442861620] = {
+        ["english"] = { [1] = "Martens, Reblock, Adinay, Nikeson..." },
+        ["text"] = "Мартенс, Реблок, Адіней, Ніксон...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [1805306747] = {
+        ["english"] = { [1] = "Tormil, Gamlor, Shefferd, Cowry..." },
+        ["text"] = "Торміл, Ґамлор, Шефферд, Коврі...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [1810684401] = {
+        ["english"] = { [1] = "So many lost.  And so many more we must lose before this battle ends." },
+        ["text"] = "Стільки втрат. І ще багатьох ми втратимо, перш ніж ця битва закінчиться.",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [2257273925] = {
+        ["english"] = { [1] = "Privates Fontane, MacDugal, Wilcott..." },
+        ["text"] = "Рядові Фонтейн, МакДуґал, Вілкот...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [2645264341] = {
+        ["english"] = { [1] = "Privates Marcus, Tremane, Osgood, Lampret..." },
+        ["text"] = "Рядові Маркус, Треман, Осґуд, Лампрет...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [3102042338] = {
+        ["english"] = { [1] = "Privates Theoric, Kitrin, Blythe, Agmond..." },
+        ["text"] = "Рядові Теорик, Кітрін, Блайт, Аґмонд...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [3508941530] = {
+        ["english"] = { [1] = "Privates Horus, Tilling, Rockwell..." },
+        ["text"] = "Рядові Горус, Тіллінг, Роквелл...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [4268512181] = {
+        ["english"] = { [1] = "...Sampson, Yorick, Chamley..." },
+        ["text"] = "...Семпсон, Йорік, Чамлі...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [741033274] = {
+        ["english"] = { [1] = "Clemens, Bartholemew, Enderman, Wyles..." },
+        ["text"] = "Клеменс, Варфоломій, Ендермен, Вайлс...",
+        ["npcs"] = { [1] = "Captain Nials" },
+        ["priority"] = 1,
+    },
+    [4121097725] = {
+        ["english"] = { [1] = "Defenders of Darrowshire!  Rally!  We must prevail!" },
+        ["text"] = "Захисники Дарроуширу! Зберіться! Ми повинні перемогти!",
+        ["npcs"] = { [1] = "Captain Redpath" },
+        ["priority"] = 1,
+    },
+    [1778867007] = {
+        ["english"] = { [1] = "Kill <target>!" },
+        ["text"] = "Вбийте {ціль:з}!#Kill <target>!",
+        ["npcs"] = { [1] = "Captain Tuubid" },
+        ["priority"] = 1,
+    },
+    [4203675925] = {
+        ["english"] = { [1] = "Stand prepared! The naga won't wait long to press their advantage once they know we're alive." },
+        ["text"] = "Приготуйтеся! Наги не зволікатимуть з атакою коли дізнаються, що ми живі.",
+        ["npcs"] = { [1] = "Captain Vanessa Beltis" },
+        ["priority"] = 1,
+    },
+    [1304928578] = {
+        ["english"] = { [1] = "What was that?! Trey? TREY!?" },
+        ["text"] = "Що це було?! Трей? ТРЕЙ?!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [2508488588] = {
+        ["english"] = { [1] = "NO! What have they done to you!?" },
+        ["text"] = "НІ! Що вони з тобою зробили!?",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [2577116859] = {
+        ["english"] = { [1] = "Ah! Fresh air at last! I never thought I'd see the day..." },
+        ["text"] = "Ах! Нарешті свіже повітря! Я вже й не сподівалася, що дочекаюся цього...",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [2758958107] = {
+        ["english"] = { [1] = "I'm ready, <name>. Let's find my equipment and get out of here. I think I know where it is." },
+        ["text"] = "Я готова, {ім'я:к}. Ходімо, знайдемо моє спорядження та виберемось звідси. Думаю, я знаю, де воно знаходиться.",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3142518824] = {
+        ["english"] = { [1] = "You will not stop me from escaping here, <target>!" },
+        ["text"] = "Ти не завадиш мені втекти звідси, {ціль}!#here, <target>!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3408401762] = {
+        ["english"] = { [1] = "You will pay for what you've done to Trey, <target>!" },
+        ["text"] = "Ти заплатиш за те, що сталось з Треєм, {ціль}!#Trey, <target>!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3629662650] = {
+        ["english"] = { [1] = "All I need now is a golden lasso." },
+        ["text"] = "Мені потрібно лиш моє золоте ласо.",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3767761532] = {
+        ["english"] = { [1] = "You will pay for what you've done to Trey!" },
+        ["text"] = "Ти заплатиш за те, що сталось з Треєм!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3835335579] = {
+        ["english"] = { [1] = "DIE, DEMON DOGS!" },
+        ["text"] = "ЗДОХНІТЬ, КЛЯТІ ДЕМОНИ!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3852998080] = {
+        ["english"] = { [1] = "You kept me in that cell for too long, monster!" },
+        ["text"] = "Ви занадто довго тримали мене в тій клітці, чудовисько!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [3953306249] = {
+        ["english"] = { [1] = "No! My friend... what's happened? This is all my fault..." },
+        ["text"] = "Ні! Друже мій... що сталося? Це все моя провина...",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [4202713103] = {
+        ["english"] = { [1] = "There! Over there!" },
+        ["text"] = "Сюди! Нам сюди!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [4256865728] = {
+        ["english"] = { [1] = "Oh my! Look at this... all these candles. I'm sure they're used for some terrible ritual or dark summoning. We best make haste!" },
+        ["text"] = "Ох! Поглянь на це... всі ці свічки. Я впевнена, що їх використовують для якогось жахливого ритуалу або темного закликання. Нам краще поквапитись!",
+        ["npcs"] = { [1] = "Captured Arko'narin" },
+        ["priority"] = 1,
+    },
+    [1212288730] = {
+        ["english"] = { [1] = "Finally they show mercy!  They've given us something to drink!" },
+        ["text"] = "Нарешті вони проявили милосердя! Вони дали нам щось випити!",
+        ["npcs"] = { [1] = "Captured Farmer" },
+        ["priority"] = 1,
+    },
+    [218870966] = {
+        ["english"] = { [1] = "And Shindigger Stout too!  Thank the Light!  I was parched!" },
+        ["text"] = "Ще й \"Землекопське міцне\"! Хвала Світлу! Я вмираю від спраги!",
+        ["npcs"] = { [1] = "Captured Farmer" },
+        ["priority"] = 1,
+    },
+    [1164662096] = {
+        ["english"] = { [1] = "Bloodscalp, Sandfury, Skullsplitter, Vilebranch and Witherbark. They all pledge their allegiance to Jin - their souls to Hakkar. You have lost." },
+        ["text"] = "Кровоскальпі, Піщанолюті, Черепотрощителі, Миршаве Гілля і Зів'яла Кора. Усі вони присягли на вірність Джину — їхні душі належать Гаккару. Ви програли.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [1169390528] = {
+        ["english"] = { [1] = "Where are your Gods now? WHERE, SERVITOR?" },
+        ["text"] = "Де тепер твої Боги? ДЕ, СЛУГО?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [1892655863] = {
+        ["english"] = { [1] = "Curious. A Servitor of Rastakhan that does not know the Hakkari do not converse in the old tongue?" },
+        ["text"] = "Цікаво. Слуга Растахана, який не знає, що Гаккарі не розмовляють старою мовою?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [1903854084] = {
+        ["english"] = { [1] = "Oh yes, old one, Hakkar has returned. Soon the world shall crumble beneath his might. Consumed. Left in ruin..." },
+        ["text"] = "О, так, старий, Гаккар повернувся. Скоро світ здригнеться від його сили. Спопеліє і лежатиме в руїнах...",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [2708045785] = {
+        ["english"] = { [1] = "And... do you expect to defeat the Primal Gods?" },
+        ["text"] = "І... ви очікуєте перемогти Первісних Богів?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [2734348061] = {
+        ["english"] = { [1] = "It shall NEVER happen. We are legion. We are united. Where are your heroes? Vol'jin sits in sanctuary at the side of the young Warchief, unaware. Zul'jin missing, probably dead." },
+        ["text"] = "Цього НІКОЛИ не станеться. Ми — легіон. Ми єдині. Де ваші герої? Вол'джин сидить у безпеці поряд з юним вождем, ні про що не підозрюючи. Зул'джин зник, ймовірно, загинув.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [2818513147] = {
+        ["english"] = { [1] = "How pathetic. I am infused with the power of the Soulflayer. I fear nothing but the wrath of the almighty Hakkar. I serve no one but my master, Jin." },
+        ["text"] = "Як жалюгідно. Я сповнений силою Здирача Душ. Я не боюся нічого, окрім гніву всемогутнього Гаккара. Я не служу нікому, крім свого повелителя, Джина.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [291321759] = {
+        ["english"] = { [1] = "%s laughs maniacally." },
+        ["text"] = "%s несамовито сміється.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [2930352498] = {
+        ["english"] = { [1] = "You are a fool, soon to forfeit his life. No?" },
+        ["text"] = "Ти дурень, що скоро розпрощається з життям. Хіба ні?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [3147407079] = {
+        ["english"] = { [1] = "And now, even those nations that you would have called allies have recoiled and joined forces with us... Yes, old one, do not look so surprised." },
+        ["text"] = "І тепер навіть ті, кого ви вважали союзниками, приєдналися до нас... Так, старий, не дивуйся.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [325494198] = {
+        ["english"] = { [1] = "Strike me down. I shall be reborn... Even more powerful..." },
+        ["text"] = "Вбий мене! Я відроджусь... Могутнішим...",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [4023408270] = {
+        ["english"] = { [1] = "Is it? Call out to them, Servitor." },
+        ["text"] = "Невже? Звернись до них, Слуго.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [4141052431] = {
+        ["english"] = { [1] = "FOOL! Do you purport to have even one-tenth of the power you held during the Uprising? The nations were united and still were nearly consumed by a shadow of Hakkar. You stand no chance." },
+        ["text"] = "ДУРЕНЬ! Думаєш, у вас є хоча б десятина від тієї сили, яку ви мали під час Повстання? Племена були об'єднані, і їх все одно ледь не поглинула тінь Гаккара. У вас немає жодного шансу.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [664383686] = {
+        ["english"] = { [1] = "%s drops his shoulders and exposes his neck." },
+        ["text"] = "%s опускає плечі та оголює шию.",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [902577064] = {
+        ["english"] = { [1] = "Do you really need to ask? Can you not feel him? Has the almighty King Rastakhan sent his Servitor and Hand here on a mission of diplomacy?" },
+        ["text"] = "Тобі справді потрібна моя відповідь? Хіба ти не відчуваєш його? Невже всемогутній король Растахан послав сюди своїх Слугу та Руку з дипломатичною місією?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [934092520] = {
+        ["english"] = { [1] = "The young races? The infants? Humans? Orcs? Dwarves? You expect to defeat the Hakkari? To destroy a GOD?" },
+        ["text"] = "Молоді раси? Ті немовлята? Люди? Орки? Дворфи? І ви збираєтесь перемогти Гаккарі? Знищити БОГА?",
+        ["npcs"] = { [1] = "Captured Hakkari Zealot" },
+        ["priority"] = 1,
+    },
+    [539088995] = {
+        ["english"] = { [1] = "Oh, great." },
+        ["text"] = "Ох, чудово.",
+        ["npcs"] = { [1] = "Captured Leper Gnome" },
+        ["priority"] = 1,
+    },
+    [1625155266] = {
+        ["english"] = { [1] = "I raise my brew and hope to be rid of the likes of you!  Cheers, you no good scoundrel, <name>!" },
+        ["text"] = "Я підіймаю цей келих за знищення таких, як ти! За твоє нездоров'я, {ім'я:к}!scoundrel, <name>!",
+        ["npcs"] = { [1] = "Captured Mountaineer" },
+        ["priority"] = 1,
+    },
+    [3492394895] = {
+        ["english"] = { [1] = "My mind. . .my flesh. . .I'm. . .rotting. . . .!" },
+        ["text"] = "Мій розум... моя плоть... я... гнию!",
+        ["npcs"] = { [1] = "Captured Scarlet Zealot" },
+        ["priority"] = 1,
+    },
+    [3883006166] = {
+        ["english"] = { [1] = "I. . .I. . .don't. . .feel. . .right. . ." },
+        ["text"] = "Щ... Щось... мені... не... добре...",
+        ["npcs"] = { [1] = "Captured Scarlet Zealot" },
+        ["priority"] = 1,
+    },
+    [147298155] = {
+        ["english"] = { [1] = "I should have taken the translucent pill." },
+        ["text"] = "Треба було обрати іншу таблетку.",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [1499227062] = {
+        ["english"] = { [1] = "Just sit right back and you'll hear a ta... *hic* a tai... *hic* a taiiii *hic* Damnit!" },
+        ["text"] = "Нехай проблеми та незгоди не роб... *гик* не роооб... *гик* роб...*гик* Трясця!",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [1734539088] = {
+        ["english"] = { [1] = "The what-bringer? Oh, ASHbringer? Never heard of it... What? Stop bothering me!" },
+        ["text"] = "Спопо-як? А, Спопелитель? Ніколи не чув про нього... Що? Відчепись від мене!",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [1955818156] = {
+        ["english"] = { [1] = "Hey! Do you like the sauce? The sauce is good, no?" },
+        ["text"] = "Можна бути нічим не ліпшим... Можна померти і стати іншим...",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [2597719801] = {
+        ["english"] = { [1] = "I don't get paid enough for this bull excrement!" },
+        ["text"] = "Мені надто мало платять для такого лайна!",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [2979811118] = {
+        ["english"] = { [1] = "I can't take these taxes! F.I.C.A. me? F.I.C.A. YOU!" },
+        ["text"] = "Скільки можна терпіти всі ці податки? ПДФО? ПДНХ!",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [3595477418] = {
+        ["english"] = { [1] = "I come from the land down under... where women plague and men sunder." },
+        ["text"] = "І гуля нема, немає вже гуля... Немає ніц вопше, сама сира земля...",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [668457277] = {
+        ["english"] = { [1] = "And then the Tauren said, '13 INCHES!'" },
+        ["text"] = "А таурен каже: '30 САНТИМЕТРІВ!'",
+        ["npcs"] = { [1] = "Caretaker Alen" },
+        ["priority"] = 1,
+    },
+    [1908926355] = {
+        ["english"] = { [1] = "Terror, darkness, power? The Forsaken crave not these things; the Forsaken ARE these things." },
+        ["text"] = "Страх, пітьма, сила? Відречені не прагнуть цього. Відречені і є цим.",
+        ["npcs"] = { [1] = "Caretaker Caice" },
+        ["priority"] = 1,
+    },
+    [2707894409] = {
+        ["english"] = { [1] = "You are free of His control. And while you will be judged by lesser beings, at least you have chances that the Scourge do not!" },
+        ["text"] = "Ми вільні від Його контролю. І хоча нас зневажатимуть нижчі істоти, принаймні у вас є воля, якої не має Скара!",
+        ["npcs"] = { [1] = "Caretaker Caice" },
+        ["priority"] = 1,
+    },
+    [271109146] = {
+        ["english"] = { [1] = "My bones are weak, my eyes see only darkness, and my body feels only pain; but these things are good because my will is my own." },
+        ["text"] = "Мої кістки слабкі, мої очі бачать лише пітьму, а тіло відчуває лише біль. Але це ніщо, адже моя воля належить мені.",
+        ["npcs"] = { [1] = "Caretaker Caice" },
+        ["priority"] = 1,
+    },
+    [3415591140] = {
+        ["english"] = { [1] = "Your undeath is not the end of your life, but the beginning. It is up to you to decide where your fate lies now." },
+        ["text"] = "Твоє нежиття — це не кінець твого життя, а лише початок. Твоя доля залежить лише від тебе.",
+        ["npcs"] = { [1] = "Caretaker Caice" },
+        ["priority"] = 1,
+    },
+    [3082491081] = {
+        ["english"] = { [1] = "%s explodes into poisonous goo!" },
+        ["text"] = "%s вибухає отруйним слизом!",
+        ["npcs"] = { [1] = "Carrion Devourer" },
+        ["priority"] = 1,
+    },
+    [1399803625] = {
+        ["english"] = { [1] = "%s jumps out of the shadows!" },
+        ["text"] = "%s вискакує з тіней!",
+        ["npcs"] = { [1] = "Cat" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s jumps out of the shadows!" },
+                ["text"] = "%s вискакує з тіней!",
+                ["npcs"] = { [1] = "Defias Blackguard" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [20730558] = {
+        ["english"] = { [1] = "<race> flesh... must feed!" },
+        ["text"] = "{Раса:н}... плоть... мушу їсти...",
+        ["npcs"] = { [1] = "Cauldron Lord Bilemaw" },
+        ["priority"] = 1,
+    },
+    [1136680317] = {
+        ["english"] = { [1] = "Who dares to approach this cauldron?  Taste my dark blade!" },
+        ["text"] = "Хто сміє наближатися до цього котла? Відчуй мій темний клинок!",
+        ["npcs"] = { [1] = "Cauldron Lord Malvinious" },
+        ["priority"] = 1,
+    },
+    [1056241744] = {
+        ["english"] = { [1] = "The Scourge beckons you, foolish <race>." },
+        ["text"] = "Скара кличе тебе, {стать:дурний:дурна} {раса:к}.#foolish <race>.",
+        ["npcs"] = { [1] = "Cauldron Lord Razarch" },
+        ["priority"] = 1,
+    },
+    [1751897367] = {
+        ["english"] = { [1] = "<class> - I will consume your light!" },
+        ["text"] = "{Клас:н} — я пожру твою душу!#<class> - I",
+        ["npcs"] = { [1] = "Cauldron Lord Soulwrath" },
+        ["priority"] = 1,
+    },
+    [273250980] = {
+        ["english"] = { [1] = "%s is splashed by the blood and becomes irradiated!" },
+        ["text"] = "%s вкривається кров'ю і стає опроміненим!",
+        ["npcs"] = { [1] = "Caverndeep Ambusher" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s is splashed by the blood and becomes irradiated!" },
+                ["text"] = "%s вкривається кров'ю і стає опроміненим!",
+                ["npcs"] = { [1] = "Caverndeep Burrower" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "%s is splashed by the blood and becomes irradiated!" },
+                ["text"] = "%s вкривається кров'ю і стає опроміненим!",
+                ["npcs"] = { [1] = "Caverndeep Invader" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "%s is splashed by the blood and becomes irradiated!" },
+                ["text"] = "%s вкривається кров'ю і стає опроміненим!",
+                ["npcs"] = { [1] = "Caverndeep Pillager" },
+                ["priority"] = 1,
+            },
+            [4] = {
+                ["english"] = { [1] = "%s is splashed by the blood and becomes irradiated!" },
+                ["text"] = "%s вкривається кров'ю і стає опроміненим!",
+                ["npcs"] = { [1] = "Caverndeep Reaver" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1090112340] = {
+        ["english"] = { [1] = "Read this tome I have placed before you, and speak the words aloud." },
+        ["text"] = "Прочитай фоліант, що я поклав біля каменю, і промовляй слова вголос.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [1576798731] = {
+        ["english"] = { [1] = "You wish to learn of the stone? Follow me." },
+        ["text"] = "Хочеш побачити камінь? Ходи за мною.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [1729509759] = {
+        ["english"] = { [1] = "My scepter will once again become whole!" },
+        ["text"] = "Мій скіпетр знову стане цілісним!",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [183895707] = {
+        ["english"] = { [1] = "%s begins to channel his energy, focusing on the stone." },
+        ["text"] = "%s починає спрямовувати свою енергію, зосереджуючись на камені.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [3206429797] = {
+        ["english"] = { [1] = "For so long I have drifted in my cursed form. You have freed me... Your hard work shall be repaid." },
+        ["text"] = "Я так довго блукав у своїй проклятій подобі. Ви звільнили мене... і ви не залишитесь без винагороди.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [3662953976] = {
+        ["english"] = { [1] = "Please do as I instruct you, <name>." },
+        ["text"] = "Будь ласка, роби так, як я тобі скажу, {ім'я:к}.#you, <name>.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [777102463] = {
+        ["english"] = { [1] = "Together, the two parts shall become one, once again." },
+        ["text"] = "Разом ці частини знову стануть єдиним цілим.",
+        ["npcs"] = { [1] = "Celebras the Redeemed" },
+        ["priority"] = 1,
+    },
+    [757441668] = {
+        ["english"] = { [1] = "Nothing must befoul the gardens! You must be destroyed!" },
+        ["text"] = "Ніщо не має оскверняти сади! Вас необхідно знищити!",
+        ["npcs"] = { [1] = "Celebrian Dryad" },
+        ["priority"] = 1,
+    },
+    [96004164] = {
+        ["english"] = { [1] = "You do not belong in these gardens.  Your body shall nourish our lovely creations!" },
+        ["text"] = "Вам не місце в цих садах. Ваші тіла стануть поживою для цих прекрасних створінь!",
+        ["npcs"] = { [1] = "Celebrian Dryad" },
+        ["priority"] = 1,
+    },
+    [1484695459] = {
+        ["english"] = { [1] = "Your actions shame us all, <class>. I hurt inside as I beat you senseless." },
+        ["text"] = "Ти ганьбиш нас всіх, {клас:к}. Серце кров'ю обливається, але я мушу тебе провчити.",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+    },
+    [1901191019] = {
+        ["english"] = { [1] = "You dare spill blood on neutral ground? OUT! OUT, I SAY!" },
+        ["text"] = "Ти насмілюєшся проливати кров на нейтральній землі? ГЕТЬ! ГЕТЬ, КАЖУ!",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You dare spill blood on neutral ground? OUT! OUT, I SAY!" },
+                ["text"] = "Ти насмілюєшся проливати кров на нейтральній землі? ГЕТЬ! ГЕТЬ, КАЖУ!",
+                ["npcs"] = { [1] = "Cenarion Hold Reservist" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2033362439] = {
+        ["english"] = { [1] = "Believe me when I tell you this: You're gonna wish you weren't born, sissy!" },
+        ["text"] = "Ти пошкодуєш про це, мерзото!",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+    },
+    [2107571779] = {
+        ["english"] = { [1] = "As if we don't have enough problems, you go and create more!" },
+        ["text"] = "Нам тут вистачає проблем і без твоїх витівок!",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "As if we don't have enough problems, you go and create more!" },
+                ["text"] = "Нам тут вистачає проблем і без твоїх витівок!",
+                ["npcs"] = { [1] = "Cenarion Hold Reservist" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2654955622] = {
+        ["english"] = { [1] = "Please tell me that you didn't just do what I think you just did. Please tell me that I'm not going to have to hurt you..." },
+        ["text"] = "Прошу, скажи, що це не те, що я думаю. Скажи, що мені не доведеться робити тобі боляче...",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Please tell me that you didn't just do what I think you just did. Please tell me that I'm not going to have to hurt you..." },
+                ["text"] = "Прошу, скажи, що це не те, що я думаю. Скажи, що мені не доведеться робити тобі боляче...",
+                ["npcs"] = { [1] = "Cenarion Hold Reservist" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3166277165] = {
+        ["english"] = { [1] = "Taste blade, mongrel!" },
+        ["text"] = "Скуштуй клинка, падло!",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+    },
+    [3785003013] = {
+        ["english"] = { [1] = "Get a rope!" },
+        ["text"] = "Несіть мотузку!",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+    },
+    [554360574] = {
+        ["english"] = { [1] = "We don't take kindly to miscreants, <race>." },
+        ["text"] = "Ми не терпітимемо тут злочинців, {раса:к}.#miscreants, <race>.",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+    },
+    [653642717] = {
+        ["english"] = { [1] = "Your actions shame us all, <class>. It pains me to beat you senseless!" },
+        ["text"] = "Ти ганьбиш нас всіх, {клас:к}. Мені шкода, але я мушу тебе провчити.",
+        ["npcs"] = { [1] = "Cenarion Hold Infantry" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Your actions shame us all, <class>. It pains me to beat you senseless!" },
+                ["text"] = "Ти ганьбиш нас всіх, {клас:к}. Мені шкода, але я мушу тебе провчити.",
+                ["npcs"] = { [1] = "Cenarion Hold Reservist" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2594912878] = {
+        ["english"] = { [1] = "Do you hate me, my love? That I was forced to destroy your living form, that your spirit be released from unhappy bondage." },
+        ["text"] = "Чи ненавидиш ти мене, любове моя? За те, що змушений був знищити твоє втілення в надії врятувати твою душу.",
+        ["npcs"] = { [1] = "Cerellean Whiteclaw" },
+        ["priority"] = 1,
+    },
+    [2887099998] = {
+        ["english"] = { [1] = "No! Anaya... Anaya! Don't leave me! Please..." },
+        ["text"] = "Ні! Анайя... Анайя! Не покидай мене! Прошу...",
+        ["npcs"] = { [1] = "Cerellean Whiteclaw" },
+        ["priority"] = 1,
+    },
+    [3604749006] = {
+        ["english"] = { [1] = "Anaya...? Do my eyes deceive me? Is it really you?" },
+        ["text"] = "Анайя...? Може, я марю? Невже це дійсно ти?",
+        ["npcs"] = { [1] = "Cerellean Whiteclaw" },
+        ["priority"] = 1,
+    },
+    [641372979] = {
+        ["english"] = { [1] = "How, my love? How will I find the strength to face the ages of the world without you by my side..." },
+        ["text"] = "Як, кохана моя? Як мені жити у світі, в якому немає тебе...",
+        ["npcs"] = { [1] = "Cerellean Whiteclaw" },
+        ["priority"] = 1,
+    },
+    [945719626] = {
+        ["english"] = { [1] = "That the fates should be so cruel as to permit us only this after a thousand years apart..." },
+        ["text"] = "Невже доля настільки жорстока, що після тисячі років розлуки це все, що лишається нам...",
+        ["npcs"] = { [1] = "Cerellean Whiteclaw" },
+        ["priority"] = 1,
+    },
+    [2099424499] = {
+        ["english"] = { [1] = "I am released through you! Avenge me!" },
+        ["text"] = "Я вільний завдяки тобі! Помстись за мене!",
+        ["npcs"] = { [1] = "Chained Spirit" },
+        ["priority"] = 1,
+    },
+    [1216630075] = {
+        ["english"] = { [1] = "Our new allies will avenge us!" },
+        ["text"] = "Наші нові союзники помстяться за нас!",
+        ["npcs"] = { [1] = "Charlga Razorflank" },
+        ["priority"] = 1,
+    },
+    [1260258193] = {
+        ["english"] = { [1] = "Troublesome whelps. I'll teach you to interfere!" },
+        ["text"] = "Набридливі вилупки. Я покажу, що стається з тими, хто заважає нам!",
+        ["npcs"] = { [1] = "Charlga Razorflank" },
+        ["priority"] = 1,
+    },
+    [1418160633] = {
+        ["english"] = { [1] = "Who's next?" },
+        ["text"] = "Хто наступний?",
+        ["npcs"] = { [1] = "Charlga Razorflank" },
+        ["priority"] = 1,
+    },
+    [2259865576] = {
+        ["english"] = { [1] = "You outsiders will pay for encroaching on our land!" },
+        ["text"] = "Ви, чужинці, поплатитесь за вторгнення на нашу землю!",
+        ["npcs"] = { [1] = "Charlga Razorflank" },
+        ["priority"] = 1,
+    },
+    [2925531799] = {
+        ["english"] = { [1] = "Bah! My power rules here!" },
+        ["text"] = "Ха! Тут панує моя сила!",
+        ["npcs"] = { [1] = "Charlga Razorflank" },
+        ["priority"] = 1,
+    },
+    [2117704757] = {
+        ["english"] = { [1] = "Hopefully the reinforcements from Stormwind show up soon. . . ." },
+        ["text"] = "Сподіваюся, підмога зі Штормовію скоро прибуде...",
+        ["npcs"] = { [1] = "Chef Breanna" },
+        ["priority"] = 1,
+    },
+    [1040703516] = {
+        ["english"] = { [1] = "There! Job's done." },
+        ["text"] = "Ось так! Все готово.",
+        ["npcs"] = { [1] = "Chemist Cuely" },
+        ["priority"] = 1,
+    },
+    [4002245215] = {
+        ["english"] = { [1] = "%s looks at you expectantly." },
+        ["text"] = "%s очікує від вас чогось смачного.",
+        ["npcs"] = { [1] = "Chicken" },
+        ["priority"] = 1,
+    },
+    [1860081449] = {
+        ["english"] = { [1] = "The Stonewrought Dam has been saved!  Three cheers for <name>!" },
+        ["text"] = "Каменярську дамбу врятовано! Славімо {ім'я:з}!#for <name>!",
+        ["npcs"] = { [1] = "Chief Engineer Hinderweir VII" },
+        ["priority"] = 1,
+    },
+    [2552379074] = {
+        ["english"] = { [1] = "You are a little gnat to the Foulweald!  Die!" },
+        ["text"] = "Ти — лиш дрібна комаха для Гидколісових! Помри!",
+        ["npcs"] = { [1] = "Chief Murgut" },
+        ["priority"] = 1,
+    },
+    [529247113] = {
+        ["english"] = { [1] = "No!  You cannot be stronger than the Foulweald!  No!!" },
+        ["text"] = "Ні! Ти не можеш бути сильніше за Гидколісових! Ні!!",
+        ["npcs"] = { [1] = "Chief Murgut" },
+        ["priority"] = 1,
+    },
+    [22490369] = {
+        ["english"] = { [1] = "Die, outlander!" },
+        ["text"] = "Помріть, чужинці!",
+        ["npcs"] = { [1] = "Chief Ukorz Sandscalp" },
+        ["priority"] = 1,
+    },
+    [272557243] = {
+        ["english"] = { [1] = "This desert be mine!" },
+        ["text"] = "Пустеля буде моєю!",
+        ["npcs"] = { [1] = "Chief Ukorz Sandscalp" },
+        ["priority"] = 1,
+    },
+    [3950515609] = {
+        ["english"] = { [1] = "The Sandfury reign supreme!" },
+        ["text"] = "Піщанолютих не спинити!",
+        ["npcs"] = { [1] = "Chief Ukorz Sandscalp" },
+        ["priority"] = 1,
+    },
+    [675016845] = {
+        ["english"] = { [1] = "Feel the fury of the sands!" },
+        ["text"] = "Відчуй лють пісків!",
+        ["npcs"] = { [1] = "Chief Ukorz Sandscalp" },
+        ["priority"] = 1,
+    },
+    [680898637] = {
+        ["english"] = { [1] = "Who dares step into my domain!  Come!  Come, and be consumed!" },
+        ["text"] = "Хто сміє заходити в мої володіння? Вас поглинуть піски!",
+        ["npcs"] = { [1] = "Chief Ukorz Sandscalp" },
+        ["priority"] = 1,
+    },
+    [2402606586] = {
+        ["english"] = { [1] = "The king is dead - OH NOES!  Summon Mizzle da Crafty!  He knows what to do next!" },
+        ["text"] = "Король мертвий — О НІ! Покличте Міззла Кмітливого! Він знає, шо робить далі!",
+        ["npcs"] = { [1] = "Cho'Rush the Observer" },
+        ["priority"] = 1,
+    },
+    [1511051154] = {
+        ["english"] = { [1] = "Dat <race> look gud to eat!" },
+        ["text"] = "Ми їсти {раса:н}!#Dat <race> look",
+        ["npcs"] = { [1] = "Chok'sul" },
+        ["priority"] = 1,
+    },
+    [1685116539] = {
+        ["english"] = { [1] = "Me smash you!" },
+        ["text"] = "Я тебе бити!",
+        ["npcs"] = { [1] = "Chok'sul" },
+        ["priority"] = 1,
+    },
+    [2102451766] = {
+        ["english"] = { [1] = "Bash it!" },
+        ["text"] = "Бити! Ламати!",
+        ["npcs"] = { [1] = "Chok'sul" },
+        ["priority"] = 1,
+    },
+    [586495170] = {
+        ["english"] = { [1] = "Huh? What dat?" },
+        ["text"] = "Га? Це шо?",
+        ["npcs"] = { [1] = "Chok'sul" },
+        ["priority"] = 1,
+    },
+    [2296559617] = {
+        ["english"] = { [1] = "A warm tavern and a cold ale. What more could we ask for?" },
+        ["text"] = "Тепла таверна і холодний ель. Що ще потрібно для щастя?",
+        ["npcs"] = { [1] = "Christoph Faral" },
+        ["priority"] = 1,
+    },
+    [4279558791] = {
+        ["english"] = { [1] = "%s flinches as its skin shimmers." },
+        ["text"] = "%s здригається, коли його шкіра починає мерехтіти.",
+        ["npcs"] = { [1] = "Chromaggus" },
+        ["priority"] = 1,
+    },
+    [2074803005] = {
+        ["english"] = { [1] = "<name>, can you hear me? I think the spell went a little haywire and dropped you and your friend in different locations. Hurry up and find him, then get what you need and get back to the Inn on the west side of town. The portal will be waiting!" },
+        ["text"] = "{Ім'я:н}, ти мене чуєш? Здається, заклинання спрацювало трішки не так і вас перенесло в різні місця. Поквапся і знайди свого друга, потім візьміть те, що вам потрібно, і повертайтесь в таверну на західному краю міста. Там буде портал!",
+        ["npcs"] = { [1] = "Chromie" },
+        ["priority"] = 1,
+    },
+    [2955895145] = {
+        ["english"] = { [1] = "There, it is done.  The book has been enhanced..." },
+        ["text"] = "Ось і все. Я дещо покращила цю книгу...",
+        ["npcs"] = { [1] = "Chromie" },
+        ["priority"] = 1,
+    },
+    [3853568339] = {
+        ["english"] = { [1] = "Let's find out the whole story.  That's going to take some magic..." },
+        ["text"] = "Давай дізнаємося всю історію. Нам потрібна лиш дрібка магії...",
+        ["npcs"] = { [1] = "Chromie" },
+        ["priority"] = 1,
+    },
+    [1263462081] = {
+        ["english"] = { [1] = "Thank you, <name>.  You have tempered the cold rage in my heart." },
+        ["text"] = "Дякую тобі, {ім'я:к}. Ти {стать:вгамував:вгамувала} мою жагу помсти.#you, <name>.",
+        ["npcs"] = { [1] = "Coleman Farthing" },
+        ["priority"] = 1,
+    },
+    [377450141] = {
+        ["english"] = { [1] = "Hah!  Eternal undeath to the cursed Agamands!" },
+        ["text"] = "Ха! Нехай кляті Аґаманди ніколи не знайдуть спокою в смерті!",
+        ["npcs"] = { [1] = "Coleman Farthing" },
+        ["priority"] = 1,
+    },
+    [2598063859] = {
+        ["english"] = { [1] = "This should only take a moment, <name>." },
+        ["text"] = "Це займе лиш мить, {ім'я:к}.#moment, <name>.",
+        ["npcs"] = { [1] = "Collin Mauren" },
+        ["priority"] = 1,
+    },
+    [1881959392] = {
+        ["english"] = { [1] = "It'll take more than a rotting corpse to stop us!" },
+        ["text"] = "Щоб зупинити нас, знадобиться щось більше за гнилий труп!",
+        ["npcs"] = { [1] = "Commander Althea Ebonlocke" },
+        ["priority"] = 1,
+    },
+    [2338815172] = {
+        ["english"] = { [1] = "Stay on the roads.  The forest is overrun with undead." },
+        ["text"] = "Тримайтеся доріг. Ліс кишить невмерлими.",
+        ["npcs"] = { [1] = "Commander Althea Ebonlocke" },
+        ["priority"] = 1,
+    },
+    [3252111585] = {
+        ["english"] = { [1] = "This doesn't bode well.  Send scouts to gather more intelligence, and stay on alert." },
+        ["text"] = "Це не віщує нічого доброго. Відправте розвідників і лишайтеся насторожі.",
+        ["npcs"] = { [1] = "Commander Althea Ebonlocke" },
+        ["priority"] = 1,
+    },
+    [4277440575] = {
+        ["english"] = { [1] = "Fear not.  The Night Watch will rid the land of this foul taint soon enough." },
+        ["text"] = "Не бійтеся. Нічна варта незабаром очистить землю від цієї нечисті.",
+        ["npcs"] = { [1] = "Commander Althea Ebonlocke" },
+        ["priority"] = 1,
+    },
+    [105112261] = {
+        ["english"] = { [1] = "Scourge activity in the Plaguelands has increased ten-fold. We are receiving reports of Scourge attacks from as far away as Kalimdor! Now how do you suppose this has happened? How have the wretched undead done that which was previously thought impossible? Is nowhere safe?" },
+        ["text"] = "Активність Скари в Зачумлених землях зросла в десятки разів. Ми отримуємо повідомлення про їх напади аж із Калімдору! Як же, на вашу думку, це сталося? Як ці кляті невмерлі зробили те, що раніше ми вважали неможливим? Невже ніде не залишилося безпечних місць?",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [128204118] = {
+        ["english"] = { [1] = "%s lowers the sound of his voice to a whisper." },
+        ["text"] = "%s переходить на шепіт.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [1550101773] = {
+        ["english"] = { [1] = "My compliments to the chef!" },
+        ["text"] = "Мої компліменти шефу!",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [1631192544] = {
+        ["english"] = { [1] = "Tauren." },
+        ["text"] = "Таурени.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [2360996199] = {
+        ["english"] = { [1] = "It was your leadership that manipulated a grieving child to try and recover the sword. A child that has grown into a man with nothing but vengeance and hatred in his heart! And for what? You are no closer to the sword now than you were five years ago." },
+        ["text"] = "Це ви маніпулювали скорботною дитиною, щоб спробувати повернути меч. І ця дитина стала чоловіком, серце якого сповнене лише помстою та ненавистю! І заради чого? Ви зараз не ближче до меча, ніж були п'ять років тому.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [2481788805] = {
+        ["english"] = { [1] = "Now be silent and note where you are, lest I inform Lord Fordring and his knights that you are no longer here on amicable terms. I am certain he would take great pleasure in seeing to your 'atonement.'" },
+        ["text"] = "А тепер помовчіть та згадайте, де знаходитесь, інакше я повідомлю лорду Фордрінґу та його лицарям, що вам тут більше не раді. Я впевнений, що він буде радий бачити вашу \"спокуту\".",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [2835001628] = {
+        ["english"] = { [1] = "Yet you think that recovering Ashbringer will somehow turn the tide of battle? Let me let you in on a little secret, Commander: The power of the Ashbringer came from the man who would wield it... I was there, Commander. I watched him burn legions of undead in righteous fire before he would even unsheathe the blade. Alas, your grasp on history is ... lacking." },
+        ["text"] = "Ви справді думаєте, що повернення Спопелителя може змінити хід битви? Дозвольте відкрити вам невелику таємницю, командире: сила Спопелителя походила від людини, що його носила... Я був там, командире. Я бачив, як він спопеляв легіони невмерлих праведним вогнем, навіть не оголюючи леза. На жаль, ваші знання історії... посередні.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [2947532470] = {
+        ["english"] = { [1] = "Delicious!" },
+        ["text"] = "Смакота!",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [3143501708] = {
+        ["english"] = { [1] = "The Ashbringer is dead and there will never be another like him. The lesser Mograine is a far cry from the man his father was. You know this, Commander! It was, after all, your own leadership that was responsible for the death of the Scarlet Highlord Mograine." },
+        ["text"] = "Спопелитель мертвий, і такого, як він, більше не буде. Молодший Моґрейн далекий від того, яким був його батько. Ви знаєте це, командире! Зрештою, саме ваше керівництво призвело до загибелі верховного повелителя Моґрейна.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [3209471463] = {
+        ["english"] = { [1] = "You lack tact, Commander. This is not surprising. However, you are right in that the Horde will be forced to act. But not just the Horde. They already come - heroes from across the world." },
+        ["text"] = "Вам бракує тактовності, командире. Це й не дивно. Проте, ви маєте рацію щодо того, що Орда буде змушена діяти. Але не лише Орда. Вони вже прибули — герої з усього світу.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [3447518874] = {
+        ["english"] = { [1] = "So why are you here? What are we to do if there is no hope?" },
+        ["text"] = "То чому ж ви тут? Що нам робити, якщо надії немає?",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [3462387118] = {
+        ["english"] = { [1] = "Your leader takes residence at the doorstep to Naxxramas. Do you think he does not feel the pressure?" },
+        ["text"] = "Ваш очільник оселився прямо під самим Наксрамасом. Думаєте, він не відчуває загрози?",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [364811161] = {
+        ["english"] = { [1] = "So this is what you have come for? To try and claim that which is the reason for the Dawn's existence and the Crusade's downfall? You open old wounds with your words, Commander!" },
+        ["text"] = "То за цим ви прийшли? Ця одержимість вже занапастила Багряний Похід! Досить ятрити старі рани, командире!",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [4156714007] = {
+        ["english"] = { [1] = "The fish is exquisite, Jessica." },
+        ["text"] = "Ця риба неперевершена, Джесіко.",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [816704883] = {
+        ["english"] = { [1] = "Even demons are capable of fear..." },
+        ["text"] = "Навіть демони здатні відчувати страх...",
+        ["npcs"] = { [1] = "Commander Eligor Dawnbringer" },
+        ["priority"] = 1,
+    },
+    [1853746822] = {
+        ["english"] = { [1] = "Key... get the key... Gerstahn has... key." },
+        ["text"] = "Ключ... Знайди ключ... Він у... Ґерштан.",
+        ["npcs"] = { [1] = "Commander Gor'shak" },
+        ["priority"] = 1,
+    },
+    [186057672] = {
+        ["english"] = { [1] = "HEY! HEY YOU! <race>! Get me out of here!" },
+        ["text"] = "ЕЙ! ЕЙ ТИ! {Раса:к}! Витягни мене звідси!#YOU! <race>! Get",
+        ["npcs"] = { [1] = "Commander Gor'shak" },
+        ["priority"] = 1,
+    },
+    [3217790050] = {
+        ["english"] = { [1] = "Try and make yourself useful, <race>. GET ME OUT OF HERE! The High Interrogator has the key." },
+        ["text"] = "Спробуй зробити щось корисне, {раса:к}. ЗВІЛЬНИ МЕНЕ ЗВІДСИ! Ключ у верховного допитувача.#useful, <race>.",
+        ["npcs"] = { [1] = "Commander Gor'shak" },
+        ["priority"] = 1,
+    },
+    [2437565958] = {
+        ["english"] = { [1] = "Soldiers of Kalimdor! Heroes of Silithus! One among you has dealt a vicious blow to our mortal enemies! <name> and <his/her> allies have relieved the Ruins of Ahn'Qiraj of its merciless leader! Ossirian the Unscarred, scourge of Silithus, has finally been destroyed and his armies wholly dismantled!" },
+        ["text"] = "Воїни Калімдору! Герої Силітуса! Одні з вас завдали нещадного удару нашим ворогам! {ім'я:к} та {стать:його:її} союзники звільнили руїни Ан'Кіражу від їх безжального ватажка! Оссіріан Невразливий, лихо Силітуса, нарешті знищений, а його війська повністю розгромлені!#enemies! <name> and#and <his/her> allies",
+        ["npcs"] = { [1] = "Commander Mar'alith" },
+        ["priority"] = 1,
+    },
+    [2122695541] = {
+        ["english"] = { [1] = "Intruders in the keep! To arms!" },
+        ["text"] = "Чужинці проникли до фортеці! До зброї!",
+        ["npcs"] = { [1] = "Commander Springvale" },
+        ["priority"] = 1,
+    },
+    [2428518472] = {
+        ["english"] = { [1] = "Our vigilance is eternal..." },
+        ["text"] = "Наша варта вічна...",
+        ["npcs"] = { [1] = "Commander Springvale" },
+        ["priority"] = 1,
+    },
+    [1049450909] = {
+        ["english"] = { [1] = "Hm...after dropping this off, I think I'll head to that cheese shop for a snack." },
+        ["text"] = "Хм... після того, як віднесу це, певно, схожу до сирного за смаколиком.",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [1279584609] = {
+        ["english"] = { [1] = "I should have a few extra coins from this sale.  Maybe I'll buy myself some lunch..." },
+        ["text"] = "Я отримаю за цю партію чимало грошей. Може, варто купити чогось смачного...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [1316916878] = {
+        ["english"] = { [1] = "Now for that snack..." },
+        ["text"] = "А тепер за смаколиком...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [1872881764] = {
+        ["english"] = { [1] = "I should get back before Rema starts to worry..." },
+        ["text"] = "Треба повертатись, поки Рема не почала хвилюватися...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2075233499] = {
+        ["english"] = { [1] = "Thank you kindly!" },
+        ["text"] = "Щиро вам вдячний!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2140768436] = {
+        ["english"] = { [1] = "Hey, Harlan.  Here's a load of knitted cloth for you." },
+        ["text"] = "Привіт, Гарлане. Я приніс нову партію в'язаних речей.",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2310699347] = {
+        ["english"] = { [1] = "Hullo, Trias clan!  A ball of your smoked mozzarella, if you please!" },
+        ["text"] = "Вітаю, Тріаси! Мені кульку вашої копченої моцарели, будь ласка!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2493772807] = {
+        ["english"] = { [1] = "Glad to see you're doing so well, Harlan.  And I hope to see you again soon..." },
+        ["text"] = "Радий бачити, що у тебе все гаразд, Гарлане. Сподіваюся, незабаром знову побачимось...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2560897068] = {
+        ["english"] = { [1] = "Thanks for the cheese!" },
+        ["text"] = "Дякую за сир!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [2804246636] = {
+        ["english"] = { [1] = "Business must be good down at the bazaar.  I'll get him resupplied right away!" },
+        ["text"] = "Певно продажі йдуть надзвичайно добре. Я негайно віднесу йому товари!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [3178091955] = {
+        ["english"] = { [1] = "My pleasure, sugar drop.  I'll be back soon..." },
+        ["text"] = "З радістю, люба. Скоро повернусь...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [3450036535] = {
+        ["english"] = { [1] = "Good day, Elling!  Hullo Elaine!  Let me have a wheel of bleu cheese, eh?" },
+        ["text"] = "Доброго дня, Елінг!  Вітаю, Елейн! Дайте мені трішки того чудового дарнаського блю.",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [3565400157] = {
+        ["english"] = { [1] = "Time to get back to the shop..." },
+        ["text"] = "Пора повертатись до крамниці...",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [3579486760] = {
+        ["english"] = { [1] = "Oomph!  Here's another load of supplies, Harlan.  It must be selling fast!" },
+        ["text"] = "Ох! Ось ще одна партія товарів, Гарлане. Бачу, у вас тут ажіотаж!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [470701719] = {
+        ["english"] = { [1] = "Yes ma'am, business is brisk!" },
+        ["text"] = "Так, пані, крамниця процвітає!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [557369060] = {
+        ["english"] = { [1] = "I'm back!" },
+        ["text"] = "Я повернувся!",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [978497094] = {
+        ["english"] = { [1] = "Well, I'm off then.  Take care, Harlan." },
+        ["text"] = "Ну, я пішов. Бережи себе, Гарлане.",
+        ["npcs"] = { [1] = "Corbett Schneider" },
+        ["priority"] = 1,
+    },
+    [3198040626] = {
+        ["english"] = { [1] = "%s collapses and begins to smolder." },
+        ["text"] = "%s падає і починає тліти.",
+        ["npcs"] = { [1] = "Core Hound" },
+        ["priority"] = 1,
+    },
+    [556253084] = {
+        ["english"] = { [1] = "%s reignites from the heat of another Core Hound!" },
+        ["text"] = "%s знову загоряється від жару іншого гончака ядра!",
+        ["npcs"] = { [1] = "Core Hound" },
+        ["priority"] = 1,
+    },
+    [3216440276] = {
+        ["english"] = { [1] = "%s refuses to die while its master is endangered!" },
+        ["text"] = "%s відмовляється помирати, поки його хазяїн в небезпеці!",
+        ["npcs"] = { [1] = "Core Rager" },
+        ["priority"] = 1,
+    },
+    [1907083171] = {
+        ["english"] = { [1] = "I am looking for some bodyguards that would like to protect the Gizelton Caravan. We are stopped on the road east of Kormek's Hut, north of Kolkar Centaur Village." },
+        ["text"] = "Шукаю охоронців для супроводу каравану Ґізельтона. Ми зупинилися на дорозі на схід від хатини Кормека, північніше селища Колкарів.",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [210703012] = {
+        ["english"] = { [1] = "You're fired! <Cough...Cork clears throat.> I mean, help!" },
+        ["text"] = "Тебе звільнено! Кхе-кхе... Тобто, допоможи!",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [2740583002] = {
+        ["english"] = { [1] = "Hey, you call yourself a body guard? Get to work and protect us..." },
+        ["text"] = "І ти називаєшся охоронцем? То до роботи, захищай нас!",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [3697712670] = {
+        ["english"] = { [1] = "Mister body guard, are you going to earn your money or what?" },
+        ["text"] = "То що, \"охоронцю\", ти збираєшся відпрацьовувати свої гроші чи як?",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [3738709208] = {
+        ["english"] = { [1] = "Blast those stupid centaurs! Sigh - well, it seems you kept your bargain. Up the road you shall find Smeed Scrabblescrew, he has your money." },
+        ["text"] = "До біса цих тупих кентаврів! Фух... Що ж, здається, ти {стать:дотримався:дотрималася} своєї угоди. Далі по дорозі ти знайдеш Сміда Гвинтодряпа — у нього твої гроші.",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [4035944105] = {
+        ["english"] = { [1] = "So sorry to leave a customer but we have places to go and people to swindle. We will be back sometime later today. Good-bye!" },
+        ["text"] = "Завжди шкода покидати клієнтів, але нам ще є куди йти, і є кого обдурювати. Ми ще повернемося. До зустрічі!",
+        ["npcs"] = { [1] = "Cork Gizelton" },
+        ["priority"] = 1,
+    },
+    [1115544638] = {
+        ["english"] = { [1] = "Brave <class>, thank you for rescuing me! I am sure Marshal Marris will reward your kind deed, <name>." },
+        ["text"] = "Дякую за порятунок, {стать:хоробрий:хоробра} {клас:к}! Я впевнений, що маршал Марріс винагородить тебе за цей добрий вчинок.#Brave <class>, thank#deed, <name>.",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [1433094550] = {
+        ["english"] = { [1] = "We are under siege!  To arms!  Kill this <target>!" },
+        ["text"] = "Нас атакують! До зброї!",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [1990468925] = {
+        ["english"] = { [1] = "Ah, fresh air at last! I need a moment to rest, <name>." },
+        ["text"] = "Ах, нарешті свіже повітря! Дай мені трохи перепочити, {ім'я:к}.#rest, <name>.",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [2550831749] = {
+        ["english"] = { [1] = "<target> coming this way fast!  Prepare for attack!" },
+        ["text"] = "{Ціль} йде сюди! Готуйся до атаки!#<target> coming",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [3179164387] = {
+        ["english"] = { [1] = "Marshal Marris, sir.  Corporal Keeshan of the 12th Sabre Regiment returned from battle and reporting for duty!" },
+        ["text"] = "Маршале Марріс, сер. Капрал Кішан з дванадцятого кавалерійського полку повернувся з бою та готовий до служби!",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [4143383170] = {
+        ["english"] = { [1] = "<name>, my wounds are grave.  Forgive my slow pace but my injuries won't allow me to walk any faster." },
+        ["text"] = "{Ім'я:к}, я серйозно поранений. Пробач мені за повільну ходу, але мої травми не дозволяють мені йти швидше.#<name>, my",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [449509889] = {
+        ["english"] = { [1] = "The Blackrock infestation is thick in these parts.  I will do my best to keep the pace, <name>.  Let's go!" },
+        ["text"] = "Орки Чорнокаменю міцно закріпились тут. Я постараюся не відставати, {ім'я:к}. Ходімо!#pace, <name>.",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [750886712] = {
+        ["english"] = { [1] = "So close to blessed Lakeshire.  By the Light, let my legs carry me a bit further!" },
+        ["text"] = "Так близько до мого любого Приозер'я. О, Світло, допоможи мені пройти ще трохи!",
+        ["npcs"] = { [1] = "Corporal Keeshan" },
+        ["priority"] = 1,
+    },
+    [2833447782] = {
+        ["english"] = { [1] = "The Stormpike Quatermaster keeps his supplies under an awning, just west of here." },
+        ["text"] = "Квартирмейстер Бурешпиля тримає свої припаси під навісом, трохи на захід звідси.",
+        ["npcs"] = { [1] = "Corporal Noreg Stormpike" },
+        ["priority"] = 1,
+    },
+    [843923798] = {
+        ["english"] = { [1] = "%s snarls ferociously." },
+        ["text"] = "%s лютo гарчить.",
+        ["npcs"] = { [1] = "Corrupted Cat" },
+        ["priority"] = 1,
+    },
+    [581654073] = {
+        ["english"] = { [1] = "We need better representation from Stormwind.  Our homes are falling to the undead." },
+        ["text"] = "Нам потрібно більше підтримки від Штормовію. Невмерлі захоплюють наші домівки!",
+        ["npcs"] = { [1] = "Councilman Millstipe" },
+        ["priority"] = 1,
+    },
+    [825166330] = {
+        ["english"] = { [1] = "The forest is crawling with Worgen and Ghouls.  Something must be done!" },
+        ["text"] = "Ліс кишить воргенами та гулями. Треба з цим щось робити!",
+        ["npcs"] = { [1] = "Councilman Millstipe" },
+        ["priority"] = 1,
+    },
+    [1487846011] = {
+        ["english"] = { [1] = "I'm sure I can find a use for this mixture..." },
+        ["text"] = "Думаю, я знайду де використати цю суміш...",
+        ["npcs"] = { [1] = "Crank Fizzlebub" },
+        ["priority"] = 1,
+    },
+    [2306586681] = {
+        ["english"] = { [1] = "Hm... if you're looking to adle wits, <name>, then the secret behind Zanzil's zombies might just do the trick!" },
+        ["text"] = "Хм... Знаю, {ім'я:н}! Щоб задурити голову, нам можуть допомогти ті безмізкі зомбі Занзіла!#wits, <name>, then",
+        ["npcs"] = { [1] = "Crank Fizzlebub" },
+        ["priority"] = 1,
+    },
+    [3704651144] = {
+        ["english"] = { [1] = "%s looks from side to side..." },
+        ["text"] = "%s озирається навсібіч...",
+        ["npcs"] = { [1] = "Crank Fizzlebub" },
+        ["priority"] = 1,
+    },
+    [614315550] = {
+        ["english"] = { [1] = "Thank you, <name>." },
+        ["text"] = "Дякую, {ім'я:к}.#you, <name>.",
+        ["npcs"] = { [1] = "Crank Fizzlebub" },
+        ["priority"] = 1,
+    },
+    [4049035161] = {
+        ["english"] = { [1] = "Doesn't anybody KNOCK anymore???!" },
+        ["text"] = "Невже ніхто більше НЕ СТУКАЄ У ДВЕРІ??!!",
+        ["npcs"] = { [1] = "Crest Killer" },
+        ["priority"] = 1,
+    },
+    [898116041] = {
+        ["english"] = { [1] = "Where I come from, you get shanked for opening another inmate's cell door!" },
+        ["text"] = "У мене на батьківщині вас би вже порізали за те, що ви зайшли без дозволу до чужої камери!",
+        ["npcs"] = { [1] = "Crest Killer" },
+        ["priority"] = 1,
+    },
+    [1016984614] = {
+        ["english"] = { [1] = "Move to the stairs and defend!" },
+        ["text"] = "Рухайтеся до сходів і обороняйтеся!",
+        ["npcs"] = { [1] = "Crimson Conjuror" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Move to the stairs and defend!" },
+                ["text"] = "Рухайтеся до сходів і обороняйтеся!",
+                ["npcs"] = { [1] = "Crimson Gallant" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Move to the stairs and defend!" },
+                ["text"] = "Рухайтеся до сходів і обороняйтеся!",
+                ["npcs"] = { [1] = "Crimson Guardsman" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3025511735] = {
+        ["english"] = { [1] = "Move back and hold the line!  We cannot fail or all will be lost!" },
+        ["text"] = "Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!",
+        ["npcs"] = { [1] = "Crimson Conjuror" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Move back and hold the line!  We cannot fail or all will be lost!" },
+                ["text"] = "Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!",
+                ["npcs"] = { [1] = "Crimson Guardsman" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Move back and hold the line!  We cannot fail or all will be lost!" },
+                ["text"] = "Відступайте і тримайте оборону! Ми не можемо програти, інакше втратимо все!",
+                ["npcs"] = { [1] = "Crimson Initiate" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [15376703] = {
+        ["english"] = { [1] = "Assassins! Guards! Guards!" },
+        ["text"] = "Вбивці! Охорона! Охорона!",
+        ["npcs"] = { [1] = "Crimson Courier" },
+        ["priority"] = 1,
+    },
+    [3720672849] = {
+        ["english"] = { [1] = "These orders must get to High General Abbendis!" },
+        ["text"] = "Ці накази мають дійти до верховного генерала Аббендіс!",
+        ["npcs"] = { [1] = "Crimson Courier" },
+        ["priority"] = 1,
+    },
+    [849172367] = {
+        ["english"] = { [1] = "I sense danger up ahead." },
+        ["text"] = "Я відчуваю небезпеку попереду.",
+        ["npcs"] = { [1] = "Crimson Courier" },
+        ["priority"] = 1,
+    },
+    [876533537] = {
+        ["english"] = { [1] = "My back is killing me." },
+        ["text"] = "Моя спина мене доконає.",
+        ["npcs"] = { [1] = "Crimson Courier" },
+        ["priority"] = 1,
+    },
+    [923000668] = {
+        ["english"] = { [1] = "If I should fall, take my pouch. Make certain that it gets to the High General." },
+        ["text"] = "Якщо я поляжу — заберіть мою сумку. Переконайтеся, що вона потрапить до верховного генерала.",
+        ["npcs"] = { [1] = "Crimson Courier" },
+        ["priority"] = 1,
+    },
+    [1151222245] = {
+        ["english"] = { [1] = "The Scourge have broken into the Bastion!  Redouble your efforts!  We must not fail!" },
+        ["text"] = "Скара прорвалася до Бастіону! Посильте оборону! Ми не маємо права програти!",
+        ["npcs"] = { [1] = "Crimson Gallant" },
+        ["priority"] = 1,
+    },
+    [1290937955] = {
+        ["english"] = { [1] = "Our defenses are failing!  By the light we must prevail!" },
+        ["text"] = "Наша оборона слабшає! Ми повинні перемогти, заради світла!",
+        ["npcs"] = { [1] = "Crimson Gallant" },
+        ["priority"] = 1,
+    },
+    [1442139528] = {
+        ["english"] = { [1] = "The Scourge have broken through in all wings!  May the light defeat these foul creatures!  We shall fight to the last!" },
+        ["text"] = "Скара прорвалася в усі зали! Нехай світло переможе цих мерзенних створінь! Ми будемо боротися до останнього!",
+        ["npcs"] = { [1] = "Crimson Gallant" },
+        ["priority"] = 1,
+    },
+    [1928982482] = {
+        ["english"] = { [1] = "They have broken into the Hall of Lights!  We must stop the intruders!" },
+        ["text"] = "Вони увірвались до зали Світла! Ми маємо зупинити загарбників!",
+        ["npcs"] = { [1] = "Crimson Gallant" },
+        ["priority"] = 1,
+    },
+    [2303124667] = {
+        ["english"] = { [1] = "Thieves! I shall smelt your remains!" },
+        ["text"] = "Злодії! Я переплавлю ваші рештки!",
+        ["npcs"] = { [1] = "Crimson Hammersmith" },
+        ["priority"] = 1,
+    },
+    [613692392] = {
+        ["english"] = { [1] = "This will not be the end of the Scarlet Crusade!  You will not break our line!" },
+        ["text"] = "Це ще не кінець Багряного Походу! Вам не вдасться прорвати наші ряди!",
+        ["npcs"] = { [1] = "Crimson Monk" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "This will not be the end of the Scarlet Crusade!  You will not break our line!" },
+                ["text"] = "Це ще не кінець Багряного Походу! Вам не вдасться прорвати наші ряди!",
+                ["npcs"] = { [1] = "Crimson Sorcerer" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2701434042] = {
+        ["english"] = { [1] = "I've been saving this spot for something special. I don't think it gets any more special than this, <name>." },
+        ["text"] = "Я беріг це місце для чогось особливого. Не думаю, що ми знайдемо щось особливіше за це, {ім'я:к}.#this, <name>.",
+        ["npcs"] = { [1] = "Curator Thorius" },
+        ["priority"] = 1,
+    },
+    [2778345075] = {
+        ["english"] = { [1] = "I have just the spot for this horn!" },
+        ["text"] = "У мене є чудове місце для цього рога!",
+        ["npcs"] = { [1] = "Curator Thorius" },
+        ["priority"] = 1,
+    },
+    [4266492743] = {
+        ["english"] = { [1] = "Poor Dorius. If I ever get my hands on those Dark Irons, so help me..." },
+        ["text"] = "Бідний Дорій. Якщо я коли-небудь доберуся до цих дворфів Темного Заліза...",
+        ["npcs"] = { [1] = "Curator Thorius" },
+        ["priority"] = 1,
+    },
+    [4283756175] = {
+        ["english"] = { [1] = "There we go. All done!" },
+        ["text"] = "Ось так. Готово!",
+        ["npcs"] = { [1] = "Curator Thorius" },
+        ["priority"] = 1,
+    },
+    [1596323577] = {
+        ["english"] = { [1] = "And the cart is still salvageable. It will need repairs, but the damage could have been much worse." },
+        ["text"] = "І віз ще можна врятувати. Його потрібно буде відремонтувати, але все могло бути значно гірше.",
+        ["npcs"] = { [1] = "Cyriden Farseeker" },
+        ["priority"] = 1,
+    },
+    [3281845547] = {
+        ["english"] = { [1] = "The cart! How did this happen? Relathor, come quickly, there's a fire!" },
+        ["text"] = "Віз! Як це сталося? Релаторе, швидше, тут пожежа!",
+        ["npcs"] = { [1] = "Cyriden Farseeker" },
+        ["priority"] = 1,
+    },
+    [3797524004] = {
+        ["english"] = { [1] = "What's that smell?" },
+        ["text"] = "Що це за запах?",
+        ["npcs"] = { [1] = "Cyriden Farseeker" },
+        ["priority"] = 1,
+    },
+    [4064421613] = {
+        ["english"] = { [1] = "Never better, Relathor. Come, let us return inside." },
+        ["text"] = "Я в порядку, Релаторе. Ходімо, повернімось всередину.",
+        ["npcs"] = { [1] = "Cyriden Farseeker" },
+        ["priority"] = 1,
+    },
+    [2931401145] = {
+        ["english"] = { [1] = "Nothing will stop us!  You will die!" },
+        ["text"] = "Ніщо не зупинить нас! Ти помреш!",
+        ["npcs"] = { [1] = "Daggerspine Marauder" },
+        ["priority"] = 1,
+    },
+    [479065494] = {
+        ["english"] = { [1] = "You've plundered our treasures too long.  Prepare to meet your watery grave!" },
+        ["text"] = "Ви надто довго розкрадали наші скарби. Готуйтесь зустріти свою загибель!",
+        ["npcs"] = { [1] = "Daggerspine Marauder" },
+        ["priority"] = 1,
+    },
+    [4157303389] = {
+        ["english"] = { [1] = "I will hurry back to Vahlarriel. Finish off those that you can--I should be fine on my own from here." },
+        ["text"] = "Я повернусь до Валарріеля. Добий тих, кого зможеш — далі я сама впораюся.",
+        ["npcs"] = { [1] = "Dalinda Malem" },
+        ["priority"] = 1,
+    },
+    [4164088178] = {
+        ["english"] = { [1] = "Elune be with us! Let's make haste from this evil fortress." },
+        ["text"] = "Нехай береже нас Елуна! Забираймося з цього мерзенного місця.",
+        ["npcs"] = { [1] = "Dalinda Malem" },
+        ["priority"] = 1,
+    },
+    [157926944] = {
+        ["english"] = { [1] = "You won't ruin my lands, you scum!" },
+        ["text"] = "Ви не плюндруватимете мою землю, покидьки!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [315664060] = {
+        ["english"] = { [1] = "The Light is with us this day!" },
+        ["text"] = "Світло береже нас!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [361545900] = {
+        ["english"] = { [1] = "We showed that one!" },
+        ["text"] = "Ми їх провчили!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [4258093848] = {
+        ["english"] = { [1] = "To the house! Stay close to me, no matter what! I have my gun and ammo there!" },
+        ["text"] = "До хати! Тримайся поруч зі мною! У мене там зброя і набої!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [454119922] = {
+        ["english"] = { [1] = "One more down!" },
+        ["text"] = "Влучила!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [753303043] = {
+        ["english"] = { [1] = "Meet me down by the orchard--I just need to put my gun away." },
+        ["text"] = "Почекай мене в саду — я поки сховаю зброю.",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [947410581] = {
+        ["english"] = { [1] = "We've done it! We won!" },
+        ["text"] = "Нам вдалося! Ми перемогли!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [965763484] = {
+        ["english"] = { [1] = "We've done it! We've done it! We've driven them off!" },
+        ["text"] = "Ми впорались! Вони вже не повернуться!",
+        ["npcs"] = { [1] = "Daphne Stilwell" },
+        ["priority"] = 1,
+    },
+    [1678290462] = {
+        ["english"] = { [1] = "This bridge should have been destroyed by now.  How long does it take for those lazy sods to get here from the Highlands!" },
+        ["text"] = "Цей міст вже мав лежати в руїнах. Скільки часу потрібно цим неробам, щоб дістатися сюди з височини?",
+        ["npcs"] = { [1] = "Dark Iron Bombardier" },
+        ["priority"] = 1,
+    },
+    [2659055032] = {
+        ["english"] = { [1] = "Still no sign of the final shipment of explosives." },
+        ["text"] = "Нової поставки вибухівки досі не видно.",
+        ["npcs"] = { [1] = "Dark Iron Bombardier" },
+        ["priority"] = 1,
+    },
+    [3139041594] = {
+        ["english"] = { [1] = "No sign of the final explosives shipment to the west either.  Where are those lollygaggers?" },
+        ["text"] = "На заході жодного вантажу вибухівки теж немає. Де ці ледацюги?",
+        ["npcs"] = { [1] = "Dark Iron Bombardier" },
+        ["priority"] = 1,
+    },
+    [3166034954] = {
+        ["english"] = { [1] = "Let me give you my regards for Greatfather Winter, scum..." },
+        ["text"] = "Передавай мої вітання Дідусю Зимі, мерзото...",
+        ["npcs"] = { [1] = "Dark Iron Kidnapper" },
+        ["priority"] = 1,
+    },
+    [3194759557] = {
+        ["english"] = { [1] = "The only thing Metzen is going to be doing this Winter Veil is roasting on a spit!" },
+        ["text"] = "Цієї Зимової Покрови Метцен буде смажитися на рожні!",
+        ["npcs"] = { [1] = "Dark Iron Kidnapper" },
+        ["priority"] = 1,
+    },
+    [805314190] = {
+        ["english"] = { [1] = "Humbug!  Die!" },
+        ["text"] = "Падло! Здохни!",
+        ["npcs"] = { [1] = "Dark Iron Kidnapper" },
+        ["priority"] = 1,
+    },
+    [938002426] = {
+        ["english"] = { [1] = "It's a rescue attempt!  Slay them all!" },
+        ["text"] = "Вони намагаються врятувати оленя! Вбийте їх усіх!",
+        ["npcs"] = { [1] = "Dark Iron Kidnapper" },
+        ["priority"] = 1,
+    },
+    [1592013139] = {
+        ["english"] = { [1] = "%s will be armed in 10 seconds!" },
+        ["text"] = "%s активується через 10 секунд!",
+        ["npcs"] = { [1] = "Dark Iron Land Mine" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s will be armed in 10 seconds!" },
+                ["text"] = "%s активується через 10 секунд!",
+                ["npcs"] = { [1] = "Goblin Land Mine" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [273264594] = {
+        ["english"] = { [1] = "%s is now armed!" },
+        ["text"] = "%s активована!",
+        ["npcs"] = { [1] = "Dark Iron Land Mine" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s is now armed!" },
+                ["text"] = "%s активована!",
+                ["npcs"] = { [1] = "Goblin Land Mine" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3424761200] = {
+        ["english"] = { [1] = "%s will be armed in 5 seconds!" },
+        ["text"] = "%s активується через 5 секунд!",
+        ["npcs"] = { [1] = "Dark Iron Land Mine" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s will be armed in 5 seconds!" },
+                ["text"] = "%s активується через 5 секунд!",
+                ["npcs"] = { [1] = "Goblin Land Mine" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [350043122] = {
+        ["english"] = { [1] = "He's mine..." },
+        ["text"] = "Він мій...",
+        ["npcs"] = { [1] = "Dark Iron Marksman" },
+        ["priority"] = 1,
+    },
+    [2096701661] = {
+        ["english"] = { [1] = "Get him!" },
+        ["text"] = "Схопіть {стать:його:її}!",
+        ["npcs"] = { [1] = "Dark Iron Raider" },
+        ["priority"] = 1,
+    },
+    [1098267361] = {
+        ["english"] = { [1] = "This <class> intrudes on our work! Die fool!" },
+        ["text"] = "{Раса:н} заважає нашій роботі! Здохни, нікчемо!#This <class> intrudes",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [1285687110] = {
+        ["english"] = { [1] = "The Stonewrought Dam will be destroyed!  Long live Ragnaros!" },
+        ["text"] = "Ми знищимо Каменярську дамбу! Слава Раґнаросу!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [1299706956] = {
+        ["english"] = { [1] = "What have we here?  <name> the <class>?  Attack!" },
+        ["text"] = "Що це тут в нас? {Ім'я:н}-{клас:н}? В атаку!#here?  <name> the#the <class>?  Attack",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [1657121103] = {
+        ["english"] = { [1] = "The Thandol Span fell to Ragnaros.  So shall the Stonewrought Dam!" },
+        ["text"] = "Віадук Тандола скорився волі Раґнароса. Каменярська дамба буде наступною!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [1936749167] = {
+        ["english"] = { [1] = "I smell a <race>." },
+        ["text"] = "Я чую запах {раса:р}.# a <race>.",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [2546813352] = {
+        ["english"] = { [1] = "King Magni Bronzebeard is a fool and a charlatan!" },
+        ["text"] = "Король Маґні Бронзобородий — дурень і брехун!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [2759381457] = {
+        ["english"] = { [1] = "Wahehe! I'm taking you down with me!" },
+        ["text"] = "Вахаха! Я заберу тебе з собою!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [2943090952] = {
+        ["english"] = { [1] = "All those who betray Ragnaros must die!" },
+        ["text"] = "Кожен, хто йде проти Раґнароса, має померти!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [3106407048] = {
+        ["english"] = { [1] = "What was that?" },
+        ["text"] = "Що це було?",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [528832848] = {
+        ["english"] = { [1] = "Kill the filthy <race>!" },
+        ["text"] = "Вбийте {стать:цього:цю} {клас:з}.#filthy <race>!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [562534426] = {
+        ["english"] = { [1] = "%s's eyes glow red as he lights his dynamite and begins to cackle madly!" },
+        ["text"] = "%s починає божевільно реготати, запалюючи динаміт!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [794847848] = {
+        ["english"] = { [1] = "Die in the name of Ragnaros!" },
+        ["text"] = "Помри в імʼя Раґнароса!",
+        ["npcs"] = { [1] = "Dark Iron Sapper" },
+        ["priority"] = 1,
+    },
+    [221045965] = {
+        ["english"] = { [1] = "The secrets of Suntara will not leave these lands." },
+        ["text"] = "Таємниці Сантари не покинуть ці землі.",
+        ["npcs"] = { [1] = "Dark Iron Steelshifter" },
+        ["priority"] = 1,
+    },
+    [4099759046] = {
+        ["english"] = { [1] = "Ragnaros sees all, mortal." },
+        ["text"] = "Раґнарос бачить усе, {стать:смертний:смертна}.",
+        ["npcs"] = { [1] = "Dark Iron Steelshifter" },
+        ["priority"] = 1,
+    },
+    [1208492961] = {
+        ["english"] = { [1] = "Prepare to die, <class> scum!" },
+        ["text"] = "Готуйся здохнути, {стать:мерзенний:мерзенна} {клас:н}!#die, <class> scum",
+        ["npcs"] = { [1] = "Dark Strand Assassin" },
+        ["priority"] = 1,
+    },
+    [2262837276] = {
+        ["english"] = { [1] = "We'll cut your throats and bleed you dry!" },
+        ["text"] = "Ми переріжемо ваші горлянки й випустимо всю кров!",
+        ["npcs"] = { [1] = "Dark Strand Assassin" },
+        ["priority"] = 1,
+    },
+    [3517079076] = {
+        ["english"] = { [1] = "We'll have your heads!" },
+        ["text"] = "Ми відрубаємо вам голови!",
+        ["npcs"] = { [1] = "Dark Strand Assassin" },
+        ["priority"] = 1,
+    },
+    [822311711] = {
+        ["english"] = { [1] = "For the Dark Strand!" },
+        ["text"] = "За Темне Пасмо!",
+        ["npcs"] = { [1] = "Dark Strand Assassin" },
+        ["priority"] = 1,
+    },
+    [3631428161] = {
+        ["english"] = { [1] = "The Wickerman Festival now begins!  Power to the Forsaken!" },
+        ["text"] = "Фестиваль Плетеного чоловічка починається! Силу відреченим!",
+        ["npcs"] = { [1] = "Darkcaller Yanka" },
+        ["priority"] = 1,
+    },
+    [3476960721] = {
+        ["english"] = { [1] = "School is in session!" },
+        ["text"] = "Заняття починаються!",
+        ["npcs"] = { [1] = "Darkmaster Gandling" },
+        ["priority"] = 1,
+    },
+    [1622429277] = {
+        ["english"] = { [1] = "The Darkmoon Faire is the greatest event on all of Azeroth!" },
+        ["text"] = "Ярмарок Темного місяця — найвидатніша подія в усьому Азероті!",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [1752245442] = {
+        ["english"] = { [1] = "Can't you see I've got work to do here?" },
+        ["text"] = "Хіба не бачиш, що я тут зайнятий?",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [2690650590] = {
+        ["english"] = { [1] = "Sure are a lot of litter bugs around here." },
+        ["text"] = "Ну звісно, тут знову буде купа сміття",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [2902496179] = {
+        ["english"] = { [1] = "Having a good time?" },
+        ["text"] = "Розважаєтесь?",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [2937636264] = {
+        ["english"] = { [1] = "Faire's a coming!" },
+        ["text"] = "Ярмарок наближається!",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [3642562166] = {
+        ["english"] = { [1] = "Don't forget to buy refreshments and souvenirs!" },
+        ["text"] = "Не забудьте придбати напої та сувеніри!",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [3898949188] = {
+        ["english"] = { [1] = "That's right friend!  The Darkmoon Faire is going to be right here.  Just as soon as I unload those huge wagons, put up all the tents, erect the zoo and pour the drinks.  Make sure you come back!" },
+        ["text"] = "Це правда, друзі! Ярмарок Темного місяця відбудеться саме тут. Щойно я розвантажу ці величезні вози, розставлю всі намети, зведу загін і розіллю напої. Обов'язково приходьте!",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [402604530] = {
+        ["english"] = { [1] = "Won't be long now until the Darkmoon Faire opens.  Come back later and check to see if we're done." },
+        ["text"] = "Ярмарок Темного місяця почнеться зовсім скоро. Повертайтесь пізніше і приєднуйтесь до свята!",
+        ["npcs"] = { [1] = "Darkmoon Faire Carnie" },
+        ["priority"] = 1,
+    },
+    [1941310392] = {
+        ["english"] = { [1] = "Captain Redpath is slain!" },
+        ["text"] = "Капітан Редпат мертвий!",
+        ["npcs"] = { [1] = "Darrowshire Defender" },
+        ["priority"] = 1,
+    },
+    [3031771785] = {
+        ["english"] = { [1] = "Davil Lightfire is defeated!  Darrowshire is lost!" },
+        ["text"] = "Дейвіл Сяйносвіт мертвий! Дарроушир приречений!",
+        ["npcs"] = { [1] = "Darrowshire Defender" },
+        ["priority"] = 1,
+    },
+    [3197241107] = {
+        ["english"] = { [1] = "The Scourge are defeated!  Darrowshire is saved!" },
+        ["text"] = "Ми перемогли Скару! Дарроушир врятовано!",
+        ["npcs"] = { [1] = "Darrowshire Defender" },
+        ["priority"] = 1,
+    },
+    [3491563912] = {
+        ["english"] = { [1] = "Horgus is slain!  Take heart, defenders of Darrowshire!" },
+        ["text"] = "Горґус мертвий! Тримайтесь, захисники Дарроушира!",
+        ["npcs"] = { [1] = "Darrowshire Defender" },
+        ["priority"] = 1,
+    },
+    [451134110] = {
+        ["english"] = { [1] = "Darrowshire, to arms!  The Scourge approach!" },
+        ["text"] = "Дарроушир, до зброї! Скара наближається!",
+        ["npcs"] = { [1] = "Darrowshire Defender" },
+        ["priority"] = 1,
+    },
+    [1579816303] = {
+        ["english"] = { [1] = "The Light must prevail!" },
+        ["text"] = "Світло має перемогти!",
+        ["npcs"] = { [1] = "Darrowshire Poltergeist" },
+        ["priority"] = 1,
+    },
+    [2325812430] = {
+        ["english"] = { [1] = "Do not fail us!" },
+        ["text"] = "Не підведи нас!",
+        ["npcs"] = { [1] = "Darrowshire Poltergeist" },
+        ["priority"] = 1,
+    },
+    [317449904] = {
+        ["english"] = { [1] = "You must save him!" },
+        ["text"] = "Ти маєш врятувати його!",
+        ["npcs"] = { [1] = "Darrowshire Poltergeist" },
+        ["priority"] = 1,
+    },
+    [3836475472] = {
+        ["english"] = { [1] = "End our suffering!" },
+        ["text"] = "Поклади край нашим стражданням!",
+        ["npcs"] = { [1] = "Darrowshire Poltergeist" },
+        ["priority"] = 1,
+    },
+    [954147155] = {
+        ["english"] = { [1] = "Oh, Darrowshire!  I would give a thousand lives for you!" },
+        ["text"] = "О, Дарроушир! Я б віддав за тебе тисячу життів!",
+        ["npcs"] = { [1] = "Darrowshire Poltergeist" },
+        ["priority"] = 1,
+    },
+    [2084332427] = {
+        ["english"] = { [1] = "%s gestures at the piles of books." },
+        ["text"] = "%s вказує на купу книг навколо.",
+        ["npcs"] = { [1] = "Daryn Lightwind" },
+        ["priority"] = 1,
+    },
+    [3335878221] = {
+        ["english"] = { [1] = "Take a look around, <name>. Perhaps you will find something that I have missed." },
+        ["text"] = "Поглянь навкруги, {ім'я:к}. Можливо, ти знайдеш те, що я пропустила.#around, <name>.",
+        ["npcs"] = { [1] = "Daryn Lightwind" },
+        ["priority"] = 1,
+    },
+    [1458512438] = {
+        ["english"] = { [1] = "Now you're gonna get it good, <name>!" },
+        ["text"] = "Зараз я тобі покажу, {ім'я:к}!#it good, <name>!",
+        ["npcs"] = { [1] = "Dashel Stonefist" },
+        ["priority"] = 1,
+    },
+    [2804871413] = {
+        ["english"] = { [1] = "Okay, okay! Enough fighting. No one else needs to get hurt." },
+        ["text"] = "Гаразд, все! Досить битися. Ми можемо поговорити.",
+        ["npcs"] = { [1] = "Dashel Stonefist" },
+        ["priority"] = 1,
+    },
+    [3517227850] = {
+        ["english"] = { [1] = "It's okay, boys. Back off. You've done enough. I'll meet up with you later." },
+        ["text"] = "Все гаразд, хлопці. Досить, ви добре впорались. Побачимось пізніше.",
+        ["npcs"] = { [1] = "Dashel Stonefist" },
+        ["priority"] = 1,
+    },
+    [2430883155] = {
+        ["english"] = { [1] = "Do not lose hope, Darrowshire!  We will not fall!" },
+        ["text"] = "Не втрачай надії, Дарроушире! Ми не здамося!",
+        ["npcs"] = { [1] = "Davil Lightfire" },
+        ["priority"] = 1,
+    },
+    [2933078400] = {
+        ["english"] = { [1] = "Horgus, your nightmare ends!  Now!" },
+        ["text"] = "Горґус, твоєму злу прийшов кінець!",
+        ["npcs"] = { [1] = "Davil Lightfire" },
+        ["priority"] = 1,
+    },
+    [606843393] = {
+        ["english"] = { [1] = "Ah!  My wounds are too severe.  Defenders, fight on without me!" },
+        ["text"] = "Ах! Мої рани занадто тяжкі. Захисники, бийтеся без мене!",
+        ["npcs"] = { [1] = "Davil Lightfire" },
+        ["priority"] = 1,
+    },
+    [169740867] = {
+        ["english"] = { [1] = "ENOUGH - this ends now!  You fools will be added to my bone collection!" },
+        ["text"] = "ДОСИТЬ! Я покінчу з вами тут і зараз! Ви, дурні, поповните мою колекцію кісток!",
+        ["npcs"] = { [1] = "Death Knight Darkreaver" },
+        ["priority"] = 1,
+    },
+    [1948564470] = {
+        ["english"] = { [1] = "Protect the flight!  These intruders die now!" },
+        ["text"] = "Захищайте зграю! Ці загарбники мають померти!",
+        ["npcs"] = { [1] = "Death Talon Captain" },
+        ["priority"] = 1,
+    },
+    [3214665951] = {
+        ["english"] = { [1] = "The blood samples must be protected!  Destroy the intruders!" },
+        ["text"] = "Захищайте зразки крові! Знищте загарбників!",
+        ["npcs"] = { [1] = "Death Talon Overseer" },
+        ["priority"] = 1,
+    },
+    [1085853588] = {
+        ["english"] = { [1] = "*sigh* It's about time to check on the cemetery again-- I'll be back in a few minutes." },
+        ["text"] = "*зітхає* Пора знову оглянути кладовище... Я повернуся за кілька хвилин.",
+        ["npcs"] = { [1] = "Deathguard Bartholomew" },
+        ["priority"] = 1,
+    },
+    [413461208] = {
+        ["english"] = { [1] = "Before you depart, <class>, check in with Jamie Nore in the town hall. She may have a task for you." },
+        ["text"] = "Перш ніж підеш, {клас:к}, зайди в ратушу й поговори з Джеймі Нор. У неї може знайтись завдання для тебе.#depart, <class>,",
+        ["npcs"] = { [1] = "Deathguard Burgess" },
+        ["priority"] = 1,
+    },
+    [1490982862] = {
+        ["english"] = { [1] = "Argh, the pain. Will it ever leave me?" },
+        ["text"] = "Аргх, цей біль. Коли вже він мене полишить?",
+        ["npcs"] = { [1] = "Deathguard Kel" },
+        ["priority"] = 1,
+    },
+    [3309956292] = {
+        ["english"] = { [1] = "Ah, <priest/priestess>, you came along just in time. I appreciate it." },
+        ["text"] = "А, {стать:жрець:жриця}, ти вчасно. Я дуже тобі вдячний.#Ah, <priest/priestess>, you",
+        ["npcs"] = { [1] = "Deathguard Kel" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Ah, <priest/priestess>, you came along just in time. I appreciate it." },
+                ["text"] = "А, {стать:жрець:жриця}, ти вчасно. Я дуже тобі вдячна.#Ah, <priest/priestess>, you",
+                ["npcs"] = { [1] = "Sentinel Shaya" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [371055456] = {
+        ["english"] = { [1] = "Thank you! Thank you, <priest/priestess>. Now I can take on those gnolls with your power to back me!" },
+        ["text"] = "Дякую! Щиро дякую, {стать:жерцю:жрице}. Завдяки тобі я знову зможу битись з гнолами!",
+        ["npcs"] = { [1] = "Deathguard Kel" },
+        ["priority"] = 1,
+    },
+    [500735517] = {
+        ["english"] = { [1] = "Farewell to you, and may shadow always protect you!" },
+        ["text"] = "Бувай, і нехай тіні завжди захищають тебе!",
+        ["npcs"] = { [1] = "Deathguard Kel" },
+        ["priority"] = 1,
+    },
+    [1092570404] = {
+        ["english"] = { [1] = "I am unworthy, master!" },
+        ["text"] = "Я нічого не вартий, вчителю!",
+        ["npcs"] = { [1] = "Deathknight Understudy" },
+        ["priority"] = 1,
+    },
+    [1961929919] = {
+        ["english"] = { [1] = "Student will work harder, master!" },
+        ["text"] = "Учень працюватиме старанніше, вчителю!",
+        ["npcs"] = { [1] = "Deathknight Understudy" },
+        ["priority"] = 1,
+    },
+    [3388711179] = {
+        ["english"] = { [1] = "Sir, student requests that you beat him for his lack of understanding!" },
+        ["text"] = "Пане, учень просить, щоб ви побили його за нерозуміння!",
+        ["npcs"] = { [1] = "Deathknight Understudy" },
+        ["priority"] = 1,
+    },
+    [800756733] = {
+        ["english"] = { [1] = "Student is worthless, master! Student apologizes for his deficiency!" },
+        ["text"] = "Учень нікчемний, вчителю! Учень просить вибачення за свою недолугість!",
+        ["npcs"] = { [1] = "Deathknight Understudy" },
+        ["priority"] = 1,
+    },
+    [1894889894] = {
+        ["english"] = { [1] = "About time someone killed the wretch." },
+        ["text"] = "Давно вже пора було комусь вбити цього покидька.",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [2835891999] = {
+        ["english"] = { [1] = "Free from this wretched cell at last! Let me show you to the courtyard...." },
+        ["text"] = "Нарешті я вибрався з цієї нікчемної камери! Дозвольте показати вам внутрішній двір...",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [2937661199] = {
+        ["english"] = { [1] = "There we go!" },
+        ["text"] = "Ось так!",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [2969683093] = {
+        ["english"] = { [1] = "%s fumbles with the rusty lock on the courtyard door." },
+        ["text"] = "%s возиться з іржавим замком на дверях внутрішнього двору.",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [3621759004] = {
+        ["english"] = { [1] = "Good luck with Arugal. I must hurry back to Hadrec now." },
+        ["text"] = "Нехай щастить з Аруґалом. Я маю негайно повертатися до Гадрека.",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [833423798] = {
+        ["english"] = { [1] = "You are indeed courageous for wanting to brave the horrors that lie beyond this door." },
+        ["text"] = "А ви дійсно сміливі, якщо хочете зустрітись з жахами, що чекають на вас за цими дверима.",
+        ["npcs"] = { [1] = "Deathstalker Adamant" },
+        ["priority"] = 1,
+    },
+    [1120569929] = {
+        ["english"] = { [1] = "We're almost there!" },
+        ["text"] = "Ми майже на місці!",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [1540598206] = {
+        ["english"] = { [1] = "Beware!  I am under attack!" },
+        ["text"] = "Обережно! На мене напали!",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [161384637] = {
+        ["english"] = { [1] = "Let's get to the others, and keep an eye open for those wolves outside..." },
+        ["text"] = "Ну, ходімо до інших. І не забувай про вовків...",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [2653272304] = {
+        ["english"] = { [1] = "Beware!  A <target> is upon us!" },
+        ["text"] = "Стережися! {Ціль:н} йде на нас!",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [2782667029] = {
+        ["english"] = { [1] = "Hello, Quinn.  How are you faring?" },
+        ["text"] = "Привіт, Квінн. Як справи?",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [2891836007] = {
+        ["english"] = { [1] = "If I am excused, then I'd like to check on Quinn..." },
+        ["text"] = "Якщо можна, я б хотів поглянути, як там Квінн...",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [3572161721] = {
+        ["english"] = { [1] = "A <target> attacks!" },
+        ["text"] = "{Ціль:н} атакує!#A <target> attacks",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [3886861748] = {
+        ["english"] = { [1] = "Be careful, <name>.  Those wolves like to hide among the trees." },
+        ["text"] = "Обережно, {ім'я:к}. Вовки люблять ховатись серед дерев.#careful, <name>.",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [3958545699] = {
+        ["english"] = { [1] = "We made it!  Thanks, <name>.  I couldn't have gotten here without you." },
+        ["text"] = "Нам вдалося! Дякую, {ім'я:к}. Я б не дістався сюди без тебе.#Thanks, <name>.",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [426077512] = {
+        ["english"] = { [1] = "Try to take better care of yourself, Quinn.  You were lucky this time." },
+        ["text"] = "Бережи себе, Квінне. Цього разу тобі пощастило.",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [955498519] = {
+        ["english"] = { [1] = "Masses of wolves are to the east, and whoever lived at Malden's Orchard is gone." },
+        ["text"] = "На сході звідси купа вовків, а в саду Мальдена вже нікого немає.",
+        ["npcs"] = { [1] = "Deathstalker Erland" },
+        ["priority"] = 1,
+    },
+    [2936017095] = {
+        ["english"] = { [1] = "Well done. A blow to Arugal no doubt!" },
+        ["text"] = "Гарна робота. І який потужний удар по Аруґалу!",
+        ["npcs"] = { [1] = "Deathstalker Faerleia" },
+        ["priority"] = 1,
+    },
+    [4080648759] = {
+        ["english"] = { [1] = "Be ready, <name>. I hear the council returning. Prepare to ambush!" },
+        ["text"] = "Приготуйся, {ім'я:к}. Я чую, як радники повертаються. Готуй засідку!#ready, <name>.",
+        ["npcs"] = { [1] = "Deathstalker Faerleia" },
+        ["priority"] = 1,
+    },
+    [3754424600] = {
+        ["english"] = { [1] = "Arrrgh!" },
+        ["text"] = "Арррґх!",
+        ["npcs"] = { [1] = "Deathstalker Vincent" },
+        ["priority"] = 1,
+    },
+    [556540772] = {
+        ["english"] = { [1] = "You cannot save him!" },
+        ["text"] = "Їх вже не врятувати!",
+        ["npcs"] = { [1] = "Decrepit Guardian" },
+        ["priority"] = 1,
+    },
+    [4278545298] = {
+        ["english"] = { [1] = "%s hatches!" },
+        ["text"] = "%s вилуплюється!",
+        ["npcs"] = { [1] = "Deepmoss Hatchling" },
+        ["priority"] = 1,
+    },
+    [732401472] = {
+        ["english"] = { [1] = "%s arrives!" },
+        ["text"] = "%s наближається!",
+        ["npcs"] = { [1] = "Deepmoss Matriarch" },
+        ["priority"] = 1,
+    },
+    [1892509577] = {
+        ["english"] = { [1] = "The Brotherhood will not be hampered by insects." },
+        ["text"] = "Непокірних не зупинять такі нікчеми.",
+        ["npcs"] = { [1] = "Defias Dockmaster" },
+        ["priority"] = 1,
+    },
+    [2435772989] = {
+        ["english"] = { [1] = "Look alive, dogs! We got an operation to run here!" },
+        ["text"] = "Сюди, пси! У нас тут шпигун!",
+        ["npcs"] = { [1] = "Defias Dockmaster" },
+        ["priority"] = 1,
+    },
+    [2805587126] = {
+        ["english"] = { [1] = "I smell an intruder..." },
+        ["text"] = "Я відчуваю непроханого гостя...",
+        ["npcs"] = { [1] = "Defias Dockmaster" },
+        ["priority"] = 1,
+    },
+    [928656847] = {
+        ["english"] = { [1] = "What's that noise?" },
+        ["text"] = "Що це за шум?",
+        ["npcs"] = { [1] = "Defias Dockmaster" },
+        ["priority"] = 1,
+    },
+    [1238356432] = {
+        ["english"] = { [1] = "Who dares to provoke the messenger of Edwin Van Cleef?  Die <race>!" },
+        ["text"] = "Хто насмілюється перешкоджати гінцю Едвіна Ван-Кліфа? Помри, {раса:к}!",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [1839139285] = {
+        ["english"] = { [1] = "I have a special message for <name>.  And it says you must die!" },
+        ["text"] = "У мене є особливе повідомлення для {ім'я:р}. І в ньому сказано, що ти маєш померти!#for <name>.",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [2233079587] = {
+        ["english"] = { [1] = "Die in the name of Edwin Van Cleef!" },
+        ["text"] = "Помри в імʼя Едвіна Ван-Кліфа!",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [2459955564] = {
+        ["english"] = { [1] = "Who dares interfere with the business of the Defias Brotherhood?  Die <class>!" },
+        ["text"] = "Хто сміє втручатися в справи Братства Непокірних? Помри, {клас:к}!#Die <class>!",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [2656952024] = {
+        ["english"] = { [1] = "Death to any <race> that stands in my way!" },
+        ["text"] = "Смерть усім {раса:мн}, що стоять на моєму шляху!#any <race> that",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [268868155] = {
+        ["english"] = { [1] = "Here's a singing telegram for <name>: Roses are red, violets are blue, I will kill any <race> I see, including you!" },
+        ["text"] = "Ось музичне послання для {ім'я:р}: Скільки себе пам'ятаю, завше хотілось мені, вбити нікчему-{раса:з}, прямо {стать:такого, як ти:таку, як і ти}!",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [2729013794] = {
+        ["english"] = { [1] = "Stonemasons. . .errr. . Defias be warned:  The rusty anchor sinks tonight." },
+        ["text"] = "Каменярі... еее... Непокірні, остерігайтеся: Іржавий якір опуститься цієї ночі.",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [2913678441] = {
+        ["english"] = { [1] = "I'll deliver you, weak <class>, to the afterlife!" },
+        ["text"] = "Я відправлю тебе, {стать:нікчемний:нікчемна} {клас:к}, у потойбіччя!#weak <class>, to",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [3470112421] = {
+        ["english"] = { [1] = "Am I carrying any letters addressed to <name>? Why, no!  Looks like it's time for you to die!" },
+        ["text"] = "Хм, чи є в мене листи для {ім'я:р}? Ні! Здається, тобі доведеться вмерти!#to <name>?",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [509234053] = {
+        ["english"] = { [1] = "The boss wants all hands on high alert.  The rusty anchor sinks tonight." },
+        ["text"] = "Бос наказав всім бути напоготові. Іржавий якір опуститься цієї ночі.",
+        ["npcs"] = { [1] = "Defias Messenger" },
+        ["priority"] = 1,
+    },
+    [1489973655] = {
+        ["english"] = { [1] = "No farm woman can stand against the Defias!" },
+        ["text"] = "Жодна фермерка не зупинить Непокірних!",
+        ["npcs"] = { [1] = "Defias Raider" },
+        ["priority"] = 1,
+    },
+    [2282013531] = {
+        ["english"] = { [1] = "First Westfall, next, all of Stormwind!" },
+        ["text"] = "Спочатку Західний край, а далі — весь Штормовій!",
+        ["npcs"] = { [1] = "Defias Raider" },
+        ["priority"] = 1,
+    },
+    [3611397749] = {
+        ["english"] = { [1] = "Kill her! Take the farm!" },
+        ["text"] = "Вбийте її! Захопіть ферму!",
+        ["npcs"] = { [1] = "Defias Raider" },
+        ["priority"] = 1,
+    },
+    [917869544] = {
+        ["english"] = { [1] = "This place is safe for the Defias to take over! Get the others." },
+        ["text"] = "Це місце належатиме Непокірним! Поклич інших.",
+        ["npcs"] = { [1] = "Defias Raider" },
+        ["priority"] = 1,
+    },
+    [1472036349] = {
+        ["english"] = { [1] = "Kill the guards, take the Warden alive!" },
+        ["text"] = "Убийте вартових, схопіть наглядача!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [1908733875] = {
+        ["english"] = { [1] = "Your jail is ours!" },
+        ["text"] = "Ця в'язниця — наша!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [2348432499] = {
+        ["english"] = { [1] = "Kill them all!" },
+        ["text"] = "Вбийте їх усіх!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [2436880928] = {
+        ["english"] = { [1] = "Death to the Warden!" },
+        ["text"] = "Смерть наглядачу!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [2501661725] = {
+        ["english"] = { [1] = "DIE!" },
+        ["text"] = "ЗДОХНИ!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [4206509574] = {
+        ["english"] = { [1] = "We'll dance on your bones!" },
+        ["text"] = "Ми танцюватимемо на ваших кістках!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [526009539] = {
+        ["english"] = { [1] = "Freedom!" },
+        ["text"] = "Свобода!",
+        ["npcs"] = { [1] = "Defias Rioter" },
+        ["priority"] = 1,
+    },
+    [2225369516] = {
+        ["english"] = { [1] = "This land belongs to the Defias Brotherhood now!" },
+        ["text"] = "Ці землі тепер належать Братству Непокірних!",
+        ["npcs"] = { [1] = "Defias Thug" },
+        ["priority"] = 1,
+    },
+    [4277617887] = {
+        ["english"] = { [1] = "I see those fools at the Abbey sent some fresh meat for us." },
+        ["text"] = "Бачу, ці дурні з абатства послали нам свіже м'ясо.",
+        ["npcs"] = { [1] = "Defias Thug" },
+        ["priority"] = 1,
+    },
+    [1043121982] = {
+        ["english"] = { [1] = "Klaven doesn't pay me enough to deal with zombies, drones, or whatever he calls 'em." },
+        ["text"] = "Клейвен не платить мені стільки, щоб я водилася з зомбі, чи мерцями, чи як він їх там називає.",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [160174595] = {
+        ["english"] = { [1] = "Hey, Raven..." },
+        ["text"] = "Гей, Вороно...",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [2560020184] = {
+        ["english"] = { [1] = "Yea?" },
+        ["text"] = "А?",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [3414947130] = {
+        ["english"] = { [1] = "Can we take a break? My feet are killing me and those ... those things down there are creeping me out." },
+        ["text"] = "Може, зробимо перерву? Мої ноги вже відпадають, і ті... ті створіння внизу мене лякають.",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [3631142510] = {
+        ["english"] = { [1] = "*Sigh* You're probably right, Raven. I'm going back on patrol...." },
+        ["text"] = "*Зітхає* Мабуть, ти маєш рацію, Вороно. Я повертаюсь на патрулювання....",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [4163977046] = {
+        ["english"] = { [1] = "I dunno, Jill. If Klaven comes down while we're slacking, we may end up as one of those things!" },
+        ["text"] = "Не знаю, Джил. Якщо Клейвен побачить, що ми байдикуємо, ми можемо стати одними з тих створінь!",
+        ["npcs"] = { [1] = "Defias Tower Patroller" },
+        ["priority"] = 1,
+    },
+    [881297792] = {
+        ["english"] = { [1] = "%s begins to make a copy of itself!" },
+        ["text"] = "%s створює робити копію самої себе!",
+        ["npcs"] = { [1] = "Devouring Ectoplasm" },
+        ["priority"] = 1,
+    },
+    [663388843] = {
+        ["english"] = { [1] = "%s is enraged!" },
+        ["text"] = "%s лютує!",
+        ["npcs"] = { [1] = "Discordant Surge" },
+        ["priority"] = 1,
+    },
+    [3263720165] = {
+        ["english"] = { [1] = "Pssst... <name>... Come closer, we need to talk." },
+        ["text"] = "Псс... {ім'я:н}... Підійди ближче, нам потрібно поговорити.#Pssst... <name>... Come",
+        ["npcs"] = { [1] = "Doan Karhan" },
+        ["priority"] = 1,
+    },
+    [938667376] = {
+        ["english"] = { [1] = "Ward yourself friend... dark magic is no game." },
+        ["text"] = "Бережи себе, {стать:друже:подруго}... темна магія — не забавка.",
+        ["npcs"] = { [1] = "Doan Karhan" },
+        ["priority"] = 1,
+    },
+    [4001677352] = {
+        ["english"] = { [1] = "Very interesting!" },
+        ["text"] = "Дуже цікаво!",
+        ["npcs"] = { [1] = "Doc Mixilpixil" },
+        ["priority"] = 1,
+    },
+    [4209279697] = {
+        ["english"] = { [1] = "Just /lay down anywhere, <name>. I promise, this won't hurt a bit!" },
+        ["text"] = "Просто ляж десь тут, {ім'я:к}. Це не буде боляче, обіцяю!#anywhere, <name>.",
+        ["npcs"] = { [1] = "Doc Mixilpixil" },
+        ["priority"] = 1,
+    },
+    [2210547466] = {
+        ["english"] = { [1] = "I see right through your disguise, <race>. Number Two! Number Two kill!" },
+        ["text"] = "Я бачу наскрізь твоє маскування, {раса:к}. Номер два! Номер два, вбити!#disguise, <race>.",
+        ["npcs"] = { [1] = "Doctor Weavil" },
+        ["priority"] = 1,
+    },
+    [2505577163] = {
+        ["english"] = { [1] = "%s yawns." },
+        ["text"] = "%s позіхає.",
+        ["npcs"] = { [1] = "Doctor Weavil" },
+        ["priority"] = 1,
+    },
+    [2848529481] = {
+        ["english"] = { [1] = "Evil makes me so sleepy..." },
+        ["text"] = "Від зла мені так зочеться спати...",
+        ["npcs"] = { [1] = "Doctor Weavil" },
+        ["priority"] = 1,
+    },
+    [3338139917] = {
+        ["english"] = { [1] = "No hello for your old friend, Narain? Who were you expecting???" },
+        ["text"] = "Навіть не привітаєш свого старого друга, Нараін? Кого ти думав тут побачити???",
+        ["npcs"] = { [1] = "Doctor Weavil" },
+        ["priority"] = 1,
+    },
+    [555752085] = {
+        ["english"] = { [1] = "So... You thought you could fool me, did you? The greatest criminal mastermind Azeroth has ever known???" },
+        ["text"] = "То... Ви думали, що зможете мене обдурити, так? Найгеніальнішого злодія в Азероті???",
+        ["npcs"] = { [1] = "Doctor Weavil" },
+        ["priority"] = 1,
+    },
+    [1218157097] = {
+        ["english"] = { [1] = "Don't hurt Betsy, you meanie!" },
+        ["text"] = "Не кривдь Бетсі, негідник!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [2237871519] = {
+        ["english"] = { [1] = "Stop pulling her hair out!" },
+        ["text"] = "Не виривай їй волосся!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [2581656095] = {
+        ["english"] = { [1] = "I'm telling Mommy!" },
+        ["text"] = "Я скажу мамі!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [3135509075] = {
+        ["english"] = { [1] = "Gimme my dolly!!" },
+        ["text"] = "Віддай мою ляльку!!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [3573377595] = {
+        ["english"] = { [1] = "Stop! You'll pull her head off!" },
+        ["text"] = "Перестань! Ти відірвеш їй голову!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [4243683744] = {
+        ["english"] = { [1] = "WAAAHHH!!!" },
+        ["text"] = "И-И-А-А-А!!!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [756499617] = {
+        ["english"] = { [1] = "You're hurting her!" },
+        ["text"] = "Їй боляче!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [892465876] = {
+        ["english"] = { [1] = "Betsy! Give me Betsy back!" },
+        ["text"] = "Ні, Бетсі! Поверни мою Бетсі!",
+        ["npcs"] = { [1] = "Donna" },
+        ["priority"] = 1,
+    },
+    [1100997069] = {
+        ["english"] = { [1] = "Well, whatever it is, it works quite well!" },
+        ["text"] = "Ну, що б це не було, працює воно досить добре!",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [2600192313] = {
+        ["english"] = { [1] = "Please, follow me." },
+        ["text"] = "Прошу, йди за мною.",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [3266069665] = {
+        ["english"] = { [1] = "I haven't really figured out what it is, but there's something strange about the hot springs..." },
+        ["text"] = "Я поки що не зовсім розібралася, але в цих гарячих джерелах є щось дивне...",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [4083741030] = {
+        ["english"] = { [1] = "I've found that when I throw something into this water, it has improved incredibly when I retrieve it." },
+        ["text"] = "Я виявила, що якщо занурити щось у цю воду, його характеристики значно поліпшуються.",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [607994370] = {
+        ["english"] = { [1] = "Are you sure you weren't followed here? I have a very bad feeling all of a sudden..." },
+        ["text"] = "Ти {стать:впевнений:впевнена}, що за тобою не стежили? У мене погане передчуття...",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [782262517] = {
+        ["english"] = { [1] = "And I am determined to find out more... So if you need my help again, you know where I'll be." },
+        ["text"] = "І я маю намір дізнатися більше... Тож якщо тобі знову знадобиться моя допомога — ти знаєш, де мене знайти.",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [925506138] = {
+        ["english"] = { [1] = "Be on your guard!" },
+        ["text"] = "Будь насторожі!",
+        ["npcs"] = { [1] = "Donova Snowden" },
+        ["priority"] = 1,
+    },
+    [3162950862] = {
+        ["english"] = { [1] = "Your challenge has failed!" },
+        ["text"] = "Не варто було кидати нам виклик!",
+        ["npcs"] = { [1] = "Doom'rel" },
+        ["priority"] = 1,
+    },
+    [3903649064] = {
+        ["english"] = { [1] = "You have challenged the Seven, and now you will die!" },
+        ["text"] = "Ви кинули виклик Сімом, і тепер ви помрете!",
+        ["npcs"] = { [1] = "Doom'rel" },
+        ["priority"] = 1,
+    },
+    [3515783640] = {
+        ["english"] = { [1] = "You know not what you do!  We must destroy you for your own good." },
+        ["text"] = "Ви не знаєте, що робите! Ми маємо знищити вас заради вашого блага.",
+        ["npcs"] = { [1] = "Dreamscythe" },
+        ["priority"] = 1,
+    },
+    [950549708] = {
+        ["english"] = { [1] = "Turn back! Do not wake the dreamer!" },
+        ["text"] = "Забирайтесь геть! Не будіть Сновиду!",
+        ["npcs"] = { [1] = "Dreamscythe" },
+        ["priority"] = 1,
+    },
+    [4192183601] = {
+        ["english"] = { [1] = "Oooooo hot hot hot!  If that won't put spring in your step, I don't know what will!" },
+        ["text"] = "Ой-ой-ой, гаряче! Якщо це не додасть тобі бадьорості, то вже не знаю, що додасть!",
+        ["npcs"] = { [1] = "Durnan Furcutter" },
+        ["priority"] = 1,
+    },
+    [1453369247] = {
+        ["english"] = { [1] = "There's nothing like some scalding mornbrew on a chilly Dun Morogh day to get things started right!" },
+        ["text"] = "Немає нічого кращого за гарячий ранковий напій у прохолодний день у Дун-Морозі, щоб добре почати день!",
+        ["npcs"] = { [1] = "Durnan Furcutter" },
+        ["priority"] = 1,
+    },
+    [415426053] = {
+        ["english"] = { [1] = "%s flaps its wings furiously!" },
+        ["text"] = "%s несамовито розмахує крилами!",
+        ["npcs"] = { [1] = "Ebonroc" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s flaps its wings furiously!" },
+                ["text"] = "%s несамовито розмахує крилами!",
+                ["npcs"] = { [1] = "Flamegor" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1500841817] = {
+        ["english"] = { [1] = "%s calls more of his allies out of the shadows." },
+        ["text"] = "%s викликає більше союзників з тіней.",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [1697917331] = {
+        ["english"] = { [1] = "Lapdogs, all of you!" },
+        ["text"] = "Ви нікчемні плазуни!",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [203078977] = {
+        ["english"] = { [1] = "None may challenge the Brotherhood!" },
+        ["text"] = "Ніхто не сміє кидати виклик Братству!",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [3263823540] = {
+        ["english"] = { [1] = "And stay down!" },
+        ["text"] = "І не вставай!",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [3919605005] = {
+        ["english"] = { [1] = "Fools! Our cause is righteous!" },
+        ["text"] = "Дурні! Ми прагнемо справедливості!",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [4010683188] = {
+        ["english"] = { [1] = "The Brotherhood shall prevail!" },
+        ["text"] = "Братство здобуде перемогу!",
+        ["npcs"] = { [1] = "Edwin VanCleef" },
+        ["priority"] = 1,
+    },
+    [1976649100] = {
+        ["english"] = { [1] = "Meow!" },
+        ["text"] = "Няв!",
+        ["npcs"] = { [1] = "Effsee" },
+        ["priority"] = 1,
+    },
+    [2751344743] = {
+        ["english"] = { [1] = "Good day, Corbett.  Here's your cheese, fresh made this morning!  And how are things at your shop?" },
+        ["text"] = "Доброго дня, Корбете. Ось твій сир, вранішній! Як справи у крамниці?",
+        ["npcs"] = { [1] = "Elaine Trias" },
+        ["priority"] = 1,
+    },
+    [906076514] = {
+        ["english"] = { [1] = "Hi Corbett!  Here, you go!  I trust business is faring well at your clothier shop...?" },
+        ["text"] = "Привіт, Корбете! Ось, будь ласка! Сподіваюся, справи в крамниці йдуть добре?",
+        ["npcs"] = { [1] = "Elaine Trias" },
+        ["priority"] = 1,
+    },
+    [2906820234] = {
+        ["english"] = { [1] = "Finally, I am free! I come home soon, my dear!" },
+        ["text"] = "Нарешті, я вільний! Я скоро вернусь, моя люба!",
+        ["npcs"] = { [1] = "Elder Torntusk" },
+        ["priority"] = 1,
+    },
+    [23665151] = {
+        ["english"] = { [1] = "Aber?  Is that you...?  Oh...I'm so hungry, Aber!  SO HUNGRY!!" },
+        ["text"] = "Кромбі? Це ти...? Ох... Я така голодна, Кромбі! ТАКА ГОЛОДНА!",
+        ["npcs"] = { [1] = "Eliza" },
+        ["priority"] = 1,
+    },
+    [2697920918] = {
+        ["english"] = { [1] = "Wait...you are not my husband.  But he must have sent you.  And you...look..delicious!" },
+        ["text"] = "Зачекай… ти не мій чоловік. Але він, мабуть, прислав тебе. А ти... виглядаєш... смачно!",
+        ["npcs"] = { [1] = "Eliza" },
+        ["priority"] = 1,
+    },
+    [3678497653] = {
+        ["english"] = { [1] = "%s's will falters." },
+        ["text"] = "Воля %sа слабшає.",
+        ["npcs"] = { [1] = "Emberstrife" },
+        ["priority"] = 1,
+    },
+    [3022050934] = {
+        ["english"] = { [1] = "Hope is a DISEASE of the soul! This land shall wither and die!" },
+        ["text"] = "Надія — це ХВОРОБА душі! Ця земля приречена на загибель!",
+        ["npcs"] = { [1] = "Emeriss" },
+        ["priority"] = 1,
+    },
+    [4004696500] = {
+        ["english"] = { [1] = "Taste your world's corruption!" },
+        ["text"] = "Відчуйте псування вашого світу!",
+        ["npcs"] = { [1] = "Emeriss" },
+        ["priority"] = 1,
+    },
+    [1536573688] = {
+        ["english"] = { [1] = "Come, puny mortals. Come and face your end. The secrets of Ahn'Qiraj will die with Roman'khan!" },
+        ["text"] = "Йдіть, недолугі смертні. Йдіть і зустріньте свою загибель. Таємниці Ан'Кіража помруть разом з Роман'ханом!",
+        ["npcs"] = { [1] = "Emissary Roman'khan" },
+        ["priority"] = 1,
+    },
+    [1583875010] = {
+        ["english"] = { [1] = "Come to the aid of the Throne!" },
+        ["text"] = "Допоможіть Престолу!",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [1920234053] = {
+        ["english"] = { [1] = "Hail to the king, baby!" },
+        ["text"] = "Слава королю, крихітко!",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [1963466394] = {
+        ["english"] = { [1] = "They were just getting in the way anyways." },
+        ["text"] = "Вони все одно лише заважали.",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [2473347045] = {
+        ["english"] = { [1] = "Ha! You can't even begin to imagine the futility of your efforts." },
+        ["text"] = "Ха! Ви навіть не здатні уявити всю марність ваших зусиль.",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [3703752227] = {
+        ["english"] = { [1] = "Is that the best you can do?  Do you really expect that you could defeat someone as awe inspiring as me?" },
+        ["text"] = "Це все, що ви можете? Ви справді думаєте, що зможете здолати когось такого величного, як я?",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [4223143274] = {
+        ["english"] = { [1] = "Thank you for clearing out those foolish senators.  Now prepare to meet your doom at the hands of Ragnaros' most powerful servant." },
+        ["text"] = "Дякую, що позбулися тих дурних сенаторів. Тепер приготуйтеся зустріти свою загибель від рук наймогутнішого слуги Рагнароса.",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [769440050] = {
+        ["english"] = { [1] = "Your efforts are utterly pointless, fools!  You will never be able to defeat me!" },
+        ["text"] = "Ваші зусилля абсолютно марні, дурні! Ви ніколи не зможете перемогти мене!",
+        ["npcs"] = { [1] = "Emperor Dagran Thaurissan" },
+        ["priority"] = 1,
+    },
+    [114378656] = {
+        ["english"] = { [1] = "Only flesh and bone. Mortals are such easy prey..." },
+        ["text"] = "Сама лише плоть і кістки. Смертні — такі легка здобич...",
+        ["npcs"] = { [1] = "Emperor Vek'lor" },
+        ["priority"] = 1,
+    },
+    [2798737973] = {
+        ["english"] = { [1] = "You will not escape death!" },
+        ["text"] = "Ви не втечете від смерті!",
+        ["npcs"] = { [1] = "Emperor Vek'lor" },
+        ["priority"] = 1,
+    },
+    [2979483088] = {
+        ["english"] = { [1] = "Come, little ones." },
+        ["text"] = "Підходьте, малята.",
+        ["npcs"] = { [1] = "Emperor Vek'lor" },
+        ["priority"] = 1,
+    },
+    [306071217] = {
+        ["english"] = { [1] = "My brother, no!" },
+        ["text"] = "Брате мій, ні!",
+        ["npcs"] = { [1] = "Emperor Vek'lor" },
+        ["priority"] = 1,
+    },
+    [608549811] = {
+        ["english"] = { [1] = "There will be pain..." },
+        ["text"] = "Буде боляче...",
+        ["npcs"] = { [1] = "Emperor Vek'lor" },
+        ["priority"] = 1,
+    },
+    [2663519648] = {
+        ["english"] = { [1] = "Oh so much pain..." },
+        ["text"] = "Ох, як боляче...",
+        ["npcs"] = { [1] = "Emperor Vek'nilash" },
+        ["priority"] = 1,
+    },
+    [3232331725] = {
+        ["english"] = { [1] = "The feast of souls begins now..." },
+        ["text"] = "Зараз ми поласуємо вашими душами...",
+        ["npcs"] = { [1] = "Emperor Vek'nilash" },
+        ["priority"] = 1,
+    },
+    [4053383199] = {
+        ["english"] = { [1] = "Where are your manners, brother. Let us properly welcome our guests." },
+        ["text"] = "Де твої манери, брате? Привітаймо наших гостей як належить.",
+        ["npcs"] = { [1] = "Emperor Vek'nilash" },
+        ["priority"] = 1,
+    },
+    [4154089189] = {
+        ["english"] = { [1] = "Your fate is sealed!" },
+        ["text"] = "Вашу долю вирішено!",
+        ["npcs"] = { [1] = "Emperor Vek'nilash" },
+        ["priority"] = 1,
+    },
+    [682289332] = {
+        ["english"] = { [1] = "Vek'lor, I feel your pain!" },
+        ["text"] = "Век'лор, я відчуваю твій біль!",
+        ["npcs"] = { [1] = "Emperor Vek'nilash" },
+        ["priority"] = 1,
+    },
+    [1263870715] = {
+        ["english"] = { [1] = "Best drinks in Stormwind!" },
+        ["text"] = "Найкраща випивка у Штормовії!",
+        ["npcs"] = { [1] = "Erich Lohan" },
+        ["priority"] = 1,
+    },
+    [2225825820] = {
+        ["english"] = { [1] = "Free drinks at the Blue Recluse!" },
+        ["text"] = "Безплатні напої у \"Синьому Відлюднику\"!",
+        ["npcs"] = { [1] = "Erich Lohan" },
+        ["priority"] = 1,
+    },
+    [831769863] = {
+        ["english"] = { [1] = "Magical studies stressing your brain? Relax at the Blue Recluse!" },
+        ["text"] = "Магічні дослідження виснажують мозок? Відпочиньте у \"Синьому Відлюднику\"!",
+        ["npcs"] = { [1] = "Erich Lohan" },
+        ["priority"] = 1,
+    },
+    [550706322] = {
+        ["english"] = { [1] = "Ask me how to get a free drink at the Blue Recluse!" },
+        ["text"] = "Запитай мене, як отримати безплатний напій у «Синьому Самітнику»!",
+        ["npcs"] = { [1] = "Erich Lohan" },
+        ["priority"] = 1,
+    },
+    [2963527754] = {
+        ["english"] = { [1] = "May this evil aura be banished from this artifact!" },
+        ["text"] = "Нехай зло покине цей артефакт!",
+        ["npcs"] = { [1] = "Eridan Bluewind" },
+        ["priority"] = 1,
+    },
+    [3017851498] = {
+        ["english"] = { [1] = "I can feel the presence of evil leaving..." },
+        ["text"] = "Я відчуваю, як зло відступає...",
+        ["npcs"] = { [1] = "Eridan Bluewind" },
+        ["priority"] = 1,
+    },
+    [1232537635] = {
+        ["english"] = { [1] = "I now return to whence I came, only to find myself here once more to relive the same epic tragedy." },
+        ["text"] = "Тепер я повертаюсь туди, звідки прийшла, щоб знову опинитися тут і пережити цю жахливу трагедію.",
+        ["npcs"] = { [1] = "Eris Havenfire" },
+        ["priority"] = 1,
+    },
+    [125159650] = {
+        ["english"] = { [1] = "Be healed!" },
+        ["text"] = "Зцілися!",
+        ["npcs"] = { [1] = "Eris Havenfire" },
+        ["priority"] = 1,
+    },
+    [3285937107] = {
+        ["english"] = { [1] = "We are saved! The peasants have escaped the Scourge!" },
+        ["text"] = "Ми врятовані! Жителі втекли від Скари!",
+        ["npcs"] = { [1] = "Eris Havenfire" },
+        ["priority"] = 1,
+    },
+    [3999130851] = {
+        ["english"] = { [1] = "I have failed once more..." },
+        ["text"] = "Я знову всіх підвела...",
+        ["npcs"] = { [1] = "Eris Havenfire" },
+        ["priority"] = 1,
+    },
+    [1560389029] = {
+        ["english"] = { [1] = "I could crush you with but a single motion. Do not anger me." },
+        ["text"] = "Я можу знищити тебе одним помахом руки. Не гнівай мене.",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [2571183889] = {
+        ["english"] = { [1] = "Do you know who I am, zealot?" },
+        ["text"] = "Ти знаєш, хто я, ревнителю?",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [2787868111] = {
+        ["english"] = { [1] = "Kneel, heathen." },
+        ["text"] = "На коліна, єретик.",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [3080313064] = {
+        ["english"] = { [1] = "Times have changed. The young races will join us. You will never succeed." },
+        ["text"] = "Часи змінилися. Молоді раси приєднаються до нас. Ми вас зупинимо.",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [3192909156] = {
+        ["english"] = { [1] = "%s uses his index finger to make a cutting motion across his neck." },
+        ["text"] = "%s проводить пальцем по шиї",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [3957664507] = {
+        ["english"] = { [1] = "We will never allow it... We have banished him from our world before and we will banish him again." },
+        ["text"] = "Ми цього не допустимо... Ми вже одного разу вигнали його з нашого світу, і ми зробимо це знову.",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [487652073] = {
+        ["english"] = { [1] = "Guard, Bring forth the prisoner. Place him in the Circle of Binding." },
+        ["text"] = "Варта, приведіть в'язня. Помістіть його у коло зв'язування.",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [50107295] = {
+        ["english"] = { [1] = "The Primal Gods? Impossible!" },
+        ["text"] = "Первісні боги? Неможливо!",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [831752674] = {
+        ["english"] = { [1] = "I said KNEEL!" },
+        ["text"] = "Я сказав НА КОЛІНА!",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [881907244] = {
+        ["english"] = { [1] = "So Hakkar has returned?" },
+        ["text"] = "То Гаккар повернувся?",
+        ["npcs"] = { [1] = "Exzhal" },
+        ["priority"] = 1,
+    },
+    [1372962101] = {
+        ["english"] = { [1] = "The living are here!" },
+        ["text"] = "Тут живі!",
+        ["npcs"] = { [1] = "Eye of Naxxramas" },
+        ["priority"] = 1,
+    },
+    [1607615761] = {
+        ["english"] = { [1] = "Welcome to flavor country!" },
+        ["text"] = "Вітаємо у світі ароматів!",
+        ["npcs"] = { [1] = "Ezra Grimm" },
+        ["priority"] = 1,
+    },
+    [1697011773] = {
+        ["english"] = { [1] = "Looking for these???? You'll never have em!" },
+        ["text"] = "Не це шукаєте???? Ви ніколи його не отримаєте!",
+        ["npcs"] = { [1] = "Ezra Grimm" },
+        ["priority"] = 1,
+    },
+    [2360893354] = {
+        ["english"] = { [1] = "I'm going to wear your skin as a smoking jacket! The stogies? You'll have to pry them from my cold dead... er... RAWR!!!!" },
+        ["text"] = "Я з ваших шкур собі куртку зроблю! Сигари? Вам доведеться вирвати їх з моїх холодних.... мертвих... Е... РРРР!!!!",
+        ["npcs"] = { [1] = "Ezra Grimm" },
+        ["priority"] = 1,
+    },
+    [3346081443] = {
+        ["english"] = { [1] = "Be cleansed by blade, filth!" },
+        ["text"] = "Очистись моїм клинком, погань!",
+        ["npcs"] = { [1] = "Fallen Hero" },
+        ["priority"] = 1,
+    },
+    [909397099] = {
+        ["english"] = { [1] = "You dare defile this holy ground?" },
+        ["text"] = "Як ти смієш оскверняти це священне місце?",
+        ["npcs"] = { [1] = "Fallen Hero" },
+        ["priority"] = 1,
+    },
+    [1166909719] = {
+        ["english"] = { [1] = "Ancient ones guide my hand... Wake from your slumber! WAKE AND SEAL THIS CURSED PLACE!" },
+        ["text"] = "Древні, направте мої руки... Прокиньтесь від свого сну! ПРОКИНЬТЕСЬ І ЗАПЕЧАТАЙТЕ ЦЕ ПРОКЛЯТЕ МІСЦЕ!",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [1200914664] = {
+        ["english"] = { [1] = "My forces cannot overcome the Qiraji defenses. We will not be able to get close enough to place your precious barrier, dragon." },
+        ["text"] = "Мої сили не можуть подолати оборону кіражів. Ми не зможемо підібратись достатньо близько, щоб встановити твій бар'єр, драконе.",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [1531762875] = {
+        ["english"] = { [1] = "After the savagery that my people have witnessed and felt, you expect me to accept another burden, dragon? Surely you are mad." },
+        ["text"] = "Після всього зла, яке довелося пережити моєму народу, ти очікуєш, що я прийму ще один тягар, драконе? Ти, певно, несповна розуму.",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [2348086744] = {
+        ["english"] = { [1] = "%s hurls the Scepter of the Shifting Sands into the barrier, shattering it." },
+        ["text"] = "%s кидає скіпетр Мінливих Пісків у бар'єр, розбиваючи його.",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [2649662079] = {
+        ["english"] = { [1] = "I want nothing to do with Silithus, the Qiraji and least of all, any damned dragons!" },
+        ["text"] = "Я не хочу мати нічого спільного з Силітусом, кіражами, і тим паче з клятими драконами!",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [2750494422] = {
+        ["english"] = { [1] = "My son's soul will find no comfort in this hollow victory, dragon. I will have him back. Though it takes a millennia, I WILL have my son back!" },
+        ["text"] = "Душа мого сина не знайде спокою від цієї марної перемоги, драконе. Я поверну його. Навіть якщо для цього знадобляться тисяча років, Я ПОВЕРНУ свого сина!",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [3999113537] = {
+        ["english"] = { [1] = "It is done, dragon. Lead the way." },
+        ["text"] = "Я готовий, драконе. Веди нас.",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [487962429] = {
+        ["english"] = { [1] = "%s falls to one knee - exhausted." },
+        ["text"] = "%s падає на одне коліно від знесилля.",
+        ["npcs"] = { [1] = "Fandral Staghelm" },
+        ["priority"] = 1,
+    },
+    [1597265505] = {
+        ["english"] = { [1] = "They might have run all the other farmers off, but the Saldean's will never leave Westfall." },
+        ["text"] = "Вони, можливо, й вигнали інших фермерів, але Салдени ніколи не покинуть Західний край.",
+        ["npcs"] = { [1] = "Farmer Saldean" },
+        ["priority"] = 1,
+    },
+    [2041083316] = {
+        ["english"] = { [1] = "A bunch of thugs and thieves aren't going to get me to leave my land!" },
+        ["text"] = "Купка злодіїв і бандитів не змусить мене покинути свою землю!",
+        ["npcs"] = { [1] = "Farmer Saldean" },
+        ["priority"] = 1,
+    },
+    [3268175398] = {
+        ["english"] = { [1] = "Now how am I supposed to get those mechanical wretches out of my fields?" },
+        ["text"] = "І як я маю позбутися тих механічних потвор на полях?",
+        ["npcs"] = { [1] = "Farmer Saldean" },
+        ["priority"] = 1,
+    },
+    [2022235803] = {
+        ["english"] = { [1] = "You've really outdone yourself this time, Mrs. Chambers. Not a spot of mold to be found!" },
+        ["text"] = "Ви перевершили себе, пані Чамберс. Жодних слідів плісняви!",
+        ["npcs"] = { [1] = "Father Inigo Montoy" },
+        ["priority"] = 1,
+    },
+    [2290350830] = {
+        ["english"] = { [1] = "Is this a mango? Stupendous!" },
+        ["text"] = "Це що, манго? Дивовижно!",
+        ["npcs"] = { [1] = "Father Inigo Montoy" },
+        ["priority"] = 1,
+    },
+    [3779206450] = {
+        ["english"] = { [1] = "Thank you, Mrs. Chambers." },
+        ["text"] = "Дякую, пані Чамберс.",
+        ["npcs"] = { [1] = "Father Inigo Montoy" },
+        ["priority"] = 1,
+    },
+    [1161031934] = {
+        ["english"] = { [1] = "Hold! I sense an evil presence... Undead!" },
+        ["text"] = "Стій! Я відчуваю присутність зла... Невмерлі!",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [1350457698] = {
+        ["english"] = { [1] = "It looks like we're in trouble. Look lively, here they come!" },
+        ["text"] = "Здається, у нас неприємності. Будьте насторожі, вони вже тут!",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [281329027] = {
+        ["english"] = { [1] = "These three again?" },
+        ["text"] = "Знову ці троє?",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [2894411990] = {
+        ["english"] = { [1] = "They're coming out of the woodwork today. Let's keep moving or we may find more things that want me dead." },
+        ["text"] = "Вони сьогодні виповзають з усіх щілин. Продовжуймо рухатися, поки не натрапили ще на когось, хто хоче мене вбити.",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [3001936519] = {
+        ["english"] = { [1] = "Let's go <name>!" },
+        ["text"] = "Ходімо, {ім'я:к}!#Let's go <name>!",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [3135435259] = {
+        ["english"] = { [1] = "Well done! I should be fine on my own from here. Remember to talk to Delgren when you return to Maestra's Post in Ashenvale." },
+        ["text"] = "Молодець! Далі я, певно, впораюся сам. Не забудь поговорити з Дельґреном, коли повернешся на заставу Маєстри в Ясенеділ.",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [3464553593] = {
+        ["english"] = { [1] = "Assassins from that cult you found... Let's get moving before someone else finds us out here." },
+        ["text"] = "Душогуби з того нового культу... Потрібно рушати, поки нас тут хтось ще не знайшов.",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [465130956] = {
+        ["english"] = { [1] = "We must move quickly. Auberdine isn't too far away, but many enemies lurk in the forest." },
+        ["text"] = "Ми маємо рухатись швидко. Аубердін не надто далеко, але в лісі ховається багато ворогів.",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [489399138] = {
+        ["english"] = { [1] = "I'll finish you off for good this time!" },
+        ["text"] = "Цього разу я тебе остаточно знищу!",
+        ["npcs"] = { [1] = "Feero Ironhand" },
+        ["priority"] = 1,
+    },
+    [2524513457] = {
+        ["english"] = { [1] = "%s goes into a frenzy!" },
+        ["text"] = "%s впадає в шаленство!",
+        ["npcs"] = { [1] = "Flamegor" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s goes into a frenzy!" },
+                ["text"] = "%s впадає в шаленство!",
+                ["npcs"] = { [1] = "Gluth" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1350342203] = {
+        ["english"] = { [1] = "And they're off!" },
+        ["text"] = "І вони рушили!",
+        ["npcs"] = { [1] = "Fobeed" },
+        ["priority"] = 1,
+    },
+    [2484404171] = {
+        ["english"] = { [1] = "And it's the Gnome Racer coming through turn one!" },
+        ["text"] = "І гонщик гномів проходить перший поворот!",
+        ["npcs"] = { [1] = "Fobeed" },
+        ["priority"] = 1,
+    },
+    [3560486642] = {
+        ["english"] = { [1] = "And it's the Goblin Racer coming through turn one!" },
+        ["text"] = "І гонщик гоблінів проходить перший поворот!",
+        ["npcs"] = { [1] = "Fobeed" },
+        ["priority"] = 1,
+    },
+    [561652960] = {
+        ["english"] = { [1] = "Come on boys, we've got to get this bridge rebuilt." },
+        ["text"] = "До роботи, хлопці. Ми маємо відбудувати цей міст.",
+        ["npcs"] = { [1] = "Foreman Oslow" },
+        ["priority"] = 1,
+    },
+    [2799873790] = {
+        ["english"] = { [1] = "A paladin! Slaying him would please the master. Attack!" },
+        ["text"] = "Паладин! Його смерть задовольнить майстра. В атаку!",
+        ["npcs"] = { [1] = "Forsaken Scout" },
+        ["priority"] = 1,
+    },
+    [2409443554] = {
+        ["english"] = { [1] = "I shall enjoy this, <race>." },
+        ["text"] = "Я насолоджуватимусь цим, {раса:к}.#this, <race>.",
+        ["npcs"] = { [1] = "Franklin the Friendly" },
+        ["priority"] = 1,
+    },
+    [2926983904] = {
+        ["english"] = { [1] = "%s whimpers obediently." },
+        ["text"] = "%s покірно скиглить.",
+        ["npcs"] = { [1] = "Frostwolf" },
+        ["priority"] = 1,
+    },
+    [2915418226] = {
+        ["english"] = { [1] = "%s forces his Firesworn minions to regain their strength!" },
+        ["text"] = "%s змушує своїх вогнеклятів відновити сили!",
+        ["npcs"] = { [1] = "Garr" },
+        ["priority"] = 1,
+    },
+    [781081930] = {
+        ["english"] = { [1] = "%s forces one of his Firesworn minions to erupt!" },
+        ["text"] = "%s змушує одного зі своїх вогнеклятів вибухнути!",
+        ["npcs"] = { [1] = "Garr" },
+        ["priority"] = 1,
+    },
+    [1156867771] = {
+        ["english"] = { [1] = "I need to pee." },
+        ["text"] = "Хочу пісяти.",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [1668193331] = {
+        ["english"] = { [1] = "My feet hurt." },
+        ["text"] = "Ноги болять.",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [1732189127] = {
+        ["english"] = { [1] = "Is it true? Are there really crocilisks in the canals?" },
+        ["text"] = "Це правда? В каналах водяться кроколіски?",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [207184652] = {
+        ["english"] = { [1] = "Why are we goin' this way?" },
+        ["text"] = "Чому ми йдемо цією дорогою?",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [2135076495] = {
+        ["english"] = { [1] = "Where we goin'?" },
+        ["text"] = "Куди ми йдемо?",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [2358623327] = {
+        ["english"] = { [1] = "Billy says Fizzles used to be a great wizard. But he got turned into a rabbit when one of his spells went bad." },
+        ["text"] = "Біллі каже, що колись Бульчик був великим чарівником. Але він перетворився на кролика через невдале закляття.",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [411491298] = {
+        ["english"] = { [1] = "Why do we always go the same way?" },
+        ["text"] = "Чому ми постійно ходимо тим самим шляхом?",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [472029605] = {
+        ["english"] = { [1] = "Are we there yet?" },
+        ["text"] = "Ми вже прийшли?",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [809762041] = {
+        ["english"] = { [1] = "I wanna see the Mage Tower." },
+        ["text"] = "Я хочу побачити вежу магів.",
+        ["npcs"] = { [1] = "Gil" },
+        ["priority"] = 1,
+    },
+    [2516590261] = {
+        ["english"] = { [1] = "%s spots a zombie to devour!" },
+        ["text"] = "%s помічає зомбі, якого можна зжерти!",
+        ["npcs"] = { [1] = "Gluth" },
+        ["priority"] = 1,
+    },
+    [2860631378] = {
+        ["english"] = { [1] = "%s devours all nearby zombies!" },
+        ["text"] = "%s пожирає всіх зомбі поблизу!",
+        ["npcs"] = { [1] = "Gluth" },
+        ["priority"] = 1,
+    },
+    [1401600312] = {
+        ["english"] = { [1] = "Look at what <name> brought us!  Let's drink up!" },
+        ["text"] = "Подивіться, що нам {стать:приніс:принесла} {ім'я:н}! Давайте вип'ємо!",
+        ["npcs"] = { [1] = "Gnome Pit Boss" },
+        ["priority"] = 1,
+    },
+    [2169209350] = {
+        ["english"] = { [1] = "No time for beer!  The race is about to start." },
+        ["text"] = "Немає часу на випивку! Перегони ось-ось почнуться.",
+        ["npcs"] = { [1] = "Gnome Pit Boss" },
+        ["priority"] = 1,
+    },
+    [2066772425] = {
+        ["english"] = { [1] = "<name> brought us booze!  Let's party!" },
+        ["text"] = "{ім'я:н} {стать:приніс:принесла} нам випивку! Влаштуймо вечірку!",
+        ["npcs"] = { [1] = "Goblin Pit Boss" },
+        ["priority"] = 1,
+    },
+    [1121391341] = {
+        ["english"] = { [1] = "I... am... undone." },
+        ["text"] = "Я... знищений.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [1314457718] = {
+        ["english"] = { [1] = "I have waited long enough. Now you face the harvester of souls." },
+        ["text"] = "Я довго цього чекав. Тепер ви зустрінетесь з женцем душ.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [2217772030] = {
+        ["english"] = { [1] = "Brazenly you have disregarded powers beyond your understanding." },
+        ["text"] = "Ви зухвало знехтували силами, що виходять за межі вашого розуміння.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [2328240315] = {
+        ["english"] = { [1] = "Death is the only escape!" },
+        ["text"] = "Смерть — це єдиний порятунок!",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [2763433507] = {
+        ["english"] = { [1] = "Now there is only one way out- to walk the lonely path of the damned." },
+        ["text"] = "Тепер є лиш один вихід — йти самотньою стежкою проклятих.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [3617044492] = {
+        ["english"] = { [1] = "Foolishly you have sought your own demise." },
+        ["text"] = "Ваша дурість привела вас до власної загибелі.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [3754129807] = {
+        ["english"] = { [1] = "You have fought hard to invade the realm of the harvester." },
+        ["text"] = "Ви завзято билися, щоб вдертися в царину женця.",
+        ["npcs"] = { [1] = "Gothik the Harvester" },
+        ["priority"] = 1,
+    },
+    [1199778238] = {
+        ["english"] = { [1] = "Today you have unmade what took me years to create! For this you shall all die by my hand!" },
+        ["text"] = "Ви знищили те, що я створював роками! За це ви всі загинете від моєї руки!",
+        ["npcs"] = { [1] = "Grand Crusader Dathrohan" },
+        ["priority"] = 1,
+    },
+    [1055970849] = {
+        ["english"] = { [1] = "Run while you still can!" },
+        ["text"] = "Біжіть, поки ще можете!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [1806848917] = {
+        ["english"] = { [1] = "Your old lives, your mortal desires mean nothing... you are acolytes of the master now, and you will serve the cause without question! The greatest glory is to die in the master's service!" },
+        ["text"] = "Ваші старі життя, ваші смертні бажання нічого не значать... Тепер ви — слуги повелителя, і ви віддано виконуватиме його волю! Найвища честь — померти в служінні повелителю!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [2127726651] = {
+        ["english"] = { [1] = "Kneel before me, worm!" },
+        ["text"] = "На коліна переді мною, мерзото!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [3503380824] = {
+        ["english"] = { [1] = "You have failed!" },
+        ["text"] = "Жалюгідно!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [359057526] = {
+        ["english"] = { [1] = "The master will avenge me!!" },
+        ["text"] = "Повелитель помститься за мене!!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [3733058985] = {
+        ["english"] = { [1] = "Slay them in the master's name!" },
+        ["text"] = "Вбийте їх в ім'я повелителя!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [4133367602] = {
+        ["english"] = { [1] = "You cannot hide from me!" },
+        ["text"] = "Вам не сховатись від мене!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [657471394] = {
+        ["english"] = { [1] = "Pathetic wretch!" },
+        ["text"] = "Нікчемні виродки!",
+        ["npcs"] = { [1] = "Grand Widow Faerlina" },
+        ["priority"] = 1,
+    },
+    [270915395] = {
+        ["english"] = { [1] = "Get'em while they are nice and fresh! Loaves of bread here!" },
+        ["text"] = "Налітайте, поки свіжі! Свіжі буханці хліба!",
+        ["npcs"] = { [1] = "Greishan Ironstove" },
+        ["priority"] = 1,
+    },
+    [1823684029] = {
+        ["english"] = { [1] = "We come from below! You can never stop us!" },
+        ["text"] = "Ми йдемо з глибин! Ви нас не зупините!",
+        ["npcs"] = { [1] = "Grubbis" },
+        ["priority"] = 1,
+    },
+    [1679302578] = {
+        ["english"] = { [1] = "Oops! That was a bit off. I didn't even hit the target!" },
+        ["text"] = "Ой! Це було трохи мимо. Я навіть не влучив у ціль!",
+        ["npcs"] = { [1] = "Guard Lasiter" },
+        ["priority"] = 1,
+    },
+    [2100716664] = {
+        ["english"] = { [1] = "Barely hit the target that time. Hmmm,... maybe I need to adjust back to the right." },
+        ["text"] = "Ледь влучив у ціль цього разу. Хмм... може, потрібно цілитись трохи правіше.",
+        ["npcs"] = { [1] = "Guard Lasiter" },
+        ["priority"] = 1,
+    },
+    [3729104260] = {
+        ["english"] = { [1] = "That was a nice shot... but not perfect. Maybe a bit more to the left." },
+        ["text"] = "Це був гарний постріл... але не ідеальний. Можливо, треба цілитись трохи лівіше.",
+        ["npcs"] = { [1] = "Guard Lasiter" },
+        ["priority"] = 1,
+    },
+    [420142467] = {
+        ["english"] = { [1] = "Whoa! Look at that bullseye!" },
+        ["text"] = "Ого! Прямо в ціль!",
+        ["npcs"] = { [1] = "Guard Lasiter" },
+        ["priority"] = 1,
+    },
+    [749181509] = {
+        ["english"] = { [1] = "Take a Candle of Beckoning from this crate, <name>." },
+        ["text"] = "Візьми свічку поклику з цього ящика, {ім'я:к}.#crate, <name>.",
+        ["npcs"] = { [1] = "Gunther Arcanus" },
+        ["priority"] = 1,
+    },
+    [1974919860] = {
+        ["english"] = { [1] = "It has been a long time, Bethor, my friend." },
+        ["text"] = "Беторе, друже мій, минуло багато часу.",
+        ["npcs"] = { [1] = "Gunther's Visage" },
+        ["priority"] = 1,
+    },
+    [2598451708] = {
+        ["english"] = { [1] = "And thank you, <name>.  Without your aid I may never have found my way to the Forsaken." },
+        ["text"] = "І дякую тобі, {ім'я:к}. Без твоєї допомоги я б можливо ніколи не знайшов свій шлях до відречених.#thank you, <name>.",
+        ["npcs"] = { [1] = "Gunther's Visage" },
+        ["priority"] = 1,
+    },
+    [650927014] = {
+        ["english"] = { [1] = "When time permits, we must speak at length.  For we have much to discuss." },
+        ["text"] = "Коли прийде час, нас чекає довга розмова. Бо нам є що обговорити.",
+        ["npcs"] = { [1] = "Gunther's Visage" },
+        ["priority"] = 1,
+    },
+    [1670365174] = {
+        ["english"] = { [1] = "Ah, much appreciated, Corbett.  We'll get these on the racks immediately." },
+        ["text"] = "О, щиро вдячний, Корбете. Ми негайно розмістимо їх на полицях.",
+        ["npcs"] = { [1] = "Harlan Bagley" },
+        ["priority"] = 1,
+    },
+    [4184505903] = {
+        ["english"] = { [1] = "Ah yes, and promptly delivered.  As always, it's a pleasure doing business with you, Corbett." },
+        ["text"] = "Так, чудово, і дуже вчасно. Як завжди, приємно мати з вами справу, Корбете.",
+        ["npcs"] = { [1] = "Harlan Bagley" },
+        ["priority"] = 1,
+    },
+    [3800785804] = {
+        ["english"] = { [1] = "Be bathed in the power of the Warchief! Drink in his might! Battle for the glory of the Horde!" },
+        ["text"] = "Купайтеся в силі вождя! Сповнюйтесь його могутністю! Бийтеся за славу Орди!",
+        ["npcs"] = { [1] = "Herald of Thrall" },
+        ["priority"] = 1,
+    },
+    [3974062951] = {
+        ["english"] = { [1] = "Honor your heroes! On this day, they have dealt a great blow against one of our most hated enemies! The false Warchief, Rend Blackhand, has fallen!" },
+        ["text"] = "Шануймо наших героїв! Цього дня вони завдали нищівного удару одному з наших найненависніших ворогів! Самозваний вождь, Ренд Чорнорук, нарешті мертвий!",
+        ["npcs"] = { [1] = "Herald of Thrall" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Honor your heroes! On this day, they have dealt a great blow against one of our most hated enemies! The false Warchief, Rend Blackhand, has fallen!" },
+                ["text"] = "Шануймо наших героїв! Цього дня вони завдали нищівного удару одному з наших найненависніших ворогів! Самозваний вождь, Ренд Чорнорук, нарешті мертвий!",
+                ["npcs"] = { [1] = "Thrall" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2560977067] = {
+        ["english"] = { [1] = "Be lifted by <name>'s accomplishment! Revel in <his/her> rallying cry!" },
+        ["text"] = "Надихайтеся успіхом {ім'я:р}! Насолоджуйтесь {стать:його:її} кличем!#by <name>'s#in <his/her> rallying",
+        ["npcs"] = { [1] = "High Overlord Saurfang" },
+        ["priority"] = 1,
+    },
+    [2770016986] = {
+        ["english"] = { [1] = "The battle is won! Watch as they flee to the safety of their precious temple. Soon all will be razed... Their leaders destroyed!" },
+        ["text"] = "Битву виграно! Вони втікають до свого дорогоцінного храму. Скоро ми зачистимо його... Їхніх ватажків буде знищено!",
+        ["npcs"] = { [1] = "High Overlord Saurfang" },
+        ["priority"] = 1,
+    },
+    [3541841561] = {
+        ["english"] = { [1] = "Is that the best you can do?" },
+        ["text"] = "Це все, що ти можеш?",
+        ["npcs"] = { [1] = "High Overlord Saurfang" },
+        ["priority"] = 1,
+    },
+    [416058140] = {
+        ["english"] = { [1] = "NEFARIAN IS SLAIN! People of Orgrimmar, bow down before the might of <name> and <his/her> allies for they have laid a blow against the Black Dragonflight that is sure to stir the Aspects from their malaise! This defeat shall surely be felt by the father of the Black Flight: Deathwing reels in pain and anguish this day!" },
+        ["text"] = "НЕФАРІАН МЕРТВИЙ! Жителі Орґріммару, падіть ниць перед могутністю {ім'я:р} та {стать:його:її} союзників. Вони завдали чорним драконам потужного удару, здатного пробудити Аспекти від їх байдужості! Без сумніву, навіть батько чорних драконів, Смертекрил, відчуває цю втрату й здригається від болю та страждань!#might of <name> and#and <his/her> allies",
+        ["npcs"] = { [1] = "High Overlord Saurfang" },
+        ["priority"] = 1,
+    },
+    [2518908346] = {
+        ["english"] = { [1] = "No two-bit traitor will stop the powder from getting to Ironband!" },
+        ["text"] = "Жоден жалюгідний зрадник не завадить доставити порох Залізносмугу!",
+        ["npcs"] = { [1] = "Huldar" },
+        ["priority"] = 1,
+    },
+    [1226784262] = {
+        ["english"] = { [1] = "%s blood sprays into the air!" },
+        ["text"] = "%s забризкує все навколо кров'ю!",
+        ["npcs"] = { [1] = "Irradiated Invader" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "%s blood sprays into the air!" },
+                ["text"] = "%s забризкує все навколо кров'ю!",
+                ["npcs"] = { [1] = "Irradiated Pillager" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1811273319] = {
+        ["english"] = { [1] = "I know it'll work this time..." },
+        ["text"] = "Цього разу точно все вийде...",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [2077702451] = {
+        ["english"] = { [1] = "Ahh... My experiments never seem to work out right. Maybe I should go back downstream." },
+        ["text"] = "Ех... Мої експерименти ніколи не вдаються. Може, мені слід почати спочатку.",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [2204051357] = {
+        ["english"] = { [1] = "Now, if I add the yellow ones..." },
+        ["text"] = "Отже, якщо додати жовті...",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [2730521272] = {
+        ["english"] = { [1] = "Oh well... Maybe next time." },
+        ["text"] = "Ну що ж... Може, якось іншим разом.",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [2824099260] = {
+        ["english"] = { [1] = "Blue plus red... I predict..." },
+        ["text"] = "Сині та червоні... Я так і думала...",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [2999204935] = {
+        ["english"] = { [1] = "This will be my best experiment yet!" },
+        ["text"] = "Це буде мій найкращий експеримент!",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [3943454163] = {
+        ["english"] = { [1] = "I think... I think it's working!" },
+        ["text"] = "Здається... Здається, воно працює!",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [4124489015] = {
+        ["english"] = { [1] = "OW! That's not right!" },
+        ["text"] = "Ой! Так не годиться!",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [758880484] = {
+        ["english"] = { [1] = "<name>, that's it! I have finally figured it out!" },
+        ["text"] = "{ім'я:н}, це воно! Нарешті я все зрозуміла!#<name>, that's",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [987719060] = {
+        ["english"] = { [1] = "Now, let's see... If I am correct, then... Hmmm..." },
+        ["text"] = "Такс, погляньмо... Якщо я не помиляюсь... Хммм...",
+        ["npcs"] = { [1] = "J.D. Collie" },
+        ["priority"] = 1,
+    },
+    [1186015685] = {
+        ["english"] = { [1] = "%s loosens her grasp on the journal she had been clutching." },
+        ["text"] = "%s випускає щоденник, який вона стискала в руці.",
+        ["npcs"] = { [1] = "Jandice Barov" },
+        ["priority"] = 1,
+    },
+    [3123384480] = {
+        ["english"] = { [1] = "How goes the barrel watching...?" },
+        ["text"] = "Ну як там бочки, цілі...?",
+        ["npcs"] = { [1] = "Jarven Thunderbrew" },
+        ["priority"] = 1,
+    },
+    [2418585415] = {
+        ["english"] = { [1] = "Well, back to business for me.  But it sure was nice taking that short break, and it's always nice drinking Thunder Ale!" },
+        ["text"] = "Ну, час повертатися до справ.  Але ж добре було трохи перепочити, та й Громовий ель завжди приємно випити!",
+        ["npcs"] = { [1] = "Jarven Thunderbrew" },
+        ["priority"] = 1,
+    },
+    [1421583693] = {
+        ["english"] = { [1] = "Ok, you had the fish platter, Commander. Enjoy!" },
+        ["text"] = "Гаразд, ось ваша риба, командире. Смачного!",
+        ["npcs"] = { [1] = "Jessica Chambers" },
+        ["priority"] = 1,
+    },
+    [1971629161] = {
+        ["english"] = { [1] = "And for the ladies, roast baby boar. Enjoy!" },
+        ["text"] = "А для пані — запечене порося. Смачного!",
+        ["npcs"] = { [1] = "Jessica Chambers" },
+        ["priority"] = 1,
+    },
+    [3459181620] = {
+        ["english"] = { [1] = "Father, you had the bowl of fruit? Right?" },
+        ["text"] = "Отче, ви хотіли фрукти, правильно?",
+        ["npcs"] = { [1] = "Jessica Chambers" },
+        ["priority"] = 1,
+    },
+    [487742423] = {
+        ["english"] = { [1] = "Please let me know if you need anything else!" },
+        ["text"] = "Будь ласка, дайте мені знати, якщо вам ще щось знадобиться!",
+        ["npcs"] = { [1] = "Jessica Chambers" },
+        ["priority"] = 1,
+    },
+    [1199051485] = {
+        ["english"] = { [1] = "Give of your hearts and your purses! Give to the children of Stormwind who have lost their parents." },
+        ["text"] = "Не шкодуйте ні сердець, ні гаманців! Допоможіть дітям Штормовію, які втратили батьків.",
+        ["npcs"] = { [1] = "John Turner" },
+        ["priority"] = 1,
+    },
+    [2266553691] = {
+        ["english"] = { [1] = "Help the children of Stormwind... victims of the war and plague!" },
+        ["text"] = "Допоможіть дітям Штормовію... жертвам війни та чуми!",
+        ["npcs"] = { [1] = "John Turner" },
+        ["priority"] = 1,
+    },
+    [2577265293] = {
+        ["english"] = { [1] = "You know there are crocilisks in the Canals. They were brought from the swamp as pets, but got thrown in the canals." },
+        ["text"] = "Ви знаєте, що в каналах водяться кроколіски? Їх привезли як домашніх улюбленців з болота, але викинули в канали.",
+        ["npcs"] = { [1] = "Justin" },
+        ["priority"] = 1,
+    },
+    [3823217388] = {
+        ["english"] = { [1] = "And then the rabbit just bit his head off... I swear." },
+        ["text"] = "А потім кролик просто відкусив йому голову... Я клянусь.",
+        ["npcs"] = { [1] = "Justin" },
+        ["priority"] = 1,
+    },
+    [4064691744] = {
+        ["english"] = { [1] = "And that's how Lothar killed thirty six orcs with his bare hands!" },
+        ["text"] = "І отак Лотар убив тридцять шість орків голіруч!",
+        ["npcs"] = { [1] = "Justin" },
+        ["priority"] = 1,
+    },
+    [4068250590] = {
+        ["english"] = { [1] = "They say he can turn into a raven sometimes." },
+        ["text"] = "Кажуть, що він може перетворюватись на ворона.",
+        ["npcs"] = { [1] = "Justin" },
+        ["priority"] = 1,
+    },
+    [310723902] = {
+        ["english"] = { [1] = "Sure, Paige. Just be gentle." },
+        ["text"] = "Звичайно, Пейдж. Тільки будь обережна.",
+        ["npcs"] = { [1] = "Karlee Chaddis" },
+        ["priority"] = 1,
+    },
+    [3165568186] = {
+        ["english"] = { [1] = "Hello, Charys. I have my list, could you get me all of that, especially the last ingredient." },
+        ["text"] = "Привіт, Черіс. Ось список, чи не могла б ти зібрати все це? Особливо останній інгредієнт.",
+        ["npcs"] = { [1] = "Karlee Chaddis" },
+        ["priority"] = 1,
+    },
+    [3790904109] = {
+        ["english"] = { [1] = "Thanks, Charys. C'mon Paige, sweetie." },
+        ["text"] = "Дякую, Черіс. Пейдж, люба, ходімо.",
+        ["npcs"] = { [1] = "Karlee Chaddis" },
+        ["priority"] = 1,
+    },
+    [1834292233] = {
+        ["english"] = { [1] = "Thank you for rescuing me! Word of your deed will not go unnoticed." },
+        ["text"] = "Дякую за порятунок! Я всім розкажу про ваше геройство.",
+        ["npcs"] = { [1] = "Kernobee" },
+        ["priority"] = 1,
+    },
+    [2195518448] = {
+        ["english"] = { [1] = "Get me out of here!" },
+        ["text"] = "Витягніть мене звідси!",
+        ["npcs"] = { [1] = "Kernobee" },
+        ["priority"] = 1,
+    },
+    [3551363608] = {
+        ["english"] = { [1] = "I see the exit! Hurry, hurry!" },
+        ["text"] = "Я бачу вихід! Швидше, швидше!",
+        ["npcs"] = { [1] = "Kernobee" },
+        ["priority"] = 1,
+    },
+    [1039135411] = {
+        ["english"] = { [1] = "Attack!  For the Horde!" },
+        ["text"] = "В атаку! За Орду!",
+        ["npcs"] = { [1] = "Krug Skullsplit" },
+        ["priority"] = 1,
+    },
+    [1676833340] = {
+        ["english"] = { [1] = "The enemy is upon us, stand ready!" },
+        ["text"] = "Ворог вже близько, приготуйтесь!",
+        ["npcs"] = { [1] = "Krug Skullsplit" },
+        ["priority"] = 1,
+    },
+    [2492664721] = {
+        ["english"] = { [1] = "Merok!  Shai!  To my side!" },
+        ["text"] = "Мерок! Шаї! До мене!",
+        ["npcs"] = { [1] = "Krug Skullsplit" },
+        ["priority"] = 1,
+    },
+    [3631412734] = {
+        ["english"] = { [1] = "I'll cut you!" },
+        ["text"] = "Я тебе поріжу!",
+        ["npcs"] = { [1] = "Leper Gnome" },
+        ["priority"] = 1,
+    },
+    [3070068773] = {
+        ["english"] = { [1] = "You have disturbed my rest, <class>.  Now face my wrath!" },
+        ["text"] = "Ти смієш порушувати мій спокій, {клас:н}? Пізнай мій гнів!#my rest, <class>.",
+        ["npcs"] = { [1] = "Lillith Nefara" },
+        ["priority"] = 1,
+    },
+    [883031038] = {
+        ["english"] = { [1] = "Killing you and your cohorts, <class>, will amuse me.  I shall make it quick." },
+        ["text"] = "Вбивство тебе і твоїх друзів, {клас:к}, розважить мене. Це буде швидко.#cohorts, <class>, will",
+        ["npcs"] = { [1] = "Lord Skwol" },
+        ["priority"] = 1,
+    },
+    [1440953412] = {
+        ["english"] = { [1] = "Let not even a drop of their blood remain upon the arena floor, my children. Feast on their souls!" },
+        ["text"] = "Нехай жодної краплі їхньої крові не залишиться на арені, діти мої. Пожеріть їхні душі!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [2501713200] = {
+        ["english"] = { [1] = "Concentrate your attacks upon the healer!" },
+        ["text"] = "Зосередьте атаки на цілителі!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [2618955613] = {
+        ["english"] = { [1] = "Foolsss... Kill the one in the dress!" },
+        ["text"] = "Недоумки... Вбийте того, що в сукні!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [2644594677] = {
+        ["english"] = { [1] = "Taste in my power!" },
+        ["text"] = "Відчуйте мою силу!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [2953512755] = {
+        ["english"] = { [1] = "Do not force my hand, children! I shall use your hides to line my boots." },
+        ["text"] = "Не випробовуйте мого терпіння, діти! Я обшию свої чоботи вашою шкірою.",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [3068117024] = {
+        ["english"] = { [1] = "Excellent... it would appear as if the meddlesome insects have arrived just in time to feed my legion. Welcome, mortals!" },
+        ["text"] = "Прекрасно... схоже, ці нікчеми прибули якраз вчасно, щоб стати кормом для мого легіону. Ласкаво прошу, смертні!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [3279297740] = {
+        ["english"] = { [1] = "THIS CANNOT BE!!! Rend, deal with these insects." },
+        ["text"] = "ЦЬОГО НЕ МОЖЕ БУТИ!!! Ренд, розберись з цими нікчемами.",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [3940653207] = {
+        ["english"] = { [1] = "The Warchief shall make quick work of you, mortals. Prepare yourselves!" },
+        ["text"] = "Воєвождь швидко впорається з вами, смертні. Готуйтесь!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [411741774] = {
+        ["english"] = { [1] = "Use the freezing breath, imbecile!" },
+        ["text"] = "Скористайся морозним диханням, йолопе!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [4210638001] = {
+        ["english"] = { [1] = "Your efforts will prove fruitless. None shall stand in our way!" },
+        ["text"] = "Ваші зусилля марні. Ніхто не зможе завадити нам!",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [701236367] = {
+        ["english"] = { [1] = "Your victory shall be short lived. The days of both the Alliance and Horde are coming to an end! The next time we meet shall be the last." },
+        ["text"] = "Недовго ви насолоджуватиметесь своєю перемогою. Дні Альянсу та Орди добігають кінця! Наша наступна зустріч буде останньою.",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [931945215] = {
+        ["english"] = { [1] = "%s paces back and forth in anticipation of the battle." },
+        ["text"] = "%s ходить взад-вперед в очікуванні битви.",
+        ["npcs"] = { [1] = "Lord Victor Nefarius" },
+        ["priority"] = 1,
+    },
+    [1676306788] = {
+        ["english"] = { [1] = "Intruders at the Service Gate! Baron Rivendare must be warned!" },
+        ["text"] = "Чужинці біля службових воріт! Попередьте барона Рівендера!",
+        ["npcs"] = { [1] = "Magistrate Barthilas" },
+        ["priority"] = 1,
+    },
+    [3083612335] = {
+        ["english"] = { [1] = "You dare! Now feel my wrath, <target>." },
+        ["text"] = "Як ти смієш! Відчуй мій гнів, {ціль:к}.#wrath, <target>.",
+        ["npcs"] = { [1] = "Magus Rimtori" },
+        ["priority"] = 1,
+    },
+    [1082533495] = {
+        ["english"] = { [1] = "Impudent whelps! You've rushed headlong to your own deaths! See now, the master stirs!" },
+        ["text"] = "Нахабні виродки! Ви кинулися стрімголов назустріч власній смерті! Готуйтесь, бо володар прокинувся!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [153429995] = {
+        ["english"] = { [1] = "Behold Ragnaros - the Firelord! He who was ancient when this world was young! Bow before him, mortals! Bow before your ending!" },
+        ["text"] = "Готуйтесь зустрітися з Раґнаросом — Володарем Вогню! Тим, хто був древнім ще в часи юності цього світу! Схиліться перед ним, смертні! Схиліться перед своєю загибеллю!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [1669784066] = {
+        ["english"] = { [1] = "Impossible! Stay your attack, mortals... I submit! I submit!" },
+        ["text"] = "Це неможливо! Зупиніться, смертні... Я здаюсь! Здаюсь!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [1781985468] = {
+        ["english"] = { [1] = "Brashly, you have come to wrest the secrets of the Living Flame! You will soon regret the recklessness of your quest." },
+        ["text"] = "Ви прийшли, щоб зухвало викрасти таємниці Живого Полум'я! Незабаром ви пошкодуєте про свою необачність.",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [2338899316] = {
+        ["english"] = { [1] = "You think you've won already? Perhaps you'll need another lesson in pain!" },
+        ["text"] = "Думаєте, ви вже перемогли? Можливо, вам варто засвоїти ще один урок болю!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [2426320674] = {
+        ["english"] = { [1] = "Reckless mortals! None may challenge the Sons of the Living flame!" },
+        ["text"] = "Безрозсудні смертні! Ніхто не сміє кидати виклик Синам Живого Полум'я!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [2633782526] = {
+        ["english"] = { [1] = "Very well, <name>." },
+        ["text"] = "Добре, {ім'я:к}.#well, <name>.",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [4071976289] = {
+        ["english"] = { [1] = "I go now to summon the lord whose house this is. Should you seek an audience with him, your paltry lives will surely be forfeit! Nevertheless, seek out his lair, if you dare!" },
+        ["text"] = "А тепер я покличу володаря цієї обителі. Аудієнція з ним, безсумнівно, буде останньою у вашому житті! Що ж, ходіть до його лігва, якщо наважитеся!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [561847920] = {
+        ["english"] = { [1] = "Ashes to ashes!" },
+        ["text"] = "Прах до праху.",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [572393108] = {
+        ["english"] = { [1] = "The runes of warding have been destroyed! Hunt down the infidels, my brethren!" },
+        ["text"] = "Захисні руни знищено! Вбийте невірних, брати мої!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [748856844] = {
+        ["english"] = { [1] = "These mortal infidels, my lord! They have invaded your sanctum and seek to steal your secrets!" },
+        ["text"] = "Ці невірні смертні, мій повелителю! Вони вдерлися в твою обитель і прагнуть викрасти твої таємниці!",
+        ["npcs"] = { [1] = "Majordomo Executus" },
+        ["priority"] = 1,
+    },
+    [1124539967] = {
+        ["english"] = { [1] = "And STAY dead!" },
+        ["text"] = "І НЕ ВСТАВАЙ!",
+        ["npcs"] = { [1] = "Mekgineer Thermaplugg" },
+        ["priority"] = 1,
+    },
+    [1737895379] = {
+        ["english"] = { [1] = "Explosions! MORE explosions! I got to have more explosions!" },
+        ["text"] = "Вибухи! БІЛЬШЕ вибухів! Мені потрібно БІЛЬШЕ ВИБУХІВ!",
+        ["npcs"] = { [1] = "Mekgineer Thermaplugg" },
+        ["priority"] = 1,
+    },
+    [2539557602] = {
+        ["english"] = { [1] = "My machines are the future! They'll destroy you all!" },
+        ["text"] = "Мої машини — це майбутнє! Вони знищать вас усіх!",
+        ["npcs"] = { [1] = "Mekgineer Thermaplugg" },
+        ["priority"] = 1,
+    },
+    [3392640379] = {
+        ["english"] = { [1] = "Usurpers! Gnomeregan is mine!" },
+        ["text"] = "Загарбники! Гномреґан мій!",
+        ["npcs"] = { [1] = "Mekgineer Thermaplugg" },
+        ["priority"] = 1,
+    },
+    [2117600080] = {
+        ["english"] = { [1] = "There is a way..." },
+        ["text"] = "Є спосіб...",
+        ["npcs"] = { [1] = "Merithra of the Dream" },
+        ["priority"] = 1,
+    },
+    [2471242898] = {
+        ["english"] = { [1] = "We will push them back, Anachronos. This I vow. Uphold your end of this task. Let not your hands falter as you seal our fates behind the barrier." },
+        ["text"] = "Ми відтіснимо їх, Анахроносе. Я клянуся. Виконай свою частину справи. Нехай твої руки не тремтять, коли ти запечатуватимеш нашу долю за бар'єром.",
+        ["npcs"] = { [1] = "Merithra of the Dream" },
+        ["priority"] = 1,
+    },
+    [2501324654] = {
+        ["english"] = { [1] = "Succumb to the endless dream, little ones. Let it consume you!" },
+        ["text"] = "Скоріться вічному сну, виродки. Нехай він поглине вас!",
+        ["npcs"] = { [1] = "Merithra of the Dream" },
+        ["priority"] = 1,
+    },
+    [2734844591] = {
+        ["english"] = { [1] = "%s glances at her compatriots." },
+        ["text"] = "%s дивиться на інших драконів.",
+        ["npcs"] = { [1] = "Merithra of the Dream" },
+        ["priority"] = 1,
+    },
+    [2630946131] = {
+        ["english"] = { [1] = "I'm glad the commotions died down some around here. The last thing this place needs is another brawl." },
+        ["text"] = "Я радий, що ця метушня трохи вщухла. Останнє, що потрібно цьому місцю, — це ще одне побоїще.",
+        ["npcs"] = { [1] = "Mikhail" },
+        ["priority"] = 1,
+    },
+    [68325480] = {
+        ["english"] = { [1] = "I'll take whatever ya got cookin'! And throw in a bottle to wash it down!" },
+        ["text"] = "Візьму все, що наготуєш! І пляшку чогось, щоб запити!",
+        ["npcs"] = { [1] = "Miner Grumnal" },
+        ["priority"] = 1,
+    },
+    [2849704895] = {
+        ["english"] = { [1] = "Ah, here at last! It's going to feel so good to get rid of these barrels." },
+        ["text"] = "А, нарешті на місці! Як же добре буде нарешті позбутися цих бочок.",
+        ["npcs"] = { [1] = "Miran" },
+        ["priority"] = 1,
+    },
+    [601387200] = {
+        ["english"] = { [1] = "Help! I've only one hand to defend myself with." },
+        ["text"] = "Допоможіть! У мене лише одна вільна рука, щоб захищатися.",
+        ["npcs"] = { [1] = "Miran" },
+        ["priority"] = 1,
+    },
+    [2938500255] = {
+        ["english"] = { [1] = "Help! We're being attacked! Dark Irons!" },
+        ["text"] = "Допоможіть! На нас напали! Дворфи Темного Заліза!",
+        ["npcs"] = { [1] = "Miran" },
+        ["priority"] = 1,
+    },
+    [4212932807] = {
+        ["english"] = { [1] = "Send them on! I'm not afraid of some scrawny beasts!" },
+        ["text"] = "Нехай ідуть! Я не боюся якихось кволих звірюк!",
+        ["npcs"] = { [1] = "Miran" },
+        ["priority"] = 1,
+    },
+    [1904351712] = {
+        ["english"] = { [1] = "Warning! Warning! Intruder alert! Intruder alert!" },
+        ["text"] = "Тривога! Тривога! Порушники! Порушники!",
+        ["npcs"] = { [1] = "Mobile Alert System" },
+        ["priority"] = 1,
+    },
+    [2026093713] = {
+        ["english"] = { [1] = "Fresh bread for sale!" },
+        ["text"] = "Продається свіжий хліб!",
+        ["npcs"] = { [1] = "Myra Tyrngaarde" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Fresh bread for sale!" },
+                ["text"] = "Продається свіжий хліб!",
+                ["npcs"] = { [1] = "Thomas Miller" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3388687722] = {
+        ["english"] = { [1] = "Come get yer fresh bread!" },
+        ["text"] = "Підходьте по свіжий хліб!",
+        ["npcs"] = { [1] = "Myra Tyrngaarde" },
+        ["priority"] = 1,
+    },
+    [4083092542] = {
+        ["english"] = { [1] = "Fresh bread, baked this very morning." },
+        ["text"] = "Свіжий хліб, спечений цього ранку.",
+        ["npcs"] = { [1] = "Myra Tyrngaarde" },
+        ["priority"] = 1,
+    },
+    [1180688703] = {
+        ["english"] = { [1] = "%s flee as the controlling power of the orb is drained." },
+        ["text"] = "%s втікають, коли сила сфери домінування вичерпується.",
+        ["npcs"] = { [1] = "Nefarian's Troops" },
+        ["priority"] = 1,
+    },
+    [3375493715] = {
+        ["english"] = { [1] = "Think I'm starting to wear a rut in the paving stones." },
+        ["text"] = "Здається, я вже протоптала доріжку в бруківці.",
+        ["npcs"] = { [1] = "Ol' Emma" },
+        ["priority"] = 1,
+    },
+    [1175933178] = {
+        ["english"] = { [1] = "%s takes in a deep breath..." },
+        ["text"] = "%s робить глибокий вдих...",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [2842274590] = {
+        ["english"] = { [1] = "You seek to lure me from my clutch? You shall pay for your insolence!" },
+        ["text"] = "Ви намагаєтеся виманити мене з мого гнізда? Ви заплатите за вашу зухвалість!",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [2920668000] = {
+        ["english"] = { [1] = "Learn your place, mortal!" },
+        ["text"] = "Знайте своє місце, смертні!",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [3726974953] = {
+        ["english"] = { [1] = "It seems you'll need another lesson, mortals!" },
+        ["text"] = "Схоже, вас доведеться провчити ще раз, смертні!",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [72308161] = {
+        ["english"] = { [1] = "How fortuitous. Usually, I must leave my lair in order to feed." },
+        ["text"] = "Як зручно. Зазвичай мені доводиться покидати своє лігво, щоб поїсти.",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [813230513] = {
+        ["english"] = { [1] = "This meaningless exertion bores me. I'll incinerate you all from above!" },
+        ["text"] = "Ваші нікчемні зусилля починають мені набридати. Я спопелю вас усіх!",
+        ["npcs"] = { [1] = "Onyxia" },
+        ["priority"] = 1,
+    },
+    [585013453] = {
+        ["english"] = { [1] = "People of the Horde, citizens of Orgrimmar, come, gather round and celebrate a hero of the Horde. On this day, <name>, under the auspices of our glorious Warchief, laid a mortal blow against the Black Dragonflight. The brood mother, Onyxia, has been slain!" },
+        ["text"] = "Ординці, жителі Орґріммару, виходьте, збирайтеся і вшановуйте героя Орди! Сьогодні руками {ім'я:р} було завдано смертельного удару чорним драконам під егідою нашого славного вождя. Матір виводка, Оніксію, знищено!#day, <name>, under",
+        ["npcs"] = { [1] = "Overlord Runthak" },
+        ["priority"] = 1,
+    },
+    [920112023] = {
+        ["english"] = { [1] = "Bear witness to the undeniable power of your Warchief! Be lifted by the rallying cry of your dragon slayers!" },
+        ["text"] = "Будьте свідками незаперечної сили вашого вождя! Сповнюйтесь рвучким кличем ваших драконоборців!",
+        ["npcs"] = { [1] = "Overlord Runthak" },
+        ["priority"] = 1,
+    },
+    [3288429795] = {
+        ["english"] = { [1] = "Back to the drawing board." },
+        ["text"] = "Доведеться повернутися до креслень.",
+        ["npcs"] = { [1] = "Ozzie Togglevolt" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Back to the drawing board." },
+                ["text"] = "Так, що там було в моїх записах...",
+                ["npcs"] = { [1] = "Samantha Shackleton" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3782463508] = {
+        ["english"] = { [1] = "Perhaps a bit more grease will do the trick." },
+        ["text"] = "Може, ще трохи мастила — і все запрацює.",
+        ["npcs"] = { [1] = "Ozzie Togglevolt" },
+        ["priority"] = 1,
+    },
+    [2329284955] = {
+        ["english"] = { [1] = "Mommy? Can I pet Fizzles?" },
+        ["text"] = "Мамо? А можна я погладжу Бульчика?",
+        ["npcs"] = { [1] = "Paige Chaddis" },
+        ["priority"] = 1,
+    },
+    [2009678411] = {
+        ["english"] = { [1] = "What... happen to-" },
+        ["text"] = "Що... сталось...",
+        ["npcs"] = { [1] = "Patchwerk" },
+        ["priority"] = 1,
+    },
+    [3811362668] = {
+        ["english"] = { [1] = "Patchwerk want to play!" },
+        ["text"] = "Клаптик хоче грати!",
+        ["npcs"] = { [1] = "Patchwerk" },
+        ["priority"] = 1,
+    },
+    [4215245369] = {
+        ["english"] = { [1] = "Kel'thuzad make Patchwerk his avatar of war!" },
+        ["text"] = "Кел'Тузад зробити Клаптик богом війни!",
+        ["npcs"] = { [1] = "Patchwerk" },
+        ["priority"] = 1,
+    },
+    [469191131] = {
+        ["english"] = { [1] = "No more play?" },
+        ["text"] = "Більше не хотіти гратись?",
+        ["npcs"] = { [1] = "Patchwerk" },
+        ["priority"] = 1,
+    },
+    [1299224654] = {
+        ["english"] = { [1] = "SQUAWK!!!" },
+        ["text"] = "КРРРАА!!!",
+        ["npcs"] = { [1] = "Polly" },
+        ["priority"] = 1,
+    },
+    [1634154084] = {
+        ["english"] = { [1] = "MmmmmMmmmm... Enormous chemically altered cracker...." },
+        ["text"] = "Мммммм... Величезний хімічно змінений крекер...",
+        ["npcs"] = { [1] = "Polly" },
+        ["priority"] = 1,
+    },
+    [312646525] = {
+        ["english"] = { [1] = "What the squawk??? Squawk squawk, squawk? SQUAWK!" },
+        ["text"] = "Що за крраа? Крра кррраа, крррааа! КРРРАА!",
+        ["npcs"] = { [1] = "Polly" },
+        ["priority"] = 1,
+    },
+    [1728342456] = {
+        ["english"] = { [1] = "You dare!  Outrageous!  I curse you, <class>.  I curse you with... death!" },
+        ["text"] = "Як ти смієш! Це неприпустимо! Я проклинаю тебе, {клас:к}. Я проклинаю тебе... на смерть!#curse you, <class>.",
+        ["npcs"] = { [1] = "Prince Skaldrenox" },
+        ["priority"] = 1,
+    },
+    [1773526762] = {
+        ["english"] = { [1] = "%s obviously beaten, tries to run." },
+        ["text"] = "%s, сильно побитий, намагається втекти.",
+        ["npcs"] = { [1] = "Private Hendel" },
+        ["priority"] = 1,
+    },
+    [3222180413] = {
+        ["english"] = { [1] = "%s, too injured, gives up the chase." },
+        ["text"] = "%s надто поранений, щоб продовжувати спротив.",
+        ["npcs"] = { [1] = "Private Hendel" },
+        ["priority"] = 1,
+    },
+    [3622396216] = {
+        ["english"] = { [1] = "Please... please... Miss Proudmore. I didn't mean to..." },
+        ["text"] = "Будь ласка... прошу вас... Пані Праудмур. Я не хотів...",
+        ["npcs"] = { [1] = "Private Hendel" },
+        ["priority"] = 1,
+    },
+    [1643841173] = {
+        ["english"] = { [1] = "Ha! Ha! Ha! Thank you for freeing me, fools. Now let me repay you by charring the flesh from your bones." },
+        ["text"] = "Ха! Ха! Ха! Дякую, що звільнили мене, дурні. Дозвольте ж віддячити вам, випаливши плоть з ваших кісток.",
+        ["npcs"] = { [1] = "Pyroguard Emberseer" },
+        ["priority"] = 1,
+    },
+    [2173460956] = {
+        ["english"] = { [1] = "%s regains its power and breaks free of its bonds!" },
+        ["text"] = "%s відновлює силу та звільняється від пут!",
+        ["npcs"] = { [1] = "Pyroguard Emberseer" },
+        ["priority"] = 1,
+    },
+    [2203045855] = {
+        ["english"] = { [1] = "%s begins to regain its strength!" },
+        ["text"] = "%s починає відновлювати свої сили!",
+        ["npcs"] = { [1] = "Pyroguard Emberseer" },
+        ["priority"] = 1,
+    },
+    [3297564456] = {
+        ["english"] = { [1] = "%s is nearly at full strength!" },
+        ["text"] = "%s майже повністю відновив сили!",
+        ["npcs"] = { [1] = "Pyroguard Emberseer" },
+        ["priority"] = 1,
+    },
+    [3646152366] = {
+        ["english"] = { [1] = "Why ... won't you ... just dieeeee?" },
+        ["text"] = "Чому... ви... не помираєте?",
+        ["npcs"] = { [1] = "Qiraji Captain Ka'ark" },
+        ["priority"] = 1,
+    },
+    [3237535020] = {
+        ["english"] = { [1] = "Kneel before me, mortal! Kneel before Zod!" },
+        ["text"] = "На коліна, смертні! На коліна перед Зодом!",
+        ["npcs"] = { [1] = "Qiraji Officer Zod" },
+        ["priority"] = 1,
+    },
+    [1786520930] = {
+        ["english"] = { [1] = "%s lets out a battlecry!" },
+        ["text"] = "%s видає бойовий крик!",
+        ["npcs"] = { [1] = "Qiraji Slayer" },
+        ["priority"] = 1,
+    },
+    [2463252334] = {
+        ["english"] = { [1] = "I've been better.  Ivar the Foul got the better of me..." },
+        ["text"] = "Бувало й краще. Айвар Нечистий трохи попсував життя...",
+        ["npcs"] = { [1] = "Quinn Yorick" },
+        ["priority"] = 1,
+    },
+    [1732367292] = {
+        ["english"] = { [1] = "Why do you chase me, Mechanical Yeti?! WHY?!" },
+        ["text"] = "Чому ти переслідуєш мене, механічний єті?! ЧОМУ?!",
+        ["npcs"] = { [1] = "Quixxil" },
+        ["priority"] = 1,
+    },
+    [3259821901] = {
+        ["english"] = { [1] = "I'm jumpy as it is... and people insist on scaring me... Next time, though, I'll be ready!" },
+        ["text"] = "Я й так на нервах... а тут ще й всілякі недоумки лякають мене... Але наступного разу я буду готовий!",
+        ["npcs"] = { [1] = "Quixxil" },
+        ["priority"] = 1,
+    },
+    [4119293147] = {
+        ["english"] = { [1] = "Oh!!! Get that thing away from me!" },
+        ["text"] = "А-а-а!!! Забери від мене цю штуку!",
+        ["npcs"] = { [1] = "Quixxil" },
+        ["priority"] = 1,
+    },
+    [1633472919] = {
+        ["english"] = { [1] = "The race will start in 1 minute!" },
+        ["text"] = "Перегони почнуться через 1 хвилину!",
+        ["npcs"] = { [1] = "Race Master Kronkrider" },
+        ["priority"] = 1,
+    },
+    [2143712154] = {
+        ["english"] = { [1] = "And crossing the line is the gnome car! The gnomes win!" },
+        ["text"] = "І фінішну лінію перетинає машина гномів! Гноми перемогли!",
+        ["npcs"] = { [1] = "Race Master Kronkrider" },
+        ["priority"] = 1,
+    },
+    [2560234548] = {
+        ["english"] = { [1] = "Get your seats, folks!  The race is starting in 2 minutes!" },
+        ["text"] = "Займайте місця, шановні! Перегони почнуться за 2 хвилини!",
+        ["npcs"] = { [1] = "Race Master Kronkrider" },
+        ["priority"] = 1,
+    },
+    [787301136] = {
+        ["english"] = { [1] = "The goblins win! The goblins win!" },
+        ["text"] = "Гобліни перемогли! Гобліни перемогли!",
+        ["npcs"] = { [1] = "Race Master Kronkrider" },
+        ["priority"] = 1,
+    },
+    [1254857525] = {
+        ["english"] = { [1] = "%s goes into a rage!" },
+        ["text"] = "%s впадає в лють!",
+        ["npcs"] = { [1] = "Raging Agam'ar" },
+        ["priority"] = 1,
+    },
+    [186423165] = {
+        ["english"] = { [1] = "COME FORTH, MY SERVANTS! DEFEND YOUR MASTER!" },
+        ["text"] = "СЮДИ, МОЇ СЛУГИ! ЗАХИСТІТЬ СВОГО ПОВЕЛИТЕЛЯ!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [1935244356] = {
+        ["english"] = { [1] = "TOO SOON! YOU HAVE AWAKENED ME TOO SOON, EXECUTUS! WHAT IS THE MEANING OF THIS INTRUSION???" },
+        ["text"] = "ЗАНАДТО РАНО! ТИ РОЗБУДИВ МЕНЕ ЗАНАДТО РАНО, ЕКЗЕКУТУС! ЩО ВСЕ ЦЕ ОЗНАЧАЄ?",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [2348985311] = {
+        ["english"] = { [1] = "FOOL! YOU ALLOWED THESE INSECTS TO RUN RAMPANT THROUGH THE HALLOWED CORE? AND NOW YOU LEAD THEM TO MY VERY LAIR? YOU HAVE FAILED ME, EXECUTUS! JUSTICE SHALL BE MET, INDEED!" },
+        ["text"] = "ДУРЕНЬ! ТИ ДОЗВОЛИВ ЦИМ КОМАХАМ РОЗГУЛЮВАТИ ПО СВЯЩЕННОМУ ЯДРУ? І ТЕПЕР ТИ ПРИВІВ ЇХ ДО МОГО ЛІГВА? ТИ ПІДВІВ МЕНЕ, ЕКЗЕКУТУС! І ТИ ОТРИМАЄШ СПРАВЕДЛИВЕ ПОКАРАННЯ!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [2465606605] = {
+        ["english"] = { [1] = "TASTE THE FLAMES OF SULFURON!" },
+        ["text"] = "СКУШТУЙТЕ ПОЛУМ'Я СУЛЬФУРОНА!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [276748922] = {
+        ["english"] = { [1] = "DIE, INSECT!" },
+        ["text"] = "ЗДОХНИ, КОМАХО!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [2905831805] = {
+        ["english"] = { [1] = "YOU CANNOT DEFEAT THE LIVING FLAME!" },
+        ["text"] = "ВАМ НЕ ЗДОЛАТИ ЖИВЕ ПОЛУМ'Я!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [345562914] = {
+        ["english"] = { [1] = "BY FIRE BE PURGED!" },
+        ["text"] = "ВОГОНЬ ОЧИСТИТЬ ВАС!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [3656900637] = {
+        ["english"] = { [1] = "Ragnaros has withdrawn to the elemental plane." },
+        ["text"] = "Рагнарос відійшов у вимір стихій.",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [860163496] = {
+        ["english"] = { [1] = "NOW FOR YOU, INSECTS! BOLDLY, YOU SOUGHT THE POWER OF RAGNAROS. NOW YOU SHALL SEE IT FIRSTHAND!" },
+        ["text"] = "А ВИ, КОМАХИ! ВИ ПРАГНУЛИ СИЛИ РАГНАРОСА. ТЕПЕР ВИ ВІДЧУЄТЕ ЇЇ НА ВЛАСНІЙ ШКУРІ!",
+        ["npcs"] = { [1] = "Ragnaros" },
+        ["priority"] = 1,
+    },
+    [2296240160] = {
+        ["english"] = { [1] = "Ramstein hunger for flesh!" },
+        ["text"] = "Рамштайн жадає плоті!",
+        ["npcs"] = { [1] = "Ramstein the Gorger" },
+        ["priority"] = 1,
+    },
+    [1749608592] = {
+        ["english"] = { [1] = "It's good to see you again, Erland.  What is your report?" },
+        ["text"] = "Рада знову бачити тебе, Ерланде. Які новини?",
+        ["npcs"] = { [1] = "Rane Yorick" },
+        ["priority"] = 1,
+    },
+    [3462643851] = {
+        ["english"] = { [1] = "Stay back vile creatures!" },
+        ["text"] = "Ідіть геть, мерзенні створіння!",
+        ["npcs"] = { [1] = "Rane Yorick" },
+        ["priority"] = 1,
+    },
+    [396675881] = {
+        ["english"] = { [1] = "%s collapses but the broken body rises again!" },
+        ["text"] = "%s падає, проте його понівечене тіло знову підіймається!",
+        ["npcs"] = { [1] = "Ravaged Cadaver" },
+        ["priority"] = 1,
+    },
+    [100592624] = {
+        ["english"] = { [1] = "That is wonderous, Rimblat! Even this foul, sundered earth is not beyond healing." },
+        ["text"] = "Це дивовижно, Рімблате! Навіть для такої нечистої й понівеченої землі ще є надія на зцілення.",
+        ["npcs"] = { [1] = "Rayne" },
+        ["priority"] = 1,
+    },
+    [3555320301] = {
+        ["english"] = { [1] = "Let me install these Gyromechanic Gears and Restabilization Cogs and we'll fire up The Recombobulator." },
+        ["text"] = "Дай мені встановити ці гіромеханічні шестірні та зубці рестабілізації, і ми запустимо Рекомбобулятор.",
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["priority"] = 1,
+    },
+    [569971452] = {
+        ["english"] = { [1] = "Most definitely." },
+        ["text"] = "Авжеж.",
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["priority"] = 1,
+    },
+    [2156656195] = {
+        ["english"] = { [1] = "Time to save the entire gnomish race. Here goes nothing!" },
+        ["text"] = "Час урятувати весь гном'ячий народ. Ну, поїхали!",
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["priority"] = 1,
+    },
+    [3757920492] = {
+        ["english"] = { [1] = "That should do the trick." },
+        ["text"] = "Це має спрацювати.",
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["priority"] = 1,
+    },
+    [3871036262] = {
+        ["english"] = { [1] = "I was thinking the same thing." },
+        ["text"] = "Я подумав про те саме.",
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["priority"] = 1,
+    },
+    [1321832724] = {
+        ["english"] = { [1] = "I don't know how it started, but it hardly matters now. We need to extinguish it!" },
+        ["text"] = "Я не знаю, як це почалося, але це й не має значення. Нам потрібно погасити це!",
+        ["npcs"] = { [1] = "Relathor Moonsong" },
+        ["priority"] = 1,
+    },
+    [2651574993] = {
+        ["english"] = { [1] = "The last of the embers are gone." },
+        ["text"] = "Здається, вже не тліє.",
+        ["npcs"] = { [1] = "Relathor Moonsong" },
+        ["priority"] = 1,
+    },
+    [4004964776] = {
+        ["english"] = { [1] = "I'm coming Cyriden!" },
+        ["text"] = "Я йду, Циріден!",
+        ["npcs"] = { [1] = "Relathor Moonsong" },
+        ["priority"] = 1,
+    },
+    [4201812884] = {
+        ["english"] = { [1] = "Indeed it could have. Most importantly, you are unharmed, Cyriden?" },
+        ["text"] = "Так, могло. Ти не поранився, Цирідене?",
+        ["npcs"] = { [1] = "Relathor Moonsong" },
+        ["priority"] = 1,
+    },
+    [2717536644] = {
+        ["english"] = { [1] = "Corbett, you there?  Harlan needs another load of knitted goods.  Can you take it to him?" },
+        ["text"] = "Корбете, ти там? Гарлану потрібна ще одна партія одягу. Зможеш віднести її?",
+        ["npcs"] = { [1] = "Rema Schneider" },
+        ["priority"] = 1,
+    },
+    [390596033] = {
+        ["english"] = { [1] = "Corbett, dear.  Harlan needs a load of knitted shirts and pants as soon as we can manage." },
+        ["text"] = "Корбет, любий. Гарлану потрібно багато в'язаних сорочок і штанів, і якомога швидше.",
+        ["npcs"] = { [1] = "Rema Schneider" },
+        ["priority"] = 1,
+    },
+    [158331303] = {
+        ["english"] = { [1] = "%s shoots from the hip at the bottles..." },
+        ["text"] = "%s стріляє від стегна по пляшках...",
+        ["npcs"] = { [1] = "Rifleman Middlecamp" },
+        ["priority"] = 1,
+    },
+    [219786331] = {
+        ["english"] = { [1] = "%s only hits the side of the box!" },
+        ["text"] = "%s влучає лише в бік ящика!",
+        ["npcs"] = { [1] = "Rifleman Wheeler" },
+        ["priority"] = 1,
+    },
+    [3225973648] = {
+        ["english"] = { [1] = "%s then takes aim at the bottles..." },
+        ["text"] = "%s тоді прицілюється в пляшки...",
+        ["npcs"] = { [1] = "Rifleman Wheeler" },
+        ["priority"] = 1,
+    },
+    [1050836932] = {
+        ["english"] = { [1] = "Wow! We did it... not sure why we thought we needed the likes of you. Nevertheless, speak with Smeed Scrablescrew; he will give you your earnings!" },
+        ["text"] = "Вау! Ми впорались... Не знаю, нащо нам була твоя допомога... Та все ж поговори зі Смідом Гвинтодряпом — він віддасть тобі твій заробіток!",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [1287473079] = {
+        ["english"] = { [1] = "This is Rigger Gizelton asking for assistance escorting my caravan past Mannoroc Coven. I'm on the road east of Shadowprey village." },
+        ["text"] = "Агов! Я Монтер Ґізельтон, і мені потрібна допомога з супроводом мого каравану повз руїни Маннорок. Я стою на дорозі на схід від селища Тінездобич.",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [1394470132] = {
+        ["english"] = { [1] = "What am I paying you for? The kodos are nearly dead!" },
+        ["text"] = "За що я тобі плачу? Кодо ледь живі!",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [4126068573] = {
+        ["english"] = { [1] = "Eeck! Demons appear hungry for the kodos!" },
+        ["text"] = "Йоой! Демони хочуть зжерти кодо!",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [83370372] = {
+        ["english"] = { [1] = "Time for the Gizleton Caravan to head on out! We'll be back soon but if you cannot wait, head north to Kormek's Hut. We open shop in about an hour." },
+        ["text"] = "Час каравану Ґізельтона вирушати! Ми скоро повернемося, але якщо не хочете чекати, вирушайте на північ до халупи Кормека. Ми відкриємо лавку десь за годину.",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [950254540] = {
+        ["english"] = { [1] = "Only if I were about five feet taller, then I would show these blasphemous demons a thing or two! Help!" },
+        ["text"] = "Якби я був на кілька метрів вищий, то показав би цим клятим демонам! Рятуйте!",
+        ["npcs"] = { [1] = "Rigger Gizelton" },
+        ["priority"] = 1,
+    },
+    [2282864288] = {
+        ["english"] = { [1] = "Guess there's nothing more to be done. Blast!" },
+        ["text"] = "Певно, тут вже нічого не вдієш. Прокляття!",
+        ["npcs"] = { [1] = "Rizzle Brassbolts" },
+        ["priority"] = 1,
+    },
+    [2337038046] = {
+        ["english"] = { [1] = "Bloody... Must have been the goblins... Let's see how bad the damage is." },
+        ["text"] = "Трясця… Певно, це були гобліни… Подивимося, наскільки пошкодження серйозні.",
+        ["npcs"] = { [1] = "Rizzle Brassbolts" },
+        ["priority"] = 1,
+    },
+    [2855240268] = {
+        ["english"] = { [1] = "What was that!" },
+        ["text"] = "Що це було?!",
+        ["npcs"] = { [1] = "Rizzle Brassbolts" },
+        ["priority"] = 1,
+    },
+    [1525595495] = {
+        ["english"] = { [1] = "Eww... that's not a fish!" },
+        ["text"] = "Фуу... це не риба!",
+        ["npcs"] = { [1] = "Roman" },
+        ["priority"] = 1,
+    },
+    [209065595] = {
+        ["english"] = { [1] = "I thought I heard something." },
+        ["text"] = "Здається, я щось чув.",
+        ["npcs"] = { [1] = "Roman" },
+        ["priority"] = 1,
+    },
+    [2844111563] = {
+        ["english"] = { [1] = "I hope that was a fish!" },
+        ["text"] = "Сподіваюся, це риба!",
+        ["npcs"] = { [1] = "Roman" },
+        ["priority"] = 1,
+    },
+    [1556466823] = {
+        ["english"] = { [1] = "Sorry, Huldar... But it seems I've misled you." },
+        ["text"] = "Пробач, Хульдаре... Але, схоже, я ввів тебе в оману.",
+        ["npcs"] = { [1] = "Saean" },
+        ["priority"] = 1,
+    },
+    [1137814893] = {
+        ["english"] = { [1] = "\"Khadgar's Mystical Journal, Volume 8.\" I think this is the one I wanted." },
+        ["text"] = "\"Містичний записник Кадґара, том 8\". Думаю, це саме те, що я хотіла.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [1195980826] = {
+        ["english"] = { [1] = "Yes, yes. Hmm, it seems to cross reference another tome. Guess I have to find that one too." },
+        ["text"] = "Так, так. Хм, здається, це посилання на інший том. Певно, доведеться знайти і його.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [174188134] = {
+        ["english"] = { [1] = "There's the mystical tome I was looking for." },
+        ["text"] = "А ось і той містичний фоліант, який я шукала.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [2245737145] = {
+        ["english"] = { [1] = "Ahh there it is." },
+        ["text"] = "Ага, ось воно.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [2922560754] = {
+        ["english"] = { [1] = "If I could just find \"Magic and the Ways of Power\". Ahh here it is, what was it doing over here?" },
+        ["text"] = "Якби я тільки могла знайти \"Магію і Шляхи Сили\". О, а ось і вона. Що вона тут робила?",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [2992182168] = {
+        ["english"] = { [1] = "But this can't be right. Where did I put that other book?" },
+        ["text"] = "Але щось тут не сходиться. Куди я поклала іншу книгу?",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [3107140130] = {
+        ["english"] = { [1] = "I really need a better system for filing these books. Ahh that's the one I wanted." },
+        ["text"] = "Треба б придумати кращу систему сортування книг. Ага, ось те, що я шукала.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [3563165462] = {
+        ["english"] = { [1] = "Very interesting. But if that's the case then my theory is wrong. I must reread the other sections to see what I missed." },
+        ["text"] = "Дуже цікаво. Але якщо це так, то моя теорія помилкова. Мені потрібно перечитати інші розділи, щоб зрозуміти, що я пропустила.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [3577516266] = {
+        ["english"] = { [1] = "If this is correct then I have a lot more research to do." },
+        ["text"] = "Якщо це дійсно так, мені доведеться провести значно більше досліджень.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [370788064] = {
+        ["english"] = { [1] = "That wasn't very helpful. Let me check the other one." },
+        ["text"] = "Це не дуже допомогло. Доведеться проглянути інший.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [3743883684] = {
+        ["english"] = { [1] = "\"Magic Maladies\", no. \"Magic Matricies\", no. Ahh here we go \"Magic Mysteries\"." },
+        ["text"] = "\"Магічні хвороби\", ні. \"Магічні матриці\", ні. А, ось воно — \"Магічні таємниці\".",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [4202242594] = {
+        ["english"] = { [1] = "\"Magical Flows and How They Effect the World\", by Maginor Dumas. That's the one I was looking for." },
+        ["text"] = "\"Магічні потоки та їхній вплив на світ\", автор Маґінор Дюма. Це те, що я шукала.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [534946689] = {
+        ["english"] = { [1] = "So I was right about the energies. Let's see what the other tome has to say on the subject." },
+        ["text"] = "То я все-таки мала рацію щодо енергій. Погляньмо, що про це скаже інший фоліант.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [869058643] = {
+        ["english"] = { [1] = "That's what I wanted to know. Now I just need to find where the flux variance is discussed." },
+        ["text"] = "Це те, що я хотіла знати. Тепер мені просто потрібно знайти щось про варіантність потоку.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [956011982] = {
+        ["english"] = { [1] = "Ahh, \"Mystical Conjurings of the Archmages of Dalaran.\" Perfect." },
+        ["text"] = "Ага, \"Містичні вичарування архімагів Даларану\". Ідеально.",
+        ["npcs"] = { [1] = "Samantha Shackleton" },
+        ["priority"] = 1,
+    },
+    [1003578350] = {
+        ["english"] = { [1] = "Let the executions begin!" },
+        ["text"] = "Нехай почнеться страта!",
+        ["npcs"] = { [1] = "Sandfury Executioner" },
+        ["priority"] = 1,
+    },
+    [2427712795] = {
+        ["english"] = { [1] = "Justice is done!" },
+        ["text"] = "Правосуддя здійснено!",
+        ["npcs"] = { [1] = "Sandfury Executioner" },
+        ["priority"] = 1,
+    },
+    [1070998807] = {
+        ["english"] = { [1] = "Too little, too late. The dam has broken. We are a bump in the road at best." },
+        ["text"] = "Занадто мало, та й запізно. Скару вже не зупинити. В кращому випадку ми їх лише затримаємо.",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [1802790572] = {
+        ["english"] = { [1] = "Whatever. The revolting, unkempt Horde filth..." },
+        ["text"] = "Хай там як. Огидне, брудне поріддя Орди...",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [1907424612] = {
+        ["english"] = { [1] = "Your message did reach us, Commander, but by no means is our involvement here sanctioned by the Grand Crusader." },
+        ["text"] = "Ми отримали ваше повідомлення, командире, але наша присутність тут не була схвалена верховним лицарем.",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [1908386489] = {
+        ["english"] = { [1] = "There is always... Ashbringer." },
+        ["text"] = "Все ще є... Спопелитель.",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [2255858794] = {
+        ["english"] = { [1] = "And might I add, that dress is lovely! You must tell me where you got it from." },
+        ["text"] = "Дозвольте зазначити, ця сукня неймовірно гарна! Вам дуже личить.",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [3299754592] = {
+        ["english"] = { [1] = "Thank you, Jessica." },
+        ["text"] = "Дякую, Джесіко.",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [3788760361] = {
+        ["english"] = { [1] = "The heathens will be forced to react. Orcs, bull-men..." },
+        ["text"] = "Невірні не зможуть цього ігнорувати. Орки, биколюди...",
+        ["npcs"] = { [1] = "Scarlet Commander Marjhan" },
+        ["priority"] = 1,
+    },
+    [529291730] = {
+        ["english"] = { [1] = "Alright, <name>, your transponder is ready!" },
+        ["text"] = "Ну от і все, {ім'я:к}, твій транспондер готовий!",
+        ["npcs"] = { [1] = "Scooty" },
+        ["priority"] = 1,
+    },
+    [743348165] = {
+        ["english"] = { [1] = "Give me a moment while I calibrate the transponder to your height and weight specifications, <name>." },
+        ["text"] = "Зачекай хвильку, {ім'я:к}, я відкалібрую транспондер відповідно до твоїх параметрів зросту та ваги.#specifications, <name>.",
+        ["npcs"] = { [1] = "Scooty" },
+        ["priority"] = 1,
+    },
+    [119466824] = {
+        ["english"] = { [1] = "Thank you! Thank you, <priest/priestess>. Now I can take on those corrupt timberlings with Elune's power behind me!" },
+        ["text"] = "Дякую! Щиро дякую, {стать:жерцю:жрице}. Завдяки тобі я знову зможу зайнятись цими оскверненими деревниками!",
+        ["npcs"] = { [1] = "Sentinel Shaya" },
+        ["priority"] = 1,
+    },
+    [4052218981] = {
+        ["english"] = { [1] = "Farewell to you, and may Elune be with you always." },
+        ["text"] = "Бувай, і нехай Елуна береже тебе.",
+        ["npcs"] = { [1] = "Sentinel Shaya" },
+        ["priority"] = 1,
+    },
+    [2770019137] = {
+        ["english"] = { [1] = "After all we've been through?  Well, I didn't like you anyway!!" },
+        ["text"] = "Після всього, що ми пережили? Ну, ти мені все одно не подобаєшся!!",
+        ["npcs"] = { [1] = "Sergeant Bly" },
+        ["priority"] = 1,
+    },
+    [3552517599] = {
+        ["english"] = { [1] = "What?  How dare you say that to me?!?" },
+        ["text"] = "Що? Як ти смієш таке казати?!?",
+        ["npcs"] = { [1] = "Sergeant Bly" },
+        ["priority"] = 1,
+    },
+    [4151136740] = {
+        ["english"] = { [1] = "Let's move forward!" },
+        ["text"] = "Рухаймося вперед!",
+        ["npcs"] = { [1] = "Sergeant Bly" },
+        ["priority"] = 1,
+    },
+    [1602551003] = {
+        ["english"] = { [1] = "For once I agree with you... scum." },
+        ["text"] = "Вперше я з тобою згоден... виродок.",
+        ["npcs"] = { [1] = "Sorcerer Ashcrombe" },
+        ["priority"] = 1,
+    },
+    [1727224170] = {
+        ["english"] = { [1] = "%s vanishes." },
+        ["text"] = "%s щезає.",
+        ["npcs"] = { [1] = "Sorcerer Ashcrombe" },
+        ["priority"] = 1,
+    },
+    [1749707567] = {
+        ["english"] = { [1] = "I have just the spell to get this door open. Too bad the cell doors weren't locked so haphazardly." },
+        ["text"] = "Я знаю гарне заклинання, щоб відкрити ці двері. Шкода, що камери не були зачинені так недбало.",
+        ["npcs"] = { [1] = "Sorcerer Ashcrombe" },
+        ["priority"] = 1,
+    },
+    [3192372511] = {
+        ["english"] = { [1] = "There it is! Wide open. Good luck to you conquering what lies beyond. I must report back to the Kirin Tor at once!" },
+        ["text"] = "Ось так! Бажаю успіху з тим, що чекає на вас попереду. Я маю негайно повертатися до Кірін-Тору!",
+        ["npcs"] = { [1] = "Sorcerer Ashcrombe" },
+        ["priority"] = 1,
+    },
+    [64232006] = {
+        ["english"] = { [1] = "Follow me and I'll open the courtyard door for you." },
+        ["text"] = "Йдіть за мною, і я відчиню вам двері у двір.",
+        ["npcs"] = { [1] = "Sorcerer Ashcrombe" },
+        ["priority"] = 1,
+    },
+    [222817313] = {
+        ["english"] = { [1] = "BETRAYER!" },
+        ["text"] = "ЗРАДНИКИ!",
+        ["npcs"] = { [1] = "Spirit of Trey Lightforge" },
+        ["priority"] = 1,
+    },
+    [1508820764] = {
+        ["english"] = { [1] = "Thanks a lot, <name>!" },
+        ["text"] = "Красно дякую, {ім'я:к}!#lot, <name>!",
+        ["npcs"] = { [1] = "Stormpike Quartermaster" },
+        ["priority"] = 1,
+    },
+    [502614670] = {
+        ["english"] = { [1] = "Scourge in the Trade District!  Have at them!" },
+        ["text"] = "Скара в Торговому районі! Знищте їх!",
+        ["npcs"] = { [1] = "Stormwind Elite Guard" },
+        ["priority"] = 1,
+    },
+    [2304120575] = {
+        ["english"] = { [1] = "Oh, it's on now! Bet you thought I'd be alone too, huh?!" },
+        ["text"] = "Ого, то все серйозно! Але ти ж не {стать:думав:думала}, що я теж буду сам, ге ж?!",
+        ["npcs"] = { [1] = "Tapoke \"Slim\" Jahn" },
+        ["priority"] = 1,
+    },
+    [2507800932] = {
+        ["english"] = { [1] = "Okay, okay! No need to get all violent. I'll talk. I'll talk!" },
+        ["text"] = "Гаразд, гаразд! Досить цього насильства. Я все скажу!",
+        ["npcs"] = { [1] = "Tapoke \"Slim\" Jahn" },
+        ["priority"] = 1,
+    },
+    [3900500865] = {
+        ["english"] = { [1] = "I have a few notes from the job back at my place. I'll get them and then meet you back in the inn." },
+        ["text"] = "У мене з тієї справи залишилось кілька записок. Я їх заберу і ми зустрінемось в таверні.",
+        ["npcs"] = { [1] = "Tapoke \"Slim\" Jahn" },
+        ["priority"] = 1,
+    },
+    [1901570217] = {
+        ["english"] = { [1] = "Thank... you..." },
+        ["text"] = "Спасибі...",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [2740256230] = {
+        ["english"] = { [1] = "Eat... your... bones..." },
+        ["text"] = "Їсти... ваші... кістки...",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [3184902515] = {
+        ["english"] = { [1] = "You... die now!!" },
+        ["text"] = "Ви... помрете!!",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [3523209634] = {
+        ["english"] = { [1] = "Break... you!!" },
+        ["text"] = "Нищити... вас!!",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [4291805158] = {
+        ["english"] = { [1] = "You are too late!! I... must... obey!!" },
+        ["text"] = "Ви запізнилися!! Я... мушу... підкоритися!!",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [919033059] = {
+        ["english"] = { [1] = "Kill..." },
+        ["text"] = "Вбивати...",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [966186076] = {
+        ["english"] = { [1] = "Now you feel pain..." },
+        ["text"] = "Тепер ви відчуваєте біль...",
+        ["npcs"] = { [1] = "Thaddius" },
+        ["priority"] = 1,
+    },
+    [1501603116] = {
+        ["english"] = { [1] = "Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!" },
+        ["text"] = "{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!",
+        ["npcs"] = { [1] = "The Duke of Cynders" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!" },
+                ["text"] = "{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!",
+                ["npcs"] = { [1] = "The Duke of Fathoms" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!" },
+                ["text"] = "{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!",
+                ["npcs"] = { [1] = "The Duke of Shards" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "Imposter!  It is a dishonor without equal to be summoned by a whelp such as you!  DIE!" },
+                ["text"] = "{стать:Самозванець:Самозванка}! Бути викликаним такою нікчемою, як ти — яка ганьба! ЗДОХНИ!",
+                ["npcs"] = { [1] = "The Duke of Zephyrs" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [2852446815] = {
+        ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  This will not go unpunished!" },
+        ["text"] = "Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!",
+        ["npcs"] = { [1] = "The Duke of Cynders" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  This will not go unpunished!" },
+                ["text"] = "Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!",
+                ["npcs"] = { [1] = "The Duke of Fathoms" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  This will not go unpunished!" },
+                ["text"] = "Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!",
+                ["npcs"] = { [1] = "The Duke of Shards" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "What?  Such a small, frail thing beckons me?  This will not go unpunished!" },
+                ["text"] = "Що? Мене викликала така мала, немічна істота? Я покараю тебе за це!",
+                ["npcs"] = { [1] = "The Duke of Zephyrs" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3285806137] = {
+        ["english"] = { [1] = "You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!" },
+        ["text"] = "Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!",
+        ["npcs"] = { [1] = "The Duke of Cynders" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!" },
+                ["text"] = "Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!",
+                ["npcs"] = { [1] = "The Duke of Fathoms" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!" },
+                ["text"] = "Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!",
+                ["npcs"] = { [1] = "The Duke of Shards" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "You will pay the ultimate price for this insolence, little vermin.  Your soul is mine!" },
+                ["text"] = "Ти заплатиш найвищу ціну за цю зухвалість, наволоч. Твоя душа буде моєю!",
+                ["npcs"] = { [1] = "The Duke of Zephyrs" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [3616868007] = {
+        ["english"] = { [1] = "This act of defiance will not go unpunished.  You, and your world, will die!" },
+        ["text"] = "Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!",
+        ["npcs"] = { [1] = "The Duke of Cynders" },
+        ["priority"] = 1,
+        ["alternatives"] = {
+            [1] = {
+                ["english"] = { [1] = "This act of defiance will not go unpunished.  You, and your world, will die!" },
+                ["text"] = "Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!",
+                ["npcs"] = { [1] = "The Duke of Fathoms" },
+                ["priority"] = 1,
+            },
+            [2] = {
+                ["english"] = { [1] = "This act of defiance will not go unpunished.  You, and your world, will die!" },
+                ["text"] = "Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!",
+                ["npcs"] = { [1] = "The Duke of Shards" },
+                ["priority"] = 1,
+            },
+            [3] = {
+                ["english"] = { [1] = "This act of defiance will not go unpunished.  You, and your world, will die!" },
+                ["text"] = "Цей акт непокори не залишиться безкарним. Ти загинеш, як і твій світ!",
+                ["npcs"] = { [1] = "The Duke of Zephyrs" },
+                ["priority"] = 1,
+            },
+        },
+    },
+    [1497093567] = {
+        ["english"] = { [1] = "Let your death serve as an example!" },
+        ["text"] = "Твоя смерть стане прикладом для інших!",
+        ["npcs"] = { [1] = "The Prophet Skeram" },
+        ["priority"] = 1,
+    },
+    [2927997206] = {
+        ["english"] = { [1] = "You only delay the inevitable!" },
+        ["text"] = "Ви лише відкладаєте неминуче!",
+        ["npcs"] = { [1] = "The Prophet Skeram" },
+        ["priority"] = 1,
+    },
+    [3353703483] = {
+        ["english"] = { [1] = "Are you so eager to die? I will be happy to accommodate you..." },
+        ["text"] = "Ви так жадаєте померти? Я з радістю допоможу вам...",
+        ["npcs"] = { [1] = "The Prophet Skeram" },
+        ["priority"] = 1,
+    },
+    [1375653815] = {
+        ["english"] = { [1] = "She'll have our heads if we're caught!" },
+        ["text"] = "Вона нам голови знесе, якщо нас упіймають!",
+        ["npcs"] = { [1] = "Theramore Sentry" },
+        ["priority"] = 1,
+    },
+    [1632665881] = {
+        ["english"] = { [1] = "Get out of here!" },
+        ["text"] = "Забираймося звідси!",
+        ["npcs"] = { [1] = "Theramore Sentry" },
+        ["priority"] = 1,
+    },
+    [19235320] = {
+        ["english"] = { [1] = "Run!" },
+        ["text"] = "Біжіть!",
+        ["npcs"] = { [1] = "Theramore Sentry" },
+        ["priority"] = 1,
+    },
+    [224579938] = {
+        ["english"] = { [1] = "It's Proudmoore! Get out of here!" },
+        ["text"] = "Це Праудмур! Вшиваймося!",
+        ["npcs"] = { [1] = "Theramore Sentry" },
+        ["priority"] = 1,
+    },
+    [3413150736] = {
+        ["english"] = { [1] = "Don't let them catch you!" },
+        ["text"] = "Не дай їм себе спіймати!",
+        ["npcs"] = { [1] = "Theramore Sentry" },
+        ["priority"] = 1,
+    },
+    [1330712792] = {
+        ["english"] = { [1] = "I am not worthy, sir." },
+        ["text"] = "Я не гідний, пане.",
+        ["npcs"] = { [1] = "Thomas Miller" },
+        ["priority"] = 1,
+    },
+    [1336896242] = {
+        ["english"] = { [1] = "Freshly baked bread for sale!" },
+        ["text"] = "Свіжоспечений хліб!",
+        ["npcs"] = { [1] = "Thomas Miller" },
+        ["priority"] = 1,
+    },
+    [1817004874] = {
+        ["english"] = { [1] = "Warm, wholesome bread!" },
+        ["text"] = "Теплий, свіжий хліб!",
+        ["npcs"] = { [1] = "Thomas Miller" },
+        ["priority"] = 1,
+    },
+    [4259127820] = {
+        ["english"] = { [1] = "Rolls, buns and bread. Baked fresh!" },
+        ["text"] = "Пироги та хліб. Свіжоспечені!",
+        ["npcs"] = { [1] = "Thomas Miller" },
+        ["priority"] = 1,
+    },
+    [308550878] = {
+        ["english"] = { [1] = "Be bathed in my power! Drink in my might! Battle for the glory of the Horde!" },
+        ["text"] = "Купайтеся в моїй силі! Сповнюйтесь моєю могутністю! Бийтеся за славу Орди!",
+        ["npcs"] = { [1] = "Thrall" },
+        ["priority"] = 1,
+    },
+    [4277185839] = {
+        ["english"] = { [1] = "Let it be known that <name> - Horde <class> - has earned the undying respect of the Warchief.   <He/She> has engaged in great diplomacy with Timbermaw Hold and performed valiant actions for them on our behalf.   <He/She> has gone above and beyond the call of duty.  Three cheers for <name> - a true hero of the Horde!" },
+        ["text"] = "Знайте ж, що {клас:н} Орди, {ім'я:н}, {стать:заслужив:заслужила} на безмежну повагу вождя. {стать:Він долучився:Вона долучилась} до великої дипломатичної місії з оплотом Деревопузих та {стать:здійснив:здійснила} відважні вчинки для них від нашого імені, перевершивши свій службовий обов'язок. Славімо {ім'я:з} — {стать:справжнього героя:справжню героїню} Орди!#that <name> - Horde#Horde <class> - has#<He/She> has engaged",
+        ["npcs"] = { [1] = "Thrall" },
+        ["priority"] = 1,
+    },
+    [1477822526] = {
+        ["english"] = { [1] = "One of the Ash'ari Crystals has been destroyed!  Slay the intruders!" },
+        ["text"] = "Один з кристалів Аш'арі знищено! Вбийте чужинців!",
+        ["npcs"] = { [1] = "Thuzadin Acolyte" },
+        ["priority"] = 1,
+    },
+    [3049915890] = {
+        ["english"] = { [1] = "An Ash'ari Crystal has fallen! Stay true to the Lich King, my brethren, and attempt to resummon it." },
+        ["text"] = "Кристал Аш'арі знищено! Залишайтеся вірними Королю-лічу, брати мої, і спробуйте відновити його.",
+        ["npcs"] = { [1] = "Thuzadin Acolyte" },
+        ["priority"] = 1,
+    },
+    [50351489] = {
+        ["english"] = { [1] = "An Ash'ari Crystal has been toppled! Restore the ziggurat before the Necropolis is vulnerable!" },
+        ["text"] = "Кристал Аш'арі розбито! Відновіть зіккурат, поки некрополь не втратив захист!",
+        ["npcs"] = { [1] = "Thuzadin Acolyte" },
+        ["priority"] = 1,
+    },
+    [929480681] = {
+        ["english"] = { [1] = "TIMMY!" },
+        ["text"] = "ТІММІ!",
+        ["npcs"] = { [1] = "Timmy the Cruel" },
+        ["priority"] = 1,
+    },
+    [99773683] = {
+        ["english"] = { [1] = "Alms for the poor?" },
+        ["text"] = "Милостиню бідному?",
+        ["npcs"] = { [1] = "Topper McNabb" },
+        ["priority"] = 1,
+    },
+    [574196249] = {
+        ["english"] = { [1] = "Could ye spare some coin?" },
+        ["text"] = "Не знайдеться монетки?",
+        ["npcs"] = { [1] = "Topper McNabb" },
+        ["priority"] = 1,
+    },
+    [4236310781] = {
+        ["english"] = { [1] = "Shine yer armor for a copper." },
+        ["text"] = "Почищу обладунок за мідяк.",
+        ["npcs"] = { [1] = "Topper McNabb" },
+        ["priority"] = 1,
+    },
+    [822776726] = {
+        ["english"] = { [1] = "%s begins to work..." },
+        ["text"] = "%s береться до роботи...",
+        ["npcs"] = { [1] = "Tormus Deepforge" },
+        ["priority"] = 1,
+    },
+    [2211939] = {
+        ["english"] = { [1] = "The beast is slain! All's well in Darkshire!" },
+        ["text"] = "Звіра переможено! Тепер Темноділ в безпеці!",
+        ["npcs"] = { [1] = "Town Crier" },
+        ["priority"] = 1,
+    },
+    [2843177413] = {
+        ["english"] = { [1] = "The abomination has overrun the Night Watch camp! Quickly, we must intercept it before it reaches town!" },
+        ["text"] = "Потвора напала на табір Нічної варти! Швидше, ми маємо зупинити її, поки вона не дійшла до міста!",
+        ["npcs"] = { [1] = "Town Crier" },
+        ["priority"] = 1,
+    },
+    [4155587916] = {
+        ["english"] = { [1] = "The abomination has come! Forward!" },
+        ["text"] = "Потвора вже тут! В атаку!",
+        ["npcs"] = { [1] = "Town Crier" },
+        ["priority"] = 1,
+    },
+    [478231009] = {
+        ["english"] = { [1] = "It isn't enough! Defenders, gather in the center of town. Together we will stand against the undead monster!" },
+        ["text"] = "Цього недостатньо! Захисники, зберіться на площі міста. Разом ми вистоїмо проти цієї невмерлої потвори!",
+        ["npcs"] = { [1] = "Town Crier" },
+        ["priority"] = 1,
+    },
+    [843996743] = {
+        ["english"] = { [1] = "Rouse and to arms, citizens of Darkshire! An abomination of the undead approaches along the road!" },
+        ["text"] = "До зброї, жителі Темнодолу! Невмерла потвора наближається до міста!",
+        ["npcs"] = { [1] = "Town Crier" },
+        ["priority"] = 1,
+    },
+    [1879798305] = {
+        ["english"] = { [1] = "The Affray is over!" },
+        ["text"] = "Побоїще завершено!",
+        ["npcs"] = { [1] = "Twiggy Flathead" },
+        ["priority"] = 1,
+    },
+    [2090385145] = {
+        ["english"] = { [1] = "You!  Enter the fray!" },
+        ["text"] = "Гей, ти! До бою!",
+        ["npcs"] = { [1] = "Twiggy Flathead" },
+        ["priority"] = 1,
+    },
+    [2537023594] = {
+        ["english"] = { [1] = "The first stage is over.  Big Will... come on down!" },
+        ["text"] = "Перший етап завершено. Здоровань Вілл... до бою!",
+        ["npcs"] = { [1] = "Twiggy Flathead" },
+        ["priority"] = 1,
+    },
+    [655164008] = {
+        ["english"] = { [1] = "The Affray has begun.  <name>, get ready to fight!" },
+        ["text"] = "Побоїще починається. {ім'я:к}, приготуйся до бою!# <name>, get",
+        ["npcs"] = { [1] = "Twiggy Flathead" },
+        ["priority"] = 1,
+    },
+    [664424121] = {
+        ["english"] = { [1] = "Challenger is down!" },
+        ["text"] = "Претендента переможено!",
+        ["npcs"] = { [1] = "Twiggy Flathead" },
+        ["priority"] = 1,
+    },
+    [680847002] = {
+        ["english"] = { [1] = "%s senses your presence and opens a nether portal!" },
+        ["text"] = "%s відчуває вашу присутність і відкриває портал до Підсвіття!",
+        ["npcs"] = { [1] = "Wandering Eye of Kilrogg" },
+        ["priority"] = 1,
+    },
+    [1649641327] = {
+        ["english"] = { [1] = "%s is knocked off his drake!" },
+        ["text"] = "%s падає зі свого дракона!",
+        ["npcs"] = { [1] = "Warchief Rend Blackhand" },
+        ["priority"] = 1,
+    },
+    [1838236757] = {
+        ["english"] = { [1] = "Impossible!" },
+        ["text"] = "Неможливо!",
+        ["npcs"] = { [1] = "Warchief Rend Blackhand" },
+        ["priority"] = 1,
+    },
+    [2611723147] = {
+        ["english"] = { [1] = "With pleasure..." },
+        ["text"] = "Із задоволенням...",
+        ["npcs"] = { [1] = "Warchief Rend Blackhand" },
+        ["priority"] = 1,
+    },
+    [2886096622] = {
+        ["english"] = { [1] = "Flee while you still have a chance, mortals. You will pray for a swift death should I enter the arena." },
+        ["text"] = "Тікайте, поки ще маєте шанс, смертні. Ви будете благати про швидку смерть, якщо я вийду на арену.",
+        ["npcs"] = { [1] = "Warchief Rend Blackhand" },
+        ["priority"] = 1,
+    },
+    [1897953309] = {
+        ["english"] = { [1] = "Ok, here I go!" },
+        ["text"] = "Гаразд, я пішов!",
+        ["npcs"] = { [1] = "Weegli Blastfuse" },
+        ["priority"] = 1,
+    },
+    [424801872] = {
+        ["english"] = { [1] = "Oh no!  Here they come!" },
+        ["text"] = "О ні! Вони йдуть!",
+        ["npcs"] = { [1] = "Weegli Blastfuse" },
+        ["priority"] = 1,
+    },
+    [466353340] = {
+        ["english"] = { [1] = "I'm out of here!" },
+        ["text"] = "Я вшиваюсь звідси!",
+        ["npcs"] = { [1] = "Weegli Blastfuse" },
+        ["priority"] = 1,
+    },
+    [944656130] = {
+        ["english"] = { [1] = "The fortune is mine, Alexi! Your end comes soon!" },
+        ["text"] = "Статок мій, Алексій! Тобі кінець!",
+        ["npcs"] = { [1] = "Weldon Barov" },
+        ["priority"] = 1,
+    },
+    [1054392535] = {
+        ["english"] = { [1] = "Crybaby! Crybaby!" },
+        ["text"] = "Плакса! Плакса!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [2464402816] = {
+        ["english"] = { [1] = "I have your dolly! Nyah nyah!" },
+        ["text"] = "У мене твоя лялька! Бе-бе-бе!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [2471581622] = {
+        ["english"] = { [1] = "If you want her back you're gonna have to beg!" },
+        ["text"] = "Якщо хочеш повернути її — доведеться благати!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [2913129679] = {
+        ["english"] = { [1] = "What happens when I do this?!" },
+        ["text"] = "А що, якщо зроблю от так?!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [3235846580] = {
+        ["english"] = { [1] = "Oops!" },
+        ["text"] = "Ой!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [3347873813] = {
+        ["english"] = { [1] = "Baby wants her dolly!" },
+        ["text"] = "Малявка хоче свою ляльку!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [817871051] = {
+        ["english"] = { [1] = "I wonder if your dolly can swim!" },
+        ["text"] = "Цікаво, чи вміє твоя лялька плавати?!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [899937673] = {
+        ["english"] = { [1] = "Ha ha! I have Betsy!" },
+        ["text"] = "Ха-ха! А Бетсі у мене!",
+        ["npcs"] = { [1] = "William" },
+        ["priority"] = 1,
+    },
+    [2603669844] = {
+        ["english"] = { [1] = "How dare you enter my sanctum!" },
+        ["text"] = "Як ви смієте входити в мій храм!",
+        ["npcs"] = { [1] = "Witch Doctor Zum'rah" },
+        ["priority"] = 1,
+    },
+    [3562114341] = {
+        ["english"] = { [1] = "Sands consume you!" },
+        ["text"] = "Піски поглинуть вас!",
+        ["npcs"] = { [1] = "Witch Doctor Zum'rah" },
+        ["priority"] = 1,
+    },
+    [4267058799] = {
+        ["english"] = { [1] = "Come to me, my children!" },
+        ["text"] = "Ходіть до мене, діти мої!",
+        ["npcs"] = { [1] = "Witch Doctor Zum'rah" },
+        ["priority"] = 1,
+    },
+    [989305921] = {
+        ["english"] = { [1] = "Fall!" },
+        ["text"] = "Помри!",
+        ["npcs"] = { [1] = "Witch Doctor Zum'rah" },
+        ["priority"] = 1,
+    },
+    [2632300111] = {
+        ["english"] = { [1] = "I can't believe it! You've destroyed my pack... Now face my wrath!" },
+        ["text"] = "Не можу в це повірити! Ви знищили мою зграю... Тепер ви відчуєте мій гнів!",
+        ["npcs"] = { [1] = "Wolf Master Nandos" },
+        ["priority"] = 1,
+    },
+    [1741994312] = {
+        ["english"] = { [1] = "Blood and souls for Hakkar!  HAHAHAH!" },
+        ["text"] = "Кров і душі для Гаккара! ХАХАХА!",
+        ["npcs"] = { [1] = "Yeh'kinya" },
+        ["priority"] = 1,
+    },
+    [1243705373] = {
+        ["english"] = { [1] = "Free! Free from my bonds at last!" },
+        ["text"] = "Свобода! Нарешті я вільний від цих пут!",
+        ["npcs"] = { [1] = "Zaetar's Spirit" },
+        ["priority"] = 1,
+    },
+    [4000157120] = {
+        ["english"] = { [1] = "Hehehe! Things go boom!" },
+        ["text"] = "Хехехе! Зараз буде БУМ!",
+        ["npcs"] = { [1] = "Zamek" },
+        ["priority"] = 1,
+    },
+    [1550382713] = {
+        ["english"] = { [1] = "%s spits on the corpse of the fallen zealot." },
+        ["text"] = "%s плює на труп ревнителя.",
+        ["npcs"] = { [1] = "Zandalar Enforcer" },
+        ["priority"] = 1,
+    },
+    [2276861490] = {
+        ["english"] = { [1] = "Skam!" },
+        ["text"] = "Паскуда!",
+        ["npcs"] = { [1] = "Zandalar Enforcer" },
+        ["priority"] = 1,
+    },
+    [3326678457] = {
+        ["english"] = { [1] = "Move!" },
+        ["text"] = "Ворушись!",
+        ["npcs"] = { [1] = "Zandalar Enforcer" },
+        ["priority"] = 1,
+    },
+    [334368482] = {
+        ["english"] = { [1] = "Right away, Servitor." },
+        ["text"] = "Слухаюсь, Слуго.",
+        ["npcs"] = { [1] = "Zandalar Enforcer" },
+        ["priority"] = 1,
+    },
+    [3955580999] = {
+        ["english"] = { [1] = "The Blood God, the Soulflayer, has been defeated!  We are imperiled no longer!" },
+        ["text"] = "Кривавого Бога, Здирача душ, знищено! Він нам більше не загрожуватиме!",
+        ["npcs"] = { [1] = "Zandalarian Emissary" },
+        ["priority"] = 1,
+    },
+    [609189386] = {
+        ["english"] = { [1] = "All Hail <name>, slayer of Hakkar, and hero of Azeroth!" },
+        ["text"] = "Хвала {ім'я:д}, вбивці Гаккара, і герою Азероту!#All Hail <name>,",
+        ["npcs"] = { [1] = "Zandalarian Emissary" },
+        ["priority"] = 1,
+    },
+    [1178790997] = {
+    ["english"] = { [1] = "Aonda is a good woman, and true servant of Zephras Isle. It is my hope that you can quickly earn her trust and help her to keep Shen'dar Village safe. May the winds guide you, <name>." },
+    ["text"] = "Аонда — добра жінка й вірна служниця острова Зефрас. Сподіваюся, ти швидко заслужиш її довіру й допоможеш їй берегти селище Шен'дар. Нехай вітри ведуть тебе, {ім'я:к}.",
+    ["npcs"] = { [1] = "Aetheen of the Gales" },
+    ["priority"] = 3,
+},
+    [2586688164] = {
+    ["english"] = { [1] = "Die, non-believer!" },
+    ["text"] = "Помри, невірний!",
+    ["npcs"] = { [1] = "Al'Aketh Ambusher" },
+    ["priority"] = 3,
+},
+    [2910584342] = {
+    ["english"] = { [1] = "If you are looking for more work, I'm sure there are some folks in town that are also looking for help with one task or another. Just ask around, you are bound to find something." },
+    ["text"] = "Якщо шукаєш ще роботи, певен, у містечку є люди, яким також потрібна допомога з тією чи іншою справою. Просто розпитай — неодмінно щось знайдеш.",
+    ["npcs"] = { [1] = "Constable Aonda" },
+    ["priority"] = 3,
+},
+    [563667789] = {
+    ["english"] = { [1] = "All you need to start a camp of your own is a basic campfire. Cooks can generally teach you how to make one of those." },
+    ["text"] = "Усе, що потрібно, щоб облаштувати власний табір, — звичайне багаття. Кухарі зазвичай можуть навчити тебе його розпалювати.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [3873576745] = {
+    ["english"] = { [1] = "Every trade has something they can contribute to your camp, even fishermen!" },
+    ["text"] = "Кожне ремесло може щось додати до твого табору — навіть рибалки!",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [4160542264] = {
+    ["english"] = { [1] = "Go on and have a seat near the fire and we can get started." },
+    ["text"] = "Ну ж бо, сідай біля вогню, і почнемо.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [1878254050] = {
+    ["english"] = { [1] = "If you just sit still and rest for a few more moments, you'll gain a benefit from having rested near the tent I have set up behind me." },
+    ["text"] = "Якщо просто посидиш спокійно й відпочинеш ще кілька хвилин, отримаєш користь від відпочинку біля намету, який я встановив позаду.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [2722975165] = {
+    ["english"] = { [1] = "Once your campfire is down, you can place all sorts of camp fixtures around it." },
+    ["text"] = "Коли багаття вже розпалене, довкола нього можна розставити всіляке табірне приладдя.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [552359531] = {
+    ["english"] = { [1] = "Sufficiently skilled leatherworkers, for example, can place a tent like this one behind me." },
+    ["text"] = "Наприклад, достатньо вправні шкіряники можуть встановити такий намет, як у мене позаду.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [1000572642] = {
+    ["english"] = { [1] = "Then, all you need to do is have a seat near the fire and soak it all in. After a few minutes of resting, you'll gain various boons that will help you in your travels." },
+    ["text"] = "Тоді тобі лишається сісти біля вогню й насолодитися відпочинком. За кілька хвилин ти отримаєш різні благословення, які допоможуть у мандрах.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [3770005022] = {
+    ["english"] = { [1] = "That's about the gist of it. Once you've gained your boon from resting near the fire, speak with me again." },
+    ["text"] = "Ось, власне, і вся суть. Коли отримаєш своє благословення від відпочинку біля вогню, поговори зі мною знову.",
+    ["npcs"] = { [1] = "Raan Wildwind" },
+    ["priority"] = 3,
+},
+    [1154610684] = {
+    ["english"] = { [1] = "Come young one, sit with me." },
+    ["text"] = "Підійди, юначе, сядь зі мною.",
+    ["npcs"] = { [1] = "Rathiril Sunlance" },
+    ["priority"] = 3,
+},
+    [4271136130] = {
+    ["english"] = { [1] = "It was a critical mistake that our people left their fates in the hands of fickle elemental spirits. It's up to us now to remedy that error." },
+    ["text"] = "Було великою помилкою віддати долі нашого народу в руки мінливих стихійних духів. Тепер виправити цю помилку належить нам.",
+    ["npcs"] = { [1] = "Rathiril Sunlance" },
+    ["priority"] = 3,
+},
+    [4253796088] = {
+    ["english"] = { [1] = "The Al'Aketh cult continues to escalate their violence, and the Windshapers stubbornly refuse to recognize the inaction that brought us here." },
+    ["text"] = "Культ Ал'Акету продовжує нарощувати насильство, а вітротворці вперто відмовляються визнавати бездіяльність, що привела нас сюди.",
+    ["npcs"] = { [1] = "Rathiril Sunlance" },
+    ["priority"] = 3,
+},
+    [1671150725] = {
+    ["english"] = { [1] = "The High Order are the custodians of the Highborne ways, and we will master the magic holding this island in place and bend it to our will." },
+    ["text"] = "Високий Орден — хранителі звичаїв Високородних, і ми опануємо магію, що утримує цей острів на місці, та підкоримо її своїй волі.",
+    ["npcs"] = { [1] = "Rathiril Sunlance" },
+    ["priority"] = 3,
+},
+    [91010602] = {
+    ["english"] = { [1] = "The pylons that keep our island home anchored to the elemental plane of Skywall are failing. Zephras Isle--our home--is in grave danger." },
+    ["text"] = "Пілони, що утримують наш острівний дім на стихійному плані Небесної Стіни, руйнуються. Острів Зефрас — наш дім — у смертельній небезпеці.",
+    ["npcs"] = { [1] = "Rathiril Sunlance" },
+    ["priority"] = 3,
+},
+    [120490661] = {
+    ["english"] = { [1] = "Gah... Youths!" },
+    ["text"] = "Гах... Молодь!",
+    ["npcs"] = { [1] = "Rorian the Dayseeker" },
+    ["priority"] = 3,
+},
+    [1270987804] = {
+    ["english"] = { [1] = "You there! Be careful! Your sacred shen'dorei gifts are not to be used for amusement!" },
+    ["text"] = "Гей, ти! Обережніше! Священні дари шен'дорай не для забави!",
+    ["npcs"] = { [1] = "Rorian the Dayseeker" },
+    ["priority"] = 3,
+},
+    [3260333702] = {
+    ["english"] = { [1] = "Be gone from this place!" },
+    ["text"] = "Геть із цього місця!",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [1310253280] = {
+    ["english"] = { [1] = "Doomed... we are... doomed..." },
+    ["text"] = "Ми приречені... приречені...",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [1856550413] = {
+    ["english"] = { [1] = "Only the Windshapers can save Zephras Isle!" },
+    ["text"] = "Лише вітротворці можуть урятувати острів Зефрас!",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [912466555] = {
+    ["english"] = { [1] = "Spirits of the wind... forgive me..." },
+    ["text"] = "Духи вітру... пробачте мені...",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [3987299315] = {
+    ["english"] = { [1] = "The arcane is an affront to the wind spirits!" },
+    ["text"] = "Аркана — образа для духів вітру!",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [1071394456] = {
+    ["english"] = { [1] = "The meddling of your order will hasten our doom!" },
+    ["text"] = "Втручання твого ордену лише наблизить нашу загибель!",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [2332994119] = {
+    ["english"] = { [1] = "Your recklessness will doom us all!" },
+    ["text"] = "Твоя безрозсудність прирече нас усіх!",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [2383577744] = {
+    ["english"] = { [1] = "You hasten our... destruction..." },
+    ["text"] = "Ти наближаєш нашу... загибель...",
+    ["npcs"] = { [1] = "Windshaper Novice Seer" },
+    ["priority"] = 3,
+},
+    [490730569] = {
+    ["english"] = { [1] = "Give to the charities who seek to help the victims of these hard times! Please." },
+    ["text"] = "Пожертвуйте благодійникам, які допомагають жертвам цих тяжких часів! Будь ласка.",
+    ["npcs"] = { [1] = "John Turner" },
+    ["priority"] = 3,
+},
+    [2407662936] = {
+    ["english"] = { [1] = "Help a poor bloke out?" },
+    ["text"] = "Допоможете бідоласі?",
+    ["npcs"] = { [1] = "Ol' Beasley" },
+    ["priority"] = 3,
+},
+    [1134133542] = {
+    ["english"] = { [1] = "Good luck, Brenda!" },
+    ["text"] = "Щасти, Brenda!",
+    ["npcs"] = { [1] = "Yorus Barleybrew" },
+    ["priority"] = 3,
 },
 }
 
-if addonTable.chat then
-    for k, v in pairs(chat) do
-        if type(addonTable.chat[k]) == "table" and type(v) == "table" then
-            for vk, vv in pairs(v) do
-                addonTable.chat[k][vk] = vv
-            end
-        else
-            addonTable.chat[k] = v
-        end
-    end
-else
-    addonTable.chat = chat
+addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
+for hash, row in pairs(chat_rows) do
+    local previous = addonTable.chat_hashed.rows[hash]
+    if previous then
+        previous.alternatives = previous.alternatives or {}
+        previous.alternatives[#previous.alternatives+1] = row
+    else addonTable.chat_hashed.rows[hash] = row end
 end
 
--- Verified in-game NPC speech scan entries.
-local verified_entries = {
-    ["Durgen Dirgehammer"] = {
-        [1] = "Дурген Жалобний Молот",
-        ["nygtaywhit"] = [===[Мені майже... вдалося... уникнути кари.]===],
-    },
-    ["Faldrim Anvilmar"] = {
-        [1] = "Фалдрім Анвілмар",
-        ["rntomyrt"] = [===[Я повертаюся... до свого... спочинку.]===],
-    },
-    ["Miran"] = {
-        [1] = "Міран",
-        ["hpwebgaddkis"] = [===[Допоможіть! На нас напали! Дворфи Темного Заліза!]===],
-        ["ahheatltisggtoflsogdtogtrdoftebs"] = "А, нарешті на місці! Як же добре буде нарешті позбутися цих бочок.",
-        ["hpieoyoehdtoddmfwh"] = "Допоможіть! У мене лише одна вільна рука, щоб захищатися.",
-        ["sdtmonimntadofsesybs"] = "Нехай ідуть! Я не боюся якихось кволих звірюк!",
-    },
-    ["Greishan Ironstove"] = {
-        [1] = "Ґрейшан Сталежар",
-        ["gmwetyaeneadfhlsofbdhe"] = [===[Налітайте, поки свіжі! Свіжі буханці хліба!]===],
-    },
-    ["Jarven Thunderbrew"] = {
-        [1] = "Ярвен Громовар",
-        ["hytebmgememgoftraeadoefrmygdfdsw"] = [===[Привіт, Бельме! Налий мені кухоль громузвару, і ще один — моєму доброму другу Соу.]===],
-        ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmebg"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Брокенстронґ?",
-        ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmefp"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Фарґодіп?",
-        ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmefr"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Флоппер?",
-        ["hwgsteblwg"] = "Ну як там бочки, цілі...?",
-        ["hytebmgememgoftraeadoefrmygdfdbg"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Брокенстронґу.",
-        ["hytebmgememgoftraeadoefrmygdfddk"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Дураку.",
-        ["hytebmgememgoftraeadoefrmygdfddt"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Донкамілоту.",
-        ["hytebmgememgoftraeadoefrmygdfdfr"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Флопперу.",
-        ["hytebmgememgoftraeadoefrmygdfdlr"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Лонґеру.",
-        ["hytebmgememgoftraeadoefrmygdfdpn"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Паффіну.",
-        ["hytebmgememgoftraeadoefrmygdfdpt"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Перкелту.",
-        ["hytebmgememgoftraeadoefrmygdfdrl"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Раденлолу.",
-        ["hytebmgememgoftraeadoefrmygdfdsh"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Смуту.",
-        ["hytebmgememgoftraeadoefrmygdfdsl"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Смолу.",
-        ["hytebmgememgoftraeadoefrmygdfdsx"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Сенексу.",
-        ["hytebmgememgoftraeadoefrmygdfdti"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Тутсікі.",
-        ["wlbktobsfrmebtitsewsnetgttstbkadisasnedgtrae"] = "Ну, час повертатися до справ.  Але ж добре було трохи перепочити, та й Громовий ель завжди приємно випити!",
-        ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmebn"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Бейлґруне?",
-        ["hdlximggtebssolkbtdtth"] = "Стій, Ліпіксе!  Я стережу ці бочки, тож... дивись, але руками не чіпай!",
-    },
-    ["Muren Stormpike"] = {
-        [1] = "Мурен Бурешпиль",
-        ["fldnadrrwrnrsshsbktohsfe"] = [===[Бувай, {ім'я:к}. І пам'ятай: воїн ніколи не повертається спиною до ворога!#Farewell, <name>.]===],
-    },
-    ["Ol' Emma"] = {
-        [1] = "Стара Емма",
-        ["tkimsgtowrrtintepgss"] = [===[Здається, я вже протоптала доріжку в бруківці.]===],
-    },
-    ["Topper McNabb"] = {
-        [1] = "Топпер Мак-Набб",
-        ["asfrtepr"] = [===[Милостиню бідному?]===],
-        ["cdyesesecn"] = [===[Не знайдеться монетки?]===],
-        ["seyrarfrcr"] = [===[Почищу обладунок за мідяк.]===],
-    },
-    ["Tormus Deepforge"] = {
-        [1] = "Тормус Глибококузень",
-        ["buimfd"] = [===[{ім'я:к}! Я закінчив!]===],
-        ["kgimfd"] = [===[Кеглеґу! Я закінчив!]===],
-        ["brimfd"] = [===[Ще більше! Я закінчив!]===],
-        ["dnimfd"] = [===[Darrin! Я закінчив!]===],
-        ["ofimfd"] = [===[Olof! Я закінчив!]===],
-        ["bstowk"] = [===[%s береться до роботи...]===],
-    },
-    ["Miner Grumnal"] = {
-        [1] = "шахтар Ґрумнал",
-        ["iltewryagtcnadtwinbetowhitdn"] = [===[Візьму все, що наготуєш! І пляшку чогось, щоб запити!]===],
-    },
-    ["Ozzie Togglevolt"] = {
-        [1] = "Оззі Вольтон",
-        ["bktotedgbd"] = [===[Доведеться повернутися до креслень.]===],
-        ["psbtmegewldotetk"] = [===[Може, ще трохи мастила — і все запрацює.]===],
-    },
-    ["Razzle Sprysprocket"] = {
-        [1] = "Раззл Жвавоверт",
-        ["ltmeiltegcgsadrncsadwlfeupterr"] = [===[Дай мені встановити ці гіромеханічні шестірні та зубці рестабілізації, і ми запустимо Рекомбобулятор.]===],
-        ["mtdy"] = [===[Авжеж.]===],
-        ["tetoseteeeghrehegsng"] = [===[Час урятувати весь гном'ячий народ. Ну, поїхали!]===],
-        ["ttsddotetk"] = [===[Це має спрацювати.]===],
-        ["wstgtesetg"] = [===[Я подумав про те саме.]===],
-    },
-    ["Durnan Furcutter"] = {
-        [1] = "Дарнан Хутростриг",
-        ["oohththtifttwtptsginyrspdtkwwtwl"] = [===[Ой-ой-ой, гаряче! Якщо це не додасть тобі бадьорості, то вже не знаю, що додасть!]===],
-        ["tsnglesesgmwoncydnmhdytogttssdrt"] = [===[Немає нічого кращого за гарячий ранковий напій у прохолодний день у Дун-Морозі, щоб добре почати день!]===],
-    },
-    ["Eric Brighthammer"] = {
-        [1] = "Ерік Ясномолот",
-        ["alyundtostcpofyronisbccecscngythyuhwtomeoeofte"] = [===[Щоб облаштувати власний табір, тобі потрібне лише звичайне вогнище. Кухарі зазвичай можуть навчити тебе його розпалювати.]===],
-        ["goonadhestnrtefeadwecngtsd"] = [===[Сідай біля вогнища, і ми почнемо.]===],
-        ["eytehssgtycncetoyrcpenfn"] = "Кожне ремесло може чимось прислужитися твоєму табору — навіть рибальство!",
-        ["ifyujtstsladrtfrfwmemsylgnbtfmhgrdnrtetthestupbdme"] = "Якщо просто посидиш спокійно й відпочинеш іще кілька хвилин, отримаєш корисний ефект від відпочинку біля намету, який я поставив позаду.",
-        ["oeyrceisdnyucnpealssofcpfsadit"] = "Щойно розкладеш багаття, зможеш розставляти навколо нього всіляке табірне начиння.",
-        ["sysdlsfreecnpettletsoebdme"] = "Наприклад, достатньо вправні шкіряники можуть поставити такий намет, як оцей позаду мене.",
-        ["tnalyundtodoishestnrtefeadskitalinarfwmsofrgylgnvsbsttwlhpyuinyrts"] = "Тоді тобі лишиться тільки сісти біля вогню й насолодитися відпочинком. За кілька хвилин ти отримаєш різні благословення, що допоможуть у мандрах.",
-        ["tsattegtofitoeyegdyrbnfmrgnrtefeskwhmean"] = "Ось, власне, й усе. Коли отримаєш благословення від відпочинку біля вогню, поговори зі мною знову.",
-    },
-    ["John Turner"] = {
-        [1] = "Джон Тернер",
-        ["hptecnofsdvsoftewradpe"] = [===[Допоможіть дітям Штормовію... жертвам війни та чуми!]===],
-        ["geofyrhsadyrpsgetotecnofsdwohelttrps"] = [===[Не шкодуйте ні сердець, ні гаманців! Допоможіть дітям Штормовію, які втратили батьків.]===],
-    },
-    ["Rifleman Middlecamp"] = {
-        [1] = "стрілець Депривал",
-        ["ssfmtehpattebs"] = [===[%s стріляє від стегна по пляшках...]===],
-    },
-    ["Huldar"] = {
-        ["notttrwlspteprfmggtoid"] = "Жоден жалюгідний зрадник не завадить доставити порох Залізносмугу!",
-    },
-    ["Saean"] = {
-        ["syhrbtitssiemdyu"] = "Пробач, Хульдаре... Але, схоже, я ввів тебе в оману.",
-    },
-    ["Erich Lohan"] = {
-        ["akmehwtogtfedkattebere"] = "Запитай мене, як отримати безплатний напій у «Синьому Самітнику»!",
-    },
-    ["Gozwin Halfsprocket"] = {
-        ["gs"] = "%s стогне.",
-    },
-    ["Grund Drokda"] = {
-        ["gtsebdinyrby"] = "Закинь-но трохи хліба в черево.",
-    },
-    ["Rifleman Wheeler"] = {
-        ["oyhsteseoftebx"] = "%s влучає лише в бік ящика!",
-        ["tntsamattebs"] = "%s тоді прицілюється в пляшки...",
-    },
+-- Only speech without a recovered English source keeps old keys.
+local legacy_chat = {
+    ["A-Me 01"] = { [1] = "Е-Мі 01" },
+    ["Acolyte Dellis"] = { [1] = "помічник Делліс" },
+    ["Adam"] = { [1] = "Адам" },
+    ["Adjutant Tesoran"] = { [1] = "ад'ютант Тесоран" },
+    ["Aedis Brom"] = { [1] = "Едіс Бром" },
+    ["Affray Challenger"] = { [1] = "претендент Побоїща" },
+    ["Agent Kearnen"] = { [1] = "агент Кірнен" },
+    ["Ak'Zeloth"] = { [1] = "Ак'Зелот" },
+    ["Alarm-a-bomb 2600"] = { [1] = "Тривого-бомба 2600" },
+    ["Alchemist Arbington"] = { [1] = "алхімік Арбінґтон" },
+    ["Alexi Barov"] = { [1] = "Алексій Баров" },
+    ["Aligar the Tormentor"] = { [1] = "Аліґар-Мучитель" },
+    ["Alzzin the Wildshaper"] = { [1] = "Альззін-Диковертень" },
+    ["Aman"] = { [1] = "Аман" },
+    ["Ambassador Berrybuck"] = { [1] = "посол Ягідний" },
+    ["Ambassador Flamelash"] = { [1] = "посол Вогнехляст" },
+    ["Amnennar the Coldbringer"] = { [1] = "Амненнар Стужевій" },
+    ["Amy Davenport"] = { [1] = "Емі Дейвенпорт" },
+    ["Anachronos the Ancient"] = { [1] = "Анахронос Древній" },
+    ["Anastasia Hartwell"] = { [1] = "Анастасія Гартвелл" },
+    ["Anaya"] = { [1] = "Анайя" },
+    ["Anaya Dawnrunner"] = { [1] = "Анайя Зорегін" },
+    ["Ancient Equine Spirit"] = { [1] = "древній дух коня" },
+    ["Angus Stern"] = { [1] = "Анґус Штерн" },
+    ["Annalise Lerent"] = { [1] = "Анналіз Лерент" },
+    ["Antonio Perelli"] = { [1] = "Антоніо Переллі" },
+    ["Antu'sul"] = { [1] = "Анту'сул" },
+    ["Anub'Rekhan"] = { [1] = "Ануб'Рекан" },
+    ["Anubisath Sentinel"] = { [1] = "анубісат-страж" },
+    ["Anvilrage Footman"] = { [1] = "піхотинець Лютого Ковадла" },
+    ["Anvilrage Guardsman"] = { [1] = "гвардієць Лютого Ковадла" },
+    ["Anvilrage Warden"] = { [1] = "вартовий Лютого Ковадла" },
+    ["Apothecary Dithers"] = { [1] = "аптекар Дітерс" },
+    ["Apothecary Faustin"] = { [1] = "аптекар Фаустін" },
+    ["Apothecary Helbrim"] = { [1] = "аптекар Гелбрім" },
+    ["Apothecary Jorell"] = { [1] = "аптекар Джорел" },
+    ["Apothecary Keever"] = { [1] = "аптекар Ківер" },
+    ["Apothecary Lydon"] = { [1] = "аптекар Лідон" },
+    ["Apothecary Staffron Lerent"] = { [1] = "аптекар Стаффрон Лерент" },
+    ["Apothecary Zamah"] = { [1] = "аптекарка Зама" },
+    ["Aquementas"] = { [1] = "Акваментас" },
+    ["Araj the Summoner"] = { [1] = "Араж-Закликач" },
+    ["Arathandris Silversky"] = { [1] = "Аратандріс Срібнонебесна" },
+    ["Arcanist Doan"] = { [1] = "арканіст Доан" },
+    ["Arch Druid Renferal"] = { [1] = "верховний друїд Лютоцвіт" },
+    ["Archaedas"] = { [1] = "Аркедас" },
+    ["Archaeologist Flagongut"] = { [1] = "археолог Флягопуз" },
+    ["Archmage Angela Dosantos"] = { [1] = "архімагиня Анжела Досантос" },
+    ["Archmage Ansirem Runeweaver"] = { [1] = "архімаг Ансірем Рунопис" },
+    ["Archmage Arugal"] = { [1] = "архімаг Аруґал" },
+    ["Archmage Tarsis Kir-Moldir"] = { [1] = "архімаг Тарсіс Кір-Молдір" },
+    ["Archmage Tervosh"] = { [1] = "архімаг Тервош" },
+    ["Arei"] = { [1] = "Арей" },
+    ["Argent Guard Thaelrid"] = { [1] = "вартовий Сріблястого Світанку Талрід" },
+    ["Argent Sentry"] = { [1] = "караульний Сріблястого Світанку" },
+    ["Artist Renfray"] = { [1] = "художниця Ренфрі" },
+    ["Artorius the Amiable"] = { [1] = "Арторій Привітний" },
+    ["Arugal"] = { [1] = "Аруґал" },
+    ["Arygos"] = { [1] = "Ариґос" },
+    ["Atiesh"] = { [1] = "Атієш" },
+    ["Augustus the Touched"] = { [1] = "Август Зворушений" },
+    ["Aurius"] = { [1] = "Аурій" },
+    ["Aurora Skycaller"] = { [1] = "Аврора Небоклич" },
+    ["Avalanchion"] = { [1] = "Лавиніон" },
+    ["Avarus Kharag"] = { [1] = "Аварій Караґ" },
+    ["Awbee"] = { [1] = "Авбі" },
+    ["Azure Templar"] = { [1] = "лазурний храмовник" },
+    ["Azuregos"] = { [1] = "Азуреґос" },
+    ["Bael'Gar"] = { [1] = "Бель'Ґар" },
+    ["Balgaras the Foul"] = { [1] = "Балґарас Паскудний" },
+    ["Balizar the Umbrage"] = { [1] = "Балізар-Кривдник" },
+    ["Balnazzar"] = { [1] = "Бальназар" },
+    ["Balos Jacken"] = { [1] = "Балос Джекен" },
+    ["Baristolth of the Shifting Sands"] = { [1] = "Барістольт Мінливих Пісків" },
+    ["Barithras Moonshade"] = { [1] = "Барітрас Місячна Тінь" },
+    ["Barkeep Daniels"] = { [1] = "бармен Деніелс" },
+    ["Barkeep Hann"] = { [1] = "бармен Ганн" },
+    ["Barnil Stonepot"] = { [1] = "Барніл Камнекухоль" },
+    ["Baron Charr"] = { [1] = "барон Жарр" },
+    ["Baron Geddon"] = { [1] = "барон Геддон" },
+    ["Baron Kazum"] = { [1] = "барон Казум" },
+    ["Baron Rivendare"] = { [1] = "барон Рівендер" },
+    ["Baron Silverlaine"] = { [1] = "барон Срібляр" },
+    ["Bartleby"] = { [1] = "Бартлбі" },
+    ["Bath'rah the Windwatcher"] = { [1] = "Бат'рах Вітрогляд" },
+    ["Battleguard Sartura"] = { [1] = "боєстраж Сартура" },
+    ["Bazil Thredd"] = { [1] = "Базіл Тредд" },
+    ["Beetix Ficklespragg"] = { [1] = "Бітікс Хиткожвав" },
+    ["Belnistrasz"] = { [1] = "Белністраз" },
+    ["Bethor Iceshard"] = { [1] = "Бетор Кригозлам" },
+    ["Big Will"] = { [1] = "здоровань Вілл" },
+    ["Bile Spewer"] = { [1] = "жовчеплюй" },
+    ["Billy"] = { [1] = "Біллі" },
+    ["Bimble Longberry"] = { [1] = "Бімбль Ожинка" },
+    ["Bingles Blastenheimer"] = { [1] = "Бінґлс Підривайченко" },
+    ["Black Guard Sentry"] = { [1] = "караульний Чорної Варти" },
+    ["Black Guard Swordsmith"] = { [1] = "зброяр Чорної Варти" },
+    ["Blackhand Elite"] = { [1] = "гвардієць Чорнорука" },
+    ["Blackhand Summoner"] = { [1] = "закликач Чорнорука" },
+    ["Blackhand Thug"] = { [1] = "бандит Чорнорука" },
+    ["Blackwing Technician"] = { [1] = "технік Чорного Крила" },
+    ["Blastmaster Emi Shortfuse"] = { [1] = "підривниця Емі Куций Запал" },
+    ["Blood Elf Defender"] = { [1] = "ельф крові-захисник" },
+    ["Bloodlord Mandokir"] = { [1] = "повелитель крові Мандокір" },
+    ["Bloodmage Thalnos"] = { [1] = "кривавий маг Талнос" },
+    ["Bogling"] = { [1] = "болотянчик" },
+    ["Boss Galgosh"] = { [1] = "бос Ґалґош" },
+    ["Brandon"] = { [1] = "Брендон" },
+    ["Braug Dimspirit"] = { [1] = "Брауґ Тьмяний Дух" },
+    ["Brewmeister Bilger"] = { [1] = "майстер-бровар Білґер" },
+    ["Broodlord Lashlayer"] = { [1] = "володар роду Хлист Бича" },
+    ["Brother Kristoff"] = { [1] = "брат Крістофф" },
+    ["Brother Malach"] = { [1] = "брат Малах" },
+    ["Brother Sarno"] = { [1] = "брат Сарно" },
+    ["Bruegal Ironknuckle"] = { [1] = "Бруґал Залізний Кулак" },
+    ["Burning Blade Toxicologist"] = { [1] = "токсиколог Палаючого Леза" },
+    ["Buru the Gorger"] = { [1] = "Буру-Пожирач" },
+    ["C'Thun"] = { [1] = "К'Тун" },
+    ["Caedakar the Vicious"] = { [1] = "Цедакар Порочний" },
+    ["Caelestrasz"] = { [1] = "Келестраз" },
+    ["Calvin Montague"] = { [1] = "Кальвін Монтеґ'ю" },
+    ["Cannoneer Smythe"] = { [1] = "канонір Смайт" },
+    ["Captain Balinda Stonehearth"] = { [1] = "капітан Балінда Кам'яне Вогнище" },
+    ["Captain Blackanvil"] = { [1] = "капітан Чорноков" },
+    ["Captain Danuvin"] = { [1] = "капітан Данувін" },
+    ["Captain Galvangar"] = { [1] = "капітан Ґальванґар" },
+    ["Captain Garran Vimes"] = { [1] = "капітан Ґарран Ваймс" },
+    ["Captain Halyndor"] = { [1] = "капітан Галиндор" },
+    ["Captain Kromcrush"] = { [1] = "капітан Дужохруст" },
+    ["Captain Nials"] = { [1] = "капітан Ніалс" },
+    ["Captain Redpath"] = { [1] = "капітан Редпат" },
+    ["Captain Tuubid"] = { [1] = "капітан Туубід" },
+    ["Captain Vanessa Beltis"] = { [1] = "капітан Ванесса Белтіс" },
+    ["Captured Arko'narin"] = { [1] = "ув'язнена Арко'нарін" },
+    ["Captured Farmer"] = { [1] = "полонений фермер" },
+    ["Captured Hakkari Zealot"] = { [1] = "полонений ревнитель Гаккарі" },
+    ["Captured Leper Gnome"] = { [1] = "пійманий лепрогном" },
+    ["Captured Mountaineer"] = { [1] = "полонений горянин" },
+    ["Captured Scarlet Zealot"] = { [1] = "полонений ревнитель Багряного Походу" },
+    ["Caretaker Alen"] = { [1] = "доглядач Ален" },
+    ["Caretaker Caice"] = { [1] = "доглядач Кайс" },
+    ["Carrion Devourer"] = { [1] = "трупний пожирач" },
+    ["Cat"] = { [1] = "кішка" },
+    ["Cauldron Lord Bilemaw"] = { [1] = "хранитель котла Жовчерот" },
+    ["Cauldron Lord Malvinious"] = { [1] = "хранитель котла Злобин" },
+    ["Cauldron Lord Razarch"] = { [1] = "хранитель котла Разарх" },
+    ["Cauldron Lord Soulwrath"] = { [1] = "хранитель котла Душегнів" },
+    ["Caverndeep Ambusher"] = { [1] = "печерний душитель" },
+    ["Caverndeep Burrower"] = { [1] = "печерний землерий" },
+    ["Caverndeep Invader"] = { [1] = "печерний загарбник" },
+    ["Caverndeep Pillager"] = { [1] = "печерний грабіжник" },
+    ["Caverndeep Reaver"] = { [1] = "печерний розоритель" },
+    ["Celebras the Redeemed"] = { [1] = "Келебрас Спокутий" },
+    ["Celebrian Dryad"] = { [1] = "келебрійська дріада" },
+    ["Cenarion Hold Infantry"] = { [1] = "піхотинець Кенарійської цитаделі" },
+    ["Cenarion Hold Reservist"] = { [1] = "резервіст Кенарійської цитаделі" },
+    ["Cerellean Whiteclaw"] = { [1] = "Цереліан Білопазур" },
+    ["Chained Spirit"] = { [1] = "прикутий дух" },
+    ["Charlga Razorflank"] = { [1] = "Чарлґа Бритвобока" },
+    ["Chef Breanna"] = { [1] = "шеф-кухарка Бренна" },
+    ["Chemist Cuely"] = { [1] = "хімік К'юлі" },
+    ["Chicken"] = { [1] = "курка" },
+    ["Chief Engineer Hinderweir VII"] = { [1] = "старший інженер Греблер" },
+    ["Chief Murgut"] = { [1] = "вождь Мурґут" },
+    ["Chief Ukorz Sandscalp"] = { [1] = "вождь Укорз Піщаний Скальп" },
+    ["Cho'Rush the Observer"] = { [1] = "Чо'Раш-Спостерігач" },
+    ["Chok'sul"] = { [1] = "Чок'сул" },
+    ["Christoph Faral"] = { [1] = "Крістоф Ферел" },
+    ["Chromaggus"] = { [1] = "Хромаґґус" },
+    ["Chromie"] = { [1] = "Хромі" },
+    ["Coleman Farthing"] = { [1] = "Коулмен Фартинг" },
+    ["Collin Mauren"] = { [1] = "Коллін Морен" },
+    ["Commander Althea Ebonlocke"] = { [1] = "командир Альтея Чорнобрива" },
+    ["Commander Eligor Dawnbringer"] = { [1] = "командир Еліґор Світанковий" },
+    ["Commander Gor'shak"] = { [1] = "командир Ґор'шак" },
+    ["Commander Mar'alith"] = { [1] = "командир Мар'аліт" },
+    ["Commander Springvale"] = { [1] = "командир Джерельний" },
+    ["Corbett Schneider"] = { [1] = "Корбет Шнайдер" },
+    ["Core Hound"] = { [1] = "гончак ядра" },
+    ["Core Rager"] = { [1] = "лютень Ядра" },
+    ["Cork Gizelton"] = { [1] = "Корок Ґізельтон" },
+    ["Corporal Keeshan"] = { [1] = "капрал Кішан" },
+    ["Corporal Noreg Stormpike"] = { [1] = "капрал Нореґ Бурешпиль" },
+    ["Corrupted Cat"] = { [1] = "осквернений кіт" },
+    ["Councilman Millstipe"] = { [1] = "радник Млинченко" },
+    ["Crank Fizzlebub"] = { [1] = "Вибрик Бульчук" },
+    ["Crest Killer"] = { [1] = "Гребінь Вбивця" },
+    ["Crimson Conjuror"] = { [1] = "багряний заклинатель" },
+    ["Crimson Courier"] = { [1] = "кур'єр Багряного Походу" },
+    ["Crimson Gallant"] = { [1] = "багряний сміливець" },
+    ["Crimson Guardsman"] = { [1] = "багряний гвардієць" },
+    ["Crimson Hammersmith"] = { [1] = "багряний коваль молотів" },
+    ["Crimson Initiate"] = { [1] = "багряний посвячений" },
+    ["Crimson Monk"] = { [1] = "багряний монах" },
+    ["Crimson Sorcerer"] = { [1] = "багряний чаклун" },
+    ["Crimson Templar"] = { [1] = "багряний храмовник" },
+    ["Curator Thorius"] = { [1] = "куратор Торій" },
+    ["Cursed Marine"] = { [1] = "проклятий морський піхотинець" },
+    ["Cursed Sailor"] = { [1] = "проклятий моряк" },
+    ["Cyriden Farseeker"] = { [1] = "Циріден Далекоходець" },
+    ["Daggerspine Marauder"] = { [1] = "мародер Клинкоспинів" },
+    ["Dalinda Malem"] = { [1] = "Далінда Малем" },
+    ["Daphne Stilwell"] = { [1] = "Дафна Стілвелл" },
+    ["Dark Iron Bombardier"] = { [1] = "бомбардир Темного Заліза" },
+    ["Dark Iron Kidnapper"] = { [1] = "викрадач Темного Заліза" },
+    ["Dark Iron Land Mine"] = { [1] = "міна Темного Заліза" },
+    ["Dark Iron Marksman"] = { [1] = "снайпер Темного Заліза" },
+    ["Dark Iron Raider"] = { [1] = "рейдер Темного Заліза" },
+    ["Dark Iron Sapper"] = { [1] = "сапер Темного Заліза" },
+    ["Dark Iron Steelshifter"] = { [1] = "сталеріз Темного Заліза" },
+    ["Dark Strand Assassin"] = { [1] = "душогуб Темного Пасма" },
+    ["Darkcaller Yanka"] = { [1] = "Янка Темноклич" },
+    ["Darkmaster Gandling"] = { [1] = "темний магістр Ґандлінґ" },
+    ["Darkmoon Faire Carnie"] = { [1] = "працівник ярмарку Темного Місяця" },
+    ["Darrowshire Defender"] = { [1] = "захисник Дарроушира" },
+    ["Darrowshire Poltergeist"] = { [1] = "полтергейст Дарроушира" },
+    ["Daryn Lightwind"] = { [1] = "Дарін Легковій" },
+    ["Dashel Stonefist"] = { [1] = "Дешель Кам'яний Кулак" },
+    ["Davil Lightfire"] = { [1] = "Дейвіл Сяйносвіт" },
+    ["Death Knight Darkreaver"] = { [1] = "лицар смерті Тінегубитель" },
+    ["Death Talon Captain"] = { [1] = "капітан Кігтя Смерті" },
+    ["Death Talon Overseer"] = { [1] = "розпорядник Кігтя Смерті" },
+    ["Deathguard Bartholomew"] = { [1] = "смертестраж Варфоломій" },
+    ["Deathguard Burgess"] = { [1] = "смертестраж Бурґесс" },
+    ["Deathguard Kel"] = { [1] = "смертестраж Кел" },
+    ["Deathknight Understudy"] = { [1] = "лицар смерті-учень" },
+    ["Deathstalker Adamant"] = { [1] = "смертолов Адамант" },
+    ["Deathstalker Erland"] = { [1] = "смертолов Ерланд" },
+    ["Deathstalker Faerleia"] = { [1] = "смертоловка Фарлея" },
+    ["Deathstalker Vincent"] = { [1] = "смертолов Вінсент" },
+    ["Decrepit Guardian"] = { [1] = "дряхлий захисник" },
+    ["Deepmoss Hatchling"] = { [1] = "густомохове дитинча" },
+    ["Deepmoss Matriarch"] = { [1] = "густомоховий матріарх" },
+    ["Defias Blackguard"] = { [1] = "лайдак Непокірних" },
+    ["Defias Dockmaster"] = { [1] = "начальник доку Непокірних" },
+    ["Defias Messenger"] = { [1] = "гонець Непокірних" },
+    ["Defias Raider"] = { [1] = "рейдер Непокірних" },
+    ["Defias Rioter"] = { [1] = "заколотник Непокірних" },
+    ["Defias Thug"] = { [1] = "розбійник Непокірних" },
+    ["Defias Tower Patroller"] = { [1] = "патрульна вежі Непокірних" },
+    ["Devouring Ectoplasm"] = { [1] = "пожираюча ектоплазма" },
+    ["Discordant Surge"] = { [1] = "збожеволілий сплеск" },
+    ["Doan Karhan"] = { [1] = "Доан Карган" },
+    ["Doc Mixilpixil"] = { [1] = "Док Міксільпіксіль" },
+    ["Doctor Weavil"] = { [1] = "доктор Жло" },
+    ["Donna"] = { [1] = "Донна" },
+    ["Donova Snowden"] = { [1] = "Донова Снігосхов" },
+    ["Doom'rel"] = { [1] = "Згуб'рел" },
+    ["Dreamscythe"] = { [1] = "Жнець Сну" },
+    ["Durgen Dirgehammer"] = { [1] = "Дурген Жалобний Молот", ["nygtaywhit"] = "Мені майже... вдалося... уникнути кари." },
+    ["Durnan Furcutter"] = { [1] = "Дарнан Хутростриг" },
+    ["Earthen Templar"] = { [1] = "земляний храмовник" },
+    ["Ebonroc"] = { [1] = "Чорнокрил" },
+    ["Edwin VanCleef"] = { [1] = "Едвін ван Кліф" },
+    ["Effsee"] = { [1] = "Ефсі" },
+    ["Elaine Trias"] = { [1] = "Елейн Тріас" },
+    ["Elder Torntusk"] = { [1] = "старійшина Розірваний Бивень" },
+    ["Eliza"] = { [1] = "Еліза" },
+    ["Emberstrife"] = { [1] = "Вуглечвар" },
+    ["Emeriss"] = { [1] = "Емерісс" },
+    ["Emissary Roman'khan"] = { [1] = "емісар Роман'хан" },
+    ["Emperor Dagran Thaurissan"] = { [1] = "імператор Даґран Тауріссан" },
+    ["Emperor Vek'lor"] = { [1] = "імператор Век'лор" },
+    ["Emperor Vek'nilash"] = { [1] = "імператор Век'нілаш" },
+    ["Eric Brighthammer"] = { [1] = "Ерік Ясномолот", ["alyundtostcpofyronisbccecscngythyuhwtomeoeofte"] = "Щоб облаштувати власний табір, тобі потрібне лише звичайне вогнище. Кухарі зазвичай можуть навчити тебе його розпалювати.", ["eytehssgtycncetoyrcpenfn"] = "Кожне ремесло може чимось прислужитися твоєму табору — навіть рибальство!", ["goonadhestnrtefeadwecngtsd"] = "Сідай біля вогнища, і ми почнемо.", ["ifyujtstsladrtfrfwmemsylgnbtfmhgrdnrtetthestupbdme"] = "Якщо просто посидиш спокійно й відпочинеш іще кілька хвилин, отримаєш корисний ефект від відпочинку біля намету, який я поставив позаду.", ["oeyrceisdnyucnpealssofcpfsadit"] = "Щойно розкладеш багаття, зможеш розставляти навколо нього всіляке табірне начиння.", ["sysdlsfreecnpettletsoebdme"] = "Наприклад, достатньо вправні шкіряники можуть поставити такий намет, як оцей позаду мене.", ["tnalyundtodoishestnrtefeadskitalinarfwmsofrgylgnvsbsttwlhpyuinyrts"] = "Тоді тобі лишиться тільки сісти біля вогню й насолодитися відпочинком. За кілька хвилин ти отримаєш різні благословення, що допоможуть у мандрах.", ["tsattegtofitoeyegdyrbnfmrgnrtefeskwhmean"] = "Ось, власне, й усе. Коли отримаєш благословення від відпочинку біля вогню, поговори зі мною знову." },
+    ["Erich Lohan"] = { [1] = "Еріх Логан" },
+    ["Eridan Bluewind"] = { [1] = "Ерідана Блакитновій" },
+    ["Eris Havenfire"] = { [1] = "Ерида Мирожара" },
+    ["Exzhal"] = { [1] = "Ексжал" },
+    ["Eye of Naxxramas"] = { [1] = "око Наксрамаса" },
+    ["Ezra Grimm"] = { [1] = "Езра Ґрімм" },
+    ["Faldrim Anvilmar"] = { [1] = "Фалдрім Анвілмар", ["rntomyrt"] = "Я повертаюся... до свого... спочинку." },
+    ["Fallen Hero"] = { [1] = "полеглий герой" },
+    ["Fandral Staghelm"] = { [1] = "Фендрал Оленеріг" },
+    ["Farmer Saldean"] = { [1] = "фермер Салден" },
+    ["Father Inigo Montoy"] = { [1] = "отець Ініґо Монтой" },
+    ["Feero Ironhand"] = { [1] = "Фіро Залізорук" },
+    ["Flamegor"] = { [1] = "Вогнеклик" },
+    ["Fobeed"] = { [1] = "Фобід" },
+    ["Foreman Oslow"] = { [1] = "десятник Ослоу" },
+    ["Forsaken Scout"] = { [1] = "відречений-розвідник" },
+    ["Franklin the Friendly"] = { [1] = "Франклін Дружній" },
+    ["Frostwolf"] = { [1] = "морозний вовк" },
+    ["Garr"] = { [1] = "Ґарр" },
+    ["Gil"] = { [1] = "Джил" },
+    ["Gluth"] = { [1] = "Ґлут" },
+    ["Gnome Pit Boss"] = { [1] = "гном-начальник піт-стопу" },
+    ["Goblin Land Mine"] = { [1] = "гоблінська міна" },
+    ["Goblin Pit Boss"] = { [1] = "гоблін-начальник піт-стопу" },
+    ["Gothik the Harvester"] = { [1] = "Готик-Жнець" },
+    ["Gozwin Halfsprocket"] = { ["gs"] = "%s стогне." },
+    ["Grand Crusader Dathrohan"] = { [1] = "верховний лицар Датроган" },
+    ["Grand Widow Faerlina"] = { [1] = "велика вдова Фарліна" },
+    ["Grawmug"] = { [1] = "Ґромаґ" },
+    ["Greishan Ironstove"] = { [1] = "Ґрейшан Сталежар" },
+    ["Grubbis"] = { [1] = "Бубонник" },
+    ["Grund Drokda"] = { ["gtsebdinyrby"] = "Закинь-но трохи хліба в черево." },
+    ["Guard Lasiter"] = { [1] = "вартовий Ласітер" },
+    ["Gunther Arcanus"] = { [1] = "Ґюнтер Арканус" },
+    ["Gunther's Visage"] = { [1] = "образ Ґюнтера" },
+    ["Harlan Bagley"] = { [1] = "Гарлан Баґлі" },
+    ["Herald of Thrall"] = { [1] = "вісник Тралла" },
+    ["High Overlord Saurfang"] = { [1] = "верховний надповелитель Саурфанґ" },
+    ["Hoary Templar"] = { [1] = "сивий храмовник" },
+    ["Irradiated Invader"] = { [1] = "опромінений загарбник" },
+    ["Irradiated Pillager"] = { [1] = "опромінений грабіжник" },
+    ["J.D. Collie"] = { [1] = "Джей Ді Коллі" },
+    ["Jandice Barov"] = { [1] = "Джандіс Барова" },
+    ["Jarven Thunderbrew"] = { [1] = "Ярвен Громовар", ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmebg"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Брокенстронґ?", ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmebn"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Бейлґруне?", ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmefp"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Фарґодіп?", ["ahttsedshttesttkilgtmfcemecnyuwhtebsfrmefr"] = "Ах, оце саме те, що треба!  Мабуть, візьму собі ще кухлик-другий... приглянеш за цими бочками замість мене, Флоппер?", ["hdlximggtebssolkbtdtth"] = "Стій, Ліпіксе!  Я стережу ці бочки, тож... дивись, але руками не чіпай!", ["hytebmgememgoftraeadoefrmygdfdbg"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Брокенстронґу.", ["hytebmgememgoftraeadoefrmygdfddk"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Дураку.", ["hytebmgememgoftraeadoefrmygdfddt"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Донкамілоту.", ["hytebmgememgoftraeadoefrmygdfdfr"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Флопперу.", ["hytebmgememgoftraeadoefrmygdfdlr"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Лонґеру.", ["hytebmgememgoftraeadoefrmygdfdpn"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Паффіну.", ["hytebmgememgoftraeadoefrmygdfdpt"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Перкелту.", ["hytebmgememgoftraeadoefrmygdfdrl"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Раденлолу.", ["hytebmgememgoftraeadoefrmygdfdsh"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Смуту.", ["hytebmgememgoftraeadoefrmygdfdsl"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Смолу.", ["hytebmgememgoftraeadoefrmygdfdsw"] = "Привіт, Бельме! Налий мені кухоль громузвару, і ще один — моєму доброму другу Соу.", ["hytebmgememgoftraeadoefrmygdfdsx"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Сенексу.", ["hytebmgememgoftraeadoefrmygdfdti"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — моєму доброму другові Тутсікі." },
+    ["Jessica Chambers"] = { [1] = "Джессіка Чамберс" },
+    ["John Turner"] = { [1] = "Джон Тернер" },
+    ["Justin"] = { [1] = "Джастін" },
+    ["Karlee Chaddis"] = { [1] = "Карлі Чаддіс" },
+    ["Kernobee"] = { [1] = "Кернобі" },
+    ["Krug Skullsplit"] = { [1] = "Краґ Череполам" },
+    ["Leper Gnome"] = { [1] = "лепрогном" },
+    ["Lillith Nefara"] = { [1] = "Лілліт Нефара" },
+    ["Lord Skwol"] = { [1] = "лорд Сквол" },
+    ["Lord Victor Nefarius"] = { [1] = "лорд Віктор Нефарій" },
+    ["Magistrate Barthilas"] = { [1] = "війт Бартілас" },
+    ["Magosh"] = { [1] = "Маґош" },
+    ["Magus Rimtori"] = { [1] = "чаклунка Рімторі" },
+    ["Majordomo Executus"] = { [1] = "мажордом Екзекутус" },
+    ["Mekgineer Thermaplugg"] = { [1] = "мекженер Термоштепсель" },
+    ["Merithra of the Dream"] = { [1] = "Мерітра зі Сну" },
+    ["Mikhail"] = { [1] = "Михайль" },
+    ["Miner Grumnal"] = { [1] = "шахтар Ґрумнал" },
+    ["Miran"] = { [1] = "Міран" },
+    ["Mobile Alert System"] = { [1] = "мобільна система оповіщення" },
+    ["Muren Stormpike"] = { [1] = "Мурен Бурешпиль", ["fldnadrrwrnrsshsbktohsfe"] = "Бувай, {ім'я:к}. І пам'ятай: воїн ніколи не повертається спиною до ворога!#Farewell, <name>." },
+    ["Myra Tyrngaarde"] = { [1] = "Міра Тірнґаард" },
+    ["Nefarian's Troops"] = { [1] = "війська Нефаріана" },
+    ["Number Two"] = { [1] = "номер два" },
+    ["Ol' Emma"] = { [1] = "Стара Емма" },
+    ["Onyxia"] = { [1] = "Оніксія" },
+    ["Overlord Runthak"] = { [1] = "властитель Рунтак" },
+    ["Ozzie Togglevolt"] = { [1] = "Оззі Вольтон" },
+    ["Paige Chaddis"] = { [1] = "Пейдж Чаддіс" },
+    ["Patchwerk"] = { [1] = "Клаптик" },
+    ["Polly"] = { [1] = "Поллі" },
+    ["Prince Skaldrenox"] = { [1] = "принц Шпаренокс" },
+    ["Private Hendel"] = { [1] = "рядовий Гіндель" },
+    ["Pyroguard Emberseer"] = { [1] = "вогнестраж Вуглегляд" },
+    ["Qiraji Captain Ka'ark"] = { [1] = "кіразький капітан Ка'арк" },
+    ["Qiraji Officer Zod"] = { [1] = "кіразький офіцер Зод" },
+    ["Qiraji Slayer"] = { [1] = "кіразька вбивця" },
+    ["Quinn Yorick"] = { [1] = "Квінн Йорік" },
+    ["Quixxil"] = { [1] = "Квіксіль" },
+    ["Race Master Kronkrider"] = { [1] = "розпорядник перегонів Вайлоїзд" },
+    ["Raging Agam'ar"] = { [1] = "лютий аґам'ар" },
+    ["Ragnaros"] = { [1] = "Раґнарос" },
+    ["Ramstein the Gorger"] = { [1] = "Рамштайн-Ненажера" },
+    ["Rane Yorick"] = { [1] = "Рейна Йорік" },
+    ["Ravaged Cadaver"] = { [1] = "розтерзаний кадавр" },
+    ["Rayne"] = { [1] = "Рейн" },
+    ["Razzle Sprysprocket"] = { [1] = "Раззл Жвавоверт" },
+    ["Relathor Moonsong"] = { [1] = "Релатор Місячна Пісня" },
+    ["Rema Schneider"] = { [1] = "Рема Шнайдер" },
+    ["Rifleman Middlecamp"] = { [1] = "стрілець Депривал" },
+    ["Rigger Gizelton"] = { [1] = "Монтер Ґізельтон" },
+    ["Rizzle Brassbolts"] = { [1] = "Різзл Латуноболт" },
+    ["Roman"] = { [1] = "Роман" },
+    ["Samantha Shackleton"] = { [1] = "Саманта Сковка" },
+    ["Sandfury Executioner"] = { [1] = "кат Піщанолютих" },
+    ["Scarlet Commander Marjhan"] = { [1] = "командирка Багряного Походу Маржан" },
+    ["Scooty"] = { [1] = "Скуті" },
+    ["Sentinel Shaya"] = { [1] = "вартова Шая" },
+    ["Sergeant Bly"] = { [1] = "сержант Блай" },
+    ["Sorcerer Ashcrombe"] = { [1] = "чаклун Золомбі" },
+    ["Spirit of Trey Lightforge"] = { [1] = "дух Трея Світлогарта" },
+    ["Stormpike Quartermaster"] = { [1] = "квартирмейстер Бурешпилів" },
+    ["Stormscale Toxicologist"] = { [1] = "штормолуский токсиколог" },
+    ["Stormwind Elite Guard"] = { [1] = "штормовійський гвардієць" },
+    ["Tapoke \"Slim\" Jahn"] = { [1] = "Ян \"Пронира\" Тапокі" },
+    ["Thaddius"] = { [1] = "Таддіус" },
+    ["The Duke of Cynders"] = { [1] = "герцог попелу" },
+    ["The Duke of Fathoms"] = { [1] = "герцог глибин" },
+    ["The Duke of Shards"] = { [1] = "герцог осколків" },
+    ["The Duke of Zephyrs"] = { [1] = "герцог вітрів" },
+    ["The Prophet Skeram"] = { [1] = "пророк Скерам" },
+    ["Theramore Sentry"] = { [1] = "тераморський караульний" },
+    ["Thomas Miller"] = { [1] = "Томас Міллер" },
+    ["Thrall"] = { [1] = "Тралл" },
+    ["Thuzadin Acolyte"] = { [1] = "тузадінський послушник" },
+    ["Timmy the Cruel"] = { [1] = "Тіммі-Нелюд" },
+    ["Topper McNabb"] = { [1] = "Топпер Мак-Набб" },
+    ["Tormus Deepforge"] = { [1] = "Тормус Глибококузень", ["brimfd"] = "Ще більше! Я закінчив!", ["buimfd"] = "{ім'я:к}! Я закінчив!", ["dnimfd"] = "Darrin! Я закінчив!", ["kgimfd"] = "Кеглеґу! Я закінчив!", ["ofimfd"] = "Olof! Я закінчив!" },
+    ["Town Crier"] = { [1] = "міський оповісник" },
+    ["Twiggy Flathead"] = { [1] = "Твіґґі Пласкоголов" },
+    ["Wandering Eye of Kilrogg"] = { [1] = "блукаюче око Кілроґґа" },
+    ["Warchief Rend Blackhand"] = { [1] = "воєвождь Ренд Чорнорук" },
+    ["Weegli Blastfuse"] = { [1] = "Віґлі Ґніт" },
+    ["Weldon Barov"] = { [1] = "Велдон Баров" },
+    ["William"] = { [1] = "Вільям" },
+    ["Witch Doctor Zum'rah"] = { [1] = "знахар Зум'ра" },
+    ["Wolf Master Nandos"] = { [1] = "повелитель вовків Нандос" },
+    ["Yeh'kinya"] = { [1] = "Є'кінья" },
+    ["Zaetar's Spirit"] = { [1] = "дух Заєтара" },
+    ["Zamek"] = { [1] = "Замек" },
+    ["Zandalar Enforcer"] = { [1] = "громило Зандаларів" },
+    ["Zandalarian Emissary"] = { [1] = "емісар Зандаларів" },
 }
 
 addonTable.chat = addonTable.chat or {}
-for npcName, entries in pairs(verified_entries) do
-    local target = addonTable.chat[npcName] or {}
-    for code, translation in pairs(entries) do
-        target[code] = translation
-    end
-    addonTable.chat[npcName] = target
+for npc, entries in pairs(legacy_chat) do
+    local target = addonTable.chat[npc] or {}
+    for key, value in pairs(entries) do target[key] = value end
+    addonTable.chat[npc] = target
 end
