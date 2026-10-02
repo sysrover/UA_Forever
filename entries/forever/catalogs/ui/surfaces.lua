@@ -108,6 +108,10 @@ addonTable.forever_surface_ui = {
             if count then return "Активностей: " .. count end
             local shown
             count, shown = source:match("^(%d+) %a+ Found%s*%((%d+) displayed%)$")
+            if not count then
+                count, shown = source:match(
+                    "^(%d+) |4Person:People; Found%s*%((%d+) displayed%)$")
+            end
             if count then
                 return "Знайдено гравців: " .. count .. " (показано: " .. shown .. ")"
             end
@@ -122,7 +126,7 @@ addonTable.forever_surface_ui = {
             end
             members = source:match("^Members: |cffffffff(%d+)|r$")
             if members then return "Учасники: |cffffffff" .. members .. "|r" end
-            count = source:match("^Lv%.? (%d+)$")
+            count = source:match("^Lvl (%d+)$")
             if count then return "Рів. " .. count end
             -- Native activity groups append a colored activity counter.
             local name, color, amount = source:match(
