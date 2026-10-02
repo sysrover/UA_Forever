@@ -535,149 +535,6 @@ local function translate_lfg_activity_button(button)
     end
 end
 
-local function translate_lfg_listing_zone(region)
-    if not region or runtime.is_applying(region) then return end
-    local name_ok, name = pcall(region.GetDebugName, region)
-    if not name_ok or type(name) ~= "string"
-        or not name:find("LFGListingFrameActivityViewScrollBoxNameButtonName", 1, true) then
-        return
-    end
-    local text_ok, source = pcall(region.GetText, region)
-    if not text_ok or type(source) ~= "string" or source == "" then return end
-    if type(_G.issecretvalue) == "function" then
-        local secret_ok, secret = pcall(_G.issecretvalue, source)
-        if not secret_ok or secret then return end
-    end
-    local translated = entries.get_glossary_text(source, source, "zone")
-    local is_zone = translated ~= source
-    if not is_zone then
-        translated = resolver.find_ui(source, region, {
-            category = "zone", slot = "zone.name", option = "translate_zone",
-        })
-    end
-    if type(translated) ~= "string" or translated == source then return end
-    runtime.apply(region, {
-        owner = "lfg-listing", slot = is_zone and "zone.name" or "ui.text",
-        source = source, translated = translated,
-        option = is_zone and "translate_zone" or "translate_string",
-        priority = is_zone and runtime.PRIORITY.DOMAIN or runtime.PRIORITY.CONTEXT,
-    })
-end
-
-local function translate_lfg_listing_rows()
-    local listing_view = _G.LFGListingFrameActivityView
-    if not listing_view then return end
-    walker.walk({ id = "lfg-listing-labels", surface = "group-finder",
-        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
-        listing_view, function (region)
-        local name_ok, name = pcall(region.GetDebugName, region)
-        if not name_ok or type(name) ~= "string" then return end
-        if name:find("LFGListingFrameActivityViewScrollBoxNameButtonName", 1, true) then
-            hooks.region(region, "SetText", translate_lfg_listing_zone)
-            translate_lfg_listing_zone(region)
-        elseif name == "LFGListingFrameActivityView.LevelRangesCheckbox.Text" then
-            hooks.region(region, "SetText", function (self)
-                if not runtime.is_applying(self) then strings.translate_region(self) end
-            end)
-            strings.translate_region(region)
-        end
-    end, nil, { frames = 0 })
-end
-
-local function schedule_lfg_listing_rows()
-    scheduler.request("lfg-listing-rows", nil, translate_lfg_listing_rows)
-end
-
-local function translate_lfg_category_label(region)
-    if not region or runtime.is_applying(region) then return end
-    local text_ok, source = pcall(region.GetText, region)
-    if not text_ok or type(source) ~= "string" or source == "" then return end
-    local translated, _, kind = resolver.find_ui(source, region)
-    if type(translated) ~= "string" or translated == source then return end
-    runtime.apply(region, {
-        owner = "lfg-category", slot = "ui.text",
-        source = source, translated = translated, option = "translate_string",
-        priority = runtime.priority_for_source(kind),
-    })
-end
-
-local function translate_lfg_categories()
-    local category_view = _G.LFGListingFrameCategoryView
-    if not category_view then return end
-    walker.walk({ id = "lfg-category-labels", surface = "group-finder",
-        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
-        category_view, function (region)
-        local name_ok, name = pcall(region.GetDebugName, region)
-        if name_ok and type(name) == "string"
-            and name:find("LFGListingFrameCategoryView.", 1, true)
-            and name:sub(-6) == ".Label" then
-            hooks.region(region, "SetText", translate_lfg_category_label)
-            translate_lfg_category_label(region)
-        end
-    end, nil, { frames = 0 })
-end
-
-local function schedule_lfg_categories()
-    scheduler.request("lfg-categories", nil, translate_lfg_categories)
-end
-
-local lfg_browse_labels = {
-    ["LFGBrowseFrameCategoryDropdown.Text"] = true,
-    ["LFGBrowseFrameActivityDropdown.Text"] = true,
-    ["LFGBrowseFrame.NoResultsFound"] = true,
-    ["LFGBrowseFrameGroupInviteButtonText"] = true,
-}
-
-local function translate_lfg_browse_label(region)
-    if not runtime.is_applying(region) then strings.translate_region(region) end
-end
-
-local function translate_lfg_browse()
-    local frame = _G.LFGBrowseFrame
-    if not frame then return end
-    walker.walk({ id = "lfg-browse-labels", surface = "group-finder",
-        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
-        frame, function (region)
-        local name_ok, name = pcall(region.GetDebugName, region)
-        if name_ok and lfg_browse_labels[name] then
-            hooks.region(region, "SetText", translate_lfg_browse_label)
-            translate_lfg_browse_label(region)
-        end
-    end, nil, { frames = 0 })
-end
-
-local function schedule_lfg_browse()
-    scheduler.request("lfg-browse", nil, translate_lfg_browse)
-end
-
-local lfg_who_labels = {
-    ["LFGWhoListFrameTitleText"] = true,
-    ["WhoFrameEditBox.Instructions"] = true,
-    ["LFGWhoListFrame.FilterDropdown.Text"] = true,
-}
-
-local function translate_lfg_who_label(region)
-    if not runtime.is_applying(region) then strings.translate_region(region) end
-end
-
-local function translate_lfg_who()
-    local frame = _G.LFGWhoListFrame
-    if not frame then return end
-    walker.walk({ id = "lfg-who-labels", surface = "group-finder",
-        owner = "menus", reason = "ANONYMOUS_REGION_DISCOVERY" },
-        frame, function (region)
-        local name_ok, name = pcall(region.GetDebugName, region)
-        if name_ok and lfg_who_labels[name] then
-            hooks.region(region, "SetText", translate_lfg_who_label)
-            translate_lfg_who_label(region)
-        end
-    end, nil, { frames = 0 })
-end
-
-local function schedule_lfg_who()
-    scheduler.request("lfg-who", nil, translate_lfg_who)
-end
-
 -- Vanilla-style Group Finder in 1.60.1.70170 has separate roots and native
 -- writers. Bind completed display regions, including hidden controls; never
 -- walk player names, guilds, comments or the contents of editable fields.
@@ -696,12 +553,18 @@ local function translate_lfg_display(region, category)
     local claim = runtime.get(region)
     if claim and source == claim.translated then source = claim.source end
     local translated = surface_text.lfg_text(source, lfg_name)
+    if category == "npc" then
+        translated = entries.lookup_name("npc", source) or translated
+    end
     if translated and translated ~= source then
         runtime.apply(region, {
             owner = "lfg", slot = category == "zone" and "activity.name" or "ui.text",
             source = source, translated = translated,
-            option = category == "zone" and "translate_zone" or "translate_string",
-            priority = runtime.PRIORITY.CONTEXT, reapply_cached = true,
+            option = category == "zone" and "translate_zone"
+                or category == "npc" and "translate_npc" or "translate_string",
+            category = category,
+            priority = category == "npc" and runtime.PRIORITY.DOMAIN
+                or runtime.PRIORITY.CONTEXT, reapply_cached = true,
         })
     else
         strings.translate_region(region, category, nil, registry.get("lfg"))
@@ -768,6 +631,7 @@ local function translate_lfg_vanilla_who_row(row)
     bind_lfg_display(row.Level)
     bind_lfg_display(row.Race)
     bind_lfg_display(row.Class)
+    if row.Variable then runtime.invalidate(row.Variable) end
     -- Variable is selected by whoSortValue: area, guild or race.
     if _G.whoSortValue == 1 then translate_lfg_display(row.Variable, "zone") end
     if _G.whoSortValue == 3 then translate_lfg_display(row.Variable) end
@@ -793,6 +657,8 @@ local function translate_lfg_vanilla_tooltip(frame)
         end
     end
 end
+
+local lfg_scroll_boxes = setmetatable({}, { __mode = "k" })
 
 local function translate_lfg_vanilla()
     local parent = _G.LFGParentFrame
@@ -1236,16 +1102,23 @@ menus_ui.prepare = function ()
             lfg.static = function (surface)
                 translate_lfg_frame(_G.LFGListFrame)
                 translate_lfg_vanilla()
-                if generic_static then generic_static(surface) end
+                if generic_static and not _G.LFGParentFrame then generic_static(surface) end
             end
             lfg.uaForeverStaticConfigured = true
         end
         lfg.dynamic_hooks = {
             "LFGListEntryCreationActivityFinder_InitButton",
             "LFGListEntryCreation_SetEditMode", "LFGListEntryCreation_Select",
+            "LFGParentFrame.UpdateTabs", "LFGListingFrame.UpdateFrameView",
+            "LFGListingCategorySelection_UpdateCategoryButtons",
+            "LFGListingActivityView_InitActivityButton",
+            "LFGListingActivityView_InitActivityGroupButton",
+            "LFGListingLockedView_SetLineContent", "LFGBrowseSearchEntry_Update",
+            "LFGBrowseSearchEntryTooltip_UpdateAndShow", "LFGWhoListButtonMixin.InitButton",
+            "ScrollBox.OnInitializedFrame",
         }
-        lfg.slots = { "activity.name", "entry.label" }
-        lfg.domains = { "ui", "context", "zone" }
+        lfg.slots = { "activity.name", "entry.label", "ui.text", "npc.name" }
+        lfg.domains = { "ui", "context", "zone", "npc" }
         lfg.dynamic = function ()
             local root = _G.LFGListFrame
             local entry = root and root.EntryCreation
@@ -1308,13 +1181,20 @@ menus_ui.prepare = function ()
     }
     for _, view in ipairs(row_views) do
         local scroll_box, translate_row = view[1], view[2]
+        local function initialize_row(row)
+            if translate_row == translate_lfg_vanilla_who_row then
+                hooks.region(row, "InitButton", translate_row)
+            end
+            translate_row(row)
+        end
+        if scroll_box and type(scroll_box.RegisterCallback) == "function"
+            and _G.ScrollBoxListMixin and not lfg_scroll_boxes[scroll_box] then
+            scroll_box:RegisterCallback(ScrollBoxListMixin.Event.OnInitializedFrame,
+                function (_, row) initialize_row(row) end, lfg_scroll_boxes)
+            lfg_scroll_boxes[scroll_box] = true
+        end
         if scroll_box and type(scroll_box.ForEachFrame) == "function" then
-            scroll_box:ForEachFrame(function (row)
-                if translate_row == translate_lfg_vanilla_who_row then
-                    hooks.region(row, "InitButton", translate_row)
-                end
-                translate_row(row)
-            end)
+            scroll_box:ForEachFrame(initialize_row)
         end
     end
     translate_lfg_vanilla()
