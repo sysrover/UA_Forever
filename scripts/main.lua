@@ -2,6 +2,7 @@ local addon_name, addon_table = ...
 local addon_version = "0.14.0-beta"
 local panel_probe_text = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded").panel_probe
+local cast_bar_probe_text = addon_table.addon_locale_uk.cast_bar_probe
 
 local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
@@ -720,6 +721,66 @@ local function register_slash_command()
             else
                 capture_window()
             end
+        elseif command == "castbar" then
+            local delay_text, duration_text = value:match("^(%S*)%s*(%S*)$")
+            local delay = math.max(0, math.min(tonumber(delay_text) or 0, 30))
+            local duration = math.max(0, math.min(tonumber(duration_text) or 0, 10))
+            scheduler.cancel("manual-cast-bar-capture")
+            local report = { version = 1, status = "waiting", delay = delay,
+                duration = duration, samples = {} }
+            tooltip_diagnostics.append_report("castBarProbe", report)
+            local started
+            local function capture_cast_bar()
+                started = started or GetTime()
+                local ok, snapshot = pcall(cast_bar_adapter.capture)
+                if not ok then
+                    report.status, report.error = "error", tostring(snapshot)
+                    message(cast_bar_probe_text.error)
+                    return
+                end
+                snapshot.elapsed = GetTime() - started
+                report.samples[#report.samples + 1] = snapshot
+                report.status = "capturing"
+                if #report.samples == 1 then report.timestamp = snapshot.timestamp end
+                if snapshot.elapsed < duration then
+                    scheduler.request("manual-cast-bar-capture", nil,
+                        capture_cast_bar, 0.1)
+                    return
+                end
+                report.status = "captured"
+                local visible, translated = 0, 0
+                for _, sample in ipairs(report.samples) do
+                    visible = math.max(visible, sample.visibleCount)
+                    translated = math.max(translated, sample.translatedCount)
+                end
+                message(string.format(cast_bar_probe_text.summary,
+                    visible, translated, report.sequence))
+                local display_sample = snapshot
+                if snapshot.visibleCount == 0 then
+                    for index = #report.samples, 1, -1 do
+                        if report.samples[index].visibleCount > 0 then
+                            display_sample = report.samples[index]
+                            break
+                        end
+                    end
+                end
+                for _, row in ipairs(display_sample.frames) do
+                    if row.frame.IsVisible.value == true then
+                        message(string.format(cast_bar_probe_text.row, row.name,
+                            row.native.GetText.value or "?", row.availableTranslation or "?",
+                            tostring(row.translationVisible), row.reason))
+                    end
+                end
+                message(cast_bar_probe_text.saved)
+            end
+            if delay > 0 or duration > 0 then
+                message(string.format(cast_bar_probe_text.delayed, delay, duration))
+            end
+            if delay > 0 then
+                scheduler.request("manual-cast-bar-capture", nil, capture_cast_bar, delay)
+            else
+                capture_cast_bar()
+            end
         elseif command == "panel" then
             local function capture_panel()
                 local ok, report = pcall(tooltips.capture_panel)
@@ -775,7 +836,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help)
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help .. cast_bar_probe_text.help)
         end
     end
 end
