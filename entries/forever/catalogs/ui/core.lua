@@ -768,7 +768,8 @@ local function translate_requirement_part(requirement)
     local level = name:match("^Level (%d+)$")
     if level then return "рівень " .. level, true end
 
-    local translated = warrior_stances[name] or requirement_names[name] or ui[name]
+    local translated = addonTable.use("faction_client_db").get_name(name)
+        or warrior_stances[name] or requirement_names[name] or ui[name]
         or addonTable.string and addonTable.string[name]
     if not translated then
         local entries = addonTable.use("entries")
@@ -848,6 +849,21 @@ local function translate_social_time(value)
 end
 
 addonTable.forever_ui_patterns = {
+    {
+        pattern = "^(.+) ([%d,]+)%s*/%s*([%d,]+)$",
+        replace = function (faction, current, maximum)
+            local name = addonTable.use("faction_client_db").get_name(faction)
+            return name and (name .. " " .. current .. " / " .. maximum) or nil
+        end,
+    },
+    {
+        pattern = "^(.+) %- (.+)$",
+        replace = function (faction, standing)
+            local name = addonTable.use("faction_client_db").get_name(faction)
+            local status = social_label(standing)
+            return name and status and (name .. " — " .. status) or nil
+        end,
+    },
     -- Contacts formats these values before writing its pooled FontStrings.
     {
         pattern = "^Social (|c%x%x%x%x%x%x%x%x)(%b())(|r)$",
@@ -862,7 +878,8 @@ addonTable.forever_ui_patterns = {
             local key = race:lower():gsub("%s+", "")
             local record = addonTable.race and addonTable.race[key]
             local forms = record and record["н"]
-            local name = forms and (forms.neutral_singular or forms[1])
+            local name = addonTable.use("faction_client_db").get_player_name(race)
+                or forms and (forms.neutral_singular or forms[1])
                 or social_label(race) or race
             return "Рівень " .. level .. "  " .. divider .. "  " .. name
         end,

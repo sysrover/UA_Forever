@@ -10,6 +10,9 @@ local walker = addon_table.use("translation_walker")
 local layout = addon_table.use("translation_layout")
 local scheduler = addon_table.use("translation_scheduler")
 local hooks = addon_table.use("translation_hooks").bind("combat-text")
+local social_toast_hooks = addon_table.use("translation_hooks").bind("social-toast")
+-- These discriminators are local constants in build 70170's BNet.lua.
+local social_toast_online, social_toast_offline = 1, 2
 local debug_name
 
 local combat_text_globals = {
@@ -480,6 +483,37 @@ strings.refresh_combat_text = function ()
         end })
 end
 
+local function after_social_toast(self)
+    if not self or not options.can_translate("translate_string") then return end
+    -- Build 70170 writes account/character names to TopLine/MiddleLine and
+    -- the status to BottomLine. Broadcasts use the same BottomLine for player
+    -- text, so restrict this hook to the two native presence toast types.
+    local native
+    if self.toastType == social_toast_online then
+        native = _G.BN_TOAST_ONLINE
+    elseif self.toastType == social_toast_offline then
+        native = _G.BN_TOAST_OFFLINE
+    else
+        return
+    end
+    if type(native) ~= "string" or is_secret(native) then return end
+    local region = self.BottomLine
+    if not region then return end
+    local ok, source = pcall(function() return region:GetText() end)
+    if not ok or type(source) ~= "string" or is_secret(source) then return end
+    local first, last = source:find(native, 1, true)
+    if not first then return end
+    local translated = strings.find_ui_translation(native, region)
+    if type(translated) ~= "string" or translated == native then return end
+    -- Online also has an outer gray color wrapper. Preserve it and the
+    -- green/red status markup from the catalog rather than stripping colors.
+    runtime.apply(region, {
+        owner = "ui", slot = "ui.text", source = source,
+        translated = source:sub(1, first - 1) .. translated .. source:sub(last + 1),
+        option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
+    })
+end
+
 strings.prepare = function ()
     -- ClassicUA can replace selected _G strings early on Era clients, but
     -- Camelot reuses localized labels as semantic keys in several protected
@@ -492,6 +526,8 @@ strings.prepare = function ()
     local hook_name = "CombatText_AddMessage"
     local available = hooks.global(hook_name, after_combat_text_add_message)
     auto_scan.surface_hook("combat-text", hook_name, available, false)
+    -- Hook the live frame: XML copies BNToastMixin methods onto BNToastFrame.
+    social_toast_hooks.region(_G.BNToastFrame, "ShowToast", after_social_toast)
 end
 
 local function visible_safe_roots()

@@ -536,6 +536,13 @@ local function translate_player_tooltip_identity(tooltip)
     if not level or not native_race then return false end
     tooltip.uaForeverReservedFirst = line_index
 
+    local faction_race = addon_table.use("faction_client_db").get_player_name(native_race)
+    if faction_race then
+        return set_tooltip_translation(tooltip, region, source,
+            tooltip_format.player_identity(level, utils.cap(faction_race)),
+            "player.identity:" .. line_index, nil, "player-tooltip", nil, false), line_index
+    end
+
     local unit
     if type(tooltip.GetUnit) == "function" then
         local unit_ok, _, value = pcall(tooltip.GetUnit, tooltip)
