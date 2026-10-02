@@ -105,6 +105,9 @@ local tooltip = {
 }
 
 tooltip.format = {
+    dynamic_value_range = function (value)
+        return (value:gsub("([%d%.,]+)%s+to%s+([%d%.,]+)", "%1–%2"))
+    end,
     aura_time_remaining = function (amount, unit)
         local translated_unit = tooltip.dynamic_value_words[unit:lower()]
         if not translated_unit then return nil end
