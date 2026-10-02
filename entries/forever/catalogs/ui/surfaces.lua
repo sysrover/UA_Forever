@@ -96,6 +96,51 @@ addonTable.forever_surface_ui = {
         end,
     },
     menus = {
+        lfg_text = function (source, translate_name)
+            local count = source:match("^(%d+) activit[yi]e?s? selected$")
+                or source:match("^(%d+) |4activity:activities; selected$")
+            if count then return "Вибрано активностей: " .. count end
+            count = source:match("^(%d+) matching activit[yi]e?s?$")
+                or source:match("^(%d+) matching |4activity:activities;$")
+            if count then return "Відповідних активностей: " .. count end
+            count = source:match("^(%d+) activit[yi]e?s?$")
+                or source:match("^(%d+) |4activity:activities;$")
+            if count then return "Активностей: " .. count end
+            local shown
+            count, shown = source:match("^(%d+) %a+ Found%s*%((%d+) displayed%)$")
+            if count then
+                return "Знайдено гравців: " .. count .. " (показано: " .. shown .. ")"
+            end
+            count = source:match("^(%d+) %a+ Found%s*$")
+                or source:match("^(%d+) |4Person:People; Found%s*$")
+            if count then return "Знайдено гравців: " .. count end
+            local members, tank, healer, damage = source:match(
+                "^Members: |cffffffff(%d+) %((%d+)/(%d+)/(%d+)%)|r$")
+            if members then
+                return "Учасники: |cffffffff" .. members .. " (" .. tank
+                    .. "/" .. healer .. "/" .. damage .. ")|r"
+            end
+            members = source:match("^Members: |cffffffff(%d+)|r$")
+            if members then return "Учасники: |cffffffff" .. members .. "|r" end
+            count = source:match("^Lv%.? (%d+)$")
+            if count then return "Рів. " .. count end
+            -- Native activity groups append a colored activity counter.
+            local name, color, amount = source:match(
+                "^(.-) (|c%x%x%x%x%x%x%x%x)%((%d+) activit[yi]e?s?%)|r$")
+            if not name then
+                name, color, amount = source:match(
+                    "^(.-) (|c%x%x%x%x%x%x%x%x)%((%d+) |4activity:activities;%)|r$")
+            end
+            if name then
+                return translate_name(name) .. " " .. color
+                    .. "(активностей: " .. amount .. ")|r"
+            end
+            local indent, body = source:match("^(%s+)(%S.-)$")
+            if indent then
+                local translated = translate_name(body)
+                if translated ~= body then return indent .. translated end
+            end
+        end,
         quit_countdown = function (count)
             return "До виходу залишилося " .. count .. " с"
         end,

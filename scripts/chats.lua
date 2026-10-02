@@ -820,6 +820,7 @@ end
 -- Some client notices are written straight to a ChatFrame without a CHAT_MSG_*
 -- event. Change only those exact notices in the frame history after insertion.
 local function after_chat_add_message(self, message, r, g, b)
+    if self == _G.COMBATLOG or self == _G.ChatFrame2 then return end
     if wrapped_chat_frames[self] then return end
     if not options.can_lookup("translate_chat")
         or not options.can_translate("translate_chat")
@@ -847,6 +848,7 @@ local function after_chat_add_message(self, message, r, g, b)
 end
 
 local function wrap_chat_frame(frame)
+    if frame and (frame == _G.COMBATLOG or frame == _G.ChatFrame2) then return end
     if not frame or wrapped_chat_frames[frame]
         or type(frame.AddMessage) ~= "function" then return end
     local original_add_message = frame.AddMessage
