@@ -603,6 +603,10 @@ entries.get_glossary_text = function (entry_key, fallback, hint_type)
 
     local original_entry_key = entry_key
 
+    local faction_text = addon_table.use("faction_client_db").get_text(
+        utils.strip_color_codes(entry_key):match("^%s*(.-)%s*$"))
+    if faction_text then return faction_text end
+
     -- prepare entry_key
     entry_key = utils.strip_color_codes(entry_key)
     entry_key = utils.first_line_only(entry_key)

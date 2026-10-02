@@ -68,6 +68,7 @@
     <Script file="cliend_db\profession_recipes.lua"/>
     <Script file="cliend_db\profession_category_names_uk.lua"/>
     <Script file="cliend_db\achievements_uk.lua"/>
+    <Script file="cliend_db\factions_uk.lua"/>
     <Script file="cliend_db\trait_entries.lua"/>
     <Script file="cliend_db\trait_definition_overrides.lua"/>
     <Script file="catalogs\runtime\compile.lua"/>

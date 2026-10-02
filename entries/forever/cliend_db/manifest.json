@@ -1,5 +1,9 @@
 {
   "sourceBuild": "1.60.1.70170",
+  "factionSourceBuild": "1.60.1.70170",
+  "factions": 253,
+  "factionNamesUk": 253,
+  "factionDescriptionsUk": 59,
   "itemSourceBuild": "1.60.1.70170",
   "skillLineSourceBuild": "1.60.1.70170",
   "traitSourceBuild": "1.60.1.70170",
