@@ -222,6 +222,42 @@ local function opened_panel(frame)
     end
 end
 
+local function translate_macro_popup(frame)
+    local border = frame and frame.BorderBox
+    if not border then return end
+
+    local function hook_label(region)
+        if not region then return end
+        local translating = false
+        local function translate_label(self)
+            if translating or runtime.is_applying(self) then return end
+            translating = true
+            local ok, err = pcall(strings.translate_region, self)
+            translating = false
+            if not ok then dev_log.issue("macro popup translation", tostring(err)) end
+        end
+        hooks.region(region, "SetText", translate_label)
+        -- Selecting an icon also resets the description's font object.
+        hooks.region(region, "SetFontObject", translate_label)
+        translate_label(region)
+    end
+    local function hook_button(button)
+        if not button or type(button.GetFontString) ~= "function" then return end
+        local ok, region = pcall(button.GetFontString, button)
+        if ok then hook_label(region) end
+    end
+
+    -- Only static UI labels belong here; leave the macro name and body alone.
+    hook_label(border.EditBoxHeaderText)
+    hook_label(border.IconSelectionText)
+    hook_label(border.IconTypeDropdown and border.IconTypeDropdown.Text)
+    local selected = border.SelectedIconArea and border.SelectedIconArea.SelectedIconText
+    hook_label(selected and selected.SelectedIconHeader)
+    hook_label(selected and selected.SelectedIconDescription)
+    hook_button(border.CancelButton)
+    hook_button(border.OkayButton)
+end
+
 local function selected_tab(frame, tab)
     -- PanelTemplates_SetTab runs after Blizzard selects the tab.
     local surface = registry.find_frame(frame)
@@ -384,6 +420,9 @@ local function prepare_panel_hooks()
     -- Blizzard_MacroUI is loaded on demand. ADDON_LOADED calls this function
     -- again, so the hook is installed as soon as MacroFrame becomes available.
     hooks.region_script(_G.MacroFrame, "OnShow", opened_panel)
+    -- The name/icon popup calls Show directly, bypassing ShowUIPanel.
+    hooks.region_script(_G.MacroPopupFrame, "OnShow", translate_macro_popup)
+    translate_macro_popup(_G.MacroPopupFrame)
 
     local wardrobe = _G.WardrobeCollectionFrame
     local page_text = wardrobe and wardrobe.ItemsCollectionFrame

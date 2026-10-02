@@ -428,6 +428,12 @@ tooltip.item_line_patterns = {
         end },
 }
 
+function tooltip.translate_spell_reagents(source, translate_names)
+    local body = source:match("^Reagents:(.+)$")
+    if not body then return nil end
+    return "Реагенти:" .. translate_names(body)
+end
+
 function tooltip.translate_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
     local translated = tooltip.item_line_exact[source]

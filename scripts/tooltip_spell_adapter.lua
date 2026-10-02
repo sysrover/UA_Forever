@@ -3,6 +3,10 @@ local _, addon_table = ...
 local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
 local client_db = addon_table.use("spell_client_db")
+local item_db = addon_table.use("item_client_db")
+local utils = addon_table.use("utils")
+local catalog = assert(addon_table.forever_tooltip_ui,
+    "UA Forever tooltip catalog is not loaded")
 local renderer = addon_table.use("spell_template_renderer")
 local adapter = addon_table.use("tooltip_spell_adapter")
 local pet_actions = assert(addon_table.forever_surface_ui,
@@ -21,7 +25,30 @@ end
 local SPELL_NAME = 13
 local SPELL_PASSIVE = 33
 local SPELL_DESCRIPTION = 34
+local ITEM_NAME = 22
 local UNTYPED_LINE = 0
+
+local function translate_reagents(source, spell_id)
+    return catalog.translate_spell_reagents(source, function (body)
+        if not options.can_translate("translate_item")
+            or not options.translate_name("item") then return body end
+        local names = {}
+        for _, reagent in ipairs(item_db.get_spell_reagents(spell_id) or {}) do
+            local id = type(reagent) == "table" and reagent.itemID or nil
+            local english = id and item_db.get_english_name(id)
+            local translated = id and item_db.get_name(id)
+            if english and translated then
+                names[#names + 1] = { english, utils.cap(translated) }
+            end
+        end
+        table.sort(names, function (a, b) return #a[1] > #b[1] end)
+        for _, name in ipairs(names) do
+            local pattern = name[1]:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+            body = body:gsub(pattern, function () return name[2] end)
+        end
+        return body
+    end)
+end
 
 local function translate_right_service(contract, tooltip, line_data,
     line_index, slot_prefix)
@@ -135,6 +162,18 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                             ) or applied
                         end
                     end
+                elseif line_type == ITEM_NAME then
+                    if region and source and options.can_translate("translate_item") then
+                        local prefix, name, suffix = source:match("^(%s*)(.-)(%s*)$")
+                        local translated = name and item_db.get_name_by_english(name)
+                        if translated then
+                            applied = contract.set_translation(
+                                tooltip, region, source,
+                                prefix .. utils.cap(translated) .. suffix,
+                                "spell.crafted-item.name", "item", "spell-tooltip"
+                            ) or applied
+                        end
+                    end
                 elseif line_type == SPELL_PASSIVE then
                     if region and source
                         and options.can_translate("translate_spell") then
@@ -149,7 +188,16 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         end
                     end
                 else
-                    service_indexes[line_index] = true
+                    local translated = source and line_type == UNTYPED_LINE
+                        and translate_reagents(source, spell_id)
+                    if translated and region and options.can_translate("translate_spell") then
+                        applied = contract.set_translation(
+                            tooltip, region, source, translated,
+                            "spell.reagents:" .. line_index, nil, "spell-tooltip"
+                        ) or applied
+                    else
+                        service_indexes[line_index] = true
+                    end
                 end
             end
         end

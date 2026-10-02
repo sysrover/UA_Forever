@@ -1,5 +1,7 @@
 local _, addon_table = ...
 local entries = addon_table.use("entries")
+local item_db = addon_table.use("item_client_db")
+local utils = addon_table.use("utils")
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
 local unpack_values = unpack or table.unpack
@@ -153,8 +155,18 @@ local function explicit_domain_name(text, normalized, context)
         end
     end
     for _, pair in ipairs(categories) do
-        local translated = entries.lookup_name(pair[1], text)
-            or entries.lookup_name(pair[1], normalized)
+        local translated
+        if pair[1] == "item" then
+            -- Trainers can display the crafted item's name instead of the
+            -- spell name. Items no longer belong to entries.names: resolve
+            -- them through the build-validated client database.
+            translated = item_db.get_name_by_english(text)
+                or item_db.get_name_by_english(normalized)
+            if translated then translated = utils.cap(translated) end
+        else
+            translated = entries.lookup_name(pair[1], text)
+                or entries.lookup_name(pair[1], normalized)
+        end
         if translated then
             return translated, pair[2], context.slot or pair[2] .. ".name",
                 context.option
