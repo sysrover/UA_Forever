@@ -358,7 +358,9 @@ local function ui_message_region(frame, message, message_id)
 end
 
 local function translate_quest_progress_message(message)
-    if not message:match("^.-:%s*%d+%s*/%s*%d+%s*$") then return nil end
+    local progress = message:gsub("%s+%(Complete%)$", "")
+    if not progress:match("^.-:%s*%d+%s*/%s*%d+%s*$")
+        and not progress:match("^%d+%s*/%s*%d+%s+.+$") then return nil end
     local translated = entries.translate_quest_objective_task(message)
     return translated ~= message and translated or nil
 end
