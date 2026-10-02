@@ -4,6 +4,7 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
+    ["Fought Together"] = "Билися разом",
     ["A self-found character cannot do the following:\r\n- Trade with other players\r\n- Send mail to other players, or receive player mail\r\n- Buy or sell from the auction house\r\nThese restrictions can be removed at any time by talking to an in-game character, but it can never be applied outside of character creation."] = "Персонаж у режимі самостійного пошуку не може:\r\n- Торгувати з іншими гравцями\r\n- Надсилати листи іншим гравцям або отримувати листи від гравців\r\n- Купувати або продавати на аукціоні\r\nЦі обмеження можна зняти будь-коли, поговоривши з персонажем у грі, але ввімкнути їх можна лише під час створення персонажа.",
     ["Battle.net"] = "Battle.net",
     ["Played World of Warcraft before?"] = "Уже грали у World of Warcraft?",
@@ -848,6 +849,24 @@ end
 
 addonTable.forever_ui_patterns = {
     -- Contacts formats these values before writing its pooled FontStrings.
+    {
+        pattern = "^Level (%d+)%s+(|A:charactercreate%-customize%-dropdown%-linemouseover%-middle:[^|]+|a)%s+(.+)$",
+        replace = function (level, divider, race)
+            local key = race:lower():gsub("%s+", "")
+            local record = addonTable.race and addonTable.race[key]
+            local forms = record and record["н"]
+            local name = forms and (forms.neutral_singular or forms[1])
+                or social_label(race) or race
+            return "Рівень " .. level .. "  " .. divider .. "  " .. name
+        end,
+    },
+    {
+        pattern = "^Fought Together %- (.+)$",
+        replace = function (zone)
+            local name = addonTable.zone and addonTable.zone[zone] or zone
+            return ui["Fought Together"] .. " — " .. name
+        end,
+    },
     {
         pattern = "^(.+), Level (%d+) (.+)$",
         replace = function (name, level, class)

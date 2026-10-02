@@ -356,6 +356,18 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     return ok
 end
 
+local function is_social_player_tooltip(tooltip)
+    if not tooltip or type(tooltip.GetOwner) ~= "function" then return false end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or not owner then return false end
+    local method_ok, get_name = pcall(function () return owner.GetDebugName end)
+    if not method_ok or type(get_name) ~= "function" then return false end
+    local name_ok, name = pcall(get_name, owner)
+    name = name_ok and safe_string(name) or nil
+    return name and (name:find("RecentAlliesFrame.", 1, true) == 1
+        or name:find("FriendsListFrame.", 1, true) == 1) or false
+end
+
 local function rewrite_generic_lines(tooltip, line_count, first_index,
     allow_fallback, adjust_layout, snapshot, only_indexes, runtime_flags)
     line_count = safe_number(line_count)
@@ -368,6 +380,7 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
     -- iterating with the protected value while still reaching those regions.
     line_count = line_count or MAX_TOOLTIP_LINES
     local applied = 0
+    local social_tooltip = is_social_player_tooltip(tooltip)
     runtime.metric("line_passes", tooltip, tooltip.uaForeverGeneration)
 
     for index = first_index or 1, line_count do
@@ -393,10 +406,22 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                 (left and not left_stable and 1 or 0)
                     + (right and not right_stable and 1 or 0))
             local translated_left, _, left_kind, _, _, _, left_provenance
+            local left_category
             local translated_right, _, right_kind, _, _, _, right_provenance
             if not left_stable then
-                translated_left, _, left_kind, _, _, _, left_provenance =
-                    strings.find_ui_translation(left, left_region)
+                -- Recent allies write the player's current location as a plain
+                -- AddLine, without structured zone data. Keep the name row native.
+                if social_tooltip and index > 1 and safe_string(left) then
+                    local zones = addon_table.zone or {}
+                    translated_left = zones[left] or zones[normalized_tooltip_text(left)]
+                    if translated_left then
+                        left_kind, left_category = "domain", "zone"
+                    end
+                end
+                if not translated_left then
+                    translated_left, _, left_kind, _, _, _, left_provenance =
+                        strings.find_ui_translation(left, left_region)
+                end
             end
             if not right_stable then
                 translated_right, _, right_kind, _, _, _, right_provenance =
@@ -404,7 +429,7 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
             end
             if translated_left and translated_left ~= left then
                 if set_tooltip_translation(tooltip, left_region, left,
-                    translated_left, "generic.left:" .. index, nil, "generic",
+                    translated_left, "generic.left:" .. index, left_category, "generic",
                     left_kind, allow_fallback, adjust_layout, nil, nil,
                     left_provenance and left_provenance.source,
                     runtime_flags) then
