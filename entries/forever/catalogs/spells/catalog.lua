@@ -120,6 +120,19 @@ Only one form of tracking can be active at a time.
 ]]--
 
 local _, addonTable = ...
+-- AuraDescription_lang sentence templates verified in build 1.60.1.70170.
+-- Preserve each client token's identity; values are supplied by the native tooltip.
+addonTable.aura_sentence_templates = {
+    ["Health regeneration rate"] = "Відновлення здоров'я сповільнено на %s%s.",
+    Strength = "Силу зменшено на %s%s.",
+    Agility = "Спритність зменшено на %s%s.",
+    Intellect = "Інтелект зменшено на %s%s.",
+    Stamina = "Витривалість зменшено на %s%s.",
+    Spirit = "Дух зменшено на %s%s.",
+    ["Strength and Agility"] = "Силу та спритність зменшено на %s%s.",
+    ["Spirit and Stamina"] = "Дух та витривалість зменшено на %s%s.",
+}
+
 addonTable.spell = {
 
 -- [id] = {

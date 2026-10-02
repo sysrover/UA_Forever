@@ -55,6 +55,7 @@
     <Script file="quest_switcher.lua"/>
     <Script file="tooltips.lua"/>
     <Script file="target_aura_overlay.lua"/>
+    <Script file="target_frame.lua"/>
     <Script file="chats.lua"/>
     <Script file="combat_log.lua"/>
     <Script file="scanner.lua"/>

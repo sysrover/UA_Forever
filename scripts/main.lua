@@ -37,7 +37,7 @@ local strings = addon_table.use("strings")
 local talent_frame_adapter = addon_table.use("talent_frame_adapter")
 local tooltips = addon_table.use("tooltips")
 local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
-local target_aura_overlay = addon_table.use("target_aura_overlay")
+local target_frame = addon_table.use("target_frame")
 local translation = addon_table.use("translation")
 local registry = addon_table.use("translation_registry")
 local resolver = addon_table.use("translation_resolver")
@@ -85,45 +85,6 @@ local function translated_npc_name(unit)
         if not entry then dev_log.missing_npc(id, source) end
     end
     return entry and utils.cap(entry[1]) or nil, source
-end
-
-local function target_name_region()
-    if not TargetFrame then return nil end
-    local ok, region = pcall(function ()
-        if TargetFrame.name then return TargetFrame.name end
-        local content = TargetFrame.TargetFrameContent
-        local main = content and content.TargetFrameContentMain
-        return main and (main.Name or main.name) or nil
-    end)
-    return ok and region or nil
-end
-
-local function update_target_name()
-    if not options.can_lookup("translate_npc", "translate_npc_target_frame") then return end
-    local id = utils.npc_id_from_unit_id("target")
-    if not id then return end
-
-    local entry = entries.get_entry("npc", id)
-    local source = safe_unit_name("target")
-    dev_log.record_id("npcs", id, source, entry ~= nil)
-    if not entry then
-        dev_log.missing_npc(id, source)
-        return
-    end
-
-    local region = target_name_region()
-    if source and region
-        and options.can_translate("translate_npc", "translate_npc_target_frame") then
-        local visible_ok, visible = pcall(function () return region:GetText() end)
-        local claim = runtime.get(region)
-        if not visible_ok or is_secret(visible)
-            or (visible ~= source
-                and not (claim and claim.source == source
-                    and visible == claim.translated)) then return end
-        runtime.apply(region, { owner = "npc-target", slot = "npc.name",
-            source = source, translated = utils.cap(entry[1]),
-            priority = runtime.PRIORITY.DOMAIN })
-    end
 end
 
 local function update_quest_npc_name()
@@ -601,10 +562,6 @@ local function prepare_nameplates()
     end)
 end
 
-local function prepare_target_frame()
-    hooks.region(_G.TargetFrame, "Update", update_target_name)
-end
-
 local function missing_count()
     local count = 0
     local groups = UA_ForeverDB and UA_ForeverDB.missing or {}
@@ -935,6 +892,23 @@ local function register_slash_command()
             else
                 capture_cast_bar()
             end
+        elseif command == "combatlog" then
+            local text = addon_table.addon_locale_uk.combat_log_probe
+            local ok, report = pcall(addon_table.use("combat_log").probe)
+            if not ok then
+                report = { version = 1, status = "probe_error",
+                    error = runtime.safe_string_or_nil(report) }
+            end
+            tooltip_diagnostics.append_report("combatLogProbe", report)
+            if report.status == "probe_disabled" then
+                message(text.disabled)
+                return
+            end
+            message(string.format(text.summary, report.status))
+            if report.before then message(text.before .. report.before) end
+            if report.after then message(text.after .. report.after) end
+            if report.error then message(report.error) end
+            message(text.saved)
         elseif command == "panel" then
             local function capture_panel()
                 local ok, report = pcall(tooltips.capture_panel)
@@ -999,7 +973,6 @@ local event_frame = CreateFrame("Frame")
 event_frame:RegisterEvent("ADDON_LOADED")
 event_frame:RegisterEvent("PLAYER_LOGIN")
 event_frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-event_frame:RegisterEvent("PLAYER_TARGET_CHANGED")
 event_frame:RegisterEvent("PLAYER_REGEN_ENABLED")
 event_frame:RegisterEvent("GOSSIP_SHOW")
 event_frame:RegisterEvent("TRAINER_SHOW")
@@ -1042,7 +1015,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
                 loss_of_control_adapter.prepare()
                 addon_table.use("combat_log").prepare()
                 prepare_nameplates()
-                prepare_target_frame()
+                target_frame.prepare()
                 registry.prepare_root_hooks()
                 registry.install_hooks(loaded_addon)
                 schedule_panel_refresh()
@@ -1075,11 +1048,10 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         registry.register_defaults(strings.translate_frame)
         registry.prepare_root_hooks()
         tooltips.prepare()
-        target_aura_overlay.prepare()
         chats.prepare()
         addon_table.use("combat_log").prepare()
         prepare_nameplates()
-        prepare_target_frame()
+        target_frame.prepare()
         prepare_panel_hooks()
         settings_ui.prepare()
         prepare_menu_panels()
@@ -1099,7 +1071,6 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         cast_bar_adapter.prepare()
         loss_of_control_adapter.prepare()
         registry.install_hooks()
-        update_target_name()
         self.uaForeverLoginReady = true
         show_status()
 
@@ -1115,14 +1086,11 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         scheduler.request("world-surfaces", nil, refresh_after_login)
         scheduler.request("world-font-retry", nil, refresh_after_login, 1)
 
-    elseif event == "PLAYER_TARGET_CHANGED" then
-        update_target_name()
     elseif event == "PLAYER_REGEN_ENABLED" then
         -- Writes to protected regions are intentionally skipped in combat.
         -- Once combat ends, retry only the surfaces that are still visible.
         scheduler.request("post-combat-surfaces", nil, function ()
             if runtime.retry_deferred then runtime.retry_deferred() end
-            update_target_name()
             registry.refresh_open()
             if tooltips.refresh_active then tooltips.refresh_active() end
             if map_labels.refresh_active then map_labels.refresh_active() end

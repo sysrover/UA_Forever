@@ -51,15 +51,17 @@ local function resize_popup_for_text(dialog, text)
     pcall(dialog.Resize, dialog)
 end
 
-local function translate_quit_countdown(dialog)
+local function translate_exit_countdown(dialog)
     local region = popup_text_region(dialog)
     if not region or type(region.GetText) ~= "function" then return end
     local ok, source = pcall(region.GetText, region)
     local count = ok and type(source) == "string"
-        and source:match("^(%d+) Seconds until exit$")
+        and (source:match("^(%d+) Seconds until exit$")
+            or source:match("^(%d+) Seconds until logout$"))
     if not count then return end
     local applied = runtime.apply(region, {
-        owner = "popup", slot = "quit.countdown", source = source,
+        owner = "popup", slot = dialog.which == "CAMP"
+            and "logout.countdown" or "quit.countdown", source = source,
         translated = surface_text.quit_countdown(count),
         priority = runtime.PRIORITY.CONTEXT,
     })
@@ -196,11 +198,11 @@ local function after_static_popup_show(which, _, _, data)
     -- even when its translated countdown/message equals the previous show.
     dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
-    if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT"
+    if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT" and which ~= "CAMP"
         and not translate_home_popup(dialog)
         and not translate_resurrection_popup(dialog) then return end
-    if which == "QUIT" then
-        translate_quit_countdown(dialog)
+    if which == "QUIT" or which == "CAMP" then
+        translate_exit_countdown(dialog)
     elseif data and data.text == _G.SELL_ALL_JUNK_ITEMS_POPUP then
         if strings.translate_region(region) and type(dialog.Resize) == "function" then
             pcall(dialog.Resize, dialog)
@@ -213,8 +215,8 @@ end
 local function after_static_popup_update(dialog)
     if not dialog then return end
     local which = dialog.which
-    if which == "QUIT" then
-        translate_quit_countdown(dialog)
+    if which == "QUIT" or which == "CAMP" then
+        translate_exit_countdown(dialog)
     elseif which == "RESURRECT" or which == "RESURRECT_NO_SICKNESS" then
         translate_resurrection_popup(dialog)
     end

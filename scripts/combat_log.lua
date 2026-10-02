@@ -19,6 +19,12 @@ local function enabled()
     return options.can_translate("translate_chat")
 end
 
+-- Native formatter calls from addon code produced recurring Lua errors in
+-- build 70170. Keep the diagnostic command inert; never enter that bridge.
+combat_log.probe = function()
+    return { version = 2, status = "probe_disabled" }
+end
+
 local function normalize(text)
     return (text:gsub("%s+", " "):gsub(" ([.,])", "%1")
         :gsub("^[ .,]+", ""):gsub("%s+$", ""))

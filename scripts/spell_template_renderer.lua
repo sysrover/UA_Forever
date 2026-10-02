@@ -593,6 +593,33 @@ local function expand_description_references(text, getter, seen, depth)
     end))
 end
 
+local function resolve_aura_template(english_raw, ukrainian_raw)
+    local templates = addon_table.aura_sentence_templates
+    if type(templates) ~= "table" then return ukrainian_raw end
+    local english_lines, ukrainian_lines = {}, {}
+    for line in (english_raw:gsub("\r\n", "\n") .. "\n"):gmatch("(.-)\n") do
+        english_lines[#english_lines + 1] = line
+    end
+    for line in (ukrainian_raw:gsub("\r\n", "\n") .. "\n"):gmatch("(.-)\n") do
+        ukrainian_lines[#ukrainian_lines + 1] = line
+    end
+    -- Partial template coverage must not discard unrelated translated effects.
+    if #english_lines ~= #ukrainian_lines then return ukrainian_raw end
+    local changed = false
+    for index, line in ipairs(english_lines) do
+        local subject, token, percent = line:match(
+            "^(.+) reduced by (%$s%d+)(%%?)%.$")
+        local format = subject and templates[subject]
+        if format then
+            ukrainian_lines[index] = format:format(token, percent)
+            changed = true
+        end
+    end
+    if not changed then return ukrainian_raw end
+    local separator = ukrainian_raw:find("\r\n", 1, true) and "\r\n" or "\n"
+    return table.concat(ukrainian_lines, separator)
+end
+
 renderer.render = function (
     spell_id, kind, english_raw, ukrainian_raw, native_text
 )
@@ -609,6 +636,9 @@ renderer.render = function (
         english_raw, client_db.get_english_description)
     ukrainian_raw = expand_description_references(
         ukrainian_raw, client_db.get_description)
+    if kind == "aura" then
+        ukrainian_raw = resolve_aura_template(english_raw, ukrainian_raw)
+    end
 
     local rendered_key = kind .. ":" .. spell_id .. "\031" .. native_text
     local cached = rendered_cache[rendered_key]

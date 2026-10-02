@@ -4,6 +4,14 @@ local _, addonTable = ...
 -- reads, semantic slots and Blizzard lifecycle; this catalog owns Ukrainian
 -- labels, grammar and dynamic formatters.
 local tooltip = {
+    -- AuraUtil's dispel categories in build 1.60.1.70170. Display labels only.
+    aura_dispel_names = {
+        Magic = "Магія",
+        Curse = "Прокляття",
+        Disease = "Хвороба",
+        Poison = "Отрута",
+        Bleed = "Кровотеча",
+    },
     dynamic_value_words = {
         sec = "с", secs = "с", second = "с", seconds = "с",
         min = "хв", mins = "хв", minute = "хв", minutes = "хв",
