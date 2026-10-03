@@ -185,12 +185,36 @@ local item_stat_names = {
     Strength = "сили", Stamina = "витривалості",
     Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
     ["Spell Power"] = "сили заклинань",
+    ["Attack Power"] = "сили атаки",
+    ["ranged Attack Power"] = "сили дальньої атаки",
+    Armor = "броні", ["Weapon Damage"] = "шкоди зброї",
+    ["All Resistances"] = "всіх видів опору",
 }
 
 local item_resistance_names = {
     Arcane = "таємної магії", Fire = "вогню", Frost = "криги",
     Nature = "природи", Shadow = "тіні", Holy = "світла",
 }
+
+-- Numeric equip effects from Spell.db2:Description_lang in 1.60.1.70170.
+-- Match the complete stat label, including school and creature restrictions.
+local item_attack_power_targets = {
+    Demons = "демонів", Undead = "нежиті", Beasts = "звірів",
+    Giants = "велетнів", Dragonkin = "драконідів",
+    Elementals = "елементалів", ["Mechanical units"] = "механізмів",
+    Humanoids = "гуманоїдів",
+}
+
+local function item_stat_name(stat)
+    local name = item_stat_names[stat]
+    if name then return name end
+    local school = stat:match("^([A-Za-z]+) Resistance$")
+    name = school and item_resistance_names[school]
+    if name then return "опору " .. name end
+    local target = stat:match("^Attack Power against (.+)$")
+    name = target and item_attack_power_targets[target]
+    return name and ("сили атаки проти " .. name) or nil
+end
 
 -- Rendered SpellItemEnchantment names in 1.60.1.70124. The client can
 -- emit these without an enchantment ID, including on inspected equipment.
@@ -385,6 +409,27 @@ local function translate_bag_filter_list(source)
 end
 
 tooltip.item_line_patterns = {
+    { "^Equip: ([%+%-])([%d%.,]+) ([A-Za-z ]+)%.$",
+        function (sign, amount, stat)
+            local name = item_stat_name(stat)
+            return name and (tooltip.item_effect_prefix.equip .. " "
+                .. sign .. amount .. " до " .. name .. ".") or nil
+        end },
+    -- GlobalStrings:BIND_TRADE_TIME_REMAINING in 1.60.1.70170;
+    -- %s contains one or more rendered INT_*_DURATION components.
+    { "^You may trade this item with players that were also eligible to loot this item for the next (.+) %(including time offline%)%.$",
+        function (remaining)
+            local known = true
+            remaining = remaining:gsub("([A-Za-z]+)", function (word)
+                local translated = tooltip.dynamic_value_words[word:lower()]
+                if not translated then known = false end
+                return translated or word
+            end)
+            if not known then return nil end
+            return "Протягом наступних " .. remaining
+                .. " цей предмет можна передати гравцям, які також мали право на нього"
+                .. " (час поза грою також враховується)."
+        end },
     { "^Requires (.-)%s*%(%s*Rank%s+(%d+)%s*%)$", function (names, rank)
         local translated = {}
         for name in names:gmatch("[^/]+") do
@@ -462,7 +507,7 @@ tooltip.item_line_patterns = {
     end },
     { "^([%+%-])(%d+) ([A-Za-z ]+)$",
         function (sign, amount, stat)
-            local name = item_stat_names[stat]
+            local name = item_stat_name(stat)
             return name and (sign .. amount .. " до " .. name) or nil
         end },
     { "^Equip: Increases damage and healing done by magical spells and effects by up to (%d+)%.$",
