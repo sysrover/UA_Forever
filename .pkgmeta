@@ -9,6 +9,7 @@ ignore:
   - cmangos-classic
   - vmangos-core
   - debug.log
+  - .vscode
   - AGENTS.md
   - CONTRIBUTING_TRANSLATIONS.md
 
