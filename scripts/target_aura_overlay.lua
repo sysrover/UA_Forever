@@ -3,6 +3,7 @@ local _, addon_table = ...
 local overlay = addon_table.use("target_aura_overlay")
 local client_db = addon_table.use("spell_client_db")
 local options = addon_table.use("options")
+local scheduler = addon_table.use("translation_scheduler")
 local renderer = addon_table.use("spell_template_renderer")
 local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
@@ -497,7 +498,8 @@ end
 local function refresh()
     dirty = false
     hide_tooltip()
-    if not root or not options.can_translate("translate_spell")
+    if not root or (options.work_enabled and not options.work_enabled("target-auras"))
+        or not options.can_translate("translate_spell")
         or safe_call(UnitExists, "target") ~= true
         or not _G.TargetFrame or safe_call(_G.TargetFrame.IsShown,
             _G.TargetFrame) ~= true then
@@ -536,9 +538,10 @@ local function refresh()
 end
 
 local function mark_dirty()
+    if options.work_enabled and not options.work_enabled("target-auras") then return end
     if dirty then return end
     dirty = true
-    C_Timer.After(0, refresh)
+    scheduler.request("target-auras", nil, refresh)
 end
 
 overlay.prepare = function ()
@@ -593,5 +596,19 @@ overlay.prepare = function ()
         end
         mark_dirty()
     end)
-    mark_dirty()
+    local events = { "PLAYER_TARGET_CHANGED", "UNIT_AURA", "PLAYER_ENTERING_WORLD",
+        "PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED", "CVAR_UPDATE", "MODIFIER_STATE_CHANGED" }
+    local function update_activity()
+        local active = not options.work_enabled or options.work_enabled("target-auras")
+        for _, event in ipairs(events) do
+            if active then event_frame:RegisterEvent(event)
+            else event_frame:UnregisterEvent(event) end
+        end
+        if active then mark_dirty()
+        else dirty = false; hide_tooltip(); root:Hide() end
+    end
+    if options.on_activity_change then
+        options.on_activity_change("target-aura-events", update_activity)
+    end
+    update_activity()
 end

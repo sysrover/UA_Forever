@@ -163,6 +163,7 @@ local function option(button, info)
 end
 
 local function gossip_title(frame, source)
+    if options.can_lookup_section and not options.can_lookup_section("npc_tooltips") then return end
     if not frame or type(frame.GetTitleText) ~= "function"
         or not safe_string(source) or not options.can_lookup("translate_npc") then return end
     local unit_ok, unit_name = pcall(_G.UnitName or function () end, "npc")

@@ -69,6 +69,7 @@ local function matching_quest_entry(id, english)
 end
 
 local function quest_name_region(region, id, owner)
+    if options.can_lookup_section and not options.can_lookup_section("quest_names") then return false end
     local current = safe_text(region)
     if region then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
@@ -120,6 +121,7 @@ quest_ui.refresh_dialog_language = function ()
 end
 
 local function dialog_field(region, id, field, getter, result_index)
+    if options.can_lookup_section and not options.can_lookup_section(field == 1 and "quest_names" or "quest_text") then return end
     if not region or not id or not options.can_lookup("translate_quest") then return end
     local current = safe_text(region)
     local slot = "quest:" .. id .. (field == 1 and ".name" or ".description:" .. field)
@@ -263,6 +265,7 @@ local function native_quest_objective(quest_id)
 end
 
 local function objective_region(region, slot, after_apply, quest_id, surface)
+    if options.can_lookup_section and not options.can_lookup_section("quest_text") then return false end
     local source = safe_text(region)
     if not source then return false end
     local previous = runtime.get(region)
@@ -763,6 +766,7 @@ end
 -- on every used line. A native tracker rebuild in combat skips after_update,
 -- so even unchanged objectives can still contain English after combat ends.
 quest_ui.refresh_tracker_progress = function ()
+    if options.can_lookup_section and not options.can_lookup_section("quest_text") then return end
     if runtime.combat_locked() then return end
     local module = _G.QuestObjectiveTracker
     local blocks = module and module.usedBlocks and module.usedBlocks[module.blockTemplate]

@@ -7,6 +7,7 @@ local tooltips = addon_table.use("tooltips")
 local registry = addon_table.use("translation_registry")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
+local options = addon_table.use("options")
 local hooks = addon_table.use("translation_hooks").bind("menus_ui")
 
 local menu_walks = {
@@ -130,6 +131,16 @@ local function translate_open_menu()
         local menu = manager and type(manager.GetOpenMenu) == "function"
             and manager:GetOpenMenu() or nil
         if menu then
+            local section = "game_menu"
+            if is_edit_mode_layout_menu(menu) then
+                section = "edit_mode"
+            elseif type(menu.ToDebugString) == "function" then
+                local ok, tag = pcall(menu.ToDebugString, menu)
+                if ok and type(tag) == "string" and tag:match("^MENU_UNIT_") then
+                    section = "social_ui"
+                end
+            end
+            if options.can_lookup_section and not options.can_lookup_section(section) then return end
             if is_edit_mode_layout_menu(menu) then
                 local user_layout_names = edit_mode_user_layout_names()
                 local walk = {
@@ -137,6 +148,7 @@ local function translate_open_menu()
                     surface = menu_walks.modern.surface,
                     owner = menu_walks.modern.owner,
                     reason = menu_walks.modern.reason,
+                    section = section,
                     skip_region = function (region)
                         if not region or type(region.GetText) ~= "function" then
                             return false
@@ -150,7 +162,11 @@ local function translate_open_menu()
                 -- Account/character layout names are user data, so rendered
                 -- rows from this menu do not belong in the UI text report.
             else
-                strings.translate_frame(menu, nil, menu_walks.modern)
+                strings.translate_frame(menu, nil, {
+                    id = menu_walks.modern.id, surface = menu_walks.modern.surface,
+                    owner = menu_walks.modern.owner, reason = menu_walks.modern.reason,
+                    section = section,
+                })
                 capture_auto_frame(menu)
             end
         end
@@ -160,11 +176,16 @@ local function translate_open_menu()
 end
 
 local function translate_legacy_dropdown(_, level)
+    if options.can_lookup_section and not options.can_lookup_section("game_menu") then return end
     level = tonumber(level) or tonumber(_G.UIDROPDOWNMENU_MENU_LEVEL) or 1
     local function translate()
         local frame = _G["DropDownList" .. level]
         if not frame then return end
-        strings.translate_frame(frame, nil, menu_walks.legacy)
+        strings.translate_frame(frame, nil, {
+            id = menu_walks.legacy.id, surface = menu_walks.legacy.surface,
+            owner = menu_walks.legacy.owner, reason = menu_walks.legacy.reason,
+            section = "game_menu",
+        })
         capture_auto_frame(frame)
     end
 

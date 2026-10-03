@@ -34,6 +34,7 @@ local function safe_id(value)
 end
 
 local function item_name(id)
+    if options.can_lookup_section and not options.can_lookup_section("item_names") then return nil end
     if type(id) ~= "number" then return nil end
     local value = item_client_db.get_name(id)
     return safe_string(value) and utils.cap(value) or nil
@@ -348,13 +349,16 @@ items.refresh_quest_rewards = function ()
 end
 
 local function bag_title(frame)
+    if options.can_lookup_section and not options.can_lookup_section("bag_names") then return end
     if not frame then return end
     local region = frame.TitleText
     if type(frame.GetTitleText) == "function" then
         local ok, title = pcall(frame.GetTitleText, frame)
         if ok and title then region = title end
     end
-    if region then strings.translate_region(region) end
+    if region then
+        strings.translate_region(region, "item", "item.name", nil, nil, nil, "bag_names")
+    end
 end
 
 items.prepare = function ()
@@ -395,19 +399,28 @@ items.prepare = function ()
                 registry.refresh("items")
             end
         end)
+        local function update_activity()
+            for _, event in ipairs({ "LOOT_OPENED", "LOOT_SLOT_CHANGED" }) do
+                if not options.work_enabled or options.work_enabled("items") then
+                    frame:RegisterEvent(event)
+                else frame:UnregisterEvent(event) end
+            end
+        end
+        if options.on_activity_change then options.on_activity_change("loot-events", update_activity) end
+        update_activity()
         return true
     end)
-    hooks.region(_G.ContainerFrameMixin, "UpdateName", bag_title)
-    hooks.region(_G.ContainerFrameCombinedBagsMixin, "UpdateName", bag_title)
+    hooks.region(_G.ContainerFrameMixin, "UpdateName", bag_title, "bag-titles")
+    hooks.region(_G.ContainerFrameCombinedBagsMixin, "UpdateName", bag_title, "bag-titles")
     local combined = _G.ContainerFrameCombinedBags
-    hooks.region(combined, "UpdateName", bag_title)
+    hooks.region(combined, "UpdateName", bag_title, "bag-titles")
     bag_title(combined)
     refresh_merchant_title()
     local count = type(_G.NUM_CONTAINER_FRAMES) == "number"
         and _G.NUM_CONTAINER_FRAMES or 0
     for index = 1, count do
         local frame = _G["ContainerFrame" .. index]
-        hooks.region(frame, "UpdateName", bag_title)
+        hooks.region(frame, "UpdateName", bag_title, "bag-titles")
         if frame then bag_title(frame) end
     end
 end

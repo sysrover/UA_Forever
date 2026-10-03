@@ -1,9 +1,18 @@
 local _, addon_table = ...
 local translation_hooks = addon_table.use("translation_hooks")
+local options = addon_table.use("options")
 
 local installed = {}
 local installed_regions = {}
 local bound = {}
+
+local function guarded(scope, callback, cleanup)
+    if cleanup then return callback end
+    return function (...)
+        if options.work_enabled and not options.work_enabled(scope) then return end
+        return callback(...)
+    end
+end
 
 local function mark(scope, key, install)
     local keys = installed[scope]
@@ -28,11 +37,11 @@ translation_hooks.bind = function (scope)
         return mark(scope, key, install)
     end
 
-    hooks.mixin = function (name, method, callback)
-        return hooks.region(_G[name], method, callback)
+    hooks.mixin = function (name, method, callback, work_scope)
+        return hooks.region(_G[name], method, callback, work_scope)
     end
 
-    hooks.region = function (region, method, callback)
+    hooks.region = function (region, method, callback, work_scope)
         local region_type = type(region)
         if (region_type ~= "table" and region_type ~= "userdata")
             or type(callback) ~= "function" or type(_G.hooksecurefunc) ~= "function" then
@@ -47,7 +56,8 @@ translation_hooks.bind = function (scope)
         end
         local methods = regions[region]
         if methods and methods[method] then return true end
-        if not pcall(_G.hooksecurefunc, region, method, callback) then return false end
+        if not pcall(_G.hooksecurefunc, region, method,
+            guarded(work_scope or scope, callback)) then return false end
         if not methods then
             methods = {}
             regions[region] = methods
@@ -56,7 +66,7 @@ translation_hooks.bind = function (scope)
         return true
     end
 
-    hooks.region_script = function (frame, script, callback, key)
+    hooks.region_script = function (frame, script, callback, key, work_scope)
         local frame_type = type(frame)
         if (frame_type ~= "table" and frame_type ~= "userdata")
             or type(callback) ~= "function" then return false end
@@ -70,7 +80,8 @@ translation_hooks.bind = function (scope)
         local methods = regions[frame]
         local hook_key = "script:" .. script .. ":" .. (key or "default")
         if methods and methods[hook_key] then return true end
-        if not pcall(hook_script, frame, script, callback) then return false end
+        if not pcall(hook_script, frame, script,
+            guarded(work_scope or scope, callback, script == "OnHide")) then return false end
         if not methods then
             methods = {}
             regions[frame] = methods
@@ -79,11 +90,11 @@ translation_hooks.bind = function (scope)
         return true
     end
 
-    hooks.global = function (name, callback)
+    hooks.global = function (name, callback, work_scope)
         if type(_G[name]) ~= "function" or type(callback) ~= "function"
             or type(_G.hooksecurefunc) ~= "function" then return false end
         return mark(scope, name, function ()
-            return pcall(_G.hooksecurefunc, name, callback)
+            return pcall(_G.hooksecurefunc, name, guarded(work_scope or scope, callback))
         end)
     end
 

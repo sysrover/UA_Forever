@@ -192,6 +192,7 @@ end
 adapter.translate_structured_line = function (tooltip, line_data)
     local context = processing_trait_context(tooltip)
     if not context then return false, false end
+    if options.can_lookup_section and not options.can_lookup_section("talents") then return true, false end
     ensure_trait_session(tooltip)
 
     local line_type = type(line_data) == "table"
@@ -246,6 +247,7 @@ end
 adapter.translate_structured_data = function (tooltip, data)
     local context = processing_trait_context(tooltip)
     if not context then return false, false end
+    if options.can_lookup_section and not options.can_lookup_section("talents") then return true, false end
     local lines = type(data) == "table" and data.lines or nil
     if type(lines) ~= "table" then return true, false end
     local applied = false
@@ -337,6 +339,7 @@ local function replacement_line(button, spell_id, entry_id, source)
 end
 
 adapter.translate = function (_, button, tooltip)
+    if options.can_lookup_section and not options.can_lookup_section("talents") then return end
     local contract = deps()
     local talent_frame = _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.TalentsFrame
     if not talent_frame or not button or not tooltip

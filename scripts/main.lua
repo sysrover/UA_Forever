@@ -622,6 +622,7 @@ local function register_slash_command()
         if command == "on" then
             options.account.enabled = true
             runtime.refresh_policy()
+            options.refresh_activity()
             if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
             if strings.refresh_combat_text_globals then
                 strings.refresh_combat_text_globals()
@@ -632,6 +633,7 @@ local function register_slash_command()
         elseif command == "off" then
             options.account.enabled = false
             runtime.refresh_policy()
+            options.refresh_activity()
             registry.refresh("combat-log")
             if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
             if strings.refresh_combat_text_globals then
@@ -641,9 +643,11 @@ local function register_slash_command()
             message("переклад вимкнено")
         elseif command == "dev" and (value == "on" or value == "off") then
             options.account.dev_mode = value == "on"
+            options.refresh_activity()
             message("режим розробки " .. (options.account.dev_mode and "увімкнено" or "вимкнено"))
         elseif command == "autoscan" and (value == "on" or value == "off") then
             options.account.auto_scan_content = value == "on"
+            options.refresh_activity()
             message("автоскан контенту " .. (options.account.auto_scan_content and "увімкнено" or "вимкнено"))
         elseif command == "menus" then
             message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
@@ -1011,7 +1015,24 @@ event_frame:RegisterEvent("ITEM_TEXT_BEGIN")
 event_frame:RegisterEvent("ITEM_TEXT_READY")
 event_frame:RegisterEvent("COMBAT_TEXT_UPDATE")
 
+local event_scopes = {
+    PLAYER_REGEN_ENABLED = "main", GOSSIP_SHOW = "gossip", TRAINER_SHOW = "trainer",
+    TRAINER_UPDATE = "trainer", QUEST_DETAIL = "quest", QUEST_PROGRESS = "quest",
+    QUEST_COMPLETE = "quest", QUEST_GREETING = "quest", QUEST_LOG_UPDATE = "quest",
+    ITEM_TEXT_BEGIN = "books", ITEM_TEXT_READY = "books", COMBAT_TEXT_UPDATE = "combat-text",
+}
+if options.on_activity_change then
+    options.on_activity_change("main-events", function ()
+        for event, scope in pairs(event_scopes) do
+            if options.work_enabled(scope) then event_frame:RegisterEvent(event)
+            else event_frame:UnregisterEvent(event) end
+        end
+    end)
+end
+
 event_frame:SetScript("OnEvent", function (self, event, ...)
+    local scope = event_scopes[event]
+    if scope and options.work_enabled and not options.work_enabled(scope) then return end
     if event == "ADDON_LOADED" then
         local loaded_addon = ...
         if loaded_addon ~= addon_name then

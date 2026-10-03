@@ -7,7 +7,16 @@ local auto_scan = addon_table.use("auto_scan")
 local strings = addon_table.use("strings")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
+local resolver = addon_table.use("translation_resolver")
 local hooks = addon_table.use("translation_hooks").bind("popup_ui")
+
+local dynamic_dialogs = {
+    GROUP_INVITE_CONFIRMATION = true, PARTY_INVITE = true,
+    DUEL_REQUESTED = true, DUEL_TO_THE_DEATH_REQUESTED = true,
+    PET_BATTLE_PVP_DUEL_REQUESTED = true, TRADE = true,
+    CHAT_CHANNEL_INVITE = true, CONFIRM_SUMMON = true,
+    CONFIRM_SUMMON_STARTING_AREA = true, CONFIRM_SUMMON_SCENARIO = true,
+}
 
 local menu_walks = {
     popup = { id = "rendered-static-popup", surface = "popup",
@@ -49,6 +58,26 @@ local function resize_popup_for_text(dialog, text)
         or dialog.uaForeverLayoutText == text then return end
     dialog.uaForeverLayoutText = text
     pcall(dialog.Resize, dialog)
+end
+
+local function translate_dynamic_popup(dialog)
+    if not dialog or not dynamic_dialogs[dialog.which] then return end
+    local region = popup_text_region(dialog)
+    if not region or type(region.GetText) ~= "function" then return end
+    local ok, source = pcall(region.GetText, region)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    if not source then return end
+    -- A player's name or a destination may already be Ukrainian while the
+    -- surrounding client template is still English. Resolve the whole message.
+    local translated = resolver.find_ui(source, region)
+    if not translated or translated == source then return end
+    if runtime.apply(region, {
+        owner = "popup", slot = "dynamic.message", source = source,
+        translated = translated, option = "translate_string",
+        priority = runtime.PRIORITY.CONTEXT,
+    }) then
+        resize_popup_for_text(dialog, translated)
+    end
 end
 
 local function translate_exit_countdown(dialog)
@@ -168,6 +197,7 @@ local function refresh_and_scan_popups(which, data)
     if type(find) == "function" and which then
         local ok, dialog = pcall(find, which, data)
         if ok and dialog then
+            translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
             return
         end
@@ -176,6 +206,7 @@ local function refresh_and_scan_popups(which, data)
         local dialog = _G["StaticPopup" .. index]
         local shown_ok, shown = dialog and pcall(dialog.IsShown, dialog)
         if shown_ok and shown then
+            translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
         end
     end
@@ -198,6 +229,12 @@ local function after_static_popup_show(which, _, _, data)
     -- even when its translated countdown/message equals the previous show.
     dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
+    if dynamic_dialogs[which] then
+        translate_dynamic_popup(dialog)
+        translate_popup_button(dialog, "GetButton1")
+        translate_popup_button(dialog, "GetButton2")
+        return
+    end
     if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT" and which ~= "CAMP"
         and not translate_home_popup(dialog)
         and not translate_resurrection_popup(dialog) then return end
@@ -219,6 +256,10 @@ local function after_static_popup_update(dialog)
         translate_exit_countdown(dialog)
     elseif which == "RESURRECT" or which == "RESURRECT_NO_SICKNESS" then
         translate_resurrection_popup(dialog)
+    elseif which == "CONFIRM_SUMMON" or which == "CONFIRM_SUMMON_STARTING_AREA"
+        or which == "CONFIRM_SUMMON_SCENARIO" then
+        -- GetExpirationText rewrites the native message as timeleft changes.
+        translate_dynamic_popup(dialog)
     end
 end
 

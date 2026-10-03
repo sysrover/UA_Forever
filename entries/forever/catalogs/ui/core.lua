@@ -849,7 +849,59 @@ local function translate_social_time(value)
     end
 end
 
+-- Dynamic dialog sources: GlobalStrings and Blizzard_StaticPopup_Game,
+-- installed Forever build 1.60.1.70170. Keep names and links as rendered.
+local function popup_requester(value)
+    local owner, name = value:match("^(.-)'s friend (.+)$")
+    if owner then return name .. " (друг гравця " .. owner .. ")" end
+    owner, name = value:match("^(.-)'s guildmate (.+)$")
+    if owner then return name .. " (з однієї гільдії з " .. owner .. ")" end
+    owner, name = value:match("^(.-)'s community mate (.+)$")
+    if owner then return name .. " (з однієї спільноти з " .. owner .. ")" end
+    name, owner = value:match("^(.+) from (.+)$")
+    if name then return name .. " зі спільноти " .. owner end
+    return value
+end
+
+local function popup_warnings(value)
+    if value == "" then return value end
+    -- LFGUtil appends warnings and queue names on separate lines.
+    return (value:gsub("[^\r\n]+", function (line)
+        local color, body, reset = line:match("^(|c%x%x%x%x%x%x%x%x)(.*)(|r)$")
+        local translated = addonTable.use("translation_resolver").find_ui(body or line)
+        if translated then
+            return color and color .. translated .. reset or translated
+        end
+        return line
+    end))
+end
+
+local function popup_duration(count, unit)
+    -- The client can pass a |4 token before FontString plural resolution.
+    if unit == "|4Second:Seconds;" then return count .. " с" end
+    if unit == "|4Minute:Minutes;" then return count .. " хв" end
+    return translate_social_time(count .. " " .. unit)
+end
+
+local function popup_destination(zone)
+    return addonTable.zone and addonTable.zone[zone] or zone
+end
+
 addonTable.forever_ui_patterns = {
+    {
+        pattern = "^Tools:(.*)$",
+        replace = function (body)
+            return addonTable.use("tooltip_spell_adapter")
+                .translate_crafting_requirements("Tools:" .. body)
+        end,
+    },
+    {
+        pattern = "^Reagents:(.*)$",
+        replace = function (body)
+            return addonTable.use("tooltip_spell_adapter")
+                .translate_crafting_requirements("Reagents:" .. body)
+        end,
+    },
     {
         pattern = "^(.+) ([%d,]+)%s*/%s*([%d,]+)$",
         replace = function (faction, current, maximum)
@@ -1012,6 +1064,89 @@ addonTable.forever_ui_patterns = {
         pattern = "^(.+) invites you to a group%.$",
         replace = function (name)
             return name .. " запрошує вас до групи."
+        end,
+    },
+    {
+        -- INVITE_CONFIRMATION_REQUEST is formatted with the player name
+        -- before the popup text reaches the display-only UI resolver.
+        pattern = "^(.+) has requested to join your group%.(.*)$",
+        replace = function (name, warnings)
+            return popup_requester(name) .. " подав запит на приєднання до вашої групи."
+                .. popup_warnings(warnings)
+        end,
+    },
+    {
+        pattern = "^(.+) has requested to join your group through Quick Join%.(.*)$",
+        replace = function (name, warnings)
+            return popup_requester(name) .. " подав запит на приєднання до вашої групи через функцію «Швидке приєднання»."
+                .. popup_warnings(warnings)
+        end,
+    },
+    {
+        pattern = "^(.+) has suggested that you invite (.+) to join your group%.(.*)$",
+        replace = function (suggester, name, warnings)
+            return suggester .. " пропонує запросити " .. name .. " до вашої групи."
+                .. popup_warnings(warnings)
+        end,
+    },
+    {
+        pattern = "^If (.+) joins your group, you will be removed from the following queues:$",
+        replace = function (name)
+            return "Якщо " .. name .. " приєднається до вашої групи, ви вийдете з таких черг:"
+        end,
+    },
+    {
+        pattern = "^(.+) has no valid roles%.$",
+        replace = function (name) return name .. " не має відповідних ролей." end,
+    },
+    {
+        pattern = "^(.+) has challenged you to a duel%.$",
+        replace = function (name) return name .. " викликає вас на дуель." end,
+    },
+    {
+        pattern = "^(.+) has challenged you to a duel to the death%.$",
+        replace = function (name) return name .. " викликає вас на дуель на смерть." end,
+    },
+    {
+        pattern = "^(.+) has challenged you to a pet%-battle%.$",
+        replace = function (name) return name .. " викликає вас на бій улюбленців." end,
+    },
+    {
+        pattern = "^Trade with (.+)%?$",
+        replace = function (name) return "Торгувати з " .. name .. "?" end,
+    },
+    {
+        pattern = "^(.+) has invited you to join the channel '(.-)'%.$",
+        replace = function (name, channel)
+            return name .. " запрошує вас до каналу «" .. channel .. "»."
+        end,
+    },
+    {
+        pattern = "^(.+) wants to summon you to (.-)%.[%s\\n]*You will be unable to return to this starting zone%.[%s\\n]*The spell will be canceled in (%d+) (.-)%.$",
+        replace = function (name, zone, count, unit)
+            local duration = popup_duration(count, unit)
+            if not duration then return end
+            return name .. " хоче прикликати вас до місця «" .. popup_destination(zone)
+                .. "».\n\nВи не зможете повернутися до цієї початкової зони."
+                .. "\n\nЗакляття буде скасовано через " .. duration .. "."
+        end,
+    },
+    {
+        pattern = "^(.+) has started a scenario in (.+)%. Do you want to join them%?[%s\\n]*This offer will expire in (%d+) (.-)%.$",
+        replace = function (name, zone, count, unit)
+            local duration = popup_duration(count, unit)
+            if not duration then return end
+            return name .. " розпочинає сценарій у місці «" .. popup_destination(zone)
+                .. "». Хочете приєднатися?\n\nПропозиція діятиме ще " .. duration .. "."
+        end,
+    },
+    {
+        pattern = "^(.+) wants to summon you to (.+)%. The spell will be canceled in (%d+) (.-)%.$",
+        replace = function (name, zone, count, unit)
+            local duration = popup_duration(count, unit)
+            if not duration then return end
+            return name .. " хоче прикликати вас до місця «" .. popup_destination(zone)
+                .. "». Закляття буде скасовано через " .. duration .. "."
         end,
     },
     {
