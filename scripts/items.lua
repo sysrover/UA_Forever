@@ -93,7 +93,7 @@ local function declare_loot_hooks()
         blizzardAddon = "Blizzard_UIPanels_Game",
         required = true,
         fallbackEvent = "LOOT_OPENED",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = refresh_loot_frame,
     })
     registry.declare_hook({
@@ -105,7 +105,7 @@ local function declare_loot_hooks()
         blizzardAddon = "Blizzard_UIPanels_Game",
         required = true,
         fallbackEvent = "LOOT_SLOT_CHANGED",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = refresh_loot_row,
     })
 end

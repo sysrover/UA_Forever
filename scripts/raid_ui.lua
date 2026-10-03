@@ -108,11 +108,11 @@ raid_ui.prepare = function ()
         "RaidInfoFrame_Update", "RaidInfoFrame_UpdateButtons" }) do
         registry.declare_hook({ id = "raid-ui:" .. target, surface = "raid-ui",
             kind = "global", target = target, callback = refresh,
-            blizzardAddon = "Blizzard_RaidFrame", verifiedBuild = "1.60.1.70170" })
+            blizzardAddon = "Blizzard_RaidFrame", verifiedBuild = "1.60.1.70205" })
     end
     registry.declare_hook({ id = "raid-ui:instance-row", surface = "raid-ui",
         kind = "global", target = "RaidInfoFrame_InitButton", callback = prepare_info_row,
-        blizzardAddon = "Blizzard_RaidFrame", verifiedBuild = "1.60.1.70170" })
+        blizzardAddon = "Blizzard_RaidFrame", verifiedBuild = "1.60.1.70205" })
     hooks.region_script(_G.RaidFrame, "OnShow", refresh)
     hooks.region_script(_G.RaidInfoFrame, "OnShow", refresh)
     refresh()

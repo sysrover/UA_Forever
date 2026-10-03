@@ -184,7 +184,7 @@ trade_ui.prepare = function ()
         registry.declare_hook({ id = "trade-ui:" .. target,
             surface = "trade-ui", kind = "global",
             target = target, callback = callback,
-            blizzardAddon = "Blizzard_UIPanels_Game", verifiedBuild = "1.60.1.70170" })
+            blizzardAddon = "Blizzard_UIPanels_Game", verifiedBuild = "1.60.1.70205" })
     end
     declare("TradeFrame_OnShow", refresh)
     declare("TradeFrame_Update", refresh)

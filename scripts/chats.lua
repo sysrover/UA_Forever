@@ -1064,7 +1064,7 @@ local function prepare_chat_tabs()
         registry.declare_hook({
             id = "chat-tabs:" .. declaration[1], surface = "chat-tabs",
             kind = "global", target = declaration[1], callback = declaration[2],
-            blizzardAddon = "Blizzard_ChatFrameBase", verifiedBuild = "1.60.1.70170",
+            blizzardAddon = "Blizzard_ChatFrameBase", verifiedBuild = "1.60.1.70205",
         })
     end
     registry.refresh("chat-tabs")

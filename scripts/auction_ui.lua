@@ -38,7 +38,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.OnShow",
-        verifiedBuild = 70058,
+        verifiedBuild = 70205,
         callback = translate_auction_category_button,
     })
     registry.declare_hook({
@@ -50,7 +50,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.AuctionsFrame.SetTab",
-        verifiedBuild = 70058,
+        verifiedBuild = 70205,
         callback = translate_auction_summary_line,
     })
     registry.declare_hook({
@@ -62,7 +62,7 @@ local function declare_auction_hooks()
         blizzardAddon = "Blizzard_AuctionHouseUI",
         required = true,
         fallbackEvent = "AuctionHouseFrame.AuctionsFrame.SetTab",
-        verifiedBuild = 70058,
+        verifiedBuild = 70205,
         callback = translate_auction_table_header,
     })
 end

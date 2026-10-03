@@ -77,7 +77,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeManagerFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_manager,
     })
     registry.declare_hook({
@@ -89,7 +89,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeManagerFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_manager,
     })
     registry.declare_hook({
@@ -101,7 +101,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeSystemSettingsDialog.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_settings_dialog,
     })
     registry.declare_hook({
@@ -113,7 +113,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeLayoutDialog.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_layout_dialog,
     })
     registry.declare_hook({
@@ -125,7 +125,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeImportLayoutDialog.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_layout_dialog,
     })
     registry.declare_hook({
@@ -137,7 +137,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeUnsavedChangesDialog.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_layout_dialog,
     })
     registry.declare_hook({
@@ -149,7 +149,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeManagerFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_system_selection,
     })
     registry.declare_hook({
@@ -161,7 +161,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeManagerFrame.OnShow",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_system_selection,
     })
     registry.declare_hook({
@@ -173,7 +173,7 @@ local function declare_hooks()
         blizzardAddon = "Blizzard_EditMode",
         required = true,
         fallbackEvent = "EditModeManagerTutorialMixin.ShowHelpTip",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = translate_help_tip,
     })
 end

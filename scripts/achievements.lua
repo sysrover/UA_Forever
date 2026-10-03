@@ -87,7 +87,7 @@ local function declare_hooks()
         target = "AchievementAlertFrame_SetUp",
         required = true,
         fallbackEvent = "ACHIEVEMENT_EARNED",
-        verifiedBuild = 70170,
+        verifiedBuild = 70205,
         callback = translate_alert,
     })
     local function ui_hook(id, kind, target, method, callback)
@@ -95,7 +95,7 @@ local function declare_hooks()
             id = "achievement-ui." .. id, surface = "achievement-ui",
             kind = kind, target = target, method = method,
             blizzardAddon = "Blizzard_AchievementUI", required = true,
-            verifiedBuild = 70170, callback = callback,
+            verifiedBuild = 70205, callback = callback,
         })
     end
     ui_hook("rewards", "mixin", "AchievementTemplateMixin", "InitRewards", translate_rewards)

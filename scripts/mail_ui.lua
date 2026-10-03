@@ -184,7 +184,7 @@ local function declare_mail_hooks()
         blizzardAddon = "Blizzard_MailFrame",
         required = true,
         fallbackEvent = "MAIL_INBOX_UPDATE",
-        verifiedBuild = "1.60.1.70170",
+        verifiedBuild = "1.60.1.70205",
         callback = update_inbox_controls,
     })
     registry.declare_hook({
@@ -194,7 +194,7 @@ local function declare_mail_hooks()
         target = "SendMailAttachment_OnEnter",
         blizzardAddon = "Blizzard_MailFrame",
         required = true,
-        verifiedBuild = "1.60.1.70170",
+        verifiedBuild = "1.60.1.70205",
         callback = translate_attachment_tooltip,
     })
 end

@@ -908,7 +908,7 @@ local function declare_settings_hook(id, kind, target, method, callback)
         method = method,
         required = true,
         fallbackEvent = "SettingsPanel.DisplayCategory",
-        verifiedBuild = 70058,
+        verifiedBuild = 70205,
         callback = callback,
     })
 end
