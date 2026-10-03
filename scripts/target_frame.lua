@@ -108,6 +108,7 @@ local function update_status()
 end
 
 target_frame.refresh = function ()
+    if options.work_enabled and not options.work_enabled("target-frame") then return end
     update_target_name()
     update_status()
 end
@@ -119,8 +120,14 @@ target_frame.prepare = function ()
     aura_overlay.prepare()
     if not driver then
         driver = CreateFrame("Frame")
-        driver:RegisterEvent("PLAYER_TARGET_CHANGED")
-        driver:RegisterEvent("PLAYER_REGEN_ENABLED")
+        local function update_activity()
+            local active = not options.work_enabled or options.work_enabled("target-frame")
+            for _, event in ipairs({ "PLAYER_TARGET_CHANGED", "PLAYER_REGEN_ENABLED" }) do
+                if active then driver:RegisterEvent(event) else driver:UnregisterEvent(event) end
+            end
+        end
+        if options.on_activity_change then options.on_activity_change("target-frame-events", update_activity) end
+        update_activity()
         driver:SetScript("OnEvent", function (_, event)
             if event == "PLAYER_REGEN_ENABLED" then
                 scheduler.request("target-frame-post-combat", nil, target_frame.refresh)

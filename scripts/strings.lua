@@ -154,11 +154,13 @@ local fit_button_to_text = layout.fit_button_to_text
 strings.fit_button_to_text = fit_button_to_text
 
 strings.find_ui_translation = function (text, region)
+    if options.work_enabled and not options.work_enabled() then return nil end
     if type(text) ~= "string" or is_secret(text) then return nil end
     return resolver.find_ui(text, region)
 end
 
-local function translate_font_string(region, category, slot, surface, phase, instance)
+local function translate_font_string(region, category, slot, surface, phase, instance, section)
+    if options.work_enabled and not options.work_enabled(surface and surface.id) then return false end
     if not region then return false end
     local methods_ok, get_text, set_text = pcall(function ()
         return region.GetText, region.SetText
@@ -182,6 +184,12 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     local explicit_category = category
         or type(surface) == "table" and surface.name_category ~= "none"
             and surface.name_category or nil
+    if options.section_enabled and not (options.capture_enabled and options.capture_enabled()) then
+        local spec = {section=section, category=explicit_category, slot=slot or
+            (explicit_category and explicit_category .. ".name" or "ui.text"),
+            surface=surface, owner="ui"}
+        if not options.section_enabled(options.section_for(spec, region)) then return false end
+    end
     local translated, _, source_kind, inferred_category, inferred_slot,
         inferred_option, provenance =
         resolver.find_ui(text, region, explicit_category and {
@@ -210,7 +218,7 @@ local function translate_font_string(region, category, slot, surface, phase, ins
         option = inferred_option,
         lookup_tier = source_kind,
         catalog_source = provenance and provenance.source,
-        surface = surface, phase = phase,
+        surface = surface, phase = phase, section = section,
         generation = phase == "dynamic" and runtime.generation(surface) or nil,
         instance = instance,
         priority = priority, tooltip = is_tooltip(parent) and parent or nil,
@@ -403,7 +411,8 @@ local function scan_frame(frame, seen, stats, allow_protected, surface, walk_met
             skip_ok, skipped = pcall(skip, region)
         end
         if skip_ok and not skipped
-            and translate_font_string(region, nil, nil, surface) then
+            and translate_font_string(region, nil, nil, surface, nil, nil,
+                walk_metadata and walk_metadata.section) then
             stats.translated = stats.translated + 1
         end
         apply_ukrainian_font(region)
@@ -601,6 +610,8 @@ strings.translate_frame = function (frame, surface, fallback)
     if not options.can_translate("translate_string") or not frame then return stats end
     local walk_metadata = translation_walk_metadata(surface, fallback)
     if not walk_metadata then return stats, "TRANSLATE_FRAME_SCOPE_REQUIRED" end
+    if walk_metadata.section and options.can_lookup_section
+        and not options.can_lookup_section(walk_metadata.section) then return stats end
     local tooltip = allows_protected_children(frame)
     scan_frame(frame, {}, stats, tooltip, surface, walk_metadata)
     return stats

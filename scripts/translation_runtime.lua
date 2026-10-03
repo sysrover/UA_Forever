@@ -907,6 +907,19 @@ runtime.show_original = function (region, show)
     return ok
 end
 
+-- Static surface refreshes discard claims before walking the same regions.
+-- Restore only a result we still own, so the walk can recover its native
+-- source without overwriting a newer Blizzard write on a reused row.
+runtime.restore_owned_source = function (region, claim)
+    claim = claim or claims[region]
+    if not claim or claims[region] ~= claim then return false end
+    local visible = safe_text(region)
+    if not visible or not visible_matches(claim, visible, display_translation(claim)) then
+        return false
+    end
+    return runtime.show_original(region, true)
+end
+
 runtime.refresh_policy = function ()
     for region, claim in pairs(claims) do
         local shown = true

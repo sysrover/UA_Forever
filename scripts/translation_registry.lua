@@ -4,6 +4,14 @@ local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 
 local surfaces = {}
+local options = addon_table.use("options")
+if options.on_activity_change then
+    options.on_activity_change("registry-pending", function ()
+        for id, surface in pairs(surfaces) do
+            if not options.work_enabled(id) then surface.refresh_pending = false end
+        end
+    end)
+end
 local hook_declarations = {}
 local hook_order = {}
 
@@ -152,12 +160,12 @@ registry.install_hook = function (id)
     end
     local installed
     if state.kind == "global" then
-        installed = hooks.global(state.target, observed_callback)
+        installed = hooks.global(state.target, observed_callback, state.surface)
     elseif state.kind == "frame" then
         installed = hooks.region(_G[state.target], state.method,
-            observed_callback)
+            observed_callback, state.surface)
     else
-        installed = hooks.mixin(state.target, state.method, observed_callback)
+        installed = hooks.mixin(state.target, state.method, observed_callback, state.surface)
     end
     if not installed then
         state.lastError = "INSTALL_FAILED"
@@ -231,7 +239,7 @@ registry.prepare_root_hooks = function ()
             local frame = _G[name]
             hooks.region_script(frame, "OnShow", function ()
                 registry.refresh(surface.id)
-            end)
+            end, nil, surface.id)
         end
     end)
 end
@@ -451,6 +459,8 @@ registry.each = function (callback)
 end
 
 registry.refresh = function (id, phase)
+    local options = addon_table.use("options")
+    if options.work_enabled and not options.work_enabled(id) then return end
     local surface = surfaces[id]
     if not surface then return end
     if phase == "dynamic" then
@@ -460,7 +470,8 @@ registry.refresh = function (id, phase)
     end
     if surface.refresh_pending then return end
     surface.refresh_pending = true
-    local generation = runtime.begin_generation(surface, surface.generation + 1)
+    local generation = runtime.begin_generation(surface, surface.generation + 1,
+        runtime.restore_owned_source)
     surface.generation = generation
     scheduler.request({ id=id, surface=surface, instance="refresh",
         generation=generation, callback=function ()

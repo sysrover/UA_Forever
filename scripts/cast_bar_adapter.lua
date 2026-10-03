@@ -14,6 +14,7 @@ local FRAME_NAMES = { "PlayerCastingBarFrame", "GamepadPlayerCastingBarFrame",
     "OverlayPlayerCastingBarFrame", "CastingBarFrame", "TargetFrameSpellBar",
     "FocusFrameSpellBar", "PetCastingBarFrame" }
 local driver
+local prepared
 local is_secret = runtime.is_secret_value
 local safe_string = runtime.safe_string_or_nil
 
@@ -69,6 +70,12 @@ end
 local function refresh(state)
     local frame, region = state.frame, state.region
     if state.writing or runtime.is_applying(region) then return end
+    if options.work_enabled and not options.work_enabled("cast-bar") then
+        restore(state, "OPTION_DISABLED"); return
+    end
+    if options.section_enabled and not options.section_enabled("cast_bars") then
+        restore(state, "OPTION_DISABLED"); return
+    end
     if call(frame, "IsForbidden") == true then
         release(state, "FORBIDDEN_FRAME"); return
     end
@@ -83,11 +90,27 @@ local function refresh(state)
     if call(region, "IsVisible") ~= true then
         release(state, "TEXT_NOT_VISIBLE"); return
     end
+    local spell_id = field(frame, "spellID")
+    local claim = runtime.get(region)
+    if visible == state.translated and state.cache_spell_id == spell_id
+        and claim and claim.owner == "cast-bar"
+        and claim.source == state.source and claim.translated == state.translated then
+        state.reason = "TRANSLATION_VISIBLE"
+        return
+    end
     -- The native region now contains our translation. Recover the original
     -- only when it still matches the exact value we last wrote to this bar.
     local source = visible == state.translated and state.source or visible
-    local translated, slot = translation(frame, source)
-    translated = safe_string(translated)
+    local translated, slot
+    if state.cache_source == source and state.cache_spell_id == spell_id then
+        translated, slot = state.cache_translated, state.cache_slot
+    else
+        translated, slot = translation(frame, source)
+        translated = safe_string(translated)
+        if translated then translated = utils.cap(translated) end
+        state.cache_source, state.cache_spell_id = source, spell_id
+        state.cache_translated, state.cache_slot = translated, slot
+    end
     if not translated or translated == source then
         release(state, "LOOKUP_FAILED"); return
     end
@@ -96,7 +119,6 @@ local function refresh(state)
         or not options.name_enabled and options.translate_name("spell")) then
         restore(state, "NAME_OPTION_DISABLED"); return
     end
-    translated = utils.cap(translated)
     if visible == translated and runtime.get(region)
         and state.source == source and state.translated == translated then
         state.reason = "TRANSLATION_VISIBLE"
@@ -149,19 +171,38 @@ local function register(frame)
     refresh(state)
 end
 
+local function update_activity()
+    local active = options.section_enabled and options.section_enabled("cast_bars")
+        or not options.section_enabled and options.can_translate("translate_spell")
+    if driver then
+        if active then driver:RegisterEvent("PLAYER_REGEN_ENABLED")
+        else driver:UnregisterEvent("PLAYER_REGEN_ENABLED") end
+    end
+    for _, state in pairs(states) do
+        state.cache_source, state.cache_spell_id = nil, nil
+        state.cache_translated, state.cache_slot = nil, nil
+        refresh(state)
+    end
+end
+
 adapter.prepare = function ()
     for _, name in ipairs(FRAME_NAMES) do register(_G[name]) end
-    if driver or not _G.UIParent or type(_G.CreateFrame) ~= "function" then return end
-    driver = _G.CreateFrame("Frame", nil, _G.UIParent)
-    local elapsed_total = 0
-    driver:SetScript("OnUpdate", function (_, elapsed)
-        elapsed_total = elapsed_total + elapsed
-        if elapsed_total < 0.05 then return end
-        elapsed_total = 0
-        -- Retry later native writes and react to policy changes. Stable text
-        -- does not cause additional SetText calls.
-        for _, state in pairs(states) do refresh(state) end
-    end)
+    -- Build 70170 writes the name at cast start, failure/interrupt and
+    -- simulation through SetText. Keep the HandleCastStart post-hook because
+    -- spellID is assigned after that write. No addon OnUpdate is needed.
+    if not driver and _G.UIParent and type(_G.CreateFrame) == "function" then
+        driver = _G.CreateFrame("Frame", nil, _G.UIParent)
+        driver:SetScript("OnEvent", function (_, event)
+            if event == "PLAYER_REGEN_ENABLED" then
+                for _, state in pairs(states) do refresh(state) end
+            end
+        end)
+    end
+    if not prepared then
+        prepared = true
+        if options.on_activity_change then options.on_activity_change("cast-bar-driver", update_activity) end
+    end
+    update_activity()
 end
 
 -- Capture public scalar values only. The probe never refreshes or changes UI.
@@ -203,7 +244,8 @@ end
 adapter.capture = function ()
     local report = { version = 2, mode = "direct", frames = {}, visibleCount = 0,
         translatedCount = 0, registeredCount = 0,
-        driverReady = driver ~= nil, sourceBuild = client_db.source_build,
+        driverReady = driver ~= nil, updateMode = "events", polling = false,
+        sourceBuild = client_db.source_build,
         translationEnabled = options.can_translate("translate_spell"),
         spellNamesEnabled = options.translate_name("spell"),
         uiParent = capture_region(_G.UIParent, true) }

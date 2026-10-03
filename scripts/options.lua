@@ -44,7 +44,7 @@ local default_character = {
 -- IDs are also SavedVariables keys; wording lives in the addon locale.
 options.section_groups = {
     { id = "quests", sections = { "quest_names", "quest_text", "quest_ui", "gossip", "books" } },
-    { id = "items", sections = { "item_names", "item_details", "quest_items", "bags", "merchant", "loot", "auction" } },
+    { id = "items", sections = { "item_names", "item_details", "quest_items", "bag_names", "bags", "merchant", "loot", "auction" } },
     { id = "spells", sections = { "spell_names", "spell_details", "auras", "talents", "spell_ui", "skill_names", "recipes", "profession_ui", "trainer", "cast_bars" } },
     { id = "world", sections = { "npc_tooltips", "npc_target", "nameplates", "objects", "zone_names", "map_ui" } },
     { id = "chat", sections = { "npc_chat", "chat_bubbles", "system_chat", "chat_links", "chat_ui", "combat_log", "combat_text", "loss_of_control", "mirror_timers" } },
@@ -70,6 +70,118 @@ options.section_enabled = function (id)
     return account and account.enabled and not account.disable_all_translation
         and (account.translation_scope ~= "custom"
             or account[options.section_key(id)] ~= false) or false
+end
+
+options.any_section_enabled = function (sections)
+    if sections then
+        for _, id in ipairs(sections) do
+            if options.section_enabled(id) then return true end
+        end
+    else
+        for _, group in ipairs(options.section_groups) do
+            for _, id in ipairs(group.sections) do
+                if options.section_enabled(id) then return true end
+            end
+        end
+    end
+    return false
+end
+
+local scope_sections = {
+    quest = { "quest_names", "quest_text", "quest_ui", "gossip", "npc_tooltips", "quest_items" },
+    ["quest-tooltips"] = { "quest_names", "quest_text", "quest_ui" },
+    ["quest-gossip"] = { "quest_names", "quest_text", "quest_ui", "gossip", "map_ui", "zone_names" },
+    gossip = { "gossip", "quest_names", "npc_tooltips" }, books = { "books" },
+    items = { "item_names", "item_details", "quest_items", "merchant", "bag_names", "bags", "loot", "spell_names" },
+    ["bag-titles"] = { "bag_names" },
+    ["item-tooltips"] = { "item_names", "item_details" },
+    ["spell-tooltips"] = { "spell_names", "spell_details", "auras", "talents", "recipes" },
+    ["npc-tooltips"] = { "npc_tooltips", "quest_names", "quest_text" },
+    ["object-tooltips"] = { "objects", "zone_names" },
+    ["map-labels"] = { "zone_names", "map_ui", "gossip", "quest_text", "popups" },
+    ["map-tooltips"] = { "zone_names", "map_ui", "quest_names", "quest_text" },
+    ["cast-bar"] = { "cast_bars" }, ["target-auras"] = { "auras" },
+    ["target-frame"] = { "npc_target" },
+    ["combat-text"] = { "combat_text" }, ["loss-of-control"] = { "loss_of_control" },
+    ["mirror-timer"] = { "mirror_timers" },
+    chats = { "npc_chat", "chat_bubbles", "system_chat", "chat_links", "chat_ui" },
+    ["chat-bubble"] = { "chat_bubbles" },
+    ["npc-chat"] = { "npc_chat", "chat_bubbles" }, ["system-chat"] = { "system_chat" },
+    ["chat-links"] = { "chat_links" }, ["chat-tabs"] = { "chat_ui" },
+    ["chat-config"] = { "chat_ui" }, ["combat-log"] = { "combat_log" },
+    ["profession-frame"] = { "profession_ui", "skill_names" },
+    ["profession-recipes"] = { "recipes", "item_names", "skill_names", "profession_ui" },
+    ["talent-frame"] = { "spell_ui", "talents" },
+    skills = { "spell_ui", "spell_names", "skill_names", "character_ui", "reputation", "pvp" },
+    factions = { "reputation" }, ["raid-ui"] = { "raid_ui" },
+    ["compact-raid-manager"] = { "raid_ui" }, ["social-toast"] = { "social_ui" },
+    social_ui = { "social_ui", "zone_names" }, mail_ui = { "mail", "item_names" },
+    auction_ui = { "auction", "item_names" }, lfg_ui = { "lfg", "zone_names" },
+    popup_ui = { "popups" }, ["stack-split"] = { "popups" }, ["trade-ui"] = { "item_names" },
+    menus_ui = { "game_menu", "game_settings", "edit_mode", "chat_ui", "raid_ui", "social_ui" },
+    settings = { "game_settings" }, ["game-menu"] = { "game_menu" },
+    ["edit-mode"] = { "edit_mode" }, ["level-up"] = { "level_up" },
+    ["achievement-ui"] = { "achievements" }, ["achievement-alert"] = { "achievement_alerts" },
+    character = { "character_ui", "reputation", "pvp" },
+    professions = { "profession_ui", "skill_names", "recipes", "item_names" },
+    trainer = { "trainer", "spell_names", "skill_names" },
+    social = { "social_ui", "zone_names" }, mail = { "mail", "item_names" },
+    lfg = { "lfg", "zone_names" }, ["npc-world"] = { "npc_target", "nameplates", "auras" },
+}
+local activity_callbacks = {}
+local active_scopes = {}
+local work_active = true
+local activity_signature
+
+options.capture_enabled = function ()
+    return options.account and (options.account.auto_scan_content == true
+        or options.account.dev_mode == true) or false
+end
+
+-- Hook callbacks read a cached boolean rather than walking all settings.
+options.work_enabled = function (scope)
+    local enabled = active_scopes[scope]
+    if enabled ~= nil then return enabled end
+    return work_active
+end
+
+options.on_activity_change = function (key, callback)
+    activity_callbacks[key] = callback
+end
+
+options.refresh_activity = function ()
+    local capture = options.capture_enabled()
+    local signature = { tostring(capture) }
+    for _, group in ipairs(options.section_groups) do
+        for _, id in ipairs(group.sections) do
+            signature[#signature + 1] = options.section_enabled(id) and "1" or "0"
+        end
+    end
+    signature = table.concat(signature)
+    if signature == activity_signature then return end
+    activity_signature = signature
+    work_active = capture or options.any_section_enabled()
+    for scope, sections in pairs(scope_sections) do
+        active_scopes[scope] = capture or options.any_section_enabled(sections)
+    end
+    for _, callback in pairs(activity_callbacks) do callback() end
+end
+
+options.task_scope = function (id, surface)
+    if type(id) == "string" and id:match("^manual%-") then return "manual" end
+    if type(surface) == "table" then surface = surface.id end
+    if type(surface) == "string" and scope_sections[surface] then return surface end
+    if type(id) == "string" then
+        if scope_sections[id] then return id end
+        if id:match("^quest%-") then return "quest" end
+        if id:match("^book%-") then return "books" end
+        if id:match("^target%-frame") then return "target-frame" end
+        if id:match("^chat%-bubble") then return "npc-chat" end
+        if id:match("^combat%-text") then return "combat-text" end
+        if id:match("^trainer%-") then return "trainer" end
+        if id:match("^tooltip") or id:match("^runtime%-post") then return "tooltips" end
+    end
+    return "main"
 end
 
 -- Inspect actual frame ancestry before broad registry groups (which contain
@@ -157,6 +269,21 @@ end
 options.section_for = function (spec, region)
     spec = spec or {}
     if spec.section then return spec.section end
+    -- The title is an item name rendered on a bag window. Its independent
+    -- switch must also win during the shared item-surface static scan.
+    if region and (spec.owner == "ui" or spec.category == "item") then
+        local parent = public_method(region, "GetParent")
+        for _ = 1, 2 do
+            local name = public_method(parent, "GetName") or public_method(parent, "GetDebugName")
+            if type(name) == "string" and name:match("^ContainerFrame") then
+                local ok, title = pcall(function () return parent.TitleText end)
+                if (ok and title == region) or public_method(parent, "GetTitleText") == region then
+                    return "bag_names"
+                end
+            end
+            parent = public_method(parent, "GetParent")
+        end
+    end
     local owner, slot = spec.owner or "", spec.slot or ""
     local category = spec.category
     if owner == "npc-target" or owner == "npc-nameplate" or owner == "npc-tooltip"
@@ -227,6 +354,7 @@ options.prepare = function ()
 
     local previous = UA_ForeverDB.account
     local migration = {
+        bag_names = "section_bags",
         books = "translate_book", gossip = "translate_gossip", chat_bubbles = "translate_chat_bubble",
         npc_tooltips = "translate_npc_tooltip", npc_target = "translate_npc_target_frame",
         nameplates = "translate_nameplates", quest_items = "translate_quest_item",
@@ -244,6 +372,7 @@ options.prepare = function ()
 
     options.account = UA_ForeverDB.account
     options.character = UA_ForeverDB.character
+    options.refresh_activity()
 end
 
 local section_flags = {
@@ -252,21 +381,31 @@ local section_flags = {
     translate_nameplates = "nameplates", translate_npc_tooltip = "npc_tooltips",
     translate_npc_target_frame = "npc_target", translate_zone = "zone_names",
 }
-local domains = { translate_item = true, translate_quest = true,
-    translate_spell = true, translate_npc = true, translate_string = true,
-    translate_chat = true, translate_other_tooltips = true }
+local domains = {
+    translate_item = { "item_names", "item_details", "quest_items" },
+    translate_quest = { "quest_names", "quest_text", "quest_ui" },
+    translate_spell = { "spell_names", "spell_details", "auras", "talents", "recipes", "cast_bars" },
+    translate_npc = { "npc_tooltips", "npc_target", "nameplates" },
+    translate_chat = { "npc_chat", "chat_bubbles", "system_chat", "chat_links", "chat_ui", "combat_log" },
+    translate_other_tooltips = { "objects", "generic_tooltips" },
+}
 
 options.can_translate = function (...)
     local account = options.account
     if not account or not account.enabled or account.disable_all_translation then
         return false
     end
+    if select("#", ...) == 0 then return options.any_section_enabled() end
 
     for i = 1, select("#", ...) do
         local flag = select(i, ...)
         if section_flags[flag] then
             if not options.section_enabled(section_flags[flag]) then return false end
-        elseif not domains[flag] and not account[flag] then
+        elseif domains[flag] then
+            if not options.any_section_enabled(domains[flag]) then return false end
+        elseif flag == "translate_string" then
+            if not options.any_section_enabled() then return false end
+        elseif not account[flag] then
             return false
         end
     end
@@ -277,6 +416,10 @@ end
 options.can_lookup = function (...)
     return options.account and (options.account.dev_mode
         or options.account.auto_scan_content or options.can_translate(...))
+end
+
+options.can_lookup_section = function (id)
+    return options.capture_enabled() or options.section_enabled(id)
 end
 
 options.is_bilingual_tooltip = function ()
@@ -297,9 +440,9 @@ end
 
 options.name_enabled = function (spec)
     local section = options.section_for(spec)
-    -- These controls explicitly own both names and descriptions.
+    -- These sections control names independently of the general name switches.
     if section == "auras" or section == "recipes" or section == "talents"
-        or section == "cast_bars" then return true end
+        or section == "cast_bars" or section == "bag_names" then return true end
     return options.translate_name(spec.category)
 end
 

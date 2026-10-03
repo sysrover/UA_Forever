@@ -121,6 +121,7 @@ local function resolve_lang_name(chat_frame, lang_name)
 end
 
 local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
+    if options.work_enabled and not options.work_enabled("npc-chat") then return nil end
     -- Returning a rewritten argument list also returns the sender/history
     -- metadata. Leave secret-bearing events entirely in the native path.
     if has_secret_values(chat_text, npc_name, lang_name, ...) then return nil end
@@ -896,6 +897,7 @@ local function prepare_chat_frames()
 end
 
 local function filter_system_msg(self, event, message, ...)
+    if options.work_enabled and not options.work_enabled("system-chat") then return nil end
     if has_secret_values(message, ...) or type(message) ~= "string" then return nil end
     if not system_chat_events[event] or not options.can_lookup("translate_chat") then
         return nil, message, ...
@@ -1069,12 +1071,22 @@ local function prepare_chat_tabs()
 end
 
 chats.prepare = function()
-    for event_name, _ in pairs(known_chat_msg_events) do
-        ChatFrame_AddMessageEventFilter(event_name, filter_chat_msg)
+    local function update_filters()
+        for _, group in ipairs({
+            { events=known_chat_msg_events, callback=filter_chat_msg, scope="npc-chat" },
+            { events=system_chat_events, callback=filter_system_msg, scope="system-chat" },
+        }) do
+            local active = not options.work_enabled or options.work_enabled(group.scope)
+            for event_name in pairs(group.events) do
+                if active then ChatFrame_AddMessageEventFilter(event_name, group.callback)
+                elseif type(_G.ChatFrame_RemoveMessageEventFilter) == "function" then
+                    ChatFrame_RemoveMessageEventFilter(event_name, group.callback)
+                end
+            end
+        end
     end
-    for event_name in pairs(system_chat_events) do
-        ChatFrame_AddMessageEventFilter(event_name, filter_system_msg)
-    end
+    if options.on_activity_change then options.on_activity_change("chat-filters", update_filters) end
+    update_filters()
     prepare_chat_frames()
     hooks.global("FCF_OpenNewWindow", prepare_chat_frames)
     prepare_chat_tabs()

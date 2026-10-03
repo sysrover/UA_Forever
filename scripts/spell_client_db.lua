@@ -135,3 +135,22 @@ end
 lookup.get_english_name_rows = function ()
     return lookup.ready and databases.spell_names_en.rows or nil
 end
+
+-- Exact build-owned names only. Deterministic ID ordering matches the item
+-- name lookup; no substring replacement or translated-text recognition.
+local spell_id_by_english_name
+lookup.get_name_by_english = function (english_name)
+    if not lookup.ready or type(english_name) ~= "string" then return nil end
+    if not spell_id_by_english_name then
+        spell_id_by_english_name = {}
+        for id, name in pairs(databases.spell_names_en.rows) do
+            local translated = lookup.get_name(id)
+            if type(name) == "string" and translated and translated ~= name then
+                local known = spell_id_by_english_name[name]
+                if not known or id < known then spell_id_by_english_name[name] = id end
+            end
+        end
+    end
+    local id = spell_id_by_english_name[english_name]
+    return id and lookup.get_name(id) or nil
+end

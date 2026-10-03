@@ -745,7 +745,15 @@ local function process(tooltip, data, kind, native_rebuild)
     return translated
 end
 
+local function tooltip_work_enabled(kind)
+    local scopes = { item="item-tooltips", spell="spell-tooltips", aura="target-auras",
+        npc="npc-tooltips", quest="quest-tooltips", object="object-tooltips",
+        minimap="map-tooltips" }
+    return not options.work_enabled or options.work_enabled(scopes[kind] or "tooltips")
+end
+
 local function safe_process(tooltip, data, kind, native_rebuild)
+    if not tooltip_work_enabled(kind) then return false end
     local ok, result = pcall(process, tooltip, data, kind, native_rebuild)
     if not ok then
         dev_log.issue("Forever tooltip " .. tostring(kind), tostring(result))
@@ -1732,6 +1740,7 @@ end
 
 
 local function schedule_tooltip_finalize(tooltip)
+    if not tooltip_work_enabled(tooltip.uaForeverKind) then return end
     local generation = tooltip.uaForeverGeneration
     if tooltip.uaForeverKind == "item"
         and (tooltip.uaForeverItemStatus == "complete"
@@ -1740,6 +1749,7 @@ local function schedule_tooltip_finalize(tooltip)
         return
     end
     local function finalize()
+        if not tooltip_work_enabled(tooltip.uaForeverKind) then return end
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
             if tooltip.uaForeverKind == "spell" then
@@ -1766,6 +1776,7 @@ local function schedule_tooltip_finalize(tooltip)
 end
 
 after_aura_tooltip_rendered = function (tooltip, aura_data)
+    if not tooltip_work_enabled("aura") then return end
     if not tooltip or is_secret(tooltip) then return end
     mark_aura_tooltip(tooltip)
     note_tooltip_event(tooltip, "auraMethod")
@@ -2007,6 +2018,7 @@ local function prepare_tooltip_frames()
 end
 
 local function after_game_tooltip_update(tooltip)
+    if tooltip and not tooltip_work_enabled(tooltip.uaForeverKind) then return end
     if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
     if tooltip.uaForeverKind == "item" or is_shopping_tooltip(tooltip) then
         -- Build 70058 reruns TooltipDataProcessor post-calls after item
@@ -2222,6 +2234,7 @@ tooltips.prepare = function ()
         local watcher = CreateFrame("Frame")
         local function update_minimap(self)
             self = self or watcher
+            if not tooltip_work_enabled("minimap") then self:SetScript("OnUpdate", nil); return end
             local tooltip = _G.GameTooltip
             if tooltip and minimap_tooltip_candidate(tooltip) then
                 local ok, shown = pcall(tooltip.IsShown, tooltip)
@@ -2234,7 +2247,13 @@ tooltips.prepare = function ()
         end
         tooltips.minimapWatcherCallback = update_minimap
         tooltips.minimapWatcher = watcher
+        if options.on_activity_change then
+            options.on_activity_change("minimap-watcher", function ()
+                if not tooltip_work_enabled("minimap") then watcher:SetScript("OnUpdate", nil) end
+            end)
+        end
         arm_minimap_watcher = function ()
+            if not tooltip_work_enabled("minimap") then return end
             watcher.uaForeverPasses = 3
             watcher:SetScript("OnUpdate", update_minimap)
         end
@@ -2248,7 +2267,9 @@ tooltips.prepare = function ()
     tooltips.prepared = true
     if _G.EventRegistry and type(_G.EventRegistry.RegisterCallback) == "function" then
         _G.EventRegistry:RegisterCallback("TalentDisplay.TooltipCreated",
-            talent_adapter.translate, tooltips)
+            function (...)
+                if tooltip_work_enabled("spell") then return talent_adapter.translate(...) end
+            end, tooltips)
     end
     local types = Enum.TooltipDataType
     local function translate_pending_sell_price(tooltip)
@@ -2272,6 +2293,7 @@ tooltips.prepare = function ()
     end
     if types.Item then
         TooltipDataProcessor.AddTooltipPostCall(types.Item, function (tooltip, data)
+            if not tooltip_work_enabled("item") then return end
             runtime.metric("native_item_post_calls", tooltip,
                 tooltip and tooltip.uaForeverGeneration)
             sync_tooltip_original_state(tooltip)
@@ -2301,7 +2323,7 @@ tooltips.prepare = function ()
         and type(TooltipDataProcessor.AddLinePostCall) == "function" then
         TooltipDataProcessor.AddLinePostCall(line_types.SellPrice,
             function (tooltip)
-                if not tooltip then return end
+                if not tooltip or not tooltip_work_enabled("item") then return end
                 local count_ok, count = pcall(tooltip.NumLines, tooltip)
                 count = count_ok and safe_number(count) or nil
                 if not count or count < 1 then return end
@@ -2316,6 +2338,7 @@ tooltips.prepare = function ()
     end
     if types.Spell then
         TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
+            if not tooltip_work_enabled("spell") then return end
             if tooltip.uaForeverKind == "trainer" then
                 translate_trainer_tooltip(tooltip, data)
                 return
@@ -2337,6 +2360,7 @@ tooltips.prepare = function ()
     if types.UnitAura then
         TooltipDataProcessor.AddTooltipPostCall(types.UnitAura,
             function (tooltip, data)
+            if not tooltip_work_enabled("aura") then return end
                 if tooltip.uaForeverTargetAuraMeasuring then return end
                 mark_aura_tooltip(tooltip)
                 safe_process(tooltip, data, "aura")
@@ -2349,7 +2373,11 @@ tooltips.prepare = function ()
             line_types.SpellPassive, line_types.SpellDescription }) do
             if line_type then
                 TooltipDataProcessor.AddLinePostCall(line_type,
-                    talent_adapter.translate_structured_line)
+                    function (...)
+                        if tooltip_work_enabled("spell") then
+                            return talent_adapter.translate_structured_line(...)
+                        end
+                    end)
             end
         end
     end
@@ -2365,6 +2393,7 @@ tooltips.prepare = function ()
     end
     if types.Object then
         TooltipDataProcessor.AddTooltipPostCall(types.Object, function (tooltip, data)
+            if not tooltip_work_enabled("object") then return end
             safe_process(tooltip, data, "object")
             -- Build 70058 can clear and rebuild a world-object tooltip while
             -- GameTooltip stays shown. Its Left1 SetText hook then runs before
@@ -2378,14 +2407,19 @@ tooltips.prepare = function ()
     if types.MinimapMouseover then
         TooltipDataProcessor.AddTooltipPostCall(types.MinimapMouseover,
             function (tooltip)
-                if tooltip ~= _G.GameTooltip then return end
+                if tooltip ~= _G.GameTooltip or not tooltip_work_enabled("minimap") then return end
                 translate_minimap_tooltip(tooltip)
                 quest_adapter.translate_embedded(tooltip)
             end)
     end
 
     local shift_frame = CreateFrame("Frame")
-    shift_frame:RegisterEvent("MODIFIER_STATE_CHANGED")
+    local function update_activity()
+        if tooltip_work_enabled() then shift_frame:RegisterEvent("MODIFIER_STATE_CHANGED")
+        else shift_frame:UnregisterEvent("MODIFIER_STATE_CHANGED") end
+    end
+    if options.on_activity_change then options.on_activity_change("tooltip-shift-events", update_activity) end
+    update_activity()
     shift_frame:SetScript("OnEvent", function (_, _, key)
         if key ~= "LSHIFT" and key ~= "RSHIFT" then return end
         tooltips.refresh_active()

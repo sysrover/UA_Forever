@@ -64,6 +64,7 @@ addonTable.zone = {
     ["Trade District"] = "Торговий квартал",
     ["Thunder Bluff"] = "Громовий Бескид",
     ["Undercity"] = "Підмістя",
+    ["The Undercity"] = "Підмістя",
     ["The Library"] = "Бібліотека",
     ["Anvilmar's Rest"] = "Спочинок Анвілмара",
     ["Dark Iron Ingress"] = "Вхід Темного Заліза",

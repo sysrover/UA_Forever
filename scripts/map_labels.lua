@@ -132,6 +132,19 @@ local function is_area_name(label, source)
     return active_ok and active == info
 end
 
+local function zone_poi_translation(label, source)
+    local poi_type = _G.MAP_AREA_LABEL_TYPE and _G.MAP_AREA_LABEL_TYPE.POI
+    local info = poi_type and label.labelInfoByType
+        and label.labelInfoByType[poi_type]
+    if not info or safe_string(info.name) ~= source then return nil end
+    local active_ok, active = pcall(label.GetHighestPriorityLabelInfo, label)
+    if not active_ok or active ~= info then return nil end
+    -- Only known zone names belong to this route; use their domain catalog
+    -- directly so an object with the same name cannot override a capital.
+    local translated = addon_table.zone and safe_string(addon_table.zone[source])
+    return translated and translated ~= source and translated or nil
+end
+
 local function translated_zone_name(source)
     local name, suffix = source:match("^(.-)(|c%x%x%x%x%x%x%x%x.*)$")
     name = name or source
@@ -162,7 +175,9 @@ local function after_evaluate(label)
         return
     end
     runtime.invalidate(region)
-    if options.can_lookup("translate_gossip") and is_gossip_poi(label, current) then
+    local gossip_poi = is_gossip_poi(label, current)
+    local poi_translation = not gossip_poi and zone_poi_translation(label, current)
+    if options.can_lookup("translate_gossip") and gossip_poi then
         local translated = entries.get_glossary_text(current, current)
         if safe_string(translated) and translated ~= current then
             runtime.apply(region, {
@@ -171,8 +186,9 @@ local function after_evaluate(label)
                 option = "translate_gossip", priority = runtime.PRIORITY.CONTEXT,
             })
         end
-    elseif options.can_lookup("translate_zone") and is_area_name(label, current) then
-        local translated = translated_zone_name(current)
+    elseif options.can_lookup("translate_zone")
+        and (is_area_name(label, current) or poi_translation) then
+        local translated = poi_translation or translated_zone_name(current)
         if translated then
             runtime.apply(region, {
                 owner = "zone-map", slot = "zone.name",

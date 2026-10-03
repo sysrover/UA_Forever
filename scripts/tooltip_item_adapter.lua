@@ -209,19 +209,23 @@ end
 local function render_effect(effect, line_type, source)
     if type(effect) ~= "table" or type(source) ~= "string" then return nil end
     local spell_id = effect.spellID
-    local english = spell_db.get_english_description(spell_id)
-    local ukrainian = spell_db.get_description(spell_id)
-    local kind = "spell"
-    if not english or not ukrainian then
-        english = spell_db.get_english_aura_description(spell_id)
-        ukrainian = spell_db.get_aura_description(spell_id)
-        kind = "aura"
-    end
-    if not english or not ukrainian then return nil end
-
     local native_core, cooldown = split_effect_source(source)
-    local translated = renderer.render(
-        spell_id, kind, english, ukrainian, native_core)
+    local translated
+    for _, kind in ipairs({ "spell", "aura" }) do
+        local english, ukrainian
+        if kind == "spell" then
+            english = spell_db.get_english_description(spell_id)
+            ukrainian = spell_db.get_description(spell_id)
+        else
+            english = spell_db.get_english_aura_description(spell_id)
+            ukrainian = spell_db.get_aura_description(spell_id)
+        end
+        if english and ukrainian then
+            translated = renderer.render(spell_id, kind,
+                english, ukrainian, native_core)
+            if translated then break end
+        end
+    end
     if not translated then return nil end
     local prefix = EFFECT_PREFIX_BY_LINE[line_type]
     return prefix and prefix .. " " .. translated .. cooldown
@@ -240,6 +244,26 @@ local function cached_line(state, line_index, line_type, source, build)
         translated = translated or false,
     }
     return translated
+end
+
+-- Inspect tooltips also emit effect rows with type 0. Match their visible
+-- prefix and full description instead of relying on an ordinal in that type.
+local function translate_visible_effect(state, source)
+    local label = source:match("^([^:]+):")
+    if not label then return nil end
+    local line_type = label == "Equip" and ITEM_SPELL_EQUIP
+        or label == "Use" and ITEM_SPELL_USE
+        or label == "Chance on hit" and ITEM_SPELL_PROC or nil
+    if not line_type then return nil end
+    local result
+    for _, effect in ipairs(state.effects[line_type] or {}) do
+        local translated = render_effect(effect, line_type, source)
+        if translated then
+            if result and result ~= translated then return nil end
+            result = translated
+        end
+    end
+    return result
 end
 
 local function escape_pattern(text)
@@ -323,8 +347,11 @@ local function translate_set_line(state, source, region)
         end
     end
     local indent, member = source:match("^(%s*)(.-)%s*$")
+    local aliases = catalog.item_set_member_aliases
+        and catalog.item_set_member_aliases[tonumber(state.metadata.ItemSet)]
+    local alias_id = aliases and aliases[member]
     for _, item_id in ipairs(set.itemIDs or {}) do
-        if member == client_db.get_english_name(item_id) then
+        if member == client_db.get_english_name(item_id) or item_id == alias_id then
             local translated = client_db.get_name(item_id)
             return translated and indent .. deps().capitalize(translated) or nil
         end
@@ -366,6 +393,13 @@ local function translate_shared_line(state, source, region)
     if type(source) ~= "string" then return nil end
     local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     local translated = translate_set_line(state, clean, region)
+    -- A translated label is not a translated bonus. Never let the generic
+    -- printf/UI fallbacks claim this row with its English body intact.
+    if clean:match("^%(%d+%) Set: ") then
+        return catalog.restore_item_markup(source, translated)
+    end
+    translated = translated
+        or translate_visible_effect(state, clean)
         or catalog.translate_item_line(source)
         or strings.find_ui_translation(source, region)
     if not translated and clean ~= source then
@@ -382,6 +416,7 @@ local function translate_structured(tooltip, data, state)
 
     local applied = false
     local effect_indexes = {}
+    local transmog_name_index
     local max_line_index = 0
 
     for _, line_data in ipairs(lines) do
@@ -399,6 +434,9 @@ local function translate_structured(tooltip, data, state)
                 -- FontString, with structured text only as a fallback.
                 local source = contract.safe_string(rendered_source)
                     or structured_source
+                if structured_source == catalog.item_transmog_header then
+                    transmog_name_index = line_index + 1
+                end
                 local translated
                 local slot
 
@@ -409,6 +447,12 @@ local function translate_structured(tooltip, data, state)
                     and source == state.english_name then
                     translated = translated_item_name(state, source)
                     slot = "item.secondary-name:" .. line_index
+                elseif source and line_index == transmog_name_index then
+                    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                    local name = client_db.get_name_by_english(clean)
+                    translated = name and catalog.restore_item_markup(
+                        source, contract.capitalize(name)) or nil
+                    slot = "item.transmog-name:" .. line_index
                 elseif line_type == FLAVOR_TEXT
                     or source and state.english_description
                         and source == state.english_description then
@@ -436,7 +480,7 @@ local function translate_structured(tooltip, data, state)
                     -- Recipe learn lines can lack a translated spell effect.
                     -- Use the shared visible-text templates as a fallback.
                     if not translated and source then
-                        translated = catalog.translate_item_line(source)
+                        translated = translate_shared_line(state, source, region)
                     end
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
@@ -456,8 +500,8 @@ local function translate_structured(tooltip, data, state)
                             and "item.classification:" .. line_index or nil
                     end
                     if not translated and source then
-                        translated = catalog.translate_item_line(source)
-                        slot = translated and "item.line:" .. line_index or nil
+                        translated = translate_shared_line(state, source, region)
+                        slot = translated and "item.shared-line:" .. line_index or nil
                     end
                 end
 
@@ -511,7 +555,8 @@ end
 adapter.translate_appended_lines = function (tooltip, first_index)
     local contract = deps()
     if not tooltip or tooltip.uaForeverShowOriginal
-        or not options.can_translate("translate_item") then return false end
+        or not options.can_translate("translate_item")
+        or options.section_enabled and not options.section_enabled("item_details") then return false end
     local count_ok, count = pcall(tooltip.NumLines, tooltip)
     count = count_ok and contract.safe_number(count) or nil
     first_index = contract.safe_number(first_index)
@@ -554,6 +599,31 @@ adapter.add = function (tooltip, data, fallback_id)
     if not item_id or not key then
         return { status = "incomplete", applied = false }
     end
+    if options.section_enabled and not options.section_enabled("item_details")
+        and not (options.capture_enabled and options.capture_enabled()) then
+        if not options.section_enabled("item_names") then
+            return { status="blocked", applied=false }
+        end
+        local state = { english_name=client_db.get_english_name(item_id),
+            translated_name=client_db.get_name(item_id) }
+        local applied = translate_title_fallback(tooltip, state)
+        for _, line in ipairs(type(data)=="table" and data.lines or {}) do
+            local index = type(line)=="table" and deps().safe_number(line.lineIndex)
+            if index and index > 1 then
+                local source, region = deps().tooltip_line(tooltip, "Left", index)
+                source = deps().safe_string(source)
+                if source and region and source == state.english_name then
+                    local translated = translated_item_name(state, source)
+                    if translated then
+                        applied = deps().set_translation(tooltip, region, source, translated,
+                            "item.secondary-name:" .. index, "item", "item-tooltip",
+                            nil, false, false, nil, nil, nil, ITEM_RUNTIME_FLAGS) or applied
+                    end
+                end
+            end
+        end
+        return { status=applied and "complete" or "unchanged", applied=applied }
+    end
     local state = item_cache[key]
     if not state or state.item_id ~= item_id then
         state = make_item_state(item_id, key)
@@ -587,17 +657,14 @@ end
 
 adapter.get_translated_name = function (item_id, native)
     if type(item_id) ~= "number" then return nil end
-    local key = "id:" .. tostring(item_id)
-    local state = item_cache[key] or make_item_state(item_id, key)
-    return translated_item_name(state, native)
+    return translated_item_name({ english_name=client_db.get_english_name(item_id),
+        translated_name=client_db.get_name(item_id) }, native)
 end
 
 adapter.replace_known_name = function (item_id, source)
     if type(item_id) ~= "number" or type(source) ~= "string" then return nil end
-    local key = "id:" .. tostring(item_id)
-    local state = item_cache[key] or make_item_state(item_id, key)
-    local english = state.english_name
-    local translated = state.translated_name
+    local english = client_db.get_english_name(item_id)
+    local translated = client_db.get_name(item_id)
     if type(english) ~= "string" or english == ""
         or type(translated) ~= "string" or translated == ""
         or not source:find(english, 1, true) then return nil end

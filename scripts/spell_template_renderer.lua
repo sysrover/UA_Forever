@@ -48,7 +48,9 @@ local function match_dynamic_token(text)
     -- formatting, for example $/10;s1, $*2;23478s1 and $/1000;S1.
     -- The client has already evaluated the expression in native_text, so the
     -- renderer only needs to preserve its complete identity for matching.
-    return text:match("^%$[/%*%+%-]%d+%.?%d*;%d*[A-Za-z]~?%d+%.%d+")
+    return text:match("^%$%d+[/%*%+%-]%d+%.?%d*;[A-Za-z]~?%d+%.%d+")
+        or text:match("^%$%d+[/%*%+%-]%d+%.?%d*;[A-Za-z]~?%d+")
+        or text:match("^%$[/%*%+%-]%d+%.?%d*;%d*[A-Za-z]~?%d+%.%d+")
         or text:match("^%$[/%*%+%-]%d+%.?%d*;%d*[A-Za-z]~?%d+")
         or text:match("^%$%d*[A-Za-z]~?%d+%.%d+")
         or text:match("^%$%d*[A-Za-z]~?%d+")
@@ -57,6 +59,10 @@ local function match_dynamic_token(text)
 end
 
 local function localize_dynamic_value(value)
+    -- Native whitespace can be consumed by either a value or its adjacent
+    -- literal. Normalize that boundary so equivalent matches do not veto a
+    -- translation as ambiguous; the translated template owns its spacing.
+    value = value:match("^%s*(.-)%s*$")
     local format = tooltip_catalog.format
     if format and type(format.dynamic_value_range) == "function" then
         value = format.dynamic_value_range(value)
@@ -190,16 +196,33 @@ local function parse_template(text)
                     nodes[#nodes + 1] = { kind = "text", value = "\n" }
                     position = position + 2
                 elseif prefix == "$@" then
+                    local raw_identity = text:sub(position):match("^%$@spellicon%d+")
+                        or text:sub(position):match("^%$@auracaster")
+                        -- Dangling references in the client inventory have
+                        -- no source description. Retain the native fragment
+                        -- instead of disabling the surrounding translation.
+                        or text:sub(position):match("^%$@spelldesc%d+")
+                        or text:sub(position):match("^%$@spellaura%d+")
                     local identity, spell_id = text:sub(position):match(
                         "^(%$@spellname(%d+))")
                     spell_id = tonumber(spell_id)
-                    if not identity or not spell_id then return nil end
-                    local key = make_key("spell_name", tostring(spell_id))
-                    nodes[#nodes + 1] = {
-                        kind = "spell_name", identity = identity,
-                        spell_id = spell_id, key = key,
-                    }
-                    position = position + #identity
+                    if raw_identity then
+                        local _, occurrence = make_key("token", raw_identity)
+                        nodes[#nodes + 1] = {
+                            kind = "token", identity = raw_identity,
+                            occurrence = occurrence, raw = true,
+                        }
+                        position = position + #raw_identity
+                    elseif identity and spell_id then
+                        local key = make_key("spell_name", tostring(spell_id))
+                        nodes[#nodes + 1] = {
+                            kind = "spell_name", identity = identity,
+                            spell_id = spell_id, key = key,
+                        }
+                        position = position + #identity
+                    else
+                        return nil
+                    end
                 else
                     local rest = text:sub(position)
                     local identity = match_dynamic_token(rest)
@@ -316,7 +339,7 @@ local function render_nodes(nodes, decisions, values, decorations)
                 value = token_values[1]
             end
             if value == nil then return nil end
-            output[#output + 1] = localize_dynamic_value(value)
+            output[#output + 1] = node.raw and value or localize_dynamic_value(value)
         elseif node.kind == "spell_name" then
             local value = client_db.get_name(node.spell_id)
             if not value then return nil end
@@ -407,6 +430,7 @@ local function clone_match_context(context)
         decisions = copy_table(context.decisions),
         values = values,
         decorations = decorations,
+        specificity = context.specificity or 0,
     }
 end
 
@@ -494,15 +518,27 @@ local function match_program(matcher, native_text)
             local next_position = match_literal_at(
                 native_text, position, instruction.value)
             if next_position then
-                matched = visit(instruction.next, next_position, context)
+                local candidate = clone_match_context(context)
+                candidate.specificity = candidate.specificity + #instruction.value:gsub("%s", "")
+                matched = visit(instruction.next, next_position, candidate)
+                -- Empty conditional branches can leave two adjacent literals
+                -- ending/starting with whitespace. Let both own a character
+                -- rather than consuming the entire run in the first literal.
+                if instruction.value:sub(-1):match("%s") then
+                    while next_position > position + 1
+                        and native_text:sub(next_position - 2, next_position - 2):match("%s") do
+                        next_position = next_position - 1
+                        matched = visit(instruction.next, next_position, candidate) or matched
+                    end
+                end
             end
         elseif instruction.kind == "spell_name" then
             local next_position, decoration = match_spell_name_at(
                 native_text, position, instruction.value)
             if next_position then
-                local candidate = context
+                local candidate = clone_match_context(context)
+                candidate.specificity = candidate.specificity + #instruction.value
                 if decoration then
-                    candidate = clone_match_context(context)
                     candidate.decorations[instruction.key] = decoration
                 end
                 matched = visit(instruction.next, next_position, candidate)
@@ -572,22 +608,26 @@ local function cache_rendered(key, value)
     rendered_count = rendered_count + 1
 end
 
-local function expand_description_references(text, getter, seen, depth)
+local function expand_description_references(text, getter, aura_getter, seen, depth)
     if type(text) ~= "string" or type(getter) ~= "function" then return text end
     if (depth or 0) >= 8 then return text end
     seen = seen or {}
-    return (text:gsub("%$@spelldesc(%d+)", function (raw_id)
+    return (text:gsub("%$@(spell%a+)(%d+)", function (kind, raw_id)
+        local lookup = kind == "spelldesc" and getter
+            or kind == "spellaura" and aura_getter
+        local token = "$@" .. kind .. raw_id
+        if type(lookup) ~= "function" then return token end
         local spell_id = tonumber(raw_id)
         if not spell_id or seen[spell_id] then
-            return "$@spelldesc" .. raw_id
+            return token
         end
-        local referenced = getter(spell_id)
+        local referenced = lookup(spell_id)
         if type(referenced) ~= "string" or referenced == "" then
-            return "$@spelldesc" .. raw_id
+            return token
         end
         seen[spell_id] = true
         local expanded = expand_description_references(
-            referenced, getter, seen, (depth or 0) + 1)
+            referenced, getter, aura_getter, seen, (depth or 0) + 1)
         seen[spell_id] = nil
         return expanded
     end))
@@ -633,9 +673,10 @@ renderer.render = function (
         or type(native_text) ~= "string" or native_text == "" then return nil end
 
     english_raw = expand_description_references(
-        english_raw, client_db.get_english_description)
+        english_raw, client_db.get_english_description,
+        client_db.get_english_aura_description)
     ukrainian_raw = expand_description_references(
-        ukrainian_raw, client_db.get_description)
+        ukrainian_raw, client_db.get_description, client_db.get_aura_description)
     if kind == "aura" then
         ukrainian_raw = resolve_aura_template(english_raw, ukrainian_raw)
     end
@@ -664,7 +705,12 @@ renderer.render = function (
         cached_plan.plan.matcher, native_text)
     if contexts then
         local translated
+        local specificity = 0
         for _, context in ipairs(contexts) do
+            specificity = math.max(specificity, context.specificity or 0)
+        end
+        for _, context in ipairs(contexts) do
+            if (context.specificity or 0) == specificity then
             local candidate = render_nodes(
                 cached_plan.plan.ukrainian,
                 context.decisions, context.values, context.decorations)
@@ -674,6 +720,7 @@ renderer.render = function (
                 return nil
             end
             translated = candidate
+            end
         end
         if translated then
             cache_rendered(rendered_key, translated)
@@ -697,4 +744,109 @@ renderer.cache_stats = function ()
     local compiled_count = 0
     for _ in pairs(compiled_cache) do compiled_count = compiled_count + 1 end
     return { compiled = compiled_count, rendered = rendered_count }
+end
+
+-- Display-only printf formats. English literals come from the active client;
+-- Ukrainian formats remain owned by the loaded catalogs. Never change globals.
+local format_cache = {}
+local function printf_parts(text)
+    local parts, position, argument = {}, 1, 0
+    while position <= #text do
+        local first = text:find("%", position, true)
+        if not first then parts[#parts + 1] = { text = text:sub(position) }; break end
+        if first > position then parts[#parts + 1] = { text = text:sub(position, first - 1) } end
+        if text:sub(first, first + 1) == "%%" then
+            parts[#parts + 1] = { text = "%" }; position = first + 2
+        else
+            local token, index, kind = text:sub(first):match("^(%%(%d+)%$[-+%.%d]*([sdcif]))")
+            if not token then token, kind = text:sub(first):match("^(%%[-+%.%d]*([sdcif]))") end
+            if not token then return nil end
+            argument = argument + 1
+            parts[#parts + 1] = { argument = tonumber(index) or argument, kind = kind }
+            position = first + #token
+        end
+    end
+    return parts
+end
+
+local function plural_variants(text)
+    local variants = { text }
+    for _ = 1, 8 do
+        local changed, next_variants = false, {}
+        for _, value in ipairs(variants) do
+            local first, last, options = value:find("|4([^;]+);")
+            if first then
+                changed = true
+                for option in options:gmatch("[^:]+") do
+                    next_variants[#next_variants + 1] = value:sub(1, first - 1)
+                        .. option .. value:sub(last + 1)
+                end
+            else next_variants[#next_variants + 1] = value end
+        end
+        variants = next_variants
+        if not changed then return variants end
+        if #variants > 64 then return nil end
+    end
+end
+
+renderer.render_format = function (english, ukrainian, native, translate_capture)
+    if is_secret_value(native) or type(native) ~= "string"
+        or type(english) ~= "string" or type(ukrainian) ~= "string" then return nil end
+    local plans = format_cache[english]
+    if not plans then
+        plans = {}
+        for _, variant in ipairs(plural_variants(english) or {}) do
+            local parts = printf_parts(variant)
+            if parts then
+                local pattern, arguments, guard = { "^" }, {}, ""
+                for _, part in ipairs(parts) do
+                    if part.text then
+                        if #part.text > #guard then guard = part.text end
+                        pattern[#pattern + 1] = part.text:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
+                    else
+                        arguments[#arguments + 1] = part.argument
+                        pattern[#pattern + 1] = (part.kind == "d" or part.kind == "i")
+                            and "([%+%-]?[%d,]+)" or part.kind == "f"
+                            and "([%+%-]?[%d%.,]+)" or part.kind == "c" and "(.)" or "(.-)"
+                    end
+                end
+                pattern[#pattern + 1] = "$"
+                plans[#plans + 1] = { pattern = table.concat(pattern), arguments = arguments, guard = guard }
+            end
+        end
+        format_cache[english] = plans
+    end
+    for _, plan in ipairs(plans) do
+        if plan.guard == "" or native:find(plan.guard, 1, true) then
+        local captured = { native:match(plan.pattern) }
+        if #captured > 0 then
+            local values = {}
+            for i, value in ipairs(captured) do values[plan.arguments[i]] = value end
+            local parts = printf_parts(ukrainian)
+            if not parts then return nil end
+            local result, number = {}, 0
+            for _, part in ipairs(parts) do
+                if part.text then
+                    result[#result + 1] = part.text:gsub("|4([^;]+);", function (forms)
+                        local options = split_colon(forms)
+                        local n = math.abs(number)
+                        local index = n == 1 and 1 or 2
+                        if #options >= 3 then
+                            index = n % 10 == 1 and n % 100 ~= 11 and 1
+                                or n % 10 >= 2 and n % 10 <= 4
+                                    and (n % 100 < 12 or n % 100 > 14) and 2 or 3
+                        end
+                        return options[index] or options[#options]
+                    end)
+                else
+                    local value = values[part.argument]
+                    if value == nil then return nil end
+                    number = tonumber((value:gsub(",", ""))) or number
+                    result[#result + 1] = translate_capture and translate_capture(value, part.kind) or value
+                end
+            end
+            return table.concat(result)
+        end
+        end
+    end
 end

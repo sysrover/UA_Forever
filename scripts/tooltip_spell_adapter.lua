@@ -28,25 +28,72 @@ local SPELL_DESCRIPTION = 34
 local ITEM_NAME = 22
 local UNTYPED_LINE = 0
 
-local function translate_reagents(source, spell_id)
-    return catalog.translate_spell_reagents(source, function (body)
+adapter.translate_crafting_requirements = function (source, spell_id)
+    if type(source) ~= "string" then return nil end
+    return catalog.translate_spell_requirements(source, function (body)
         if not options.can_translate("translate_item")
             or not options.translate_name("item") then return body end
         local names = {}
-        for _, reagent in ipairs(item_db.get_spell_reagents(spell_id) or {}) do
+        for _, reagent in ipairs(spell_id and item_db.get_spell_reagents(spell_id) or {}) do
             local id = type(reagent) == "table" and reagent.itemID or nil
             local english = id and item_db.get_english_name(id)
             local translated = id and item_db.get_name(id)
             if english and translated then
-                names[#names + 1] = { english, utils.cap(translated) }
+                names[english] = translated
             end
         end
-        table.sort(names, function (a, b) return #a[1] > #b[1] end)
-        for _, name in ipairs(names) do
-            local pattern = name[1]:gsub("([%%%^%$%(%)%.%[%]%*%+%-%?])", "%%%1")
-            body = body:gsub(pattern, function () return name[2] end)
+        local function translate_part(part, item_id)
+            local before, name, after = part:match("^(%s*)(.-)(%s*)$")
+            local bare, count = name:match("^(.-)(%s+%(%d+%))$")
+            name = bare or name
+            local translated = item_id and item_db.get_name(item_id)
+                or names[name] or item_db.get_name_by_english(name)
+            if not translated then return part end
+            return before .. utils.cap(translated) .. (count or "") .. after
         end
-        return body
+        local function translate_plain(text)
+            local translated = translate_part(text)
+            if translated ~= text then return translated end
+            return (text:gsub("[^,\r\n]+", translate_part))
+        end
+        -- Translate visible text only. Link payloads, colors, textures, line
+        -- breaks and counts must survive byte-for-byte; never substitute item
+        -- names inside a hyperlink target or another markup token.
+        local parts, position = {}, 1
+        while position <= #body do
+            local first = body:find("|", position, true)
+            if not first then
+                parts[#parts + 1] = translate_plain(body:sub(position))
+                break
+            end
+            parts[#parts + 1] = translate_plain(body:sub(position, first - 1))
+            local rest = body:sub(first)
+            local payload, visible = rest:match("^(|H.-|h)(.-)|h")
+            local token
+            if payload then
+                local native_length = #payload + #visible + 2
+                local item_id = tonumber(payload:match("^|Hitem:(%d+)"))
+                if item_id then
+                    local name = visible:match("^%[(.*)%]$")
+                    visible = name and ("[" .. translate_part(name, item_id) .. "]")
+                        or translate_part(visible, item_id)
+                end
+                token = payload .. visible .. "|h"
+                position = first + native_length
+            else
+                token = rest:match("^|c%x%x%x%x%x%x%x%x")
+                    or rest:match("^|T.-|t") or rest:match("^|A.-|a")
+                    or rest:match("^|[rn|]")
+                if not token then
+                    -- Unknown or incomplete markup stays native.
+                    parts[#parts + 1] = rest
+                    break
+                end
+                position = first + #token
+            end
+            parts[#parts + 1] = token
+        end
+        return table.concat(parts)
     end)
 end
 
@@ -119,9 +166,12 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     local spell_id = confirmed_id or adapter.resolve_structured_spell_id(tooltip, data)
     if not spell_id or type(data.lines) ~= "table" then return false end
 
-    local translated_name = client_db.get_name(spell_id)
-    local english_raw = client_db.get_english_description(spell_id)
-    local ukrainian_raw = client_db.get_description(spell_id)
+    local capture = options.capture_enabled and options.capture_enabled()
+    local names_enabled = not options.section_enabled or options.section_enabled("spell_names")
+    local details_enabled = not options.section_enabled or options.section_enabled("spell_details")
+    local translated_name = (names_enabled or capture) and client_db.get_name(spell_id) or nil
+    local english_raw = (details_enabled or capture) and client_db.get_english_description(spell_id) or nil
+    local ukrainian_raw = (details_enabled or capture) and client_db.get_description(spell_id) or nil
     local native_name
     local applied = false
     local service_indexes = {}
@@ -135,8 +185,10 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
             local source = contract.safe_string(line_data.leftText)
             if line_index then
                 max_line_index = math.max(max_line_index, line_index)
-                applied = translate_right_service(contract, tooltip, line_data,
-                    line_index, "spell.service-right:") or applied
+                if details_enabled then
+                    applied = translate_right_service(contract, tooltip, line_data,
+                        line_index, "spell.service-right:") or applied
+                end
                 local region = contract.line_region(tooltip, "Left", line_index)
                 if line_type == SPELL_NAME then
                     native_name = source or native_name
@@ -174,7 +226,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                             ) or applied
                         end
                     end
-                elseif line_type == SPELL_PASSIVE then
+                elseif details_enabled and line_type == SPELL_PASSIVE then
                     if region and source
                         and options.can_translate("translate_spell") then
                         local translated, source_kind =
@@ -188,12 +240,12 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         end
                     end
                 else
-                    local translated = source and line_type == UNTYPED_LINE
-                        and translate_reagents(source, spell_id)
+                    local translated = details_enabled and source and line_type == UNTYPED_LINE
+                        and adapter.translate_crafting_requirements(source, spell_id)
                     if translated and region and options.can_translate("translate_spell") then
                         applied = contract.set_translation(
                             tooltip, region, source, translated,
-                            "spell.reagents:" .. line_index, nil, "spell-tooltip"
+                            "spell.requirements:" .. line_index, nil, "spell-tooltip"
                         ) or applied
                     else
                         service_indexes[line_index] = true
@@ -208,7 +260,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     if not translated_name and not ukrainian_raw then
         dev_log.missing_spell(spell_id, native_name or tostring(spell_id))
     end
-    if options.can_translate("translate_spell") and max_line_index > 0 then
+    if details_enabled and options.can_translate("translate_spell") and max_line_index > 0 then
         applied = contract.rewrite_generic(
             tooltip, max_line_index, 1, nil, nil, nil, service_indexes
         ) > 0 or applied

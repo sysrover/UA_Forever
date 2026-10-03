@@ -1,6 +1,7 @@
 local _, addon_table = ...
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
+local options = addon_table.use("options")
 
 local pending = {}
 local scoped_pending = setmetatable({}, { __mode = "k" })
@@ -76,6 +77,21 @@ local function current(request)
     return not requests or requests[request.task_kind] == request
 end
 
+local function allowed(scope)
+    return scope == "manual" or not options.work_enabled or options.work_enabled(scope)
+end
+
+scheduler.cancel_disabled = function ()
+    local snapshot = {}
+    for _, request in pairs(pending) do
+        if not allowed(request.work_scope) then snapshot[#snapshot + 1] = request end
+    end
+    for _, request in ipairs(snapshot) do detach(request) end
+end
+if options.on_activity_change then
+    options.on_activity_change("scheduler", scheduler.cancel_disabled)
+end
+
 scheduler.cancel = function (id)
     local request = pending[id]
     if request then detach(request) end
@@ -121,6 +137,9 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
         owner_surface = spec.surface
     end
     if not id or type(callback) ~= "function" then return end
+    local work_scope = spec and spec.work_scope
+        or options.task_scope and options.task_scope(id, owner_surface) or "main"
+    if not allowed(work_scope) then return end
     local instance = spec and spec.instance
     local task_kind = spec and (spec.task_kind or spec.kind) or "default"
     local retries = spec and tonumber(spec.max_retries) or 0
@@ -140,6 +159,7 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
                 request.id = id
                 pending[id] = request
             end
+            request.work_scope = work_scope
             request.callback = callback
             request.max_retries = retries
             request.retry_delay = spec and spec.retry_delay or delay or 0
@@ -148,6 +168,7 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
         detach(request)
     end
     request = { generation = generation, callback = callback,
+        work_scope = work_scope,
         surface = owner_surface, instance = instance, id = id,
         task_kind = task_kind,
         max_retries = retries, retry_delay = spec and spec.retry_delay or delay or 0,
@@ -167,7 +188,8 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
     end
     local function run()
         request.handle = nil
-        if not current(request) then
+        if not current(request) or not allowed(request.work_scope) then
+            detach(request)
             runtime.metric("timers_dropped", request.surface, request.generation)
             return
         end
@@ -198,7 +220,7 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
                     request.generation, math.max(0, finished - started))
             end
         end
-        if retry and request.attempt <= request.max_retries
+        if retry and allowed(request.work_scope) and request.attempt <= request.max_retries
             and pending[request.id] == nil then
             attach(request)
             schedule(run, request.retry_delay)
