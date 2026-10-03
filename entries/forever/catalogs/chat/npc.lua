@@ -9144,6 +9144,66 @@ local chat_rows = {
     ["npcs"] = { [1] = "Mr. Smite" },
     ["priority"] = 3,
 },
+    [2021755180] = {
+    ["english"] = { [1] = "All of a sudden they were everywhere." },
+    ["text"] = "Раптом вони були вже повсюди.",
+    ["npcs"] = { [1] = "Warden Thelwater" },
+    ["priority"] = 3,
+},
+    [3156476458] = {
+    ["english"] = { [1] = "How could this happen?" },
+    ["text"] = "Як таке могло статися?",
+    ["npcs"] = { [1] = "Warden Thelwater" },
+    ["priority"] = 3,
+},
+    [3899532066] = {
+    ["english"] = { [1] = "They must have had someone helping them." },
+    ["text"] = "Їм напевно хтось допомагав.",
+    ["npcs"] = { [1] = "Warden Thelwater" },
+    ["priority"] = 3,
+},
+    [938488838] = {
+    ["english"] = { [1] = "What am I going to do?" },
+    ["text"] = "Що ж мені тепер робити?",
+    ["npcs"] = { [1] = "Warden Thelwater" },
+    ["priority"] = 3,
+},
+    [4214257942] = {
+    ["english"] = { [1] = "The cannons must be finished soon." },
+    ["text"] = "Гармати треба закінчити якнайшвидше.",
+    ["npcs"] = { [1] = "Gilnid" },
+    ["priority"] = 3,
+},
+    [1686277878] = {
+    ["english"] = { [1] = "All hail, <name>! Defender of The People!" },
+    ["text"] = "Слава {ім'я:д}! Захиснику Народу!",
+    ["npcs"] = { [1] = "Gryan Stoutmantle" },
+    ["priority"] = 3,
+},
+    [2876286454] = {
+    ["english"] = { [1] = "Hey Fizzer, I ever tell you the time I was riding through the canals and some goblins in shredder suits tried to ambush me?" },
+    ["text"] = "Гей, Фіззере, я вже розповідав тобі, як їхав каналами, а якісь гобліни в костюмах подрібнювачів спробували влаштувати мені засідку?",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [3761083879] = {
+    ["english"] = { [1] = "Follow me, <name>. I'll take you to the Defias hideout. But you better protect me or I am as good as dead." },
+    ["text"] = "Іди за мною, {ім'я:к}. Я відведу тебе до схованки Непокірних. Але краще захищай мене, бо інакше мені кінець.",
+    ["npcs"] = { [1] = "The Defias Traitor" },
+    ["priority"] = 3,
+},
+    [3661916867] = {
+    ["english"] = { [1] = "It's all their fault, stupid Alliance army. Just had to build their towers right behind my farm." },
+    ["text"] = "Це все через них, через ту кляту армію Альянсу. Треба ж було їм збудувати свої вежі просто за моєю фермою.",
+    ["npcs"] = { [1] = "Topper McNabb" },
+    ["priority"] = 3,
+},
+    [3361043165] = {
+    ["english"] = { [1] = "Shaha lor'ma. Elune be with you." },
+    ["text"] = "Shaha lor'ma. Нехай Елуна буде з тобою.",
+    ["npcs"] = { [1] = "Tyrande Whisperwind" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

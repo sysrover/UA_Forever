@@ -18,6 +18,8 @@ local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforg
 local original_map_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 local coordinate_templates = setmetatable({}, { __mode = "k" })
+local coordinate_results = setmetatable({}, { __mode = "k" })
+local coordinate_zone_results = setmetatable({}, { __mode = "k" })
 local coordinate_rules
 local translated_map_names = {}
 local unpack_values = unpack or table.unpack
@@ -657,44 +659,73 @@ local function after_worldmap_nav_refresh(self)
     end
 end
 
-local function after_worldmap_coords_update(self)
-    if not self then return end
-    auto_scan.surface_hook("worldmap-coords", "WorldMapCoordsPanel.OnUpdate",
-        true, true)
-    auto_scan.surface_attempt("worldmap-coords", "after_worldmap_coords_update")
+local function coordinate_label(container)
+    if not container then return nil end
+    local ok, visible = pcall(function ()
+        if container.IsVisible then return container:IsVisible() end
+        if container.IsShown then return container:IsShown() end
+        return true
+    end)
+    if not ok or visible == false then return nil end
+    return container.Label
+end
 
-    -- Build 70009 rewrites these labels every OnUpdate. Reuse the selected
-    -- catalog pattern and only substitute the current numbers/map name.
-    local function translate_coordinate(region, slot)
-        local source = visible_text(region)
-        if not source then return false end
-        local kind = slot == "coords.cursor" and "cursor" or "player"
-        local cached = coordinate_templates[region]
-        local translated = cached and apply_coordinate_rule(cached, source)
-        if not translated then
-            for _, rule in ipairs(prepare_coordinate_rules()[kind]) do
-                translated = apply_coordinate_rule(rule, source)
-                if translated then
-                    coordinate_templates[region] = rule
-                    break
-                end
+local function translate_coordinate(region, slot)
+    local source = visible_text(region)
+    if not source then return false end
+    local cached = coordinate_results[region]
+    if cached and cached.slot == slot and cached.source == source then
+        return cached.spec and runtime.apply(region, cached.spec) or false
+    end
+    if cached and cached.slot == slot and cached.spec
+        and source == cached.spec.translated then
+        return runtime.apply(region, cached.spec)
+    end
+    local kind = slot == "coords.cursor" and "cursor" or "player"
+    local rule = coordinate_templates[region]
+    local translated = rule and apply_coordinate_rule(rule, source)
+    if not translated then
+        for _, candidate in ipairs(prepare_coordinate_rules()[kind]) do
+            translated = apply_coordinate_rule(candidate, source)
+            if translated then
+                coordinate_templates[region] = candidate
+                break
             end
         end
-        if not translated or translated == source then return false end
-        return runtime.apply(region, {
-            owner = "worldmap-coords", slot = slot or "ui.text",
+    end
+    local spec
+    if translated and translated ~= source then
+        spec = {
+            owner = "worldmap-coords", slot = slot,
             source = source, translated = translated,
             option = "translate_string", lookup_tier = "pattern",
             surface = "worldmap-coords", priority = runtime.PRIORITY.CONTEXT,
             record_runtime = false, verify_after_apply = false,
-        })
+            reapply_cached = true,
+        }
     end
-    translate_coordinate(self.CursorCoords and self.CursorCoords.Label,
-        "coords.cursor")
-    local player_translated = translate_coordinate(
-        self.PlayerCoords and self.PlayerCoords.Label,
-        "coords.player")
-    if player_translated then return end
+    coordinate_results[region] = { source = source, slot = slot, spec = spec }
+    return spec and runtime.apply(region, spec) or false
+end
+
+local function after_worldmap_coords_update(self)
+    if not self then return end
+    local ui_enabled = options.can_translate("translate_string")
+        and (not options.section_enabled or options.section_enabled("map_ui"))
+    local zone_enabled = options.can_translate("translate_zone")
+    if not ui_enabled and not zone_enabled then return end
+    auto_scan.surface_hook("worldmap-coords", "WorldMapCoordsPanel.OnUpdate",
+        true, true)
+    auto_scan.surface_attempt("worldmap-coords", "after_worldmap_coords_update")
+
+    -- Blizzard rewrites visible labels every frame, even at unchanged rounded
+    -- coordinates. Reapply the cached claim without formatting/font setup.
+    local region = coordinate_label(self.PlayerCoords)
+    if ui_enabled then
+        translate_coordinate(coordinate_label(self.CursorCoords), "coords.cursor")
+        if translate_coordinate(region, "coords.player") then return end
+    end
+    if not zone_enabled or not region then return end
 
     -- The full UI pattern normally translates the player coordinates and
     -- zone in one write. Keep this domain-only fallback for custom settings
@@ -704,14 +735,24 @@ local function after_worldmap_coords_update(self)
     local get_info = map_api and map_api.GetMapInfo
     if not map_api or type(map_api.GetBestMapForUnit) ~= "function"
         or type(get_info) ~= "function"
-        or not options.can_lookup("translate_zone") then return end
-    local region = self.PlayerCoords and self.PlayerCoords.Label
+        then return end
     local current = visible_text(region)
     if not current then return end
+    local cached_result = coordinate_zone_results[region]
+    if cached_result and cached_result.slot == "zone.name"
+        and (cached_result.source == current or cached_result.spec
+            and cached_result.spec.translated == current) then
+        if cached_result.spec then runtime.apply(region, cached_result.spec) end
+        return
+    end
+    -- Negative results also avoid repeating map API calls at unchanged text.
+    local result = { source = current, slot = "zone.name" }
     local id_ok, map_id = pcall(map_api.GetBestMapForUnit, "player")
     if not id_ok or type(map_id) ~= "number" then return end
     local info_ok, info = pcall(get_info, map_id)
     local native = info_ok and info and safe_string(info.name)
+    if not native then return end
+    coordinate_zone_results[region] = result
     local cached = translated_map_names[map_id]
     local translated
     if cached and cached.source == native then
@@ -729,12 +770,14 @@ local function after_worldmap_coords_update(self)
     if not start_at then return end
     local translated_line = current:sub(1, start_at - 1) .. translated
         .. current:sub(end_at + 1)
-    runtime.apply(region, {
+    result.spec = {
         owner = "zone-worldmap-coords", slot = "zone.name",
         source = current, translated = translated_line,
         option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
         record_runtime = false, verify_after_apply = false,
-    })
+        reapply_cached = true,
+    }
+    runtime.apply(region, result.spec)
 end
 
 local function find_worldmap_coords_panel(root)
