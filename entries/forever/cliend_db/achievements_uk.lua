@@ -2,7 +2,7 @@ local _, addon_table = ...
 
 -- Approved Ukrainian achievement translations, keyed by client IDs.
 local database = {
-    sourceBuild = "1.60.1.70170",
+    sourceBuild = "1.60.1.70205",
     count = 434,
     rows = {
         [49] = { title = "Перемоги в Альтерацькій долині", description = "Перемоги в Альтерацькій долині", reward = "" },

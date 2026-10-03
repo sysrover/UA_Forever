@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70170",
+  "sourceBuild": "1.60.1.70205",
   "itemMetadata": 31821,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -16,5 +16,7 @@
   "unavailableTables": [
     "ItemRandomProperties",
     "ItemRandomSuffix"
-  ]
+  ],
+  "cacheSHA256": "1d58fa0919a41ff036479d5e1877bd7fc15f990ec9bef13f6187faac260ffb07",
+  "inventory": "build/forever-client-inventory/70205/hotfix-20261003T131403Z-1d58fa0919a4/db2"
 }

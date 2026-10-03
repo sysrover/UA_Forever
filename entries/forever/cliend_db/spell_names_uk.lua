@@ -1,10 +1,10 @@
 -- Ukrainian spell names separated from the translation worklist.
 -- Preserve every spellID when editing or merging this file.
--- Client build: 1.60.1.70170; source: SpellName.db2
+-- Client build: 1.60.1.70205; source: SpellName.db2
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70170",
+    sourceBuild = "1.60.1.70205",
     count = 31725,
     rows = {
         [1249114] = "Спляче серце гори",
