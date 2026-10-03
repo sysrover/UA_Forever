@@ -477,7 +477,7 @@ entries.get_book_title = function (book_name)
     return make_text(utils.cap(translated))
 end
 
-entries.get_entry = function (entry_type, entry_id)
+entries.get_entry = function (entry_type, entry_id, field)
     if not entry_type or not entry_id then
         return
     end
@@ -510,6 +510,12 @@ entries.get_entry = function (entry_type, entry_id)
         end
 
         if quest then
+            -- A title/detail region needs one field, not substitutions over
+            -- every paragraph of the quest. Keep substitutions live because
+            -- player/target codes can change without reloading the catalog.
+            if type(field) == "number" then
+                return { [field] = make_text(quest[field]) }
+            end
             return make_text_array(quest)
         elseif options.account.dev_mode then
             dev_log.missing_quest(entry_id)

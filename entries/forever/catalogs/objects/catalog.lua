@@ -3187,6 +3187,9 @@ addonTable.object = { -- [key] = text
 ["Muradin Bronzebeard"] = "Мурадін Бронзобородий",
 ["Suspicious Crate"] = "Підозрілий ящик",
 ["Treaty of Understanding"] = "Угода про порозуміння",
+["Blackrock Supplies"] = "Припаси Чорної гори",
+["Memory of Valor"] = "Спогад про Велорів",
+["Stolen Weapon"] = "Викрадена зброя",
 }
 
 addonTable.translate_object_name = function (name)

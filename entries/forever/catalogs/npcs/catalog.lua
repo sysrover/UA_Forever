@@ -8757,6 +8757,15 @@ local npc = { -- [id] = { title, description (optional) }
 [272273] = { [1] = "Загублений вартовий", en = "Lost Watcher" },
 [272450] = { [1] = "Старенький Сенді", en = "Ol' Sandy" },
 [253279] = { [1] = "Альба Ясномісяць", en = "Alba Fairmoon" },
+[214519] = { [1] = "Спопеляч Гар'ім", en = "Incinerator Gar'im" },
+[266449] = { [1] = "Джеремі Серцеплет", en = "Jeremy Heartweaver" },
+[267007] = { [1] = "Вартовий гавані Штормовію", en = "Stormwind Harbor Guard" },
+[267118] = { [1] = "Ґілберт Ґрей", en = "Gilbert Gray" },
+[271993] = { [1] = "Бурий кролик", en = "Brown Rabbit" },
+[274757] = { [1] = "Верховний вартовий храму", en = "Temple Highguard" },
+[274917] = { [1] = "Боборус Перенапруга", en = "Boborus Overvolt" },
+[276730] = { [1] = "Стрімкий бурешаблезуб", en = "Swift Stormsaber" },
+[7559] = { [1] = "Арктичний заєць", en = "Arctic Hare" },
 }
 
 if addonTable.npc then

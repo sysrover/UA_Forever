@@ -59,8 +59,8 @@ local function english_title(id)
     return raw and safe_string(raw.en) or nil
 end
 
-local function matching_quest_entry(id, english)
-    local entry = type(id) == "number" and entries.get_entry("quest", id)
+local function matching_quest_entry(id, english, field)
+    local entry = type(id) == "number" and entries.get_entry("quest", id, field or 1)
     if not entry then return nil end
     if safe_string(english) and safe_string(entry.en) and entry.en ~= english then
         return nil
@@ -133,7 +133,7 @@ local function dialog_field(region, id, field, getter, result_index)
     end
     local english = getter and original_value(getter, result_index or 1)
     local live_title = field == 1 and english or english_title(id)
-    local entry = matching_quest_entry(id, live_title)
+    local entry = matching_quest_entry(id, live_title, field)
     local ukrainian = entry and safe_string(entry[field])
     if not current or not english or not ukrainian then return end
     if field == 1 then
