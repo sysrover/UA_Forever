@@ -13,17 +13,17 @@
   "auraDescriptions": 7753,
   "skillLines": 154,
   "spellsWithSkillLines": 7369,
-  "itemIDs": 25667,
-  "itemNames": 23622,
-  "itemDescriptions": 4841,
+  "itemIDs": 25776,
+  "itemNames": 23737,
+  "itemDescriptions": 4842,
   "itemsWithSpellEffects": 8950,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12588,
   "resolvedItemSpellEffects": 12580,
-  "itemNamesUk": 23622,
+  "itemNamesUk": 23737,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
-  "itemDescriptionsUk": 4841,
+  "itemDescriptionsUk": 4842,
   "itemDescriptionsNeedTranslation": 0,
   "spellNamesUkV4": 31725,
   "spellNamesNeedTranslation": 7,
@@ -114,6 +114,18 @@
     ],
     "retainedHistoricalUkrainianIDs": [
       1310236
+    ]
+  },
+  "itemHotfixRefresh": {
+    "sourceBuild": "1.60.1.70170",
+    "cacheSHA256": "b0a68b6c48c2f4386af62f27019141afd6ed5733c8644621069cd68e78e735d6",
+    "inventory": "build/forever-client-inventory/70170/item-hotfix-refresh-20261002/db2",
+    "addedNames": 115,
+    "changedEnglishNames": 33,
+    "changedMetadataRows": 190,
+    "terminologyReviewIDs": [
+      273024,
+      284459
     ]
   }
 }

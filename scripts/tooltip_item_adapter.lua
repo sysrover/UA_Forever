@@ -636,7 +636,9 @@ adapter.add = function (tooltip, data, fallback_id)
     end
     if not has_translation then
         dev_log.missing_item(item_id, native_name)
-        return { status = "blocked", applied = false }
+        -- Server-cached ItemSparse rows can arrive after the shipped database.
+        -- Their native title remains visible, but shared stat/requirement
+        -- templates still belong to this adapter and must be rendered.
     end
     if not options.can_translate("translate_item") then
         return { status = "blocked", applied = false }
