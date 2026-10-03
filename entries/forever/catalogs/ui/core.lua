@@ -5,6 +5,21 @@ local _, addonTable = ...
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
     -- ItemClass/ItemSubClass and auction category labels, client 1.60.1.70205.
+    ["Plate"] = "Лати",
+    ["Polearm"] = "Древкова зброя",
+    ["Staff"] = "Посох",
+    ["Crossbow"] = "Арбалет",
+    ["Wand"] = "Жезл",
+    ["Ammo Pouch"] = "Сумка для набоїв",
+    ["Herb Bag"] = "Сумка для трав",
+    ["Enchanting Bag"] = "Сумка для зачарування",
+    ["Engineering Bag"] = "Інженерна сумка",
+    ["Mining Bag"] = "Сумка для гірництва",
+    ["Leatherworking Bag"] = "Сумка для шкірництва",
+    ["Tackle Box"] = "Скринька для рибальського приладдя",
+    ["Cooking Bag"] = "Кулінарна сумка",
+    ["Reagent Bag"] = "Сумка для реагентів",
+    ["Trinket Bag"] = "Сумка для аксесуарів",
     ["Arrow"] = "Стріла",
     ["Book"] = "Книга",
     ["Bullet"] = "Куля",
