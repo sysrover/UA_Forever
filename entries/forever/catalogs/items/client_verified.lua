@@ -1733,7 +1733,7 @@ local client_items = {
     [3474] = { "прикрашені самоцвітами мідні рукавиці", en="Gemmed Copper Gauntlets" },
     [3476] = { "язик сірого ведмедя", en="Gray Bear Tongue" },
     [3477] = { "пасока підкрадача", en="Creeper Ichor" },
-    [3478] = { "шорсткий шліфувальний камінь", en="Coarse Grinding Stone" },
+    [3478] = { "Звичайний шліфувальний камінь", en="Coarse Grinding Stone" },
     [3480] = { "грубі бронзові наплечі", en="Rough Bronze Shoulders" },
     [3481] = { "посріблені бронзові наплечі", en="Silvered Bronze Shoulders" },
     [3482] = { "посріблені бронзові чоботи", en="Silvered Bronze Boots" },

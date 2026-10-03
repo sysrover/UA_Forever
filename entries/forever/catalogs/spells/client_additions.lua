@@ -848,7 +848,7 @@ local client_spells = {
     [3323] = { "рунічні мідні рукавиці", en="Runed Copper Gauntlets" },
     [3324] = { "рунічні мідні штани", en="Runed Copper Pants" },
     [3325] = { "прикрашені самоцвітами мідні рукавиці", en="Gemmed Copper Gauntlets" },
-    [3326] = { "шорсткий шліфувальний камінь", en="Coarse Grinding Stone" },
+    [3326] = { "Звичайний шліфувальний камінь", en="Coarse Grinding Stone" },
     [3328] = { "грубі бронзові наплечі", en="Rough Bronze Shoulders" },
     [3329] = { "Істота - Форма жаби", en="Creature - Frog Form" },
     [3330] = { "посріблені бронзові наплечі", en="Silvered Bronze Shoulders" },

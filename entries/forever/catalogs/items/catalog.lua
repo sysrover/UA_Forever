@@ -1858,7 +1858,7 @@ local items = {
 [3475] = { "полум'яний плащ", equip=21142, en="Cloak of Flames" },
 [3476] = { "язик сірого ведмедя", en="Gray Bear Tongue" },
 [3477] = { "пасока підкрадача", en="Creeper Ichor" },
-[3478] = { "шорсткий шліфувальний камінь", en="Coarse Grinding Stone" },
+[3478] = { "Звичайний шліфувальний камінь", en="Coarse Grinding Stone" },
 [3480] = { "грубі бронзові наплечі", en="Rough Bronze Shoulders" },
 [3481] = { "посріблені бронзові наплечі", en="Silvered Bronze Shoulders" },
 [3482] = { "посріблені бронзові чоботи", en="Silvered Bronze Boots" },

@@ -4,6 +4,42 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
+    -- ItemClass/ItemSubClass and auction category labels, client 1.60.1.70205.
+    ["Arrow"] = "Стріла",
+    ["Book"] = "Книга",
+    ["Bullet"] = "Куля",
+    ["Consumable"] = "Витратний предмет",
+    ["Device"] = "Пристрій",
+    ["Draught"] = "Трунок",
+    ["Draughts"] = "Трунки",
+    ["Elixirs"] = "Еліксири",
+    ["Explosives"] = "Вибухівка",
+    ["Fishing Pole"] = "Вудка",
+    ["Fist Weapon"] = "Кистьова зброя",
+    ["Flasks"] = "Настої",
+    ["Herb"] = "Трава",
+    ["Holiday"] = "Святкові предмети",
+    ["Idol"] = "Ідол",
+    ["Idols"] = "Ідоли",
+    ["Key"] = "Ключ",
+    ["Libram"] = "Лібрям",
+    ["Librams"] = "Лібрями",
+    ["Lockpick"] = "Відмичка",
+    ["Metal & Stone"] = "Метал і камінь",
+    ["One-Handed Exotics"] = "Одноручна екзотична зброя",
+    ["Parts"] = "Деталі",
+    ["Permanent"] = "Постійні",
+    ["Potions"] = "Зілля",
+    ["Projectile"] = "Боєприпас",
+    ["Reagent"] = "Реагент",
+    ["Recipe"] = "Рецепт",
+    ["Scrolls"] = "Сувої",
+    ["Spear"] = "Спис",
+    ["Spears"] = "Списи",
+    ["Temporary"] = "Тимчасові",
+    ["Totem"] = "Тотем",
+    ["Two-Handed Exotics"] = "Дворучна екзотична зброя",
+    ["Warglaives"] = "Бойові ґлефи",
     ["More details about your group"] = "Додаткова інформація про вашу групу",
     ["Fought Together"] = "Билися разом",
     ["A self-found character cannot do the following:\r\n- Trade with other players\r\n- Send mail to other players, or receive player mail\r\n- Buy or sell from the auction house\r\nThese restrictions can be removed at any time by talking to an in-game character, but it can never be applied outside of character creation."] = "Персонаж у режимі самостійного пошуку не може:\r\n- Торгувати з іншими гравцями\r\n- Надсилати листи іншим гравцям або отримувати листи від гравців\r\n- Купувати або продавати на аукціоні\r\nЦі обмеження можна зняти будь-коли, поговоривши з персонажем у грі, але ввімкнути їх можна лише під час створення персонажа.",
@@ -884,6 +920,22 @@ local function popup_duration(count, unit)
     return translate_social_time(count .. " " .. unit)
 end
 
+local function mail_item_name(source)
+    local item_db = addonTable.use("item_client_db")
+    local translated = item_db.get_name_by_english(source)
+    if translated then return translated end
+    local name, quantity = source:match("^(.-)(%s+%(%d+%))$")
+    translated = name and item_db.get_name_by_english(name)
+    return translated and translated .. quantity or source
+end
+
+local function mail_party_name(source)
+    if source == "Multiple Sellers" or source == "Multiple Buyers" then
+        return social_label(source) or source
+    end
+    return source
+end
+
 local function popup_destination(zone)
     return addonTable.zone and addonTable.zone[zone] or zone
 end
@@ -1509,21 +1561,35 @@ addonTable.forever_ui_patterns = {
     {
         pattern = "^Item Purchased: (.+)$",
         replace = function (item)
-            return "Придбано: " .. (addonTable.use("item_client_db")
-                .get_name_by_english(item) or item)
+            return "Придбано: " .. mail_item_name(item)
         end,
     },
     {
         pattern = "^Auction won: (.+)$",
         replace = function (item)
             return "Виграно на аукціоні: "
-                .. (addonTable.use("item_client_db")
-                    .get_name_by_english(item) or item)
+                .. mail_item_name(item)
         end,
     },
     {
         pattern = "^Sold By: (.+)$",
-        replace = function (seller) return "Продавець: " .. seller end,
+        replace = function (seller) return "Продавець: " .. mail_party_name(seller) end,
+    },
+    {
+        pattern = "^Item Sold: (.+)$",
+        replace = function (item) return "Продано: " .. mail_item_name(item) end,
+    },
+    {
+        pattern = "^Purchased By: (.+)$",
+        replace = function (buyer) return "Покупець: " .. mail_party_name(buyer) end,
+    },
+    {
+        pattern = "^Auction successful: (.+)$",
+        replace = function (item) return "Продано на аукціоні: " .. mail_item_name(item) end,
+    },
+    {
+        pattern = "^Sale Pending: (.+)$",
+        replace = function (item) return "Очікується оплата: " .. mail_item_name(item) end,
     },
     {
         pattern = "^Requires Body of (.+)$",

@@ -191,9 +191,30 @@ local function replace_id_name(source, english, ukrainian)
     if prefix and inner and suffix then return prefix .. ukrainian .. suffix end
 end
 
+local function translate_new_recipe_title(region)
+    if not region or runtime.is_applying(region) then return end
+    local source = text_from(region)
+    if not source then return end
+    local claim = runtime.get(region)
+    if claim and source == claim.translated then return end
+    local translated = strings.find_ui_translation(source, region)
+    if not translated or translated == source then return end
+    runtime.apply(region, {
+        owner = OWNER, slot = "profession.new-recipe.title", source = source,
+        translated = translated, option = "translate_string",
+        priority = runtime.PRIORITY.DOMAIN, reapply_cached = true,
+    })
+end
+
 local function translate_new_recipe_alert(frame, recipe_id)
     if not frame then return end
-    strings.translate_region(frame.Title)
+    -- Alerts are pooled. Bind only their title, once per region, so later
+    -- native writes are translated without scanning frames or polling.
+    hooks.region(frame.Title, "SetText", translate_new_recipe_title)
+    hooks.region_script(frame, "OnShow", function (self)
+        translate_new_recipe_title(self.Title)
+    end, "new-recipe-title")
+    translate_new_recipe_title(frame.Title)
     if not number(recipe_id) then return end
     local english = spell_db.get_english_name(recipe_id)
     local ukrainian = spell_db.get_name(recipe_id)

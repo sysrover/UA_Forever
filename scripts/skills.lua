@@ -390,7 +390,36 @@ local function translate_trainer_title()
     end
 end
 
+local original_trainer_widths = setmetatable({}, { __mode = "k" })
+
+local function widen_trainer_region(region)
+    if not region or type(region.GetWidth) ~= "function"
+        or type(region.SetWidth) ~= "function" then return end
+    local ok, width = pcall(region.GetWidth, region)
+    if not ok or is_secret(width) or type(width) ~= "number" or width <= 0 then return end
+    local original_width = original_trainer_widths[region]
+    if not original_width then
+        original_width = width
+        original_trainer_widths[region] = width
+    end
+    local target_width = original_width + 60
+    if width ~= target_width then
+        pcall(region.SetWidth, region, target_width)
+    end
+end
+
+local function widen_trainer_frame()
+    local frame = _G.ClassTrainerFrame
+    if not frame then return end
+    -- The status bar stays fixed; the right-anchored filter moves with the
+    -- wider frame. The native ScrollBox view stretches its pooled rows.
+    widen_trainer_region(frame)
+    widen_trainer_region(frame.ScrollBox)
+    widen_trainer_region(frame.skillStepButton)
+end
+
 local function translate_trainer_rows()
+    widen_trainer_frame()
     translate_trainer_static_region(_G.ClassTrainerFrameSubText)
     translate_trainer_static_region(_G.ClassTrainerFrameSkillStepButtonName)
     local requirements = _G.ClassTrainerFrameSkillStepButtonSubText

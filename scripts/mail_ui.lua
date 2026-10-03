@@ -60,6 +60,7 @@ end
 local function translate_mail_region(region)
     if not region or runtime.is_applying(region) then return end
     hooks.region(region, "SetText", translate_mail_region)
+    hooks.region(region, "SetFormattedText", translate_mail_region)
     if type(region.GetText) ~= "function" then return end
     local ok, source = pcall(region.GetText, region)
     if not ok or runtime.is_secret_value(source) or type(source) ~= "string"
@@ -74,7 +75,7 @@ local function translate_mail_region(region)
         return
     end
     runtime.apply(region, {
-        owner = "menus", slot = "mail.ui:" .. source,
+        owner = "mail_ui", slot = "mail.ui:" .. source, section = "mail",
         source = source, translated = translated, category = category,
         option = option or "translate_string",
         priority = runtime.priority_for_source(tier),
@@ -82,6 +83,50 @@ local function translate_mail_region(region)
         surface = registry.get("mail"), phase = "direct",
         reapply_cached = true,
     })
+end
+
+local open_mail_labels = {
+    "OpenMailFrameTitleText", "OpenMailAttachmentText",
+    "OpenMailSenderLabel", "OpenMailSubjectLabel",
+    "OpenMailInvoiceItemLabel", "OpenMailInvoicePurchaser",
+    "OpenMailInvoiceSalePrice", "OpenMailInvoiceDeposit",
+    "OpenMailInvoiceHouseCut", "OpenMailInvoiceAmountReceived",
+    "OpenMailInvoiceNotYetSent", "OpenMailInvoiceMoneyDelay",
+}
+local open_mail_buttons = {
+    "OpenMailCancelButton", "OpenMailDeleteButton",
+    "OpenMailReplyButton", "OpenMailReportSpamButton",
+}
+
+local function translate_open_mail_button(button)
+    if not button or type(button.GetFontString) ~= "function" then return end
+    local ok, region = pcall(button.GetFontString, button)
+    if ok then translate_mail_region(region) end
+end
+
+local function update_open_mail_controls()
+    for _, name in ipairs(open_mail_labels) do
+        translate_mail_region(_G[name])
+    end
+    for _, name in ipairs(open_mail_buttons) do
+        local button = _G[name]
+        hooks.region(button, "SetText", translate_open_mail_button)
+        hooks.region(button, "SetFormattedText", translate_open_mail_button)
+        translate_open_mail_button(button)
+    end
+    -- Subject and sender are user text for ordinary letters. Translate them
+    -- only for native auction invoices, after Update has finished rendering.
+    local id = _G.InboxFrame and _G.InboxFrame.openMailID
+    if not id or type(_G.GetInboxText) ~= "function" then return end
+    local ok, _, _, _, _, invoice = pcall(_G.GetInboxText, id)
+    if not ok or runtime.is_secret_value(invoice) or invoice ~= true then return end
+    -- No persistent SetText hooks on these two fields: a reused mail frame
+    -- can switch from an auction invoice to a player's letter.
+    strings.translate_region(_G.OpenMailSubject, nil, "mail.subject",
+        registry.get("mail"), nil, nil, "mail")
+    local sender = _G.OpenMailSender and _G.OpenMailSender.Name
+    strings.translate_region(sender, nil, "mail.sender",
+        registry.get("mail"), nil, nil, "mail")
 end
 
 local function translate_mail_tab(tab)
@@ -201,6 +246,9 @@ end
 
 mail_ui.prepare = function ()
     declare_mail_hooks()
+    hooks.region(_G.OpenMailFrame, "Update", update_open_mail_controls)
+    hooks.region_script(_G.OpenMailFrame, "OnShow", update_open_mail_controls,
+        "open-mail-controls")
     hooks.region_script(_G.InboxFrame, "OnShow", update_inbox_controls,
         "inbox-controls")
     hooks.region_script(_G.SendMailFrame, "OnShow", update_inbox_controls,
@@ -208,10 +256,12 @@ mail_ui.prepare = function ()
     hooks.global("MailFrameTab_OnClick", update_inbox_controls)
     hooks.global("SendMailFrame_Update", update_inbox_controls)
     update_inbox_controls()
+    update_open_mail_controls()
     local mail = registry.get("mail")
     if mail then
         mail.static = function ()
             update_inbox_controls()
+            update_open_mail_controls()
         end
     end
 end

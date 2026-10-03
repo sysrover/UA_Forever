@@ -7,10 +7,28 @@ local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local hooks = addon_table.use("translation_hooks").bind("auction_ui")
 
+local function translate_auction_region(region, slot)
+    if not region or runtime.is_applying(region) then return end
+    local claim = runtime.get(region)
+    if claim and type(region.GetText) == "function" then
+        local ok, text = pcall(region.GetText, region)
+        if ok and not runtime.is_secret_value(text)
+            and text == claim.translated then return end
+    end
+    strings.translate_region(region, nil, slot, registry.get("misc"),
+        nil, nil, "auction")
+end
+
+local function translate_auction_category_region(region)
+    translate_auction_region(region, "auction.category")
+end
+
 local function translate_auction_category_button(button)
     local region = button and button.Text
-    if not region then return end
-    strings.translate_region(region, nil, "ui.text", registry.get("misc"))
+    if not region or runtime.is_applying(region) then return end
+    hooks.region(region, "SetText", translate_auction_category_region)
+    hooks.region(button, "SetText", translate_auction_category_button)
+    translate_auction_category_region(region)
 end
 
 local function translate_auction_summary_line(line, list_index)
@@ -67,10 +85,19 @@ local function declare_auction_hooks()
     })
 end
 
+local function translate_auction_filter_region(region)
+    translate_auction_region(region, "auction.filter")
+end
+
 local function translate_auction_filter_dropdown(button)
     local region = button and button.Text
+    if not region and button and type(button.GetFontString) == "function" then
+        local ok, font_string = pcall(button.GetFontString, button)
+        if ok then region = font_string end
+    end
     if region and not runtime.is_applying(region) then
-        strings.translate_region(region, nil, "ui.text", registry.get("misc"))
+        hooks.region(region, "SetText", translate_auction_filter_region)
+        translate_auction_filter_region(region)
     end
 end
 
@@ -131,6 +158,7 @@ auction_ui.prepare = function ()
         and auction_house.SearchBar.FilterButton
     hooks.region(auction_filter, "UpdateText",
         translate_auction_filter_dropdown)
+    hooks.region(auction_filter, "SetText", translate_auction_filter_dropdown)
     translate_auction_filter_dropdown(auction_filter)
     prepare_auction_duration_dropdowns(auction_house)
     local item_buy_frame = auction_house and auction_house.ItemBuyFrame
