@@ -722,30 +722,9 @@ local function translate_header(block, id)
     quest_name_region(block.HeaderText, id, "quest-tracker")
 end
 
-local function fit_tracker_line(module, block, line, region)
-    if not block.used or type(line.SetHeight) ~= "function"
-        or type(block.SetHeight) ~= "function" then return end
-    local text_ok, text_height = pcall(region.GetStringHeight, region)
-    local line_ok, line_height = pcall(line.GetHeight, line)
-    text_height = text_ok and safe_number(text_height)
-    line_height = line_ok and safe_number(line_height)
-    local block_height = safe_number(block.height)
-    local contents_height = safe_number(module.contentsHeight)
-    if not text_height or not line_height or not block_height
-        or not contents_height then return end
-    local delta = text_height - line_height
-    if math.abs(delta) < 0.5 or text_height <= 0
-        or block_height + delta <= 0 or contents_height + delta < 0 then return end
-    if not pcall(line.SetHeight, line, text_height) then return end
-    if not pcall(block.SetHeight, block, block_height + delta) then
-        pcall(line.SetHeight, line, line_height)
-        return
-    end
-    block.height = block_height + delta
-    module.contentsHeight = contents_height + delta
-end
-
-local function translate_objectives(module, block, id)
+-- Leave line/block sizes and layout bookkeeping to Blizzard. Writes here can
+-- taint a deferred tracker layout that accesses secret auras.
+local function translate_objectives(block, id)
     if type(block.ForEachUsedLine) ~= "function" then return end
     pcall(block.ForEachUsedLine, block, function (line, key)
         local region = line and line.Text
@@ -755,9 +734,8 @@ local function translate_objectives(module, block, id)
             "quest:" .. id .. ":" .. tostring(key) .. ".description",
             nil, id)
         if not applied and options.can_translate("translate_quest") then
-            applied = strings.translate_region(region)
+            strings.translate_region(region)
         end
-        if applied then fit_tracker_line(module, block, line, region) end
     end)
 end
 
@@ -804,7 +782,7 @@ quest_ui.refresh_tracker_progress = function ()
                     end
                 end)
             end
-            translate_objectives(module, block, id)
+            translate_objectives(block, id)
         end
     end
 end
@@ -850,7 +828,7 @@ local function after_update(self, quest)
     end)
     if not block_ok or not block then return end
     translate_header(block, id)
-    translate_objectives(self, block, id)
+    translate_objectives(block, id)
     -- UpdateSingle can run once per changed quest in the same native batch.
     -- Static tracker labels are independent of the quest block, so coalesce
     -- their fallback discovery instead of walking the whole tree Q times.
