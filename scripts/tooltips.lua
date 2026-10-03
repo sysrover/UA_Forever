@@ -2312,11 +2312,31 @@ local function translate_appended_bag_tooltip_lines()
 end
 
 local function prepare_bag_tooltip_hooks()
-    local mixin_hooked = hooks.mixin("BaseBagSlotButtonMixin",
-        "OnEnterInternal", translate_appended_bag_tooltip_lines)
+    -- Build 70205 appends bag filters through this helper after the Item
+    -- post-call. Hook the actual write: existing buttons have already copied
+    -- OnEnterInternal from their mixin, and portraits use a separate method.
+    local line_hooked = hooks.global("GameTooltip_AddNormalLine", function (tooltip)
+        if tooltip ~= _G.GameTooltip then return end
+        if tooltip.uaForeverKind ~= "item" then
+            if type(tooltip.GetOwner) ~= "function" then return end
+            local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+            if not owner_ok or not owner then return end
+            local bag_owner = type(owner.GetBagID) == "function"
+            if not bag_owner and type(owner.GetParent) == "function" then
+                local parent_ok, parent = pcall(owner.GetParent, owner)
+                bag_owner = parent_ok and parent
+                    and type(parent.GetBagID) == "function"
+            end
+            if not bag_owner then return end
+            if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
+        end
+        local count_ok, count = pcall(tooltip.NumLines, tooltip)
+        count = count_ok and safe_number(count) or nil
+        if count then item_adapter.translate_appended_lines(tooltip, count) end
+    end)
     local portrait_hooked = hooks.global("ContainerFramePortraitButton_OnEnter",
         translate_appended_bag_tooltip_lines)
-    return mixin_hooked or portrait_hooked
+    return line_hooked or portrait_hooked
 end
 
 tooltips.prepare = function ()

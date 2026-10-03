@@ -11,7 +11,7 @@ local layout = addon_table.use("translation_layout")
 local scheduler = addon_table.use("translation_scheduler")
 local hooks = addon_table.use("translation_hooks").bind("combat-text")
 local social_toast_hooks = addon_table.use("translation_hooks").bind("social-toast")
--- These discriminators are local constants in build 70170's BNet.lua.
+-- These discriminators are local constants in build 70205's BNet.lua.
 local social_toast_online, social_toast_offline = 1, 2
 local debug_name
 
@@ -494,14 +494,17 @@ end
 
 local function after_social_toast(self)
     if not self or not options.can_translate("translate_string") then return end
-    -- Build 70170 writes account/character names to TopLine/MiddleLine and
+    -- Build 70205 writes account/character names to TopLine/MiddleLine and
     -- the status to BottomLine. Broadcasts use the same BottomLine for player
     -- text, so restrict this hook to the two native presence toast types.
-    local native
+    if is_secret(self.toastType) then return end
+    local native, status
     if self.toastType == social_toast_online then
         native = _G.BN_TOAST_ONLINE
+        status = "online"
     elseif self.toastType == social_toast_offline then
         native = _G.BN_TOAST_OFFLINE
+        status = "offline"
     else
         return
     end
@@ -512,15 +515,30 @@ local function after_social_toast(self)
     if not ok or type(source) ~= "string" or is_secret(source) then return end
     local first, last = source:find(native, 1, true)
     if not first then return end
-    local translated = strings.find_ui_translation(native, region)
+    local translated = addon_table.forever_surface_ui.social_toast[status]
     if type(translated) ~= "string" or translated == native then return end
     -- Online also has an outer gray color wrapper. Preserve it and the
     -- green/red status markup from the catalog rather than stripping colors.
     runtime.apply(region, {
         owner = "ui", slot = "ui.text", source = source,
+        surface = "social",
         translated = source:sub(1, first - 1) .. translated .. source:sub(last + 1),
         option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
     })
+end
+
+local function prepare_social_toast()
+    local frame = _G.BNToastFrame
+    if not frame then return end
+    social_toast_hooks.region(frame, "ShowToast", after_social_toast)
+    social_toast_hooks.region_script(frame, "OnShow", after_social_toast)
+    -- ShowToast writes BottomLine before assigning the new toastType. Run
+    -- after that call completes, including later native rewrites of the text.
+    social_toast_hooks.region(frame.BottomLine, "SetText", function (region)
+        if runtime.is_applying(region) then return end
+        scheduler.request({ id = "social-toast-status", work_scope = "social-toast",
+            max_retries = 1, callback = function () after_social_toast(frame) end })
+    end)
 end
 
 strings.prepare = function ()
@@ -536,7 +554,7 @@ strings.prepare = function ()
     local available = hooks.global(hook_name, after_combat_text_add_message)
     auto_scan.surface_hook("combat-text", hook_name, available, false)
     -- Hook the live frame: XML copies BNToastMixin methods onto BNToastFrame.
-    social_toast_hooks.region(_G.BNToastFrame, "ShowToast", after_social_toast)
+    prepare_social_toast()
 end
 
 local function visible_safe_roots()

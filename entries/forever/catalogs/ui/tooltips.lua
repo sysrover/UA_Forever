@@ -773,6 +773,16 @@ local function translate_bag_filter_list(source)
     return table.concat(translated, ", ")
 end
 
+local function translate_bag_assignment(filters)
+    local color, body = filters:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    if not color then
+        color, body = filters:match("^(|cn[%w_]+:)(.-)|r$")
+    end
+    local translated = translate_bag_filter_list(body or filters)
+    return translated and ("Призначено для: " .. (color or "")
+        .. translated .. (color and "|r" or "")) or nil
+end
+
 -- CONTAINER_SLOTS (%d Slot %s) and current ItemSubClass labels in
 -- build 1.60.1.70205, classes 1 (containers) and 11 (quivers).
 local container_names = {
@@ -895,11 +905,7 @@ tooltip.item_line_patterns = {
         local name = container_names[kind]
         return name and (name .. " на " .. slots .. " комірок") or nil
     end },
-    { "^Assigned to: |cffffffff(.-)|r$", function (filters)
-        local translated = translate_bag_filter_list(filters)
-        return translated and ("Призначено для: |cffffffff"
-            .. translated .. "|r") or nil
-    end },
+    { "^Assigned to: (.+)$", translate_bag_assignment },
     { "^<Made by (.+)>$", function (name)
         return "<Виготовлено: " .. name .. ">"
     end },
