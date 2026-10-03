@@ -8766,6 +8766,10 @@ local npc = { -- [id] = { title, description (optional) }
 [274917] = { [1] = "Боборус Перенапруга", en = "Boborus Overvolt" },
 [276730] = { [1] = "Стрімкий бурешаблезуб", en = "Swift Stormsaber" },
 [7559] = { [1] = "Арктичний заєць", en = "Arctic Hare" },
+[264850] = { [1] = "Яструб", en = "Hawk" },
+[270637] = { [1] = "Говін Добропер", en = "Howin Kindfeather" },
+[271012] = { [1] = "Низькодзьоб", en = "Bassbeak" },
+[271351] = { [1] = "Відвойовник Драконячої Пащі", en = "Dragonmaw Reclaimer" },
 }
 
 if addonTable.npc then

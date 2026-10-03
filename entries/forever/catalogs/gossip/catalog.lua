@@ -5521,6 +5521,20 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["reply"] = true },
 },
+    [3069341392] = {
+    ["english"] = { [1] = "So many Wildhammer lives lost... whole families erased..." },
+    ["text"] = "Стільки життів Громомолотів втрачено... цілі родини зникли...",
+    ["npcs"] = { [1] = 270637 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [865414297] = {
+    ["english"] = { [1] = "The roots and ferns speak well of you, small one. Although I have many names, I answer to few. But you may call me Rethiel.\010\010And you must harken... for these lands weep from festered wounds, and I would charge you to heal them." },
+    ["text"] = "Коріння й папороті добре відгукуються про тебе, малий. Хоч у мене багато імен, озиваюся я лише на деякі. Та ти можеш звати мене Ретіелем.\010\010І мусиш дослухатися... бо ці землі плачуть від загноєних ран, і я доручаю тобі їх зцілити.",
+    ["npcs"] = { [1] = 1244 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
 }
 for key, row in pairs(rows) do
     local existing = addonTable.gossip_hashed.rows[key]

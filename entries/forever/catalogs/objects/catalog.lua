@@ -3190,6 +3190,9 @@ addonTable.object = { -- [key] = text
 ["Blackrock Supplies"] = "Припаси Чорної гори",
 ["Memory of Valor"] = "Спогад про Велорів",
 ["Stolen Weapon"] = "Викрадена зброя",
+["Razormaw Egg"] = "Яйце Гострощелепа",
+["Razormaw Eggs"] = "Яйця Гострощелепа",
+["Dragonmaw Armaments"] = "Озброєння Драконячої Пащі",
 }
 
 addonTable.translate_object_name = function (name)

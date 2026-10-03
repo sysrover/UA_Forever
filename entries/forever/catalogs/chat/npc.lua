@@ -9294,6 +9294,12 @@ local chat_rows = {
     ["npcs"] = { [1] = "Tormus Deepforge" },
     ["priority"] = 3,
 },
+    [2401232758] = {
+    ["english"] = { [1] = "Huuup...Huuup...Bleeeeehh!" },
+    ["text"] = "Хууп... Хууп... Бле-е-е-е!",
+    ["npcs"] = { [1] = "Hargin Mundar" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
