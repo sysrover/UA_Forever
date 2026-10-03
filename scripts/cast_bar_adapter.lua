@@ -91,7 +91,9 @@ local function refresh(state)
     if not translated or translated == source then
         release(state, "LOOKUP_FAILED"); return
     end
-    if slot == "spell.name" and not options.translate_name("spell") then
+    if slot == "spell.name" and not (options.name_enabled and options.name_enabled({
+        owner = "cast-bar", slot = slot, category = "spell" })
+        or not options.name_enabled and options.translate_name("spell")) then
         restore(state, "NAME_OPTION_DISABLED"); return
     end
     translated = utils.cap(translated)

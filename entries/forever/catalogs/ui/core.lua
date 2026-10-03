@@ -97,6 +97,7 @@ local ui = {
     ["Continue"] = "Продовжити",
     ["Complete Quest"] = "Завершити завдання",
     ["Cancel"] = "Скасувати",
+    ["Petition"] = "Статут",
     ["Do you want to make Thunderbrew Distillery your new home?"] = "Хочете зробити винокурню Громовара своїм новим домом?",
     ["By disabling transmogrification you will no longer see any appearances applied to other players' gear via transmogrification. You will only see the equipment other players actually have equipped. Are you sure you wish to disable transmogrification? You may re-enable this at any time by speaking with me again."] =
         "Після вимкнення трансмогрифікації ви більше не бачитимете вигляди, застосовані до спорядження інших гравців. Ви бачитимете лише спорядження, яке вони насправді носять.\n\nВи впевнені, що хочете вимкнути трансмогрифікацію?\n\nВи можете будь-коли ввімкнути її знову, поговоривши зі мною.",

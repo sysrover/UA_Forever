@@ -173,7 +173,9 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     if not options.can_translate() then return false end
     slot = slot or "generic.text"
     local name_enabled = not category or not slot:match("%.name$")
-        or options.translate_name(category)
+        or (options.name_enabled and options.name_enabled({
+            owner = owner, slot = slot, category = category, tooltip = tooltip })
+            or not options.name_enabled and options.translate_name(category))
     if not name_enabled then
         if region then
             if runtime.get(region) then
@@ -194,6 +196,15 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         or owner == "zone-tooltip" and "translate_zone" or nil
     local domain_options = owner == "npc-tooltip"
         and { "translate_npc", "translate_npc_tooltip" } or nil
+    local section_spec = {
+        owner = owner or "tooltip", slot = slot, category = category,
+        option = option, options = domain_options, tooltip = tooltip,
+    }
+    if options.section_for then section_spec.section = options.section_for(section_spec, region) end
+    if not runtime.allowed(section_spec) then
+        if region and runtime.get(region) then runtime.show_original(region, true) end
+        return false
+    end
     local combat_tooltip_text = false
     if (tooltip.uaForeverKind == "npc" or tooltip.uaForeverKind == "player"
             or tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell")
@@ -349,7 +360,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         tooltip.uaForeverFallback[key] = {
             region = fallback_region, translated = translated,
             category = category, slot = slot,
-            option = option, options = domain_options,
+            option = option, options = domain_options, section = section_spec.section,
             force = not options.is_bilingual_tooltip(),
         }
     end
@@ -2417,8 +2428,9 @@ tooltips.refresh_active = function ()
             if fallback.region and fallback.region.SetText then
                 local name_disabled = fallback.category
                     and fallback.slot:match("%.name$")
-                    and not options.translate_name(fallback.category)
-                local domain_disabled = fallback.option
+                    and not (options.name_enabled and options.name_enabled(fallback)
+                        or not options.name_enabled and options.translate_name(fallback.category))
+                local domain_disabled = not runtime.allowed(fallback) or fallback.option
                     and not options.can_translate(fallback.option)
                 for _, option in ipairs(fallback.options or {}) do
                     if not options.can_translate(option) then domain_disabled = true end

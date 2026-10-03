@@ -182,7 +182,8 @@ end
 local function translated_lines(aura)
     local native = collect_native_lines(aura)
     if #native == 0 then return native end
-    if shift_original() or not options.can_translate("translate_spell") then
+    if shift_original() or not options.can_translate("translate_spell")
+        or options.section_enabled and not options.section_enabled("auras") then
         return native
     end
 
@@ -192,7 +193,9 @@ local function translated_lines(aura)
 
     local result = {}
     local translated_name = client_db.get_name(spell_id)
-    result[1] = line_record(options.translate_name("spell")
+    result[1] = line_record((options.name_enabled and options.name_enabled({
+        slot = "aura.name", category = "spell" })
+        or not options.name_enabled and options.translate_name("spell"))
         and translated_name or native[1].text)
     result[1].color = native[1].color
     result[1].line_type = native[1].line_type

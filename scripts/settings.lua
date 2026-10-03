@@ -20,6 +20,9 @@ local surface_text = assert(addon_table.forever_surface_ui,
 local tooltip_mode_buttons = {}
 local scope_buttons = {}
 local name_buttons = {}
+local group_buttons = {}
+local custom_controls
+local custom_scroll
 local shift_button
 local auto_scan_button
 local auto_scan_diagnostics_button
@@ -254,6 +257,8 @@ local function refresh_open_text()
     if items.refresh_quest_rewards then items.refresh_quest_rewards() end
     registry.refresh_open()
     if tooltips.refresh_active then tooltips.refresh_active() end
+    local professions = addon_table.use("profession_frame_adapter")
+    if professions.refresh then professions.refresh() end
 end
 
 local function refresh_tooltip_mode_controls()
@@ -267,12 +272,15 @@ local function refresh_tooltip_mode_controls()
         button:SetChecked(options.account and options.account[key] ~= false)
         if scope == "custom" then button:Show() else button:Hide() end
     end
+    for _, group in ipairs(options.section_groups) do
+        local checked = true
+        for _, id in ipairs(group.sections) do
+            if options.account[options.section_key(id)] == false then checked = false end
+        end
+        if group_buttons[group.id] then group_buttons[group.id]:SetChecked(checked) end
+    end
+    if custom_controls then custom_controls:SetShown(scope == "custom") end
     if shift_button then
-        shift_button:ClearAllPoints()
-        local anchor = scope == "custom" and name_buttons.translate_combat_text
-            or scope_buttons.custom
-        shift_button:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT",
-            scope == "custom" and -20 or 0, -24)
         shift_button:SetChecked(options.account and options.account.shift_original_tooltip ~= false)
     end
     if auto_scan_button then
@@ -349,40 +357,76 @@ local function register_addon_settings()
     local full = scope_button("full", addon_locale.full, scope_heading, -14)
     local custom = scope_button("custom", addon_locale.custom, full, -12)
 
-    local previous = custom
-    local first_name_button
-    for _, item in ipairs({
-        { "translate_item_names", addon_locale.item_names },
-        { "translate_quest_names", addon_locale.quest_names },
-        { "translate_spell_names", addon_locale.spell_names },
-        { "translate_skill_names", addon_locale.skill_names },
-        { "translate_zone", addon_locale.zone_names },
-        { "translate_combat_text", addon_locale.combat_text },
-    }) do
-        local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-        button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT",
-            first_name_button and 0 or 20, -8)
-        button.text:SetFontObject("GameFontHighlight")
-        runtime.set_fallback_text(button.text, item[2])
-        local key = item[1]
-        button:SetScript("OnClick", function (self)
-            options.account[key] = self:GetChecked() == true
-            refresh_open_text()
-            if key == "translate_zone" and map_labels.refresh then
-                map_labels.refresh()
-            end
-            if key == "translate_combat_text"
-                and strings.refresh_combat_text_globals then
-                strings.refresh_combat_text_globals()
-            end
-        end)
-        name_buttons[key] = button
-        first_name_button = first_name_button or button
-        previous = button
+    custom_controls = CreateFrame("Frame", nil, page)
+    custom_controls:SetPoint("TOPLEFT", custom, "BOTTOMLEFT", 0, -12)
+    custom_controls:SetPoint("BOTTOMRIGHT", page, "BOTTOMLEFT", 338, 100)
+
+    local function update_sections()
+        refresh_tooltip_mode_controls()
+        refresh_open_text()
+        if map_labels.refresh then map_labels.refresh() end
     end
+    local function set_sections(sections, checked)
+        for _, id in ipairs(sections) do options.account[options.section_key(id)] = checked end
+        update_sections()
+    end
+    for index, enabled in ipairs({ true, false }) do
+        local button = CreateFrame("Button", nil, custom_controls, "UIPanelButtonTemplate")
+        button:SetSize(146, 24)
+        button:SetPoint("TOPLEFT", (index - 1) * 151, 0)
+        runtime.set_fallback_text(button, enabled and addon_locale.enable_all or addon_locale.disable_all)
+        button:SetScript("OnClick", function ()
+            for _, group in ipairs(options.section_groups) do
+                for _, id in ipairs(group.sections) do
+                    options.account[options.section_key(id)] = enabled
+                end
+            end
+            update_sections()
+        end)
+    end
+    custom_scroll = CreateFrame("ScrollFrame", nil, custom_controls, "UIPanelScrollFrameTemplate")
+    custom_scroll:SetPoint("TOPLEFT", 0, -32)
+    custom_scroll:SetPoint("BOTTOMRIGHT", -26, 0)
+    local content = CreateFrame("Frame", nil, custom_scroll)
+    content:SetWidth(290)
+    custom_scroll:SetScrollChild(content)
+    local y = 0
+    for _, group in ipairs(options.section_groups) do
+        local definition = group
+        local header = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+        header:SetPoint("TOPLEFT", 0, -y)
+        header.text:SetFontObject("GameFontNormal")
+        header.text:SetWidth(260)
+        header.text:SetJustifyH("LEFT")
+        runtime.set_fallback_text(header.text, addon_locale.section_groups[group.id])
+        header:SetScript("OnClick", function (self)
+            set_sections(definition.sections, self:GetChecked() == true)
+        end)
+        group_buttons[group.id] = header
+        y = y + 42
+        for _, id in ipairs(group.sections) do
+            local key = options.section_key(id)
+            local button = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
+            button:SetPoint("TOPLEFT", 16, -y)
+            button.text:SetFontObject("GameFontHighlightSmall")
+            button.text:SetWidth(240)
+            button.text:SetJustifyH("LEFT")
+            runtime.set_fallback_text(button.text, addon_locale.sections[id])
+            button:SetScript("OnClick", function (self)
+                options.account[key] = self:GetChecked() == true
+                update_sections()
+            end)
+            name_buttons[key] = button
+            y = y + 40
+        end
+        y = y + 12
+    end
+    content:SetHeight(y)
 
     shift_button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    shift_button:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", -20, -24)
+    shift_button:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 20, 54)
+    shift_button.text:SetWidth(310)
+    shift_button.text:SetJustifyH("LEFT")
     shift_button.text:SetFontObject("GameFontHighlight")
     runtime.set_fallback_text(shift_button.text, addon_locale.shift_original)
     shift_button:SetScript("OnClick", function (self)

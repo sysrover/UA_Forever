@@ -310,13 +310,16 @@ local function translate_create_button(button, font_string, overlay)
         or type(overlay.GetText) ~= "function"
         or type(overlay.SetText) ~= "function" then return false end
     local ok, source = pcall(font_string.GetText, font_string)
+    if ok and source == "" then source = button.uaForeverCreateSource end
     if not ok or type(source) ~= "string" or source == ""
         or is_secret(source) then return false end
+    button.uaForeverCreateSource = source
 
     hide_native_button_text(font_string)
 
     local translated = strings.find_ui_translation(source, font_string)
     local display = options.can_translate("translate_string")
+        and (not options.section_enabled or options.section_enabled("profession_ui"))
         and translated and translated ~= source and translated or source
     -- The button template swaps Normal/Highlight/Disabled font objects in
     -- native code. Keeping the captured source in the original FontString can
@@ -459,6 +462,11 @@ local function hook_instances()
     hooks.region_script(page, "OnShow", translate_page, "profession-frame")
     hooks.region_script(_G.ProfessionsBookFrame, "OnShow", translate_book,
         "profession-frame")
+end
+
+adapter.refresh = function ()
+    translate_frame()
+    translate_book(_G.ProfessionsBookFrame)
 end
 
 adapter.prepare = function ()

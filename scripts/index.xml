@@ -45,6 +45,17 @@
     <Script file="popup_ui.lua"/>
     <Script file="social_ui.lua"/>
     <Script file="raid_ui.lua"/>
+    <Script file="trade_ui.lua"/>
+    <Script file="compact_raid_manager_ui.lua"/>
+    <Script file="stack_split_ui.lua"/>
+    <Script file="panel_ui_adapter.lua"/>
+    <Script file="guild_registrar_ui.lua"/>
+    <Script file="petition_ui.lua"/>
+    <Script file="tabard_ui.lua"/>
+    <Script file="coin_pickup_ui.lua"/>
+    <Script file="role_poll_ui.lua"/>
+    <Script file="loot_history_ui.lua"/>
+    <Script file="tutorial_ui.lua"/>
     <Script file="items.lua"/>
     <Script file="book_ui.lua"/>
     <Script file="quest_ui.lua"/>
