@@ -33,6 +33,7 @@ local translate_object_tooltip_title
 local after_aura_tooltip_rendered
 local MAX_TOOLTIP_LINES = 40
 local tooltip_font_strings = setmetatable({}, { __mode = "k" })
+local quest_pin_cache = setmetatable({}, { __mode = "k" })
 local character_stat_line_heights = setmetatable({}, { __mode = "k" })
 local active_tooltips = tooltip_session.active
 local tooltip_events = setmetatable({}, { __mode = "k" })
@@ -702,8 +703,12 @@ local function process(tooltip, data, kind, native_rebuild)
         translated = npc_adapter.add(tooltip, id)
         translated = quest_adapter.translate_embedded(tooltip) or translated
     elseif kind == "quest" then
-        local entry = entries.get_entry("quest", id)
-        dev_log.record_id("quests", id, data.title, entry ~= nil)
+        -- Diagnostic existence checks must not render every quest paragraph
+        -- before the adapter renders the same record again.
+        if options.account and options.account.dev_mode then
+            local entry = entries.get_entry("quest", id, 1)
+            dev_log.record_id("quests", id, data.title, entry ~= nil)
+        end
         translated = quest_adapter.add(tooltip, id, data.uaForeverSkipTitle, data)
     elseif kind == "object" then
         dev_log.record_id("objects", id, data.name, false)
@@ -754,11 +759,116 @@ end
 
 local function safe_process(tooltip, data, kind, native_rebuild)
     if not tooltip_work_enabled(kind) then return false end
+    if kind == "quest" and type(data) == "table" and not is_secret(data)
+        and data.uaForeverMapPin then
+        if not options.is_bilingual_tooltip() then
+            local ok, result = pcall(tooltips.process_quest_pin, tooltip, data)
+            if not ok then
+                dev_log.issue("Forever tooltip quest pin", tostring(result))
+                return false
+            end
+            return result == true
+        end
+        quest_pin_cache[tooltip] = nil
+        tooltip.uaForeverQuestPinOwner = nil
+        native_rebuild = true
+    end
     local ok, result = pcall(process, tooltip, data, kind, native_rebuild)
     if not ok then
         dev_log.issue("Forever tooltip " .. tostring(kind), tostring(result))
         return false
     end
+    return result == true
+end
+
+tooltips.process_quest_pin = function (tooltip, data)
+    if not tooltip or not options.can_translate("translate_quest") then return false end
+    if options.is_bilingual_tooltip() then
+        quest_pin_cache[tooltip] = nil
+        tooltip.uaForeverQuestPinOwner = nil
+        local ok, result = pcall(process, tooltip, data, "quest", true)
+        if not ok then dev_log.issue("Forever tooltip quest pin", tostring(result)) end
+        return ok and result == true
+    end
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or is_secret(owner) or owner ~= data.uaForeverMapPin then return false end
+    local id = safe_number(data.id)
+    local count_ok, count = pcall(tooltip.NumLines, tooltip)
+    count = count_ok and safe_number(count) or nil
+    if not id or not count or count > MAX_TOOLTIP_LINES then return false end
+    local cached = quest_pin_cache[tooltip]
+    sync_tooltip_original_state(tooltip)
+    local names_enabled = options.translate_name("quest")
+    local fonts_enabled = options.can_translate("override_system_fonts")
+    local name_section = not options.section_enabled or options.section_enabled("quest_names")
+    local text_section = not options.section_enabled or options.section_enabled("quest_text")
+    local reusable = cached and cached.owner == owner and cached.id == id
+        and cached.count == count and cached.generation == tooltip.uaForeverGeneration
+        and cached.show_original == tooltip.uaForeverShowOriginal
+        and cached.names_enabled == names_enabled
+        and cached.fonts_enabled == fonts_enabled
+        and cached.name_section == name_section and cached.text_section == text_section
+        and tooltip.uaForeverSessionKey == tooltip_key("quest", id)
+    if reusable then
+        for _, row in ipairs(cached.rows) do
+            local current, region = tooltip_line(tooltip, row.side, row.index)
+            current = safe_string(current)
+            if region ~= row.region or current ~= row.source
+                and current ~= row.translated and current ~= row.name_original
+                or row.claim and runtime.get(region) ~= row.claim then
+                reusable = false
+                break
+            end
+        end
+    end
+    if reusable then
+        local applied = false
+        for _, row in ipairs(cached.rows) do
+            if row.claim then
+                local current = safe_string(tooltip_line(tooltip, row.side, row.index))
+                local ok = runtime.show_original(row.region, tooltip.uaForeverShowOriginal)
+                applied = ok or applied
+                -- Native rebuilds also reset geometry. Retain the layout
+                -- adjustment for native writes, but skip it on duplicate hooks.
+                if ok and current == row.source and not tooltip.uaForeverShowOriginal
+                    and runtime.allowed(row.claim) and row.claim.after_apply then
+                    pcall(row.claim.after_apply, row.region, row.source)
+                end
+            end
+        end
+        return applied
+    end
+    tooltip.uaForeverQuestPinOwner = owner
+    -- A changed row/quest starts a fresh claim set. An unchanged native
+    -- rebuild retains the set through OnTooltipCleared and takes the path above.
+    local ok, result = pcall(process, tooltip, data, "quest", true)
+    if not ok then
+        quest_pin_cache[tooltip] = nil
+        tooltip.uaForeverQuestPinOwner = nil
+        dev_log.issue("Forever tooltip quest pin", tostring(result))
+        return false
+    end
+    local rows = {}
+    for index = 1, count do
+        for _, side in ipairs({ "Left", "Right" }) do
+            local current, region = tooltip_line(tooltip, side, index)
+            local claim = region and runtime.get(region)
+            rows[#rows + 1] = {
+                side = side, index = index, region = region, claim = claim,
+                source = claim and claim.source or safe_string(current),
+                translated = claim and claim.translated,
+                name_original = claim and claim.name_original,
+            }
+        end
+    end
+    quest_pin_cache[tooltip] = { owner = owner, id = id, count = count,
+        generation = tooltip.uaForeverGeneration, rows = rows,
+        show_original = tooltip.uaForeverShowOriginal, names_enabled = names_enabled,
+        fonts_enabled = fonts_enabled,
+        name_section = name_section, text_section = text_section }
+    scheduler.cancel("tooltip:" .. tostring(tooltip))
+    scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+    tooltip.uaForeverUpdateBudget = 0
     return result == true
 end
 
@@ -1005,6 +1115,7 @@ local function prepare_map_surface_hooks()
 end
 
 local function reset_tooltip(self)
+    quest_pin_cache[self] = nil
     tooltip_session.reset(self, function (region)
         character_stat_line_heights[region] = nil
     end)
@@ -1363,6 +1474,11 @@ local function translate_generic_tooltip(tooltip)
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
+    if tooltip.uaForeverQuestPinOwner then
+        tooltips.process_quest_pin(tooltip, { id = tooltip.uaForeverID,
+            uaForeverMapPin = tooltip.uaForeverQuestPinOwner })
+        return
+    end
     translate_minimap_tooltip(tooltip)
 
     if is_shopping_tooltip(tooltip) then
@@ -1973,6 +2089,13 @@ local function prepare_tooltip_frames()
                 end
             end)
             hooks.region_script(tooltip, "OnTooltipCleared", function (self)
+                    if self.uaForeverQuestPinOwner then
+                        local ok, owner = pcall(self.GetOwner, self)
+                        if ok and not is_secret(owner) and owner == self.uaForeverQuestPinOwner then
+                            tooltip_font_strings[self] = nil
+                            return
+                        end
+                    end
                     if (is_shopping_tooltip(self)
                         or self.uaForeverKind == "item")
                         and self.uaForeverSessionKey then
@@ -2197,6 +2320,11 @@ local function prepare_bag_tooltip_hooks()
 end
 
 tooltips.prepare = function ()
+    if options.on_activity_change then
+        options.on_activity_change("quest-pin-cache", function ()
+            quest_pin_cache = setmetatable({}, { __mode = "k" })
+        end)
+    end
     prepare_map_surface_hooks()
     prepare_tooltip_frames()
     prepare_comparison_manager()

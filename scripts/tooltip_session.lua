@@ -52,6 +52,7 @@ session.reset = function (tooltip, on_invalidate)
     session.active[tooltip] = nil
     for _, field in ipairs({
         "uaForeverSessionKey", "uaForeverKind", "uaForeverID",
+        "uaForeverQuestPinOwner",
         "uaForeverReservedFirst", "uaForeverFallback",
         "uaForeverShowOriginal", "uaForeverKey",
         "uaForeverGenericText", "uaForeverBilingualLines",

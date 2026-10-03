@@ -359,13 +359,17 @@ adapter.prepare = function ()
             function (_, _, id)
                 id = contract.safe_number(id)
                 if id and _G.GameTooltip then
-                    contract.process(_G.GameTooltip, { id = id }, "quest")
+                    local tooltip = _G.GameTooltip
+                    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+                    if ok and owner then
+                        contract.process(tooltip, { id = id, uaForeverMapPin = owner }, "quest")
+                    end
                 end
             end, adapter)
     end)
     hooks.global("GameTooltip_AddQuest", function (self)
         local id = self and contract.safe_number(self.questID)
-        if id then contract.process(_G.GameTooltip, { id = id }, "quest") end
+        if id then contract.process(_G.GameTooltip, { id = id, uaForeverMapPin = self }, "quest") end
     end)
     hooks.global("QuestMapLogTitleButton_OnEnter", adapter.translate_map_button)
     hooks.region(_G.QuestPinMixin, "OnMouseEnter", function (self)
