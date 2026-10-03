@@ -1567,6 +1567,74 @@ end
 
 tooltips.finalize = translate_generic_tooltip
 
+local player_aura_ids = setmetatable({}, { __mode = "k" })
+local player_aura_elapsed = setmetatable({}, { __mode = "k" })
+
+local function public_aura_field(object, field)
+    if not object or is_secret(object) then return nil end
+    local ok, value = pcall(function () return object[field] end)
+    if ok and not is_secret(value) then return value end
+end
+
+local function player_aura_tooltip_data(tooltip, data)
+    if aura_tooltip_context(tooltip) ~= "player"
+        or type(tooltip.GetOwner) ~= "function" then return nil end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or not owner or is_secret(owner) then return nil end
+    local info = public_aura_field(owner, "buttonInfo")
+    local instance = safe_number(public_aura_field(owner, "deadlyInstanceID"))
+        or safe_number(public_aura_field(info, "auraInstanceID"))
+    if not instance or not C_UnitAuras
+        or type(C_UnitAuras.GetAuraDataByAuraInstanceID) ~= "function" then
+        player_aura_ids[owner] = nil
+        return nil
+    end
+    local aura_ok, aura = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID,
+        "player", instance)
+    if not aura_ok or not aura or is_secret(aura) then
+        player_aura_ids[owner] = nil
+        return nil
+    end
+    local cached = player_aura_ids[owner]
+    local id = safe_number(public_aura_field(aura, "spellId"))
+        or safe_number(public_aura_field(aura, "spellID"))
+    -- Cache only public identities. Revalidate the live instance on every
+    -- use: pooled buttons must never inherit the previous aura's translation.
+    if not id and cached and cached.instance == instance then id = cached.id end
+    if not id then return nil end
+    player_aura_ids[owner] = { instance = instance, id = id }
+
+    local result = { id = id, spellID = id, lines = {} }
+    local lines = public_aura_field(data, "lines")
+    if type(lines) == "table" then
+        for index, line in ipairs(lines) do
+            result.lines[index] = {
+                type = safe_number(public_aura_field(line, "type")) or 0,
+                lineIndex = safe_number(public_aura_field(line, "lineIndex")) or index,
+                leftText = safe_string(public_aura_field(line, "leftText")),
+                rightText = safe_string(public_aura_field(line, "rightText")),
+            }
+        end
+    end
+    -- UnitAura slots in this build are title, description, then service rows.
+    -- A public spell ID permits writing a known title without reading secrets.
+    result.lines[1] = result.lines[1] or { type = 0, lineIndex = 1 }
+    result.lines[1].leftText = result.lines[1].leftText
+        or spell_client_db.get_english_name(id)
+    local english = spell_client_db.get_english_aura_description(id)
+    -- Dynamic values must come from the current native text. Do not guess
+    -- stacks or amounts when it is secret; only static descriptions can use
+    -- the catalog itself as their source.
+    local count_ok, count = pcall(tooltip.NumLines, tooltip)
+    count = count_ok and safe_number(count) or nil
+    if count and count >= 2 and english and not english:find("$", 1, true)
+        and not english:find("|", 1, true) and not english:find("%", 1, true) then
+        result.lines[2] = result.lines[2] or { type = 0, lineIndex = 2 }
+        result.lines[2].leftText = result.lines[2].leftText or english
+    end
+    return result
+end
+
 local function translate_unit_aura_tooltip(tooltip, data)
     if not tooltip then return false end
     mark_aura_tooltip(tooltip)
@@ -1579,6 +1647,8 @@ local function translate_unit_aura_tooltip(tooltip, data)
             structured_data = value
         end
     end
+    structured_data = player_aura_tooltip_data(tooltip, structured_data)
+        or structured_data
     local spell_id = structured_data and safe_number(structured_data.spellId)
         or structured_data and safe_number(structured_data.spellID)
         or structured_data and safe_number(structured_data.id) or nil
@@ -2054,6 +2124,9 @@ local function prepare_tooltip_frames()
             end
             hooks.region_script(tooltip, "OnShow", function (self)
                 note_tooltip_event(self, "onShow")
+                if aura_tooltip_context(self) == "player" then
+                    after_aura_tooltip_rendered(self)
+                end
                 local shopping = is_shopping_tooltip(self)
                 if shopping then prepare_comparison_manager() end
                 if shopping and not self.uaForeverSessionKey then
@@ -2347,6 +2420,21 @@ tooltips.prepare = function ()
     end
     prepare_map_surface_hooks()
     prepare_tooltip_frames()
+    hooks.region_script(_G.GameTooltip, "OnUpdate", function (self, elapsed)
+        if not tooltip_work_enabled("aura")
+            or aura_tooltip_context(self) ~= "player" then
+            player_aura_elapsed[self] = nil
+            return
+        end
+        local accumulated = (player_aura_elapsed[self] or 0)
+            + (safe_number(elapsed) or 0)
+        if accumulated < 0.1 then
+            player_aura_elapsed[self] = accumulated
+            return
+        end
+        player_aura_elapsed[self] = 0
+        after_aura_tooltip_rendered(self)
+    end, "player-aura")
     prepare_comparison_manager()
     prepare_ptr_feedback_hook()
     prepare_bag_tooltip_hooks()
