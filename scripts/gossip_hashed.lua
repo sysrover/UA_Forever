@@ -7,6 +7,7 @@ local utils = addon_table.use("utils")
 local function create_lookup(database_key, scope_value, lookup, chat_mode)
 lookup = lookup or {}
 local index, anchors, identities, source_templates, actor_key
+local scoped_rows, compiled_rows, prepared_scopes, indexed_database
 local max_captures = 24
 lookup.version = 1
 
@@ -219,13 +220,41 @@ local function scoped_bucket(target, scope, key)
     return scoped and scoped[key] or nil
 end
 
-local function rebuild(actor)
+local function rebuild()
     index, anchors, identities, source_templates = {}, {}, {}, {}
+    scoped_rows, compiled_rows, prepared_scopes = {}, {}, {}
+    lookup.record_count = 0
     local database = addon_table[database_key]
+    indexed_database = database
     if type(database) ~= "table" or database.version ~= lookup.version then return end
+    -- Partition raw rows once. Compiling every NPC's patterns in a chat event
+    -- can exhaust the game's execution budget before the message is displayed.
+    local registered = {}
+    local function register_row(id, row)
+        if type(row) ~= "table" or registered[row] then return end
+        registered[row] = true
+        local scopes = row.npcs or {}
+        if #scopes == 0 then scopes = { common_scope } end
+        local added = {}
+        for _, scope in ipairs(scopes) do
+            if not added[scope] then
+                scoped_rows[scope] = scoped_rows[scope] or {}
+                table.insert(scoped_rows[scope], { id = id, row = row })
+                added[scope] = true
+            end
+        end
+        for _, alternative in ipairs(row.alternatives or {}) do
+            register_row(id, alternative)
+        end
+    end
+    for id, row in pairs(database.rows or {}) do register_row(id, row) end
+end
+
+local function prepare_scope(actor, scope)
+    if scope == nil or prepared_scopes[scope] then return end
     local compiled, frequencies = {}, {}
     local function compile_row(id, row)
-        if type(row) ~= "table" then return end
+        if compiled_rows[row] then return end
         for _, identity in ipairs(row.identities or {}) do
             local key = utils.string_hash(identity.kind .. "\031" .. tostring(identity.value))
             add_scoped(identities, row, key, { row = row, id = id, identity = identity })
@@ -257,10 +286,10 @@ local function rebuild(actor)
                 end
             end
         end
-        for _, alternative in ipairs(row.alternatives or {}) do compile_row(id, alternative) end
+        compiled_rows[row] = true
     end
-    for id, row in pairs(database.rows or {}) do
-        compile_row(id, row)
+    for _, entry in ipairs(scoped_rows[scope] or {}) do
+        compile_row(entry.id, entry.row)
     end
     for _, candidate in ipairs(compiled) do
         local hash = utils.string_hash(candidate.signature)
@@ -279,7 +308,8 @@ local function rebuild(actor)
             end
         end
     end
-    lookup.record_count = #compiled
+    lookup.record_count = lookup.record_count + #compiled
+    prepared_scopes[scope] = true
 end
 
 local function substitute(text, actor, candidate, captures)
@@ -348,17 +378,22 @@ local function find_identity(npc_id, source, role, actor, raw_translation)
     end
 end
 
-lookup.prepare = function()
+lookup.prepare = function(npc_id)
     local actor = actors()
     local key = table.concat({ actor.name or "", actor.class or "", actor.race or "", tostring(actor.sex) }, "\031")
-    if not index or actor_key ~= key then rebuild(actor); actor_key = key end
+    if not index or actor_key ~= key or indexed_database ~= addon_table[database_key] then
+        rebuild()
+        actor_key = key
+    end
+    prepare_scope(actor, common_scope)
+    prepare_scope(actor, scope_value(npc_id))
     return actor
 end
 
 lookup.find = function(npc_id, source, role, raw_translation)
     source = safe_string(source)
     if not source or source == "" then return nil end
-    local actor = lookup.prepare()
+    local actor = lookup.prepare(npc_id)
     local normalized = signature(source, actor)
     local candidates, seen = {}, {}
     local function add(bucket, rank)
@@ -427,7 +462,7 @@ end
 lookup.find_source = function(npc_id, source, role)
     source = safe_string(source)
     if not source or source == "" then return nil end
-    lookup.prepare()
+    lookup.prepare(npc_id)
     local template, raw_source = source_template(source), exact_text(source)
     local best, best_id, best_rank, ambiguous
     local candidates = {}
