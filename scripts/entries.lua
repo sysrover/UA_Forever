@@ -883,9 +883,9 @@ entries.translate_quest_objective_task = function (text, quest_id, objective_sou
         end
     end
 
-    -- Quest-link tooltips list required items as "1 x Item", rather than
-    -- the tracker's "0/1 Item". Keep the native quantity and spacing.
-    local quantity_prefix, required_item = text:match("^(%s*%d+%s+x%s+)(.+)$")
+    -- Quest-link requirements can include a leading dash independently of
+    -- QUEST_DASH. Keep that dash, quantity and native spacing unchanged.
+    local quantity_prefix, required_item = text:match("^(%s*%-?%s*%d+%s+x%s+)(.+)$")
     if quantity_prefix and required_item then
         return finish(quantity_prefix .. entries.translate_quest_objective_task(
             required_item, quest_id, objective_source))
