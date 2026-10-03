@@ -4,6 +4,7 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
+    ["More details about your group"] = "Додаткова інформація про вашу групу",
     ["Fought Together"] = "Билися разом",
     ["A self-found character cannot do the following:\r\n- Trade with other players\r\n- Send mail to other players, or receive player mail\r\n- Buy or sell from the auction house\r\nThese restrictions can be removed at any time by talking to an in-game character, but it can never be applied outside of character creation."] = "Персонаж у режимі самостійного пошуку не може:\r\n- Торгувати з іншими гравцями\r\n- Надсилати листи іншим гравцям або отримувати листи від гравців\r\n- Купувати або продавати на аукціоні\r\nЦі обмеження можна зняти будь-коли, поговоривши з персонажем у грі, але ввімкнути їх можна лише під час створення персонажа.",
     ["Battle.net"] = "Battle.net",
