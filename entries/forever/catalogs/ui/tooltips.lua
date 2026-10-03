@@ -876,6 +876,9 @@ tooltip.item_line_patterns = {
     { "^(%d+) Slot Bag$", function (slots)
         return "Сумка на " .. slots .. " комірок"
     end },
+    { "^(%d+) Slot Quiver$", function (slots)
+        return "Сагайдак на " .. slots .. " комірок"
+    end },
     { "^Assigned to: |cffffffff(.-)|r$", function (filters)
         local translated = translate_bag_filter_list(filters)
         return translated and ("Призначено для: |cffffffff"
