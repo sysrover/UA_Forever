@@ -9204,6 +9204,96 @@ local chat_rows = {
     ["npcs"] = { [1] = "Tyrande Whisperwind" },
     ["priority"] = 3,
 },
+    [3865472001] = {
+    ["english"] = { [1] = "Argh! You're hopeless!" },
+    ["text"] = "Аргх! З тобою безнадійно!",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [4250208926] = {
+    ["english"] = { [1] = "Do you ever think about anything other than fighting? I could circle you down on the stretch course!" },
+    ["text"] = "Ти взагалі про щось інше, крім бійок, думаєш? Я б тебе на довгій трасі колами обійшов!",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [1083908283] = {
+    ["english"] = { [1] = "Ha! I'm more afraid that those old holes and gashes would burst that thing and I would be showered by the shrapnel!" },
+    ["text"] = "Ха! Я більше боюся, що ті старі дірки й пробоїни розірвуть цю штукенцію, а мене засипле уламками!",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [577209090] = {
+    ["english"] = { [1] = "Hey Stone, did you hear about the new steam engine old Tonkrend has been runnin on?" },
+    ["text"] = "Гей, Стоуне, чув про новий паровий двигун, на якому старий Тонкренд тепер ганяє?",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [645519445] = {
+    ["english"] = { [1] = "Hey Stone, let's hit the circuit some time. We could run a few laps and see who wins?" },
+    ["text"] = "Гей, Стоуне, якось гайда на трасу. Зробимо кілька кіл і побачимо, хто переможе?",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [1405592021] = {
+    ["english"] = { [1] = "Nothing you can say will ever get me in the arena against that monstrosity of a machine you call a steam tank!" },
+    ["text"] = "Що б ти не казав, я нізащо не вийду на арену проти того чудовиська, яке ти називаєш паровим танком!",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [2740491117] = {
+    ["english"] = { [1] = "I would have just dropped some Evershine in my tank and been back home before they realized I'd gone!" },
+    ["text"] = "Та я б просто хлюпнув трохи Вічносяю в бак і вже був би вдома, перш ніж вони збагнули б, що мене нема!",
+    ["npcs"] = { [1] = "Pilot Bellowfiz" },
+    ["priority"] = 3,
+},
+    [1291741744] = {
+    ["english"] = { [1] = "Aye sure, just as long as we get to hit the arena right after!" },
+    ["text"] = "Аякже, тільки якщо одразу після цього підемо на арену!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [4130964830] = {
+    ["english"] = { [1] = "Ah yes. I've heard all about those new flarged things. Armor was removed from the casing to decrease weight. Bargh! Nonsense!" },
+    ["text"] = "Ага, чув я все про ті нові фларґові штукенції. З корпусу, бач, броню зняли, щоб вагу зменшити. Бах! Нісенітниця!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [2902262480] = {
+    ["english"] = { [1] = "Brahaha! Tha look on their faces as old Trollplow's gun came swiveling around to meet them! Their saws couldn't even touch me!" },
+    ["text"] = "Бра-ха-ха! Бачив би ти їхні пики, коли гармата старого Тролеплуга розвернулася просто на них! Їхні пилки мене навіть не зачепили!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [4139458695] = {
+    ["english"] = { [1] = "Bah! By the time you got in range of old Trollplow you would be in reduced to rubble!" },
+    ["text"] = "Пхе! Поки ти дістанешся на відстань пострілу до старого Тролеплуга, від тебе вже самі уламки лишаться!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [3308303532] = {
+    ["english"] = { [1] = "Bah! That's no fun!" },
+    ["text"] = "Пхе! Так нецікаво!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [2317997572] = {
+    ["english"] = { [1] = "Haha! Sturdy old Trollplow has just a few meager battle scars!" },
+    ["text"] = "Ха-ха! У міцного старого Тролеплуга всього кілька жалюгідних бойових шрамів!",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [3990161448] = {
+    ["english"] = { [1] = "Har! You scared I'll hurt your little dainty racer?" },
+    ["text"] = "Ха! Боїшся, що я пошкоджу твою маленьку тендітну гоночну цяцьку?",
+    ["npcs"] = { [1] = "Pilot Stonegear" },
+    ["priority"] = 3,
+},
+    [1533684956] = {
+    ["english"] = { [1] = "Andre!  I'm finished!" },
+    ["text"] = "Андре!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
