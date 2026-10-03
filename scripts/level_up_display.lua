@@ -54,7 +54,7 @@ local function declare_toast_hooks()
         method = "DisplayToast",
         required = true,
         fallbackEvent = "DISPLAY_EVENT_TOASTS",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = after_main_toast,
     })
     registry.declare_hook({
@@ -65,7 +65,7 @@ local function declare_toast_hooks()
         method = "DisplayToastAtIndex",
         required = true,
         fallbackEvent = "levelup hyperlink",
-        verifiedBuild = 70009,
+        verifiedBuild = 70205,
         callback = after_side_toast,
     })
 end

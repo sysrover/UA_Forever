@@ -81,7 +81,7 @@ local function declare_game_menu_hook()
         method = "InitButtons",
         required = true,
         fallbackEvent = "GameMenuFrame.OnShow",
-        verifiedBuild = 70058,
+        verifiedBuild = 70205,
         callback = translate_game_menu,
     })
 end

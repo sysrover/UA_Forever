@@ -122,7 +122,7 @@ end
 local function declare_global(target, callback)
     registry.declare_hook({ id = "chat-config:" .. target,
         surface = "chat-config", kind = "global", target = target,
-        blizzardAddon = "Blizzard_ChatFrame", verifiedBuild = "1.60.1.70170",
+        blizzardAddon = "Blizzard_ChatFrame", verifiedBuild = "1.60.1.70205",
         callback = callback })
 end
 

@@ -106,7 +106,7 @@ local function declare_social_hooks()
             surface = "social", kind = kind or (method and "mixin" or "global"),
             target = target, method = method, callback = callback or refresh,
             blizzardAddon = addon or "Blizzard_FriendsFrame",
-            verifiedBuild = "1.60.1.70170",
+            verifiedBuild = "1.60.1.70205",
         })
     end
     for _, target in ipairs({ "FriendsFrame_Update", "FriendsList_Update",

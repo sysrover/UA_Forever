@@ -111,7 +111,7 @@ adapter.prepare = function ()
         registry.declare_hook({ id = "stack-split:" .. method, surface = "stack-split",
             kind = "frame", target = "StackSplitFrame", method = method,
             callback = refresh, blizzardAddon = "Blizzard_FrameXML",
-            verifiedBuild = "1.60.1.70170" })
+            verifiedBuild = "1.60.1.70205" })
     end
     hooks.region_script(_G.StackSplitFrame, "OnShow", refresh)
     refresh()

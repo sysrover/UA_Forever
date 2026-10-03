@@ -131,12 +131,12 @@ adapter.bind = function (id)
         for _, target in ipairs(globals) do
             registry.declare_hook({ id = id .. ":" .. target, surface = id,
                 kind = "global", target = target, callback = refresh,
-                blizzardAddon = addon, verifiedBuild = "1.60.1.70170" })
+                blizzardAddon = addon, verifiedBuild = "1.60.1.70205" })
         end
         for _, method in ipairs(methods) do
             registry.declare_hook({ id = id .. ":" .. method[1] .. "." .. method[2],
                 surface = id, kind = "frame", target = method[1], method = method[2],
-                callback = refresh, blizzardAddon = addon, verifiedBuild = "1.60.1.70170" })
+                callback = refresh, blizzardAddon = addon, verifiedBuild = "1.60.1.70205" })
         end
         for _, name in ipairs(roots) do api.hooks.region_script(_G[name], "OnShow", refresh) end
         refresh()

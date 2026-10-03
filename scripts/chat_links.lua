@@ -99,6 +99,6 @@ chat_links.prepare = function ()
         is_open = function () return _G.DEFAULT_CHAT_FRAME ~= nil end })
     registry.declare_hook({ id = "chat-links:new-window", surface = "chat-links",
         kind = "global", target = "FCF_OpenNewWindow", callback = refresh,
-        blizzardAddon = "Blizzard_ChatFrameBase", verifiedBuild = "1.60.1.70170" })
+        blizzardAddon = "Blizzard_ChatFrameBase", verifiedBuild = "1.60.1.70205" })
     refresh()
 end

@@ -65,7 +65,7 @@ adapter.prepare = function ()
         registry.declare_hook({ id = "compact-raid-manager:" .. target,
             surface = "compact-raid-manager", kind = "global", target = target,
             callback = refresh, blizzardAddon = "Blizzard_CompactRaidFrames",
-            verifiedBuild = "1.60.1.70170" })
+            verifiedBuild = "1.60.1.70205" })
     end
     hooks.region_script(_G.CompactRaidFrameManager, "OnShow", refresh)
     refresh()
