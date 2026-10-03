@@ -49,6 +49,10 @@ local system_chat_events = {
     CHAT_MSG_TRADESKILLS = true,
 }
 
+local function section_enabled(id)
+    return not options.section_enabled or options.section_enabled(id)
+end
+
 local chat_addition_sequence = 0
 local chat_bubble_sequence = 0
 local direct_event_messages = setmetatable({}, { __mode = "k" })
@@ -138,7 +142,14 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
         dev_log.missing_chat_text(npc_name_key, chat_text_code, chat_text, lang_name)
     end
 
-    if not options.can_translate("translate_chat") then
+    if type(chat_text_uk) == 'string' and chat_text_uk:match("%%s") then
+        chat_text_uk = string_format(chat_text_uk, npc_name_uk)
+    end
+
+    if chat_text_uk and known_event.verb then
+        translate_chat_bubble(chat_text, chat_text_uk)
+    end
+    if not options.can_translate("translate_chat") or not section_enabled("npc_chat") then
         return nil, chat_text, npc_name, lang_name, ...
     end
 
@@ -149,14 +160,6 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
             return nil, chat_text, resolve_npc_name(npc_name, npc_name_uk), resolve_lang_name(self, lang_name), ...
         end
         return nil, chat_text, npc_name, lang_name, ...
-    end
-
-    if type(chat_text_uk) == 'string' and chat_text_uk:match("%%s") then
-        chat_text_uk = string_format(chat_text_uk, npc_name_uk)
-    end
-
-    if known_event.verb then
-        translate_chat_bubble(chat_text, chat_text_uk)
     end
 
     if is_replacement then
@@ -178,6 +181,7 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
 
         chat_addition_sequence = chat_addition_sequence + 1
         scheduler.request("chat-addition:" .. chat_addition_sequence, nil, function ()
+            if not section_enabled("npc_chat") or not options.can_translate("translate_chat") then return end
             self:AddMessage(chat_message, info.r, info.g, info.b)
         end)
     end
@@ -186,12 +190,14 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
 end
 
 local function translate_item_name(name, item_id)
+    if not options.can_translate("translate_item") or not options.translate_name("item") then return name end
     local translated = item_id and item_client_db.get_name(item_id)
         or item_client_db.get_name_by_english(name)
     return translated or name
 end
 
 local function translate_item_links(text)
+    if not section_enabled("chat_links") then return text end
     -- Replace only the visible label; retain item ID, bonuses, color and link markup.
     text = text:gsub("(|Hitem:(%d+)[^|]*|h)%[([^%]]+)%](|h)",
         function(prefix, item_id, name, suffix)
@@ -203,6 +209,8 @@ local function translate_item_links(text)
 end
 
 local function translate_spell_links(text)
+    if not section_enabled("chat_links") then return text end
+    if not options.can_translate("translate_spell") or not options.translate_name("spell") then return text end
     -- The link target remains untouched so the translated spell stays clickable.
     text = text:gsub("(|Hspell:(%d+)[^|]*|h)%[([^%]]+)%](|h)",
         function(prefix, spell_id, name, suffix)
@@ -217,6 +225,7 @@ local function translate_spell_links(text)
 end
 
 local function translate_skill_name(name)
+    if not options.translate_name("skill") then return name end
     local english, ukrainian = addon_table.client_skill_lines_en, addon_table.client_skill_lines_uk
     if english and ukrainian and english.sourceBuild == ukrainian.sourceBuild then
         for id, source in pairs(english.rows or {}) do
@@ -232,6 +241,7 @@ local function translate_skill_name(name)
 end
 
 local function translate_domain_links(text)
+    if not section_enabled("chat_links") then return text end
     -- These links can occur in player messages too. Only their labels belong
     -- to us; do not run sentence/template translation over player speech.
     return text:gsub("(|H([^:|]+):([^|]+)|h)%[([^%]]+)%](|h)",
@@ -548,6 +558,11 @@ local function translate_group_loot(message)
     end
 end
 
+local function translate_quest_name(name)
+    if not options.translate_name("quest") then return name end
+    return entries.lookup_name("quest", name) or name
+end
+
 local function translate_system_text(event, message)
     if type(message) ~= "string" then return nil end
 
@@ -597,7 +612,7 @@ local function translate_system_text(event, message)
         local sharer, shared_quest = message:match(
             "^(.-)'s attempt to share quest \"(.+)\" failed%. You are already on that quest%.$")
         if sharer then
-            local quest = entries.lookup_name("quest", shared_quest) or shared_quest
+            local quest = translate_quest_name(shared_quest)
             return chat_format.quest_share_already(sharer, quest)
         end
         local busy_inviter = message:match(
@@ -610,6 +625,7 @@ local function translate_system_text(event, message)
                 and addon_table.forever_ui_curated[standing_faction]
                 or addon_table.forever_ui and addon_table.forever_ui[standing_faction]
                 or entries.get_glossary_text(standing_faction, standing_faction)
+            if not section_enabled("reputation") then faction = standing_faction end
             return chat_format.reputation_standing(
                 chat_catalog.reputation_standings[standing], faction)
         end
@@ -619,7 +635,7 @@ local function translate_system_text(event, message)
         end
         local failed_quest = message:match("^(.+) failed: Inventory is full%.$")
         if failed_quest then
-            local quest = entries.lookup_name("quest", failed_quest) or failed_quest
+            local quest = translate_quest_name(failed_quest)
             return chat_format.quest_failed_inventory(quest)
         end
         local group, inviter = message:match(
@@ -664,11 +680,13 @@ local function translate_system_text(event, message)
         local accepted = message:match("^Quest accepted: (.+)$")
         if accepted then
             return chat_format.quest_accepted(
-                entries.lookup_name("quest", accepted) or accepted)
+                translate_quest_name(accepted))
         end
         local completed = message:match("^(.+) completed%.$")
         local quest_name = completed and entries.lookup_name("quest", completed)
-        if quest_name then return chat_format.quest_completed(quest_name) end
+        if quest_name then
+            return chat_format.quest_completed(options.translate_name("quest") and quest_name or completed)
+        end
         local reward = message:match("^Received (.+)%.$")
         if reward then return chat_format.received(translate_money_amount(reward)) end
         local zone = message:match("^Discovered: (.+)$")
@@ -721,7 +739,7 @@ local function translate_system_text(event, message)
         if faction then
             local name = addon_table.forever_ui and addon_table.forever_ui[faction]
                 or entries.get_glossary_text(faction, faction)
-            return chat_format.reputation_increased(name, amount)
+            return chat_format.reputation_increased(section_enabled("reputation") and name or faction, amount)
         end
         faction, amount = message:match("^Reputation with (.-) decreased by ([%d,]+)%.$")
         if not faction then
@@ -730,7 +748,7 @@ local function translate_system_text(event, message)
         if faction then
             local name = addon_table.forever_ui and addon_table.forever_ui[faction]
                 or entries.get_glossary_text(faction, faction)
-            return chat_format.reputation_decreased(name, amount)
+            return chat_format.reputation_decreased(section_enabled("reputation") and name or faction, amount)
         end
     end
 
@@ -791,6 +809,7 @@ local function translated_channel_label(label)
 end
 
 local function translate_chat_channel_header(message)
+    if not section_enabled("chat_ui") then return nil end
     if type(message) ~= "string" then return nil end
     local changed = false
     local result = message:gsub("(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)",
@@ -813,7 +832,7 @@ local function translate_rendered_chat(message, r, g, b)
     local plain = message:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     local player_speech = plain:match("|Hplayer:.-|h.-|h%s*:")
         or plain:match("^%[[^%]]+%] says: ")
-    local translated = not player_speech and (translate_direct_chat_text(message)
+    local translated = section_enabled("system_chat") and not player_speech and (translate_direct_chat_text(message)
         or is_notice_color(r, g, b) and translate_client_notice(message)) or nil
     local result = translated or message
     result = translate_chat_channel_header(result) or result
@@ -883,7 +902,10 @@ local function filter_system_msg(self, event, message, ...)
     end
     local translated = translate_system_text(event, message)
     auto_scan.record_system_chat(event, message, translated ~= nil and translated ~= message)
-    if not options.can_translate("translate_chat") then return nil, message, ... end
+    if not options.can_translate("translate_chat") or not section_enabled("system_chat") then
+        direct_event_messages[self] = message
+        return nil, message, ...
+    end
     if not translated or translated == message then
         direct_event_messages[self] = message
         return nil, message, ...
@@ -893,6 +915,7 @@ local function filter_system_msg(self, event, message, ...)
         local info = ChatTypeInfo[event:sub(10)] or ChatTypeInfo.SYSTEM
         chat_addition_sequence = chat_addition_sequence + 1
         scheduler.request("chat-addition:" .. chat_addition_sequence, nil, function()
+            if not section_enabled("system_chat") or not options.can_translate("translate_chat") then return end
             self:AddMessage(assets.icon_ua_inline .. " " .. translated,
                 info and info.r, info and info.g, info and info.b)
         end)

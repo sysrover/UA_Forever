@@ -9,6 +9,7 @@ local templates, terms, term_heads, event_templates = {}, {}, {}, {}
 
 local function enabled()
     return options.can_translate("translate_chat")
+        and (not options.section_enabled or options.section_enabled("combat_log"))
 end
 
 -- Native formatter calls from addon code produced recurring Lua errors in

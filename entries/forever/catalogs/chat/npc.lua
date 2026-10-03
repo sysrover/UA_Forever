@@ -9132,6 +9132,18 @@ local chat_rows = {
     ["npcs"] = { [1] = "Stitches" },
     ["priority"] = 3,
 },
+    [2023686476] = {
+    ["english"] = { [1] = "We're under attack!  A vast, ye swabs! Repel the invaders! " },
+    ["text"] = "На нас напали!  Агов, палубні щури! Відбийте нападників! ",
+    ["npcs"] = { [1] = "Mr. Smite" },
+    ["priority"] = 3,
+},
+    [2921053496] = {
+    ["english"] = { [1] = "You there! Check out that noise." },
+    ["text"] = "Гей, ти! Перевір, що там за шум.",
+    ["npcs"] = { [1] = "Mr. Smite" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

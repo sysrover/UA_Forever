@@ -8756,6 +8756,7 @@ local npc = { -- [id] = { title, description (optional) }
 [274914] = { [1] = "Аендаріл Струмкостріл", en = "Aendaril Brookshot" },
 [272273] = { [1] = "Загублений вартовий", en = "Lost Watcher" },
 [272450] = { [1] = "Старенький Сенді", en = "Ol' Sandy" },
+[253279] = { [1] = "Альба Ясномісяць", en = "Alba Fairmoon" },
 }
 
 if addonTable.npc then

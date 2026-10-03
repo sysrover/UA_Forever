@@ -589,6 +589,7 @@ runtime.clear = runtime.invalidate
 
 runtime.allowed = function (spec)
     if not options.can_translate() then return false end
+    if options.allows_section and not options.allows_section(spec) then return false end
     if spec and spec.option and not options.can_translate(spec.option) then return false end
     local spec_options = spec and spec.options
     if type(spec_options) == "table" then
@@ -598,7 +599,8 @@ runtime.allowed = function (spec)
     end
     if not spec or not spec.category or not spec.slot
         or not spec.slot:match("%.name$") then return true end
-    return options.translate_name(spec.category)
+    return options.name_enabled and options.name_enabled(spec)
+        or not options.name_enabled and options.translate_name(spec.category)
 end
 
 runtime.ensure_font = function (region)
@@ -618,6 +620,7 @@ runtime.apply = function (region, spec)
             or safe_string(spec.owner) or "translation-runtime")
     end
     local source = safe_string(spec.source) or safe_text(region)
+    if options.section_for then spec.section = options.section_for(spec, region) end
     local allowed = runtime.allowed(spec)
     local name_original = safe_string(spec.name_original)
     local display = name_original and spec.category
@@ -797,6 +800,7 @@ runtime.apply = function (region, spec)
         generation = generation, instance = instance,
         surface = spec.surface, phase = phase,
         category = spec.category,
+        section = spec.section,
         option = spec.option,
         options = spec.options,
         lookup_tier = spec.lookup_tier,
@@ -874,14 +878,15 @@ runtime.show_original = function (region, show)
     if not claim then return false end
     local write_allowed = runtime.can_write_text(region)
     if not write_allowed then return false end
-    local policy_original = not options.can_translate()
+    local policy_original = not runtime.allowed(claim)
         or claim.option and not options.can_translate(claim.option)
     for _, option in ipairs(claim.options or {}) do
         if not options.can_translate(option) then policy_original = true end
     end
     if claim.category and claim.slot:match("%.name$")
         and not claim.name_original
-        and not options.translate_name(claim.category) then
+        and not (options.name_enabled and options.name_enabled(claim)
+            or not options.name_enabled and options.translate_name(claim.category)) then
         policy_original = true
     end
     local visible_original = show == true or policy_original == true
@@ -912,12 +917,13 @@ runtime.refresh_policy = function ()
         end
         if shown then
             local name_disabled = claim.category and claim.slot:match("%.name$")
-                and not options.translate_name(claim.category)
+                and not (options.name_enabled and options.name_enabled(claim)
+                    or not options.name_enabled and options.translate_name(claim.category))
             local option_disabled = claim.option and not options.can_translate(claim.option)
             for _, option in ipairs(claim.options or {}) do
                 if not options.can_translate(option) then option_disabled = true end
             end
-            runtime.show_original(region, not options.can_translate() or option_disabled or name_disabled)
+            runtime.show_original(region, not runtime.allowed(claim) or option_disabled or name_disabled)
         end
     end
 end

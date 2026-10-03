@@ -3,6 +3,15 @@ local _, addonTable = ...
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
 addonTable.forever_surface_ui = {
+    stack_split = {
+        count = function (source)
+            local stacks = source:match("^(%d+) |4Stack:Stacks;$")
+                or source:match("^(%d+) Stacks?$")
+            if stacks then return "Стоси: " .. stacks end
+            local total = source:match("^(%d+) Total$")
+            return total and ("Усього: " .. total) or nil
+        end,
+    },
     chat_config = {
         channel = function (source)
             local prefix, name = source:match("^(%d+%.%s*)(.+)$")
