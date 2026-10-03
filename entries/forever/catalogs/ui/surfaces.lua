@@ -3,6 +3,10 @@ local _, addonTable = ...
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
 addonTable.forever_surface_ui = {
+    social_toast = {
+        online = "тепер |cff00ff00у мережі|r.",
+        offline = "тепер |cffff0000поза мережею|r.",
+    },
     stack_split = {
         count = function (source)
             local stacks = source:match("^(%d+) |4Stack:Stacks;$")

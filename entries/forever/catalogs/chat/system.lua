@@ -4,6 +4,18 @@ local _, addonTable = ...
 -- owns event parsing and link-safe domain lookups; this catalog owns Ukrainian
 -- wording, grammar and inflection.
 local chat = {
+    -- Presence notices can include a Battle.net icon, account link and a
+    -- character link. Preserve that entire identity prefix verbatim.
+    presence_patterns = {
+        { pattern = "^(.+) has come online%.(.*)$", replace = function (identity, suffix)
+            if suffix:gsub("|r", "") ~= "" then return nil end
+            return identity .. " з'явився в мережі." .. suffix
+        end },
+        { pattern = "^(.+) has gone offline%.(.*)$", replace = function (identity, suffix)
+            if suffix:gsub("|r", "") ~= "" then return nil end
+            return identity .. " вийшов з мережі." .. suffix
+        end },
+    },
     -- Display-only combat-log vocabulary for Forever 1.60.1.70170. The
     -- processor's printf arguments and hyperlinks retain their identities.
     combat_log = {
@@ -423,6 +435,92 @@ local chat = {
         ["Party converted to Raid"] = "Групу перетворено на рейд.",
     },
 }
+
+-- GlobalStrings in build 1.60.1.70205. Quest marks the printf argument
+-- containing a quest title; other arguments retain player identities.
+chat.quest_templates = {
+    { source = "%s has declined your quest.", target = "%s відхиляє ваше завдання." },
+    { source = "Sharing quest with %s...", target = "Ділимося завданням із %s..." },
+    { source = "%s is not eligible for that quest.", target = "%s не відповідає умовам цього завдання." },
+    { source = "%s's quest log is full.", target = "Журнал завдань гравця %s заповнений." },
+    { source = "%s has accepted your quest.", target = "%s приймає ваше завдання." },
+    { source = "%s is busy.", target = "%s зараз зайнятий." },
+    { source = "%s is already on that quest.", target = "%s вже виконує це завдання." },
+    { source = "%s has completed that quest.", target = "%s вже завершив це завдання." },
+    { source = "That quest cannot be shared today.", target = "Сьогодні цим завданням не можна поділитися." },
+    { source = "Quest sharing timer has expired.", target = "Час на поширення завдання минув." },
+    { source = "You are not in a party.", target = "Ви не перебуваєте в групі." },
+    { source = "%s is not eligible for that quest today.", target = "%s сьогодні не відповідає умовам цього завдання." },
+    { source = "%s is dead.", target = "%s мертвий." },
+    { source = "That quest cannot be shared.", target = "Цим завданням не можна поділитися." },
+    { source = "%s is too far away to accept that quest.", target = "%s надто далеко, щоб прийняти це завдання." },
+    { source = "%s hasn't completed all of the prerequisite quests required for that quest.", target = "%s ще не завершив усі попередні завдання, необхідні для цього завдання." },
+    { source = "%s is too low level for that quest.", target = "Рівень гравця %s надто низький для цього завдання." },
+    { source = "%s is too high level for that quest.", target = "Рівень гравця %s надто високий для цього завдання." },
+    { source = "%s is the wrong class for that quest.", target = "Клас гравця %s не підходить для цього завдання." },
+    { source = "%s is the wrong race for that quest.", target = "Раса гравця %s не підходить для цього завдання." },
+    { source = "%s's reputation is too low for that quest.", target = "Репутація гравця %s надто низька для цього завдання." },
+    { source = "%s doesn't own the required expansion for that quest.", target = "%s не має доповнення, необхідного для цього завдання." },
+    { source = "%s must own a garrison to accept that quest.", target = "%s повинен мати гарнізон, щоб прийняти це завдання." },
+    { source = "%s is in the wrong covenant for that quest.", target = "Ковенант гравця %s не підходить для цього завдання." },
+    { source = "%s must complete Exile's Reach to accept that quest.", target = "%s повинен завершити «Досяжність Вигнанців», щоб прийняти це завдання." },
+    { source = "%s is the wrong faction for that quest.", target = "Фракція гравця %s не підходить для цього завдання." },
+    { source = "Quests can't be shared in cross-faction groups.", target = "У міжфракційних групах не можна ділитися завданнями." },
+    { source = "%s's reputation is too high for that quest.", target = "Репутація гравця %s надто висока для цього завдання." },
+    { source = "Quest accepted: %s", target = "Прийнято завдання «%s»", quest = 1 },
+    { source = "%s completed.", target = "Завершено завдання «%s».", quest = 1 },
+    { source = "%s failed.", target = "Провалено завдання «%s».", quest = 1 },
+    { source = "%s failed: Inventory is full.", target = "Провалено завдання «%s»: інвентар заповнений.", quest = 1 },
+    { source = "The quest %s has been removed from your quest log.", target = "Завдання «%s» видалено з вашого журналу завдань.", quest = 1 },
+    { source = "Turn in for \"%s\" failed. This quest's unique reward already exists in your inventory. Remove it to complete this quest.", target = "Не вдалося здати завдання «%s». Його унікальна нагорода вже є у вашому інвентарі. Приберіть її, щоб завершити це завдання.", quest = 1 },
+    { source = "That quest is not available to your race.", target = "Це завдання недоступне для вашої раси." },
+    { source = "You must choose a reward.", target = "Ви повинні обрати нагороду." },
+    { source = "Your quest log is full.", target = "Ваш журнал завдань заповнений." },
+    { source = "You are not high enough level for that quest.", target = "Ваш рівень надто низький для цього завдання." },
+    { source = "You don't have the required items with you.  Check storage.", target = "У вас із собою немає необхідних предметів. Перевірте сховище." },
+    { source = "You can only be on one timed quest at a time", target = "Одночасно можна виконувати лише одне завдання з обмеженням часу" },
+    { source = "You don't meet the requirements for that quest.", target = "Ви не відповідаєте вимогам цього завдання." },
+    { source = "You are already on that quest.", target = "Ви вже виконуєте це завдання." },
+    { source = "You don't have enough money for that quest.", target = "У вас недостатньо грошей для цього завдання." },
+    { source = "This quest requires an expansion enabled account.", target = "Для цього завдання обліковий запис повинен мати відповідне доповнення." },
+    { source = "You have already completed %d daily quests today", target = "Сьогодні ви вже виконали %d щоденних завдань" },
+    { source = "You have completed that quest.", target = "Ви вже завершили це завдання." },
+    { source = "You cannot complete quests once you have reached tired time", target = "Ви не можете завершувати завдання після досягнення часу втоми" },
+    { source = "You have completed that daily quest today.", target = "Сьогодні ви вже виконали це щоденне завдання." },
+    { source = "You haven't learned the required spell.", target = "Ви ще не вивчили необхідне закляття." },
+    { source = "Progress Bar objective not completed", target = "Ціль зі шкалою прогресу ще не виконана" },
+    { source = "Quest Ignored", target = "Завдання ігнорується" },
+    { source = "Quest Unignored", target = "Завдання більше не ігнорується" },
+}
+
+-- All eighteen ERR_QUEST_PUSH_*_TO_RECIPIENT_S reasons share this prefix.
+local quest_share_recipient_reasons = {
+    { "You must complete all of the prerequisite quests first.", "спершу завершіть усі необхідні попередні завдання." },
+    { "You are not eligible for that quest.", "ви не відповідаєте умовам цього завдання." },
+    { "You are dead.", "ви мертві." },
+    { "Your quest log is full.", "ваш журнал завдань заповнений." },
+    { "You are already on that quest.", "ви вже виконуєте це завдання." },
+    { "You have completed that quest.", "ви вже завершили це завдання." },
+    { "You are not eligible for that quest today.", "сьогодні ви не відповідаєте умовам цього завдання." },
+    { "You are too low level for that quest.", "ваш рівень надто низький для цього завдання." },
+    { "You are too high level for that quest.", "ваш рівень надто високий для цього завдання." },
+    { "You are the wrong class for that quest.", "ваш клас не підходить для цього завдання." },
+    { "You are the wrong race for that quest.", "ваша раса не підходить для цього завдання." },
+    { "Your reputation is too low for that quest.", "ваша репутація надто низька для цього завдання." },
+    { "You do not own the required expansion for that quest.", "ви не маєте необхідного для цього завдання доповнення." },
+    { "You must own a garrison to accept that quest.", "ви повинні мати гарнізон, щоб прийняти це завдання." },
+    { "You are in the wrong covenant for that quest.", "ваш ковенант не підходить для цього завдання." },
+    { "You must complete Exile's Reach to accept that quest.", "ви повинні завершити «Досяжність Вигнанців», щоб прийняти це завдання." },
+    { "You are the wrong faction for that quest.", "ваша фракція не підходить для цього завдання." },
+    { "Your reputation is too high for that quest.", "ваша репутація надто висока для цього завдання." },
+}
+for _, reason in ipairs(quest_share_recipient_reasons) do
+    chat.quest_templates[#chat.quest_templates + 1] = {
+        source = "%s's attempt to share quest \"%s\" failed. " .. reason[1],
+        target = "Гравцю %s не вдалося поділитися завданням «%s»: " .. reason[2],
+        quest = 2,
+    }
+end
 
 chat.format = {
     death_link = function (prefix, suffix)

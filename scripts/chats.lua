@@ -40,6 +40,7 @@ local known_chat_msg_events = {
 
 local system_chat_events = {
     CHAT_MSG_SYSTEM = true,
+    CHAT_MSG_BN_INLINE_TOAST_ALERT = true,
     CHAT_MSG_LOOT = true,
     CHAT_MSG_MONEY = true,
     CHAT_MSG_CURRENCY = true,
@@ -323,15 +324,20 @@ local function plural_variants(template)
     return result
 end
 
+local function translate_notice_quest_title(title)
+    if not options.translate_name("quest") then return title end
+    local linked = translate_domain_links(title)
+    if linked ~= title then return linked end
+    local color, plain = title:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    if not color then color, plain = title:match("^(|cn[%w_]+:)(.-)|r$") end
+    local translated = entries.lookup_name("quest", plain or title)
+    return translated and ((color or "") .. translated .. (color and "|r" or "")) or title
+end
+
 local client_notice_templates
 local function prepare_client_notice_templates()
     local result, seen = {}, {}
-    for _, tag in ipairs(chat_catalog.template_tags) do
-        local source = _G[tag]
-        local target = type(source) == "string" and (chat_catalog.exact[source]
-            or chat_catalog.template_text[source]
-            or addon_table.forever_ui_curated and addon_table.forever_ui_curated[source]
-            or addon_table.forever_ui and addon_table.forever_ui[source])
+    local function add_template(source, target, rank, quest)
         if type(target) == "string" and target ~= source and not seen[source]
             and template_markup(source) == template_markup(target) then
             local output, target_kinds = template_parts(target)
@@ -360,11 +366,22 @@ local function prepare_client_notice_templates()
                     pattern[#pattern + 1] = "$"
                     result[#result + 1] = { pattern = table.concat(pattern),
                         captures = captures, output = output, weight = weight,
-                        rank = chat_catalog.rank_arguments[tag] }
+                        rank = rank, quest = quest }
                 end
             end
             seen[source] = true
         end
+    end
+    for _, template in ipairs(chat_catalog.quest_templates) do
+        add_template(template.source, template.target, nil, template.quest)
+    end
+    for _, tag in ipairs(chat_catalog.template_tags) do
+        local source = _G[tag]
+        local target = type(source) == "string" and (chat_catalog.exact[source]
+            or chat_catalog.template_text[source]
+            or addon_table.forever_ui_curated and addon_table.forever_ui_curated[source]
+            or addon_table.forever_ui and addon_table.forever_ui[source])
+        add_template(source, target, chat_catalog.rank_arguments[tag])
     end
     table.sort(result, function(a, b) return a.weight > b.weight end)
     client_notice_templates = result
@@ -381,6 +398,9 @@ local function translate_client_notice(message)
                 arguments[index] = matched[capture]
             end
             if valid then
+                if template.quest then
+                    arguments[template.quest] = translate_notice_quest_title(arguments[template.quest])
+                end
                 local output, last_number = {}, nil
                 for _, part in ipairs(template.output) do
                     if part.text then
@@ -439,6 +459,17 @@ local function translate_direct_chat_text(message)
     if type(message) ~= "string" then return nil end
     local exact = chat_catalog.exact[message]
     if exact then return exact end
+    local color, plain = message:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    if not color then color, plain = message:match("^(|cn[%w_]+:)(.-)|r$") end
+    exact = plain and chat_catalog.exact[plain]
+    if exact then return color .. exact .. "|r" end
+    for _, rule in ipairs(chat_catalog.presence_patterns) do
+        local identity, suffix = message:match(rule.pattern)
+        if identity then
+            local translated = rule.replace(identity, suffix)
+            if translated then return translated end
+        end
+    end
     local death_link = message:gsub("(|Hdeath:[^|]+|h)%[You died%.%](|h)",
         chat_format.death_link)
     if death_link ~= message then return death_link end
@@ -567,14 +598,15 @@ end
 local function translate_system_text(event, message)
     if type(message) ~= "string" then return nil end
 
-    if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_LOOT"
+    if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_BN_INLINE_TOAST_ALERT"
+        or event == "CHAT_MSG_LOOT"
         or event == "CHAT_MSG_MONEY"
         or event == "CHAT_MSG_CURRENCY" or event == "CHAT_MSG_TRADESKILLS" then
         local direct = translate_direct_chat_text(message)
         if direct then return direct end
     end
 
-    if event == "CHAT_MSG_SYSTEM" then
+    if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_BN_INLINE_TOAST_ALERT" then
         local notice = translate_client_notice(message)
         if notice then return notice end
     end
