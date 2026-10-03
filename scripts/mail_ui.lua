@@ -5,6 +5,7 @@ local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
+local tooltips = addon_table.use("tooltips")
 local hooks = addon_table.use("translation_hooks").bind("mail_ui")
 
 local original_mail_widths = setmetatable({}, { __mode = "k" })
@@ -94,6 +95,13 @@ local function translate_mail_tab(tab)
     label:SetWidth(math.ceil(width + 4))
 end
 
+local function translate_open_all_button(button)
+    button = button or (_G.InboxFrame and _G.InboxFrame.OpenAllMail) or _G.OpenAllMail
+    if not button or type(button.GetFontString) ~= "function" then return end
+    local ok, region = pcall(button.GetFontString, button)
+    if ok then translate_mail_region(region) end
+end
+
 local function translate_mail_labels(owner, outside_input)
     if not owner or type(owner.GetRegions) ~= "function" then return end
     local ok, regions = pcall(function () return { owner:GetRegions() } end)
@@ -117,6 +125,12 @@ end
 
 local function update_inbox_controls()
     widen_mail_frame()
+    local open_all = (_G.InboxFrame and _G.InboxFrame.OpenAllMail) or _G.OpenAllMail
+    -- 70170 StartOpening/StopOpening write through Button:SetText. Native
+    -- button writes need their own post-hook, even when FontString is hooked.
+    hooks.region(open_all, "SetText", translate_open_all_button)
+    hooks.region(open_all, "SetFormattedText", translate_open_all_button)
+    translate_open_all_button(open_all)
     for _, name in ipairs({
         "OpenAllMailText", "MailFrameTitleText", "SendMailMoneyText",
         "MailFrameTrialError", "InboxTooMuchMailText",
@@ -147,24 +161,46 @@ local function update_inbox_controls()
     end
 end
 
-local function declare_inbox_hook()
+local function translate_attachment_tooltip(owner)
+    local tooltip = _G.GameTooltip
+    if not owner or not tooltip or type(tooltip.IsOwned) ~= "function"
+        or type(tooltips.finalize) ~= "function" then return end
+    local ok, owned = pcall(tooltip.IsOwned, tooltip, owner)
+    if not ok or runtime.is_secret_value(owned) or not owned then return end
+    -- 70170 assigns this handler to owner.UpdateTooltip. Each refresh clears
+    -- the session and rewrites ATTACHMENT_TEXT, so finish in the same call.
+    -- The shared finalizer preserves item ownership and original-text mode.
+    tooltips.finalize(tooltip)
+end
+
+local function declare_mail_hooks()
     if type(registry.declare_hook) ~= "function" then return end
     registry.declare_hook({
         id = "mail.inbox.update",
         surface = "mail",
-        kind = "mixin",
-        target = "InboxMixin",
+        kind = "frame",
+        target = "InboxFrame",
         method = "Update",
         blizzardAddon = "Blizzard_MailFrame",
         required = true,
         fallbackEvent = "MAIL_INBOX_UPDATE",
-        verifiedBuild = 70124,
+        verifiedBuild = "1.60.1.70170",
         callback = update_inbox_controls,
+    })
+    registry.declare_hook({
+        id = "mail.send.attachment-tooltip",
+        surface = "mail",
+        kind = "global",
+        target = "SendMailAttachment_OnEnter",
+        blizzardAddon = "Blizzard_MailFrame",
+        required = true,
+        verifiedBuild = "1.60.1.70170",
+        callback = translate_attachment_tooltip,
     })
 end
 
 mail_ui.prepare = function ()
-    declare_inbox_hook()
+    declare_mail_hooks()
     hooks.region_script(_G.InboxFrame, "OnShow", update_inbox_controls,
         "inbox-controls")
     hooks.region_script(_G.SendMailFrame, "OnShow", update_inbox_controls,

@@ -21,7 +21,7 @@ local function layout_buttons()
     local cancel_width = layout.safe_dimension(cancel, "GetWidth")
     if not okay_width or not cancel_width then return end
     local group_width = okay_width + 8 + cancel_width
-    local width = math.max(172, math.ceil(group_width + 24))
+    local width = math.max(188, math.ceil(group_width + 40))
     local multi = frame.isMultiStack == true
     -- ChooseFrameType restores the build's 172px width and center anchors.
     -- Recompute the whole row after that native method, including its artwork.
