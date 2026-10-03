@@ -46,6 +46,23 @@ local combat_text_catalog_sources = {
     ["Changed Target!"] = true,
 }
 local combat_text_catalog_globals = {}
+-- Display globals read by the build-70205 combat renderer and native threat
+-- warnings. Wording stays in the UI catalog, including formatted templates.
+local combat_text_catalog_names = {
+    COMBAT_THREAT_INCREASE_1 = true, COMBAT_THREAT_INCREASE_3 = true,
+    COMBAT_THREAT_DECREASE_0 = true, COMBAT_THREAT_DECREASE_1 = true,
+    COMBAT_THREAT_DECREASE_2 = true,
+    HEALTH_LOW = true, MANA_LOW = true,
+    ENTERING_COMBAT = true, LEAVING_COMBAT = true,
+    COMBAT_TEXT_MISFIRE = true, COMBAT_TEXT_HONOR_GAINED = true,
+    COMBAT_TEXT_ARENA_POINTS_GAINED = true, COMBAT_TEXT_COMBO_POINTS = true,
+    COMBAT_TEXT_RUNE_BLOOD = true, COMBAT_TEXT_RUNE_UNHOLY = true,
+    COMBAT_TEXT_RUNE_FROST = true, COMBAT_TEXT_RUNE_DEATH = true,
+    COMBAT_TEXT_ABSORB_ADDED = true, COMBAT_TEXT_BLOCK_REDUCED = true,
+    COMBAT_TEXT_ABSORB_AMOUNT = true,
+    BLOCK_TRAILER = true, ABSORB_TRAILER = true, RESIST_TRAILER = true,
+    AURA_END = true,
+}
 
 local function discover_combat_text_catalog_globals()
     local catalog = addon_table.forever_ui
@@ -59,7 +76,8 @@ local function discover_combat_text_catalog_globals()
         if type(global_name) == "string" and type(source) == "string"
             and combat_text_catalog_globals[global_name] == nil then
             local ok, ukrainian = pcall(function ()
-                if not combat_text_catalog_sources[source] then return nil end
+                if not combat_text_catalog_names[global_name]
+                    and not combat_text_catalog_sources[source] then return nil end
                 local value = catalog[source]
                 if type(value) ~= "string" or value == "" or value == source then
                     return nil
@@ -102,10 +120,14 @@ strings.capture_combat_text_event = function (kind)
         or type(auto_scan.record_combat_text) ~= "function"
         or type(kind) ~= "string" then return end
     local global_name = combat_text_event_globals[kind]
+        or combat_text_catalog_names["COMBAT_TEXT_" .. kind]
+            and ("COMBAT_TEXT_" .. kind)
+        or combat_text_catalog_names[kind] and kind
     if not global_name then return end
     local current = rawget(_G, global_name)
     local source = combat_text_originals[global_name] or current
-    auto_scan.record_combat_text(kind, source, combat_text_globals[global_name],
+    auto_scan.record_combat_text(kind, source,
+        combat_text_globals[global_name] or combat_text_catalog_globals[global_name],
         global_name, current)
 end
 
@@ -419,24 +441,6 @@ local function scan_frame(frame, seen, stats, allow_protected, surface, walk_met
     end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
-local function after_combat_text_add_message(message)
-    auto_scan.surface_hook("combat-text", "CombatText_AddMessage", true, true)
-    if type(message) ~= "string" or is_secret(message) then return end
-    local capture_enabled = options.account
-        and options.account.auto_scan_content == true
-    local translate_enabled = options.can_translate("translate_string")
-        and options.translate_combat_text()
-    if not capture_enabled and not translate_enabled then return end
-    if capture_enabled
-        and type(auto_scan.record_ui) == "function" then
-        local translated = resolver.find_ui(message)
-        auto_scan.record_ui(message, translated, "CombatText")
-    end
-    -- Build 70009 exposes no written FontString identity through this global
-    -- callback. Let all messages in the native burst share one bounded pass.
-    strings.refresh_combat_text()
-end
-
 local function refresh_combat_text()
     local capture_enabled = options.account
         and options.account.auto_scan_content == true
@@ -444,10 +448,31 @@ local function refresh_combat_text()
         and options.translate_combat_text()
     if not capture_enabled and not translate_enabled then return false end
     auto_scan.surface_attempt("combat-text", "refresh_combat_text")
+    local regions, seen = {}, {}
+    local function add_region(region)
+        if region and not is_secret(region) and not seen[region]
+            and #regions < 100 then
+            seen[region] = true
+            regions[#regions + 1] = region
+        end
+    end
+    -- Build 70205 pools anonymous FontStrings; CombatText1..N only covers
+    -- older clients. Enumerate the live frame after AddMessage has shown them.
+    local frame = _G.CombatText
+    if frame and type(frame.EnumerateActiveFontStrings) == "function" then
+        pcall(function ()
+            for _, region in frame:EnumerateActiveFontStrings() do
+                add_region(region)
+                if #regions >= 100 then break end
+            end
+        end)
+    end
     local line_count = tonumber(_G.NUM_COMBAT_TEXT_LINES) or 20
-    local saw_visible = false
     for index = 1, math.min(line_count, 100) do
-        local region = _G["CombatText" .. index]
+        add_region(_G["CombatText" .. index])
+    end
+    local saw_visible = false
+    for index, region in ipairs(regions) do
         if region then
             local shown_ok, shown = pcall(region.IsShown, region)
             local text_ok, source = pcall(region.GetText, region)
@@ -458,7 +483,8 @@ local function refresh_combat_text()
                 -- A client-global translation may already be Cyrillic before
                 -- resolver/runtime sees the line. Repair that pooled font;
                 -- runtime.apply handles fonts for actual resolver results.
-                if translate_enabled and source:find("[\208\209]") then
+                if translate_enabled and source:find("[\208\209]")
+                    and not runtime.combat_locked() then
                     fonts.apply_to_font_string(region)
                 end
                 local translated = resolver.find_ui(source, region)
@@ -471,6 +497,7 @@ local function refresh_combat_text()
                         owner = "combat-text", slot = "line:" .. index,
                         source = source, translated = translated,
                         option = "translate_string",
+                        combat_text_only = runtime.combat_locked(),
                         priority = runtime.PRIORITY.STATIC_UI,
                     })
                 end
@@ -527,6 +554,21 @@ local function after_social_toast(self)
     })
 end
 
+local function after_combat_text_add_message(message, hook_name)
+    auto_scan.surface_hook("combat-text", hook_name, true, true)
+    if type(message) ~= "string" or is_secret(message) then return end
+    local capture_enabled = options.account
+        and options.account.auto_scan_content == true
+    local translate_enabled = options.can_translate("translate_string")
+        and options.translate_combat_text()
+    if not capture_enabled and not translate_enabled then return end
+    if capture_enabled and type(auto_scan.record_ui) == "function" then
+        auto_scan.record_ui(message, resolver.find_ui(message), "CombatText")
+    end
+    refresh_combat_text()
+    strings.refresh_combat_text()
+end
+
 local function prepare_social_toast()
     local frame = _G.BNToastFrame
     if not frame then return end
@@ -551,8 +593,16 @@ strings.prepare = function ()
     -- before a FontString is exposed.
     strings.refresh_combat_text_globals()
     local hook_name = "CombatText_AddMessage"
-    local available = hooks.global(hook_name, after_combat_text_add_message)
+    local available = hooks.global(hook_name, function (message)
+        after_combat_text_add_message(message, hook_name)
+    end)
     auto_scan.surface_hook("combat-text", hook_name, available, false)
+    local frame_hook = "CombatText:AddMessage"
+    local frame_available = hooks.region(_G.CombatText, "AddMessage",
+        function (_, message)
+            after_combat_text_add_message(message, frame_hook)
+        end)
+    auto_scan.surface_hook("combat-text", frame_hook, frame_available, false)
     -- Hook the live frame: XML copies BNToastMixin methods onto BNToastFrame.
     prepare_social_toast()
 end

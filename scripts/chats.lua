@@ -40,6 +40,7 @@ local known_chat_msg_events = {
 
 local system_chat_events = {
     CHAT_MSG_SYSTEM = true,
+    CHAT_MSG_TEXT_EMOTE = true,
     CHAT_MSG_BN_INLINE_TOAST_ALERT = true,
     CHAT_MSG_LOOT = true,
     CHAT_MSG_MONEY = true,
@@ -595,8 +596,43 @@ local function translate_quest_name(name)
     return entries.lookup_name("quest", name) or name
 end
 
+local emote_patterns
+local function translate_text_emote(message)
+    local templates = chat_catalog.emote_templates
+    if type(templates) ~= "table" then return nil end
+    local exact = templates[message]
+    if exact then return exact end
+    if not emote_patterns then
+        emote_patterns = {}
+        for source, target in pairs(templates) do
+            local masked, count = source:gsub("%%s", "\001")
+            if count > 0 then
+                local pattern = masked:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+                    :gsub("%s+", "%%s+"):gsub("\001", "(.-)")
+                emote_patterns[#emote_patterns + 1] = {
+                    pattern = "^" .. pattern .. "$", target = target,
+                    captures = count, weight = #masked - count,
+                }
+            end
+        end
+        table.sort(emote_patterns, function (a, b)
+            if a.weight == b.weight then return a.pattern < b.pattern end
+            return a.weight > b.weight
+        end)
+    end
+    for _, rule in ipairs(emote_patterns) do
+        local captures = { message:match(rule.pattern) }
+        if #captures == rule.captures then
+            -- Captured actor/target identities are arguments, never format
+            -- strings. Keep hyperlinks, colors and percent signs verbatim.
+            return string_format(rule.target, (_G.unpack or table.unpack)(captures))
+        end
+    end
+end
+
 local function translate_system_text(event, message)
     if type(message) ~= "string" then return nil end
+    if event == "CHAT_MSG_TEXT_EMOTE" then return translate_text_emote(message) end
 
     if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_BN_INLINE_TOAST_ALERT"
         or event == "CHAT_MSG_LOOT"
