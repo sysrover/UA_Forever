@@ -773,6 +773,24 @@ local function translate_bag_filter_list(source)
     return table.concat(translated, ", ")
 end
 
+-- CONTAINER_SLOTS (%d Slot %s) and current ItemSubClass labels in
+-- build 1.60.1.70205, classes 1 (containers) and 11 (quivers).
+local container_names = {
+    Bag = "Сумка",
+    Quiver = "Сагайдак",
+    ["Ammo Pouch"] = "Сумка для набоїв",
+    ["Soul Bag"] = "Сумка душ",
+    ["Herb Bag"] = "Сумка для трав",
+    ["Enchanting Bag"] = "Сумка для зачарування",
+    ["Engineering Bag"] = "Інженерна сумка",
+    ["Mining Bag"] = "Сумка для гірництва",
+    ["Leatherworking Bag"] = "Сумка для шкірництва",
+    ["Tackle Box"] = "Скринька для рибальського приладдя",
+    ["Cooking Bag"] = "Кулінарна сумка",
+    ["Reagent Bag"] = "Сумка для реагентів",
+    ["Trinket Bag"] = "Сумка для аксесуарів",
+}
+
 tooltip.item_line_patterns = {
     { "^DURA (%d+)$", function (amount) return "МІЦН " .. amount end },
     { "^(%d+) Ranks:$", function (amount)
@@ -873,11 +891,9 @@ tooltip.item_line_patterns = {
     { "^Item Level (%d+)$", function (level)
         return "Рівень предмета " .. level
     end },
-    { "^(%d+) Slot Bag$", function (slots)
-        return "Сумка на " .. slots .. " комірок"
-    end },
-    { "^(%d+) Slot Quiver$", function (slots)
-        return "Сагайдак на " .. slots .. " комірок"
+    { "^(%d+) Slot (.+)$", function (slots, kind)
+        local name = container_names[kind]
+        return name and (name .. " на " .. slots .. " комірок") or nil
     end },
     { "^Assigned to: |cffffffff(.-)|r$", function (filters)
         local translated = translate_bag_filter_list(filters)
