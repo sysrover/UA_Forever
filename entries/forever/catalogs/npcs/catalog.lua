@@ -95,7 +95,7 @@ local npc = { -- [id] = { title, description (optional) }
 [258] = { "Джошуа Маклур", "винороб", en="Joshua Maclure" }, -- Joshua Maclure
 [261] = { "вартовий Томас", en="Guard Thomas" }, -- Guard Thomas
 [263] = { "лорд Елло Чорнобривий", "мер Темнодолу", en="Lord Ello Ebonlocke" }, -- Lord Ello Ebonlocke
-[264] = { "командир Альтея Чорнобрива", "лідерка Нічної варти" }, -- Althea Ebonlocke
+[264] = { [1] = "командир Алтея Чорнолок", [2] = "Очільниця Нічної варти", ["en"] = "Commander Althea Ebonlocke" }, -- Althea Ebonlocke
 [265] = { "мадам Єва", en="Madame Eva" }, -- Madame Eva
 [266] = { "Вайлі Чорний", en="Wiley the Black" }, -- Wiley the Black
 [267] = { "писар Долтрі", en="Clerk Daltry" }, -- Clerk Daltry
@@ -275,7 +275,7 @@ local npc = { -- [id] = { title, description (optional) }
 [573] = { "Подрібнювач ворогів 4000", en="Foe Reaper 4000" }, -- Foe Reaper 4000
 [574] = { "Нараксіс", en="Naraxis" }, -- Naraxis
 [575] = { "вогняний елементаль", en="Fire Elemental" }, -- Fire Elemental
-[576] = { "вартова Ладімор", "Нічна варта" }, -- Sarah Ladimore <The Night Watch>
+[576] = { [1] = "вартовий Ладімор", [2] = "Нічна варта", ["en"] = "Watcher Ladimore" }, -- Sarah Ladimore <The Night Watch>
 [578] = { "мурлок-розвідник", en="Murloc Scout" }, -- Murloc Scout
 [579] = { "тінешкурий душогуб", en="Shadowhide Assassin" }, -- Shadowhide Assassin
 [580] = { "багрянокряжовий чорнороб", en="Redridge Drudger" }, -- Redridge Drudger
@@ -780,7 +780,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1206] = { "Скрегатель", en="Gnasher" }, -- Gnasher
 [1207] = { "Булдига", en="Brawler" }, -- Brawler
 [1210] = { "Чок'сул", en="Chok'sul" }, -- Chok'sul
-[1211] = { "лепрогном", en="leper gnome" }, -- leper gnome
+[1211] = { [1] = "Прокажений гном", ["en"] = "Leper Gnome" }, -- leper gnome
 [1212] = { "єпископ Фартинг", en="Bishop Farthing" }, -- Bishop Farthing
 [1213] = { "Ґодрік Ротґар", "броняр та майстер щитів", en="Godric Rothgar" }, -- Godric Rothgar <Armorer & Shieldcrafter>
 [1214] = { "Олдрен Кордон", "продавець одягу", en="Aldren Cordon" }, -- Aldren Cordon <Clothier>
@@ -832,7 +832,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1270] = { "смердючий труп", en="Fetid Corpse" }, -- Fetid Corpse
 [1271] = { "старий Кригоборід", en="Old Icebeard" }, -- Old Icebeard
 [1273] = { "Ґраун Тромвін", "зброяр", en="Grawn Thromwyn" }, -- Grawn Thromwyn <Weaponsmith>
-[1274] = { "сенатор Берін Червонокамінь" }, -- Barin Redstone
+[1274] = { [1] = "сенатор Барін Червонокамінь", ["en"] = "Senator Barin Redstone" }, -- Barin Redstone
 [1275] = { "Кіра Буше", "продавчиня реагентів", en="Kyra Boucher" }, -- Kyra Boucher <Reagent Vendor>
 [1276] = { [1] = "Горянин Брокк", ["en"] = "Mountaineer Brokk" }, -- Mountaineer Brokk
 [1277] = { "горянин Ганін", en="Mountaineer Ganin" }, -- Mountaineer Ganin
@@ -897,7 +897,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1340] = { [1] = "Горянин Кадрелл", ["en"] = "Mountaineer Kadrell" }, -- Mountaineer Kadrell
 [1341] = { "Вільгельм Дивин", "продавець кольчужних обладунків", en="Wilhelm Strang" }, -- Wilhelm Strang <Mail Armor Merchant>
 [1342] = { [1] = "Горянин Рокґар", ["en"] = "Mountaineer Rockgar" }, -- Mountaineer Rockgar
-[1343] = { "горянин Бурешпиль" }, -- Gringer Stormpike
+[1343] = { [1] = "горянин Грозова Вершина", ["en"] = "Mountaineer Stormpike" }, -- Gringer Stormpike
 [1344] = { "розвідувач Залізоплет", en="Prospector Ironband" }, -- Prospector Ironband
 [1345] = { "Маґмар Люторуб", en="Magmar Fellhew" }, -- Magmar Fellhew
 [1346] = { "Джорджіо Болеро", "кравець-ремісник", en="Georgio Bolero" }, -- Georgio Bolero <Artisan Tailor>
@@ -1261,7 +1261,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1854] = { "верховний жрець Тель'даніс", en="High Priest Thel'danis" }, -- High Priest Thel'danis
 [1855] = { "Тіріон Фордрінґ", "орден Сріблястої Десниці", en="Tirion Fordring" }, -- Tirion Fordring
 [1860] = { [1] = "Порожняк", ["en"] = "Voidwalker" }, -- Voidwalker
-[1863] = { "сукуб", en="succubus" }, -- succubus
+[1863] = { [1] = "суккуб", ["en"] = "Succubus" }, -- succubus
 [1865] = { "рейдер Воронокігтя", en="Ravenclaw Raider" }, -- Ravenclaw Raider
 [1866] = { "невільник Воронокігтя", en="Ravenclaw Slave" }, -- Ravenclaw Slave
 [1867] = { "даларанський учень", en="Dalaran Apprentice" }, -- Dalaran Apprentice
@@ -2004,7 +2004,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2781] = { "доглядач Вестон", en="Caretaker Weston" }, -- Caretaker Weston
 [2782] = { "доглядач Аларік", en="Caretaker Alaric" }, -- Caretaker Alaric
 [2783] = { "Марез Каптур", en="Marez Cowl" }, -- Marez Cowl
-[2784] = { "король Маґні Бронзобородий", "лорд Залізогарта" }, -- Magni Bronzebeard
+[2784] = { [1] = "король Маґні Бронзобородий", [2] = "Володар Стальгорна", ["en"] = "King Magni Bronzebeard" }, -- Magni Bronzebeard
 [2785] = { "Тельдурін Загублений", en="Theldurin the Lost" }, -- Theldurin the Lost
 [2786] = { [1] = "Ґерріґ Бонеґріп", ["en"] = "Gerrig Bonegrip" }, -- Gerrig Bonegrip
 [2787] = { "Зарук", en="Zaruk" }, -- Zaruk
@@ -2931,15 +2931,15 @@ local npc = { -- [id] = { title, description (optional) }
 [3899] = { "Балізар-Кривдник", en="Balizar the Umbrage" }, -- Balizar the Umbrage
 [3900] = { "Цедакар Порочний", en="Caedakar the Vicious" }, -- Caedakar the Vicious
 [3901] = { "Ілліяна", en="Illiyana" }, -- Illiyana
-[3902] = { "тотем обпалення II" }, -- Searing Totem
+[3902] = { [1] = "Пекучий тотем II", ["en"] = "Searing Totem II" }, -- Searing Totem
 [3903] = { "тотем обпалення III" }, -- Searing Totem
 [3904] = { "тотем обпалення IV" }, -- Searing Totem
-[3906] = { "тотем цілющого потоку II" }, -- Healing Stream Totem
+[3906] = { [1] = "Тотем цілющого потоку II", ["en"] = "Healing Stream Totem II" }, -- Healing Stream Totem
 [3907] = { "тотем цілющого потоку III" }, -- Healing Stream Totem
 [3908] = { "тотем цілющого потоку IV" }, -- Healing Stream Totem
 [3909] = { "тотем цілющого потоку V" }, -- Healing Stream Totem
-[3911] = { "тотем кам'яного пазура II" }, -- Stoneclaw Totem
-[3912] = { "тотем кам'яного пазура III" }, -- Stoneclaw Totem
+[3911] = { [1] = "Тотем кам'яного кігтя II", ["en"] = "Stoneclaw Totem II" }, -- Stoneclaw Totem
+[3912] = { [1] = "Тотем кам'яного кігтя III", ["en"] = "Stoneclaw Totem III" }, -- Stoneclaw Totem
 [3913] = { "тотем кам'яного пазура IV" }, -- Stoneclaw Totem
 [3914] = { "Ретілют", "вартовий в'язниці", en="Rethilgore" }, -- Rethilgore
 [3915] = { "Даґрі", "улюбленець Рене", en="Dagri" }, -- Dagri
@@ -4307,7 +4307,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5855] = { "елементаль магми", en="Magma Elemental" }, -- Magma Elemental
 [5856] = { "кришталевий павук", en="Glassweb Spider" }, -- Glassweb Spider
 [5857] = { "опаляючий лавовий павук", en="Searing Lava Spider" }, -- Searing Lava Spider
-[5858] = { "великий лавовий павук", en="Greater Lava Spider" }, -- Greater Lava Spider
+[5858] = { [1] = "Пекучий лавовий павук", ["en"] = "Searing Lava Spider" }, -- Greater Lava Spider
 [5859] = { "Гаґґ Гроза Тауренів", "чемпіон Бритвогривих", en="Hagg Taurenbane" }, -- Hagg Taurenbane
 [5860] = { "сутінковий темний шаман", en="Twilight Dark Shaman" }, -- Twilight Dark Shaman
 [5861] = { "сутінковий вогнестраж", en="Twilight Fire Guard" }, -- Twilight Fire Guard
@@ -4355,9 +4355,9 @@ local npc = { -- [id] = { title, description (optional) }
 [5915] = { "брат Крукодуб", en="Brother Ravenoak" }, -- Brother Ravenoak
 [5916] = { "стражниця Амарассан", en="Sentinel Amarassan" }, -- Sentinel Amarassan
 [5917] = { "Клара Чарльз", en="Clara Charles" }, -- Clara Charles
-[5919] = { "тотем кам'яної шкіри II" }, -- Stoneskin Totem
-[5920] = { "тотем кам'яної шкіри III" }, -- Stoneskin Totem
-[5921] = { "тотем сили землі II" }, -- Strength of Earth Totem
+[5919] = { [1] = "Тотем кам'яної шкіри II", ["en"] = "Stoneskin Totem II" }, -- Stoneskin Totem
+[5920] = { [1] = "Тотем кам'яної шкіри III", ["en"] = "Stoneskin Totem III" }, -- Stoneskin Totem
+[5921] = { [1] = "Тотем сили землі II", ["en"] = "Strength of Earth Totem II" }, -- Strength of Earth Totem
 [5922] = { "тотем сили землі III" }, -- Strength of Earth Totem
 [5923] = { [1] = "Тотем очищення від отрути", ["en"] = "Poison Cleansing Totem" }, -- Poison Cleansing Totem
 [5924] = { "тотем очищення хвороб", en="Disease Cleansing Totem" }, -- Disease Cleansing Totem
@@ -5230,7 +5230,7 @@ local npc = { -- [id] = { title, description (optional) }
 [7917] = { "брат Сарно", en="Brother Sarno" }, -- Brother Sarno
 [7918] = { "кам'яний наглядач Норґаннона" }, -- Norgannon
 [7936] = { "Ліон Згіросерд", en="Lyon Mountainheart" }, -- Lyon Mountainheart
-[7937] = { "Верховний штукар Меккакруть", "король гномів" }, -- Gelbin Mekkatorque
+[7937] = { [1] = "Верховний механік Меккаторк", [2] = "Король гномів", ["en"] = "High Tinker Mekkatorque" }, -- Gelbin Mekkatorque
 [7939] = { "стражниця Перомісяця", en="Feathermoon Sentinel" }, -- Feathermoon Sentinel
 [7940] = { "Дарналл", "кравецькі припаси", en="Darnall" }, -- Darnall <Tailoring Supplies>
 [7941] = { "Мардрак Зелена Криниця", "їжа та напої", en="Mardrack Greenwell" }, -- Mardrack Greenwell <Food & Drink>
@@ -8639,7 +8639,7 @@ local npc = { -- [id] = { title, description (optional) }
 [184361] = { "образ Шаззраха" }, -- Shazzrah
 [184367] = { "гончак ядра", "породження Магмадара" }, -- Core Hound
 [184410] = { "вартовий Оніксії" }, -- Onyxia
-[185317] = { "інкуб", en="incubus" }, -- incubus
+[185317] = { [1] = "інкуб", ["en"] = "Incubus" }, -- incubus
 [185331] = { "проєкція Авеліни Ліллі" }, -- Avelina Lilly
 [185332] = { "проєкція Айзека Пірсона" }, -- Isaac Pearson
 [185333] = { "Авеліна Ліллі", en="Avelina Lilly" }, -- Avelina Lilly
@@ -8772,6 +8772,69 @@ local npc = { -- [id] = { title, description (optional) }
 [271351] = { [1] = "Відвойовувач Драконової Пащі", ["en"] = "Dragonmaw Reclaimer" },
 [271866] = { [1] = "Вартовий Нічної варти", en = "Night Watch Guard" },
 [272284] = { [1] = "Загублений захисник", en = "Lost Defender" },
+[7556] = { [1] = "Пугач", ["en"] = "Eagle Owl" },
+[13155] = { [1] = "агент Смертоловів", ["en"] = "Deathstalker Agent" },
+[165189] = { [1] = "Звичайний вихованець мисливця", ["en"] = "Generic Hunter Pet" },
+[211967] = { [1] = "Труп кровососа-переслідувача", ["en"] = "Leech Stalker Corpse" },
+[214589] = { [1] = "Затишний спальний мішок", ["en"] = "Cozy Sleeping Bag" },
+[228443] = { [1] = "[DNT] Випробування", ["en"] = "[DNT] Challenge" },
+[247223] = { [1] = "Ненсі Піснеквітка", [2] = "Молодший учитель травництва", ["en"] = "Nancy Songflower" },
+[248415] = { [1] = "Тордрін Сувороклин", [2] = "Учитель мисливців", ["en"] = "Tordrin Sternblade" },
+[250630] = { [1] = "Чумний гуль", ["en"] = "Plague Ghoul" },
+[254108] = { [1] = "Переслідувач", ["en"] = "Stalker" },
+[257597] = { [1] = "Брюґс Жарород", ["en"] = "Bruegs Kindleborn" },
+[259023] = { [1] = "Вейрік Громогнів", ["en"] = "Veyric Thunderhame" },
+[260796] = { [1] = "Болотяний кроколіск", ["en"] = "Marsh Crocolisk" },
+[260797] = { [1] = "Старий кроколіск", ["en"] = "Elder Crocolisk" },
+[260803] = { [1] = "Павук нагір'я", ["en"] = "Highland Spider" },
+[260804] = { [1] = "Нагірний потайник", ["en"] = "Highland Lurker" },
+[260808] = { [1] = "Жах нагір'я", ["en"] = "Highland Horror" },
+[260809] = { [1] = "Нагірна черепаха", ["en"] = "Highland Tortoise" },
+[261306] = { [1] = "Фалдрім Ковмар", ["en"] = "Faldrim Anvilmar" },
+[263389] = { [1] = "Розлючена примара", ["en"] = "Enraged Apparition" },
+[263390] = { [1] = "Змучена душа", ["en"] = "Tormented Soul" },
+[263396] = { [1] = "Мародер Темного Заліза", ["en"] = "Dark Iron Looter" },
+[263470] = { [1] = "Щеня кровошука", ["en"] = "Bloodhound Runt" },
+[264632] = { [1] = "Сестричка", ["en"] = "Sister" },
+[264634] = { [1] = "Лео", ["en"] = "Leo" },
+[264636] = { [1] = "Бастер", ["en"] = "Buster" },
+[264638] = { [1] = "Келлі", ["en"] = "Callie" },
+[264639] = { [1] = "Бебе", ["en"] = "Bebe" },
+[265346] = { [1] = "Ауріан Високогай", [2] = "Бармен", ["en"] = "Aurian Highgrove" },
+[265347] = { [1] = "Бгалір Вогневар", [2] = "Кухар", ["en"] = "Bhalir Firebrew" },
+[265348] = { [1] = "Аґріель Вогневар", ["en"] = "Agriel Firebrew" },
+[266735] = { [1] = "Збудливий слиз", ["en"] = "Excitable Slime" },
+[267473] = { [1] = "Бурий баран", ["en"] = "Brown Ram" },
+[267474] = { [1] = "Білий баран", ["en"] = "White Ram" },
+[267475] = { [1] = "Сірий баран", ["en"] = "Gray Ram" },
+[267684] = { [1] = "Зелений механодоліт", ["en"] = "Green Mechanostrider" },
+[268313] = { [1] = "Чорний жеребець", ["en"] = "Black Stallion" },
+[268314] = { [1] = "Бурий кінь", ["en"] = "Brown Horse" },
+[268316] = { [1] = "Гніда кобила", ["en"] = "Chestnut Mare" },
+[268318] = { [1] = "Рябий кінь", ["en"] = "Pinto" },
+[268744] = { [1] = "Жаба-фамільяр", ["en"] = "Frog Familiar" },
+[270313] = { [1] = "Звичайний кролик", ["en"] = "Generic Bunny" },
+[270589] = { [1] = "Гнилокупа Нічної Запони", ["en"] = "Nightveiled Rotheap" },
+[270844] = { [1] = "Сілесса Сутінкошепіт", ["en"] = "Sylessa Duskwhisper" },
+[271334] = { [1] = "Збожеволілий Гнилокіготь", ["en"] = "Maddened Rotclaw" },
+[271346] = { [1] = "Проникник Драконової Пащі", ["en"] = "Dragonmaw Infiltrator" },
+[271348] = { [1] = "Заклинач душ Драконової Пащі", ["en"] = "Dragonmaw Soulbinder" },
+[271368] = { [1] = "Білка Тіньового Шквалу", ["en"] = "Shadowgale Squirrel" },
+[271373] = { [1] = "Підкорений драконід", ["en"] = "Subdued Dragonspawn" },
+[272291] = { [1] = "Загублений лицар", ["en"] = "Lost Knight" },
+[272309] = { [1] = "Такс", ["en"] = "Tux" },
+[272310] = { [1] = "Мокка", ["en"] = "Mocha" },
+[272614] = { [1] = "Кеппі", ["en"] = "Cappy" },
+[272914] = { [1] = "Кіт", ["en"] = "Cat" },
+[272944] = { [1] = "Пес", ["en"] = "Dog" },
+[273391] = { [1] = "Малюк-кроколіск", ["en"] = "Baby Crocolisk" },
+[274081] = { [1] = "Принцеса", ["en"] = "Princess" },
+[274334] = { [1] = "Пташеня довгонога", ["en"] = "Tallstrider Hatchling" },
+[276078] = { [1] = "Робітник Сутінкового Молота", ["en"] = "Twilight Laborer" },
+[276737] = { [1] = "Швидкий сірий баран", ["en"] = "Swift Gray Ram" },
+[276779] = { [1] = "Швидкий бурий баран", ["en"] = "Swift Brown Ram" },
+[276783] = { [1] = "Швидкий білий баран", ["en"] = "Swift White Ram" },
+[277037] = { [1] = "Пелла Латунна Щітка", [2] = "Перукар", ["en"] = "Pella Brassbrush" },
 }
 
 if addonTable.npc then
