@@ -83,8 +83,12 @@ local function declare_hooks()
     registry.declare_hook({
         id = "achievement-alert.setup",
         surface = "achievement-alert",
-        kind = "global",
-        target = "AchievementAlertFrame_SetUp",
+        -- The queue captures the setup function before addon initialization.
+        -- Hook its stored callback: a global hook misses this cached reference.
+        -- The queue calls it without self, so translate_alert receives the frame.
+        kind = "frame",
+        target = "AchievementAlertSystem",
+        method = "setUpFunction",
         required = true,
         fallbackEvent = "ACHIEVEMENT_EARNED",
         verifiedBuild = 70205,

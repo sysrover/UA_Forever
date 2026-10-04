@@ -443,7 +443,7 @@ registry.register_defaults = function (translate_frame)
         clear_on_reuse = true })
     registry.register_surface({ id = "achievement-alert", roots = {},
         domains = { "ui" }, slots = { "achievement.name", "ui.title" },
-        dynamic_hooks = { "AchievementAlertFrame_SetUp" },
+        dynamic_hooks = { "AchievementAlertSystem.setUpFunction" },
         clear_on_reuse = true })
     registry.register_surface({ id = "achievement-ui", roots = {},
         domains = {},
