@@ -783,6 +783,72 @@ local function translate_bag_assignment(filters)
         .. translated .. (color and "|r" or "")) or nil
 end
 
+-- Rendered food/drink effects vary by amount, stat and server bonuses.
+-- Consume the entire effect; an unknown suffix must never be discarded.
+local function translate_consumable_use(source)
+    local body = source:match("^Use:%s*(.+)$")
+    if not body then return nil end
+    local cooldown = ""
+    local core, amount, unit = body:match(
+        "^(.-)%s*%(([%d%.,]+)%s+([%a]+)%s+[Cc]ooldown%)$")
+    if not core then
+        local singular, plural
+        core, amount, singular, plural = body:match(
+            "^(.-)%s*%(([%d%.,]+)%s+|4([^:;]+):([^;]+);%s+[Cc]ooldown%)$")
+        if core then
+            unit = tonumber((amount:gsub(",", "."))) == 1 and singular or plural
+        end
+    end
+    if core then
+        cooldown = tooltip.format.item_cooldown(amount, unit)
+        if not cooldown then return nil end
+        body = core
+    end
+
+    local restored, resource, duration, rest = body:match(
+        "^Restores ([%d%.,]+) ([%a]+) over ([%d%.,]+) sec%.%s*(.*)$")
+    local resource_name = resource == "health" and "здоров’я"
+        or resource == "mana" and "мани"
+    if not resource_name then return nil end
+    local action, tail = rest:match("^Must remain seated while ([%a]+)%.%s*(.*)$")
+    local action_name = action == "eating" and "їжі"
+        or action == "drinking" and "пиття"
+    if not action_name then return nil end
+    local result = "Використання: відновлює " .. restored .. " " .. resource_name
+        .. " протягом " .. duration .. " с. Під час " .. action_name
+        .. " потрібно сидіти."
+
+    if tail:match("^If you spend at least ") then
+        local wait, wait_unit, eating, bonus, stats, minutes, remaining = tail:match(
+            "^If you spend at least ([%d%.,]+) ([%a]+) ([%a]+),? you will become well fed and gain ([%d%.,]+) (.-) for ([%d%.,]+) min%.%s*(.*)$")
+        if not wait or (wait_unit ~= "sec" and wait_unit ~= "seconds"
+            and wait_unit ~= "second") or (eating ~= "eating" and eating ~= "drinking") then
+            return nil
+        end
+        local translated_stats = {}
+        for stat in (stats .. " and "):gmatch("(.-) and ") do
+            local name = item_stat_name(stat)
+                or (stat == "Healing Power" and "сили зцілення")
+            if not name then return nil end
+            translated_stats[#translated_stats + 1] = name
+        end
+        if #translated_stats == 0 then return nil end
+        result = result .. " Якщо " .. (eating == "eating" and "їсти" or "пити")
+            .. " щонайменше " .. wait .. " с, ви насититеся й отримаєте "
+            .. bonus .. " од. " .. table.concat(translated_stats, " та ")
+            .. " на " .. minutes .. " хв."
+        tail = remaining
+    end
+    if tail ~= "" then
+        local experience = tail:match(
+            "^Additionally, experience gained from kills is increased by ([%d%.,]+)%%%.$")
+        if not experience then return nil end
+        result = result .. " Крім того, досвід за вбивства збільшується на "
+            .. experience .. "%."
+    end
+    return result .. cooldown
+end
+
 -- CONTAINER_SLOTS (%d Slot %s) and current ItemSubClass labels in
 -- build 1.60.1.70205, classes 1 (containers) and 11 (quivers).
 local container_names = {
@@ -1398,7 +1464,8 @@ end
 
 local function translate_plain_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
-    local translated = tooltip.item_line_exact[source]
+    local translated = translate_consumable_use(source)
+        or tooltip.item_line_exact[source]
         or tooltip.comparison_item_labels[source]
     if translated then return translated end
     local reference = tonumber(source:match("^%$@spelldesc(%d+)$"))

@@ -26,6 +26,9 @@ local SPELL_NAME = 13
 local SPELL_PASSIVE = 33
 local SPELL_DESCRIPTION = 34
 local ITEM_NAME = 22
+local ITEM_SPELL_USE = 44
+local ITEM_SPELL_EQUIP = 45
+local ITEM_SPELL_PROC = 46
 local UNTYPED_LINE = 0
 
 adapter.translate_crafting_requirements = function (source, spell_id)
@@ -223,6 +226,24 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                                 tooltip, region, source,
                                 prefix .. utils.cap(translated) .. suffix,
                                 "spell.crafted-item.name", "item", "spell-tooltip"
+                            ) or applied
+                        end
+                    end
+                elseif line_type == ITEM_SPELL_USE or line_type == ITEM_SPELL_EQUIP
+                    or line_type == ITEM_SPELL_PROC then
+                    if region and options.can_translate("translate_item")
+                        and (not options.section_enabled
+                            or options.section_enabled("item_details")) then
+                        -- Use the rendered row: TooltipData can still contain
+                        -- unresolved plural tokens in the cooldown suffix.
+                        local visible = contract.tooltip_line(tooltip, "Left", line_index)
+                        local native = contract.safe_string(visible) or source
+                        local translated = native and catalog.translate_item_line(native)
+                        if translated then
+                            applied = contract.set_translation(
+                                tooltip, region, native, translated,
+                                "item.crafted-effect:" .. line_type .. ":" .. line_index,
+                                nil, "spell-tooltip", "tooltip-adapter"
                             ) or applied
                         end
                     end
