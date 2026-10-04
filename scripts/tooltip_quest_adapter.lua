@@ -172,9 +172,81 @@ adapter.translate_embedded = function (tooltip)
     return applied
 end
 
+adapter.party_progress_data = function (tooltip, id, data)
+    local contract = deps()
+    if data == nil and tooltip and type(tooltip.GetTooltipData) == "function" then
+        local ok, value = pcall(tooltip.GetTooltipData, tooltip)
+        if ok then data = value end
+    end
+    local types = _G.Enum and _G.Enum.TooltipDataType
+    if type(data) == "table" and not runtime.is_secret_value(data)
+        and types and types.QuestPartyProgress
+        and contract.safe_number(data.type) == types.QuestPartyProgress
+        and contract.safe_number(data.id) == id
+        and type(data.lines) == "table" and not runtime.is_secret_value(data.lines) then
+        return data
+    end
+end
+
+local function add_party_progress(tooltip, id, data)
+    local contract = deps()
+    local entry = entries.get_entry("quest", id)
+    local types = _G.Enum and _G.Enum.TooltipDataLineType
+    if not types then return false end
+    local applied, generic_indexes = false, {}
+    tooltip.uaForeverReservedFirst = 2
+    -- 70205 identifies title, player and objective rows separately. Never
+    -- resolve a player's name through the quest task or UI dictionaries.
+    for _, line in ipairs(data.lines) do
+        if type(line) == "table" and not runtime.is_secret_value(line) then
+            local index = contract.safe_number(line.lineIndex)
+                or contract.safe_number(line.index)
+            local line_type = contract.safe_number(line.type)
+            if index and index >= 1 and index <= contract.max_lines
+                and index == math.floor(index) then
+                local visible, region = contract.tooltip_line(tooltip, "Left", index)
+                visible = contract.safe_string(visible)
+                local claim = region and runtime.get(region)
+                local source = claim and claim.owner == "quest-tooltip"
+                    and visible == claim.translated and claim.source or visible
+                source = contract.safe_string(source)
+                local translated, title
+                if line_type == types.QuestTitle then
+                    title = true
+                    translated = entry and contract.make_text(entry[1], tooltip)
+                elseif line_type == types.QuestObjective then
+                    generic_indexes[index] = true
+                    if source then
+                        local ok, value = pcall(entries.translate_quest_objective_task, source, id)
+                        if ok and type(value) == "string" and value ~= source then
+                            translated = value
+                        end
+                    end
+                end
+                if source and region and translated and translated ~= source then
+                    applied = contract.set_translation(tooltip, region, source, translated,
+                        title and "quest.name" or "quest.objective:" .. index,
+                        title and "quest" or nil, "quest-tooltip") or applied
+                end
+            end
+        end
+    end
+    -- Status messages such as Not on quest use the existing UI formatter;
+    -- only native objective rows are eligible for that pass.
+    return contract.rewrite_generic(tooltip, nil, 2, nil, nil, nil,
+        generic_indexes) > 0 or applied
+end
+
 adapter.add = function (tooltip, id, skip_title, data)
     local contract = deps()
     if not options.can_lookup("translate_quest") then return false end
+    local party_data = adapter.party_progress_data(tooltip, id, data)
+    if party_data then
+        if tooltip.uaForeverShowOriginal or not options.can_translate("translate_quest") then
+            return false
+        end
+        return add_party_progress(tooltip, id, party_data)
+    end
     local entry = entries.get_entry("quest", id)
     if not entry or not options.can_translate("translate_quest") then
         return false

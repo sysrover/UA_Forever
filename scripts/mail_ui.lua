@@ -104,6 +104,28 @@ local function translate_open_mail_button(button)
     if ok then translate_mail_region(region) end
 end
 
+local function update_inbox_row(index)
+    local prefix = "MailItem" .. index
+    local expire = _G[prefix .. "ExpireTime"]
+    hooks.region(expire, "SetText", translate_open_mail_button)
+    hooks.region(expire, "SetFormattedText", translate_open_mail_button)
+    translate_open_mail_button(expire)
+
+    -- Native Update has finished assigning the row's current mail index.
+    -- Only auction invoices own translatable sender/subject text. Do not
+    -- retain SetText hooks when this row is reused for a player's letter.
+    local button = _G[prefix .. "Button"]
+    local mail_id = button and button.index
+    if runtime.is_secret_value(mail_id) or type(mail_id) ~= "number"
+        or type(_G.GetInboxText) ~= "function" then return end
+    local ok, _, _, _, _, invoice = pcall(_G.GetInboxText, mail_id)
+    if not ok or runtime.is_secret_value(invoice) or invoice ~= true then return end
+    strings.translate_region(_G[prefix .. "Subject"], nil, "mail.subject",
+        registry.get("mail"), nil, nil, "mail")
+    strings.translate_region(_G[prefix .. "Sender"], nil, "mail.sender",
+        registry.get("mail"), nil, nil, "mail")
+end
+
 local function update_open_mail_controls()
     for _, name in ipairs(open_mail_labels) do
         translate_mail_region(_G[name])
@@ -186,6 +208,7 @@ local function update_inbox_controls()
     end
     for index = 1, 7 do
         translate_mail_region(_G["MailItem" .. index .. "ButtonCOD"])
+        update_inbox_row(index)
     end
     for _, denomination in ipairs({ "Gold", "Silver", "Copper" }) do
         local money = _G["SendMailMoney" .. denomination]
@@ -212,8 +235,9 @@ local function translate_attachment_tooltip(owner)
         or type(tooltips.finalize) ~= "function" then return end
     local ok, owned = pcall(tooltip.IsOwned, tooltip, owner)
     if not ok or runtime.is_secret_value(owned) or not owned then return end
-    -- 70170 assigns this handler to owner.UpdateTooltip. Each refresh clears
-    -- the session and rewrites ATTACHMENT_TEXT, so finish in the same call.
+    -- SendMailAttachment_OnEnter can also run through owner.UpdateTooltip.
+    -- InboxFrameItem_OnEnter appends money/COD rows after item processing.
+    -- Finish only after the native handler has written all of its lines.
     -- The shared finalizer preserves item ownership and original-text mode.
     tooltips.finalize(tooltip)
 end
@@ -231,6 +255,16 @@ local function declare_mail_hooks()
         fallbackEvent = "MAIL_INBOX_UPDATE",
         verifiedBuild = "1.60.1.70205",
         callback = update_inbox_controls,
+    })
+    registry.declare_hook({
+        id = "mail.inbox.attachment-tooltip",
+        surface = "mail",
+        kind = "global",
+        target = "InboxFrameItem_OnEnter",
+        blizzardAddon = "Blizzard_MailFrame",
+        required = true,
+        verifiedBuild = "1.60.1.70205",
+        callback = translate_attachment_tooltip,
     })
     registry.declare_hook({
         id = "mail.send.attachment-tooltip",

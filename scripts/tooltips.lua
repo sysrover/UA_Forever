@@ -1522,6 +1522,12 @@ local function translate_generic_tooltip(tooltip)
         -- adapter during the already scheduled final pass so those late rows
         -- receive their quest-specific task translations as well.
         if tooltip.uaForeverKind == "quest" and tooltip.uaForeverID then
+            local party_data = quest_adapter.party_progress_data(
+                tooltip, tooltip.uaForeverID)
+            if party_data then
+                quest_adapter.add(tooltip, tooltip.uaForeverID, false, party_data)
+                return
+            end
             quest_adapter.add(tooltip, tooltip.uaForeverID,
                 tooltip.uaForeverReservedFirst == 1)
         end
@@ -2625,6 +2631,16 @@ tooltips.prepare = function ()
     if types.Quest then
         TooltipDataProcessor.AddTooltipPostCall(types.Quest, function (tooltip, data)
             safe_process(tooltip, data, "quest")
+        end)
+    end
+    if types.QuestPartyProgress then
+        TooltipDataProcessor.AddTooltipPostCall(types.QuestPartyProgress, function (tooltip, data)
+            -- A native rebuild may change counters and group members while
+            -- the tooltip remains shown. Start a fresh claim generation each
+            -- time, then cover any rows appended after the structured call.
+            if not tooltip_work_enabled("quest") then return end
+            safe_process(tooltip, data, "quest", true)
+            schedule_tooltip_finalize(tooltip)
         end)
     end
     if types.Object then
