@@ -11,7 +11,7 @@ local npc = { -- [id] = { title, description (optional) }
 [40] = { "кобольд-шахтар", en="Kobold Miner" }, -- Kobold Miner
 [43] = { "шахтний павук", en="Mine Spider" }, -- Mine Spider
 [46] = { "мурлок-здобувач", en="Murloc Forager" }, -- Murloc Forager
-[48] = { "скелетний воїн", en="Skeletal Warrior" }, -- Skeletal Warrior
+[48] = { [1] = "Скелет-воїн", ["en"] = "Skeletal Warrior" }, -- Skeletal Warrior
 [54] = { "Коріна Стіл", "зброярка", en="Corina Steele" }, -- Corina Steele <Weaponsmith>
 [60] = { "Руклар-Капканник", en="Ruklar the Trapper" }, -- Ruklar the Trapper
 [61] = { "Турос Спритнорук", en="Thuros Lightfingers" }, -- Thuros Lightfingers
@@ -40,7 +40,7 @@ local npc = { -- [id] = { title, description (optional) }
 [119] = { "довгорил", en="Longsnout" }, -- Longsnout
 [121] = { "вистежувач Непокірних", en="Defias Pathstalker" }, -- Defias Pathstalker
 [122] = { "нальотник Непокірних", en="Defias Highwayman" }, -- Defias Highwayman
-[123] = { "річколапа дворняга", en="Riverpaw Mongrel" }, -- Riverpaw Mongrel
+[123] = { [1] = "Дворняга Річкової Лапи", ["en"] = "Riverpaw Mongrel" }, -- Riverpaw Mongrel
 [124] = { "річколапий моцак", en="Riverpaw Brute" }, -- Riverpaw Brute
 [125] = { "річколапий розпорядник", en="Riverpaw Overseer" }, -- Riverpaw Overseer
 [126] = { "мурлок-берегобігун", en="Murloc Coastrunner" }, -- Murloc Coastrunner
@@ -58,7 +58,7 @@ local npc = { -- [id] = { title, description (optional) }
 [198] = { "Хелден Бремен", "тренер магів", en="Khelden Bremen" }, -- Khelden Bremen <Mage Trainer>
 [199] = { "молодий плотодер", en="Young Fleshripper" }, -- Young Fleshripper
 [202] = { "скелетне страховище", en="Skeletal Horror" }, -- Skeletal Horror
-[203] = { "скелетний маг", en="Skeletal Mage" }, -- Skeletal Mage
+[203] = { [1] = "Скелет-маг", ["en"] = "Skeletal Mage" }, -- Skeletal Mage
 [205] = { "темний вісник Ночегибелі", en="Nightbane Dark Runner" }, -- Nightbane Dark Runner
 [206] = { "злобне ікло Ночегибелі", en="Nightbane Vile Fang" }, -- Nightbane Vile Fang
 [210] = { "кісткогриз", en="Bone Chewer" }, -- Bone Chewer
@@ -130,7 +130,7 @@ local npc = { -- [id] = { title, description (optional) }
 [311] = { "Свен Йорґен", en="Sven Yorgen" }, -- Sven Yorgen
 [313] = { "Теокріт", "маг вежі Азори", en="Theocritus" }, -- Theocritus
 [314] = { "Еліза", "наречена Бальзамувальника", en="Eliza" }, -- Eliza
-[315] = { "Сталван Імлокрив", en="Stalvan Mistmantle" }, -- Stalvan Mistmantle
+[315] = { [1] = "Сталван Містмантле", ["en"] = "Stalvan Mistmantle" }, -- Stalvan Mistmantle
 [325] = { "Гоґан Ференс", en="Hogan Ference" }, -- Hogan Ference
 [327] = { "Золотозуб", en="Goldtooth" }, -- Goldtooth
 [328] = { "Зальдімар Вефхельт", "тренер магів", en="Zaldimar Wefhellt" }, -- Zaldimar Wefhellt <Mage Trainer>
@@ -173,8 +173,8 @@ local npc = { -- [id] = { title, description (optional) }
 [397] = { "Морґант", en="Morganth" }, -- Morganth
 [412] = { "Стібок", "подарунок від Бальзамувальника", en="Stitches" }, -- Stitches
 [415] = { "Вернер Осґуд", en="Verner Osgood" }, -- Verner Osgood
-[416] = { "біс", en="Imp" }, -- Imp
-[417] = { "скверногонча", en="Felhunter" }, -- Felhunter
+[416] = { [1] = "Біс", ["en"] = "Imp" }, -- Imp
+[417] = { [1] = "Скверногонча", ["en"] = "Felhunter" }, -- Felhunter
 [422] = { "мурлок-живоїд", en="Murloc Flesheater" }, -- Murloc Flesheater
 [423] = { "багрянокряжова дворняга", en="Redridge Mongrel" }, -- Redridge Mongrel
 [424] = { "багрянокряжовий браконьєр", en="Redridge Poacher" }, -- Redridge Poacher
@@ -185,7 +185,7 @@ local npc = { -- [id] = { title, description (optional) }
 [431] = { "тінешкурий вбивця", en="Shadowhide Slayer" }, -- Shadowhide Slayer
 [432] = { "тінешкурий моцак", en="Shadowhide Brute" }, -- Shadowhide Brute
 [433] = { "тінешкурий гнол", en="Shadowhide Gnoll" }, -- Shadowhide Gnoll
-[434] = { "скажений тінешкурий гнол", en="Rabid Shadowhide Gnoll" }, -- Rabid Shadowhide Gnoll
+[434] = { [1] = "Скажений ґнол Тінешкурих", ["en"] = "Rabid Shadowhide Gnoll" }, -- Rabid Shadowhide Gnoll
 [435] = { "чемпіон Чорнокаменю", en="Blackrock Champion" }, -- Blackrock Champion
 [436] = { "тінемов Чорнокаменю", en="Blackrock Shadowcaster" }, -- Blackrock Shadowcaster
 [437] = { "відступник Чорнокаменю", en="Blackrock Renegade" }, -- Blackrock Renegade
@@ -219,7 +219,7 @@ local npc = { -- [id] = { title, description (optional) }
 [475] = { "кобольд-прохідник", en="Kobold Tunneler" }, -- Kobold Tunneler
 [476] = { "кобольд-геомант", en="Kobold Geomancer" }, -- Kobold Geomancer
 [478] = { "річколапий вістовий", en="Riverpaw Outrunner" }, -- Riverpaw Outrunner
-[480] = { "іржавий жнивальний голем", en="Rusty Harvest Golem" }, -- Rusty Harvest Golem
+[480] = { [1] = "Іржавий жниварський голем", ["en"] = "Rusty Harvest Golem" }, -- Rusty Harvest Golem
 [481] = { "харциз Непокірних", en="Defias Footpad" }, -- Defias Footpad
 [482] = { "Еллінг Тріас", "майстер сироваріння", en="Elling Trias" }, -- Elling Trias
 [483] = { "Елейн Тріас", "майстриня сироваріння", en="Elaine Trias" }, -- Elaine Trias
@@ -258,7 +258,7 @@ local npc = { -- [id] = { title, description (optional) }
 [531] = { "скелетний марник", en="Skeletal Fiend" }, -- Skeletal Fiend
 [533] = { "тіньовий ткач Ночегибелі", en="Nightbane Shadow Weaver" }, -- Nightbane Shadow Weaver
 [534] = { "Мерзен", en="Nefaru" }, -- Nefaru
-[539] = { "карликовий отруйний колопряд", en="Pygmy Venom Web Spider" }, -- Pygmy Venom Web Spider
+[539] = { [1] = "Карликовий павук Отруйної Павутини", ["en"] = "Pygmy Venom Web Spider" }, -- Pygmy Venom Web Spider
 [541] = { "їздовий грифон", en="Riding Gryphon" }, -- Riding Gryphon
 [543] = { "Налізетта Шаленородна", "дресирувальниця", en="Nalesette Wildbringer" }, -- Nalesette Wildbringer <Pet Trainer>
 [544] = { "мурлок-крагулець", en="Murloc Nightcrawler" }, -- Murloc Nightcrawler
@@ -266,7 +266,7 @@ local npc = { -- [id] = { title, description (optional) }
 [547] = { "великий іклоштрик", en="Great Goretusk" }, -- Great Goretusk
 [548] = { "мурлок-молодший хвилезов", en="Murloc Minor Tidecaller" }, -- Murloc Minor Tidecaller
 [550] = { "гонець Непокірних", en="Defias Messenger" }, -- Defias Messenger
-[565] = { "скажений зловісний вовк", en="Rabid Dire Wolf" }, -- Rabid Dire Wolf
+[565] = { [1] = "Скажений лютововк", ["en"] = "Rabid Dire Wolf" }, -- Rabid Dire Wolf
 [567] = { "Чорнокіготь", en="Blacknails" }, -- Blacknails
 [568] = { "тінешкурий воїн", en="Shadowhide Warrior" }, -- Shadowhide Warrior
 [569] = { "зелений самітник", en="Green Recluse" }, -- Green Recluse
@@ -371,10 +371,10 @@ local npc = { -- [id] = { title, description (optional) }
 [716] = { "Барніл Камнекухоль", en="Barnil Stonepot" }, -- Barnil Stonepot
 [717] = { "Барвина Гіняй", en="Ajeck Rouack" }, -- Ajeck Rouack
 [718] = { "пан Йарс Имин", en="Sir S. J. Erlgadin" }, -- Sir S. J. Erlgadin
-[721] = { "кролик", en="Rabbit" }, -- Rabbit
+[721] = { [1] = "Кролик", ["en"] = "Rabbit" }, -- Rabbit
 [723] = { "мош'оґґський м'ясар", en="Mosh'Ogg Butcher" }, -- Mosh'Ogg Butcher
 [724] = { "кремезний кам'янощелепий трог", en="Burly Rockjaw Trogg" }, -- Burly Rockjaw Trogg
-[727] = { "залізогартський горянин", en="Ironforge Mountaineer" }, -- Ironforge Mountaineer
+[727] = { [1] = "Горянин Стальгорна", ["en"] = "Ironforge Mountaineer" }, -- Ironforge Mountaineer
 [728] = { "Баґ'тіра", en="Bhag'thera" }, -- Bhag'thera
 [729] = { "Сін'Далл", en="Sin'Dall" }, -- Sin'Dall
 [730] = { "Тетіс", en="Tethis" }, -- Tethis
@@ -595,42 +595,42 @@ local npc = { -- [id] = { title, description (optional) }
 [1000] = { "вартовий Бломберг", "Нічна варта", en="Watcher Blomberg" }, -- Watcher Blomberg <The Night Watch>
 [1001] = { "вартовий Гатчінс", "Нічна варта", en="Watcher Hutchins" }, -- Watcher Hutchins <The Night Watch>
 [1007] = { "мохошкурий гнол", en="Mosshide Gnoll" }, -- Mosshide Gnoll
-[1008] = { "мохошкура дворняга", en="Mosshide Mongrel" }, -- Mosshide Mongrel
-[1009] = { "мохошкурий туманоткач", en="Mosshide Mistweaver" }, -- Mosshide Mistweaver
-[1010] = { "мохошкурий болотобіг", en="Mosshide Fenrunner" }, -- Mosshide Fenrunner
-[1011] = { "мохошкурий капканник", en="Mosshide Trapper" }, -- Mosshide Trapper
-[1012] = { "мохошкурий моцак", en="Mosshide Brute" }, -- Mosshide Brute
-[1013] = { "мохошкурий містик", en="Mosshide Mystic" }, -- Mosshide Mystic
-[1014] = { "мохошкурий альфа", en="Mosshide Alpha" }, -- Mosshide Alpha
-[1015] = { "плоскогірний раптор", en="Highland Raptor" }, -- Highland Raptor
-[1016] = { "плоскогірний хлястохвіст", en="Highland Lashtail" }, -- Highland Lashtail
-[1017] = { "плоскогірний серпопазур", en="Highland Scytheclaw" }, -- Highland Scytheclaw
-[1018] = { "плоскогірний бритвозуб", en="Highland Razormaw" }, -- Highland Razormaw
-[1019] = { "старий бритвозуб", en="Elder Razormaw" }, -- Elder Razormaw
-[1020] = { "строкатий раптор", en="Mottled Raptor" }, -- Mottled Raptor
-[1021] = { "строкатий верескун", en="Mottled Screecher" }, -- Mottled Screecher
-[1022] = { "строкатий серпопазур", en="Mottled Scytheclaw" }, -- Mottled Scytheclaw
-[1023] = { "строкатий бритвозуб", en="Mottled Razormaw" }, -- Mottled Razormaw
-[1024] = { "синьожабрий мурлок", en="Bluegill Murloc" }, -- Bluegill Murloc
-[1025] = { "синьожабрий калюжник", en="Bluegill Puddlejumper" }, -- Bluegill Puddlejumper
-[1026] = { "синьожабрий здобувач", en="Bluegill Forager" }, -- Bluegill Forager
-[1027] = { "синьожабрий воїн", en="Bluegill Warrior" }, -- Bluegill Warrior
-[1028] = { "синьожабрий бруднуля", en="Bluegill Muckdweller" }, -- Bluegill Muckdweller
+[1008] = { [1] = "Дворняга Мохошкурих", ["en"] = "Mosshide Mongrel" }, -- Mosshide Mongrel
+[1009] = { [1] = "Туманоткач Мохошкурих", ["en"] = "Mosshide Mistweaver" }, -- Mosshide Mistweaver
+[1010] = { [1] = "Болотобіг Мохошкурих", ["en"] = "Mosshide Fenrunner" }, -- Mosshide Fenrunner
+[1011] = { [1] = "Ловець Мохошкурих", ["en"] = "Mosshide Trapper" }, -- Mosshide Trapper
+[1012] = { [1] = "Громила Мохошкурих", ["en"] = "Mosshide Brute" }, -- Mosshide Brute
+[1013] = { [1] = "Містик Мохошкурих", ["en"] = "Mosshide Mystic" }, -- Mosshide Mystic
+[1014] = { [1] = "Ватажок Мохошкурих", ["en"] = "Mosshide Alpha" }, -- Mosshide Alpha
+[1015] = { [1] = "Нагірний раптор", ["en"] = "Highland Raptor" }, -- Highland Raptor
+[1016] = { [1] = "Нагірний хльостохвіст", ["en"] = "Highland Lashtail" }, -- Highland Lashtail
+[1017] = { [1] = "Нагірний косокіготь", ["en"] = "Highland Scytheclaw" }, -- Highland Scytheclaw
+[1018] = { [1] = "Нагірний гостропащий", ["en"] = "Highland Razormaw" }, -- Highland Razormaw
+[1019] = { [1] = "Старий гостропащий", ["en"] = "Elder Razormaw" }, -- Elder Razormaw
+[1020] = { [1] = "Плямистий раптор", ["en"] = "Mottled Raptor" }, -- Mottled Raptor
+[1021] = { [1] = "Плямистий верескун", ["en"] = "Mottled Screecher" }, -- Mottled Screecher
+[1022] = { [1] = "Плямистий косокіготь", ["en"] = "Mottled Scytheclaw" }, -- Mottled Scytheclaw
+[1023] = { [1] = "Плямистий гостропащий", ["en"] = "Mottled Razormaw" }, -- Mottled Razormaw
+[1024] = { [1] = "Мурлок Синьозяберних", ["en"] = "Bluegill Murloc" }, -- Bluegill Murloc
+[1025] = { [1] = "Калюжник Синьозяберних", ["en"] = "Bluegill Puddlejumper" }, -- Bluegill Puddlejumper
+[1026] = { [1] = "Збирач Синьозяберних", ["en"] = "Bluegill Forager" }, -- Bluegill Forager
+[1027] = { [1] = "Воїн Синьозяберних", ["en"] = "Bluegill Warrior" }, -- Bluegill Warrior
+[1028] = { [1] = "Багножитель Синьозяберних", ["en"] = "Bluegill Muckdweller" }, -- Bluegill Muckdweller
 [1029] = { "синьожабрий оракул", en="Bluegill Oracle" }, -- Bluegill Oracle
-[1030] = { "чорний слиз", en="Black Slime" }, -- Black Slime
-[1031] = { "багряний слизень", en="Crimson Ooze" }, -- Crimson Ooze
-[1032] = { "чорний слизень", en="Black Ooze" }, -- Black Ooze
-[1033] = { "жахливий слизень", en="Monstrous Ooze" }, -- Monstrous Ooze
-[1034] = { "рейдер Драконової Пащі", en="Dragonmaw Raider" }, -- Dragonmaw Raider
-[1035] = { "болотохід Драконової Пащі", en="Dragonmaw Swamprunner" }, -- Dragonmaw Swamprunner
+[1030] = { [1] = "Чорний слиз", ["en"] = "Black Slime" }, -- Black Slime
+[1031] = { [1] = "Багряна слизота", ["en"] = "Crimson Ooze" }, -- Crimson Ooze
+[1032] = { [1] = "Чорна слизота", ["en"] = "Black Ooze" }, -- Black Ooze
+[1033] = { [1] = "Жахлива слизота", ["en"] = "Monstrous Ooze" }, -- Monstrous Ooze
+[1034] = { [1] = "Нальотник Драконової Пащі", ["en"] = "Dragonmaw Raider" }, -- Dragonmaw Raider
+[1035] = { [1] = "Болотобіг Драконової Пащі", ["en"] = "Dragonmaw Swamprunner" }, -- Dragonmaw Swamprunner
 [1036] = { "центуріон Драконової Пащі", en="Dragonmaw Centurion" }, -- Dragonmaw Centurion
-[1037] = { "воєначальник Драконової Пащі", en="Dragonmaw Battlemaster" }, -- Dragonmaw Battlemaster
+[1037] = { [1] = "Майстер бою Драконової Пащі", ["en"] = "Dragonmaw Battlemaster" }, -- Dragonmaw Battlemaster
 [1038] = { "тінестраж Драконової Пащі", en="Dragonmaw Shadowwarder" }, -- Dragonmaw Shadowwarder
-[1039] = { "драговинний мешканець", en="Fen Dweller" }, -- Fen Dweller
-[1040] = { "драговинний плазун", en="Fen Creeper" }, -- Fen Creeper
-[1041] = { "повелитель драговини", en="Fen Lord" }, -- Fen Lord
-[1042] = { "червоний дракончик", en="Red Whelp" }, -- Red Whelp
-[1043] = { "загублене драконеня", en="Lost Whelp" }, -- Lost Whelp
+[1039] = { [1] = "Болотний житель", ["en"] = "Fen Dweller" }, -- Fen Dweller
+[1040] = { [1] = "Болотний повзун", ["en"] = "Fen Creeper" }, -- Fen Creeper
+[1041] = { [1] = "Володар боліт", ["en"] = "Fen Lord" }, -- Fen Lord
+[1042] = { [1] = "Червоний дракончик", ["en"] = "Red Whelp" }, -- Red Whelp
+[1043] = { [1] = "Загублений дракончик", ["en"] = "Lost Whelp" }, -- Lost Whelp
 [1044] = { "вогнедишне драконеня", en="Flamesnorting Whelp" }, -- Flamesnorting Whelp
 [1045] = { "червоний драконід", en="Red Dragonspawn" }, -- Red Dragonspawn
 [1046] = { "червона драконіда", en="Red Wyrmkin" }, -- Red Wyrmkin
@@ -638,11 +638,11 @@ local npc = { -- [id] = { title, description (optional) }
 [1048] = { "лейтенант-лускоклят", en="Scalebane Lieutenant" }, -- Scalebane Lieutenant
 [1049] = { "драконіда-вогнетавр", en="Wyrmkin Firebrand" }, -- Wyrmkin Firebrand
 [1050] = { "королівський гвардієць-лускоклят", en="Scalebane Royal Guard" }, -- Scalebane Royal Guard
-[1051] = { "дворф Темного Заліза", en="Dark Iron Dwarf" }, -- Dark Iron Dwarf
-[1052] = { "диверсант Темного Заліза", en="Dark Iron Saboteur" }, -- Dark Iron Saboteur
-[1053] = { "прохідник Темного Заліза", en="Dark Iron Tunneler" }, -- Dark Iron Tunneler
-[1054] = { "підривник Темного Заліза", en="Dark Iron Demolitionist" }, -- Dark Iron Demolitionist
-[1057] = { "кісткостраж Драконової Пащі", en="Dragonmaw Bonewarder" }, -- Dragonmaw Bonewarder
+[1051] = { [1] = "Дворф Темного Заліза", ["en"] = "Dark Iron Dwarf" }, -- Dark Iron Dwarf
+[1052] = { [1] = "Диверсант Темного Заліза", ["en"] = "Dark Iron Saboteur" }, -- Dark Iron Saboteur
+[1053] = { [1] = "Тунельник Темного Заліза", ["en"] = "Dark Iron Tunneler" }, -- Dark Iron Tunneler
+[1054] = { [1] = "Підривник Темного Заліза", ["en"] = "Dark Iron Demolitionist" }, -- Dark Iron Demolitionist
+[1057] = { [1] = "Кістковарт Драконової Пащі", ["en"] = "Dragonmaw Bonewarder" }, -- Dragonmaw Bonewarder
 [1059] = { "Ана'тек Жорстокий", "вождь Черепотрощителів", en="Ana'thek the Cruel" }, -- Ana'thek the Cruel
 [1060] = { "Мог Невмирущий", "знахар Черепотрощителів", en="Mogh the Undying" }, -- Mogh the Undying
 [1061] = { "Ґан'зула", "вождь Кровоскальпих", en="Gan'zulah" }, -- Gan'zulah
@@ -651,7 +651,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1064] = { "бугай Ґром'ґола", en="Grom'gol Grunt" }, -- Grom'gol Grunt
 [1065] = { "річколапий шаман", en="Riverpaw Shaman" }, -- Riverpaw Shaman
 [1068] = { "Ґорн", en="Gorn" }, -- Gorn
-[1069] = { "багряне драконеня", en="Crimson Whelp" }, -- Crimson Whelp
+[1069] = { [1] = "Багряний дракончик", ["en"] = "Crimson Whelp" }, -- Crimson Whelp
 [1070] = { "заступник Фелдон", en="Deputy Feldon" }, -- Deputy Feldon
 [1071] = { "Довгокос Похмурий", en="Longbraid the Grim" }, -- Longbraid the Grim
 [1072] = { "Роґґо Курганник", en="Roggo Harlbarrow" }, -- Roggo Harlbarrow
@@ -688,33 +688,33 @@ local npc = { -- [id] = { title, description (optional) }
 [1108] = { "туманодільна горила", en="Mistvale Gorilla" }, -- Mistvale Gorilla
 [1109] = { "плотодер", en="Fleshripper" }, -- Fleshripper
 [1110] = { "скелетний нальотник", en="Skeletal Raider" }, -- Skeletal Raider
-[1111] = { "кровопивець-ловець", en="Leech Stalker" }, -- Leech Stalker
+[1111] = { [1] = "Кровосисний переслідувач", ["en"] = "Leech Stalker" }, -- Leech Stalker
 [1112] = { "кровопивця-вдова", en="Leech Widow" }, -- Leech Widow
 [1114] = { "джунглевий рокотун", en="Jungle Thunderer" }, -- Jungle Thunderer
-[1115] = { "кам'янощелепий череполом", en="Rockjaw Skullthumper" }, -- Rockjaw Skullthumper
-[1116] = { "кам'янощелепий душитель", en="Rockjaw Ambusher" }, -- Rockjaw Ambusher
-[1117] = { "кам'янощелепий кісткохруст", en="Rockjaw Bonesnapper" }, -- Rockjaw Bonesnapper
-[1118] = { "кам'янощелепий спинолом", en="Rockjaw Backbreaker" }, -- Rockjaw Backbreaker
+[1115] = { [1] = "Черепобій Скельної Щелепи", ["en"] = "Rockjaw Skullthumper" }, -- Rockjaw Skullthumper
+[1116] = { [1] = "Засадник Скельної Щелепи", ["en"] = "Rockjaw Ambusher" }, -- Rockjaw Ambusher
+[1117] = { [1] = "Кістколам Скельної Щелепи", ["en"] = "Rockjaw Bonesnapper" }, -- Rockjaw Bonesnapper
+[1118] = { [1] = "Хребтолам Скельної Щелепи", ["en"] = "Rockjaw Backbreaker" }, -- Rockjaw Backbreaker
 [1119] = { "Хребтолом", en="Hammerspine" }, -- Hammerspine
 [1120] = { "морозогривий троль", en="Frostmane Troll" }, -- Frostmane Troll
 [1121] = { "морозогривий снігоступ", en="Frostmane Snowstrider" }, -- Frostmane Snowstrider
 [1122] = { "морозогривий шкуродер", en="Frostmane Hideskinner" }, -- Frostmane Hideskinner
 [1123] = { "морозогривий мисливець за головами", en="Frostmane Headhunter" }, -- Frostmane Headhunter
 [1124] = { "морозогривий тінемов", en="Frostmane Shadowcaster" }, -- Frostmane Shadowcaster
-[1125] = { "скельний кнур", en="Crag Boar" }, -- Crag Boar
-[1126] = { "великий скельний кнур", en="Large Crag Boar" }, -- Large Crag Boar
-[1127] = { "старий скельний кнур", en="Elder Crag Boar" }, -- Elder Crag Boar
-[1128] = { "молодий чорний ведмідь", en="Young Black Bear" }, -- Young Black Bear
+[1125] = { [1] = "Скельний вепр", ["en"] = "Crag Boar" }, -- Crag Boar
+[1126] = { [1] = "Великий скельний вепр", ["en"] = "Large Crag Boar" }, -- Large Crag Boar
+[1127] = { [1] = "Старий скельний вепр", ["en"] = "Elder Crag Boar" }, -- Elder Crag Boar
+[1128] = { [1] = "Молодий чорний ведмідь", ["en"] = "Young Black Bear" }, -- Young Black Bear
 [1129] = { "чорний ведмідь", en="Black Bear" }, -- Black Bear
 [1130] = { "Б'ярн", en="Bjarn" }, -- Bjarn
-[1131] = { "сніжний вовк", en="Winter Wolf" }, -- Winter Wolf
+[1131] = { [1] = "Зимовий вовк", ["en"] = "Winter Wolf" }, -- Winter Wolf
 [1132] = { "Сірий", en="Timber" }, -- Timber
 [1133] = { "голодний сніжний вовк", en="Starving Winter Wolf" }, -- Starving Winter Wolf
 [1134] = { "молодий вендиго", en="Young Wendigo" }, -- Young Wendigo
 [1135] = { "вендиго", en="wendigo" }, -- wendigo
 [1137] = { "Ідан Ревун", en="Edan the Howler" }, -- Edan the Howler
-[1138] = { "сніжний вовк-вистежувач", en="Snow Tracker Wolf" }, -- Snow Tracker Wolf
-[1139] = { "війт Кирпоніс", en="Magistrate Bluntnose" }, -- Magistrate Bluntnose
+[1138] = { [1] = "Сніговий вовк-слідопит", ["en"] = "Snow Tracker Wolf" }, -- Snow Tracker Wolf
+[1139] = { [1] = "магістрат Тупоніс", ["en"] = "Magistrate Bluntnose" }, -- Magistrate Bluntnose
 [1140] = { "бритвозуб-матріарх", en="Razormaw Matriarch" }, -- Razormaw Matriarch
 [1141] = { "Анґус Штерн", "шеф-кухар", en="Angus Stern" }, -- Angus Stern
 [1142] = { "мош'оґґський моцак", en="Mosh'Ogg Brute" }, -- Mosh'Ogg Brute
@@ -727,53 +727,53 @@ local npc = { -- [id] = { title, description (optional) }
 [1151] = { "морський кроколіск", en="Saltwater Crocolisk" }, -- Saltwater Crocolisk
 [1152] = { "кроколіск-тріскощелеп", en="Snapjaw Crocolisk" }, -- Snapjaw Crocolisk
 [1153] = { "Торрен Квадратна Щелепа", "Ліга дослідників", en="Torren Squarejaw" }, -- Torren Squarejaw <Explorers' League>
-[1154] = { "Марек Залізосерд", en="Marek Ironheart" }, -- Marek Ironheart
+[1154] = { [1] = "Марек Іронгірт", ["en"] = "Marek Ironheart" }, -- Marek Ironheart
 [1155] = { "Келт Томасін", en="Kelt Thomasin" }, -- Kelt Thomasin
-[1156] = { "Вірен Стрімковій", en="Vyrin Swiftwind" }, -- Vyrin Swiftwind
+[1156] = { [1] = "Вирін Свіфтвінд", ["en"] = "Vyrin Swiftwind" }, -- Vyrin Swiftwind
 [1157] = { "проклятий моряк", en="Cursed Sailor" }, -- Cursed Sailor
 [1158] = { "проклятий морський піхотинець", en="Cursed Marine" }, -- Cursed Marine
 [1159] = { "перший помічник Снелліґ", en="First Mate Snellig" }, -- First Mate Snellig
 [1160] = { "капітан Галиндор", en="Captain Halyndor" }, -- Captain Halyndor
-[1161] = { "трог Каменедробів", en="Stonesplinter Trogg" }, -- Stonesplinter Trogg
-[1162] = { "розвідник Каменедробів", en="Stonesplinter Scout" }, -- Stonesplinter Scout
+[1161] = { [1] = "Троґ Каменетрощів", ["en"] = "Stonesplinter Trogg" }, -- Stonesplinter Trogg
+[1162] = { [1] = "Розвідник Каменетрощів", ["en"] = "Stonesplinter Scout" }, -- Stonesplinter Scout
 [1163] = { "череполом Каменедробів", en="Stonesplinter Skullthumper" }, -- Stonesplinter Skullthumper
 [1164] = { "кісткохруст Каменедробів", en="Stonesplinter Bonesnapper" }, -- Stonesplinter Bonesnapper
-[1165] = { "геомант Каменедробів", en="Stonesplinter Geomancer" }, -- Stonesplinter Geomancer
+[1165] = { [1] = "Геомант Каменетрощів", ["en"] = "Stonesplinter Geomancer" }, -- Stonesplinter Geomancer
 [1166] = { "провидець Каменедробів", en="Stonesplinter Seer" }, -- Stonesplinter Seer
-[1167] = { "землекоп Каменедробів", en="Stonesplinter Digger" }, -- Stonesplinter Digger
-[1169] = { "заколотник Темного Заліза", en="Dark Iron Insurgent" }, -- Dark Iron Insurgent
+[1167] = { [1] = "Копач Каменетрощів", ["en"] = "Stonesplinter Digger" }, -- Stonesplinter Digger
+[1169] = { [1] = "Повстанець Темного Заліза", ["en"] = "Dark Iron Insurgent" }, -- Dark Iron Insurgent
 [1171] = { "партизан Темного Заліза", en="Dark Iron Guerrilla" }, -- Dark Iron Guerrilla
-[1172] = { "тунельний щур-шкідник", en="Tunnel Rat Vermin" }, -- Tunnel Rat Vermin
-[1173] = { "тунельний щур-розвідник", en="Tunnel Rat Scout" }, -- Tunnel Rat Scout
+[1172] = { [1] = "Шкідник Тунельних Щурів", ["en"] = "Tunnel Rat Vermin" }, -- Tunnel Rat Vermin
+[1173] = { [1] = "Розвідник Тунельних Щурів", ["en"] = "Tunnel Rat Scout" }, -- Tunnel Rat Scout
 [1174] = { "тунельний щур-геомант", en="Tunnel Rat Geomancer" }, -- Tunnel Rat Geomancer
-[1175] = { "тунельний щур-землекоп", en="Tunnel Rat Digger" }, -- Tunnel Rat Digger
-[1176] = { "тунельний щур-здобувач", en="Tunnel Rat Forager" }, -- Tunnel Rat Forager
+[1175] = { [1] = "Копач Тунельних Щурів", ["en"] = "Tunnel Rat Digger" }, -- Tunnel Rat Digger
+[1176] = { [1] = "Збирач Тунельних Щурів", ["en"] = "Tunnel Rat Forager" }, -- Tunnel Rat Forager
 [1177] = { "тунельний щур-землемір", en="Tunnel Rat Surveyor" }, -- Tunnel Rat Surveyor
-[1178] = { "огр Мо'ґрош", en="Mo'grosh Ogre" }, -- Mo'grosh Ogre
-[1179] = { "громило Мо'ґрош", en="Mo'grosh Enforcer" }, -- Mo'grosh Enforcer
-[1180] = { "моцак Мо'ґрош", en="Mo'grosh Brute" }, -- Mo'grosh Brute
-[1181] = { "шаман Мо'ґрош", en="Mo'grosh Shaman" }, -- Mo'grosh Shaman
+[1178] = { [1] = "Огр Мо'ґрош", ["en"] = "Mo'grosh Ogre" }, -- Mo'grosh Ogre
+[1179] = { [1] = "Головоріз Мо'ґрош", ["en"] = "Mo'grosh Enforcer" }, -- Mo'grosh Enforcer
+[1180] = { [1] = "Громила Мо'ґрош", ["en"] = "Mo'grosh Brute" }, -- Mo'grosh Brute
+[1181] = { [1] = "Шаман Мо'ґрош", ["en"] = "Mo'grosh Shaman" }, -- Mo'grosh Shaman
 [1182] = { "брат Антон", "емісар Багряного Походу", en="Brother Anton" }, -- Brother Anton <Scarlet Crusade Emissary>
-[1183] = { "містик Мо'ґрош", en="Mo'grosh Mystic" }, -- Mo'grosh Mystic
-[1184] = { "скельний маскун", en="Cliff Lurker" }, -- Cliff Lurker
-[1185] = { "деревний маскун", en="Wood Lurker" }, -- Wood Lurker
-[1186] = { "старий чорний ведмідь", en="Elder Black Bear" }, -- Elder Black Bear
-[1187] = { "Деріл Юний", en="Daryl the Youngling" }, -- Daryl the Youngling
-[1188] = { "посивілий чорний ведмідь", en="Grizzled Black Bear" }, -- Grizzled Black Bear
-[1189] = { "чорний ведмідь-патріарх", en="Black Bear Patriarch" }, -- Black Bear Patriarch
-[1190] = { "гірський кнур", en="Mountain Boar" }, -- Mountain Boar
-[1191] = { "облізлий гірський кнур", en="Mangy Mountain Boar" }, -- Mangy Mountain Boar
-[1192] = { "старий гірський кнур", en="Elder Mountain Boar" }, -- Elder Mountain Boar
+[1183] = { [1] = "Містик Мо'ґрош", ["en"] = "Mo'grosh Mystic" }, -- Mo'grosh Mystic
+[1184] = { [1] = "Скельний причаївник", ["en"] = "Cliff Lurker" }, -- Cliff Lurker
+[1185] = { [1] = "Лісовий причаївник", ["en"] = "Wood Lurker" }, -- Wood Lurker
+[1186] = { [1] = "Старий чорний ведмідь", ["en"] = "Elder Black Bear" }, -- Elder Black Bear
+[1187] = { [1] = "Дарил те Иоунґлінґ", ["en"] = "Daryl the Youngling" }, -- Daryl the Youngling
+[1188] = { [1] = "Сивий чорний ведмідь", ["en"] = "Grizzled Black Bear" }, -- Grizzled Black Bear
+[1189] = { [1] = "Патріарх чорних ведмедів", ["en"] = "Black Bear Patriarch" }, -- Black Bear Patriarch
+[1190] = { [1] = "Гірський вепр", ["en"] = "Mountain Boar" }, -- Mountain Boar
+[1191] = { [1] = "Облізлий гірський вепр", ["en"] = "Mangy Mountain Boar" }, -- Mangy Mountain Boar
+[1192] = { [1] = "Старий гірський вепр", ["en"] = "Elder Mountain Boar" }, -- Elder Mountain Boar
 [1193] = { "озерна навіженка", en="Loch Frenzy" }, -- Loch Frenzy
-[1194] = { "гірський канюк", en="Mountain Buzzard" }, -- Mountain Buzzard
-[1195] = { "лісовий маскун", en="Forest Lurker" }, -- Forest Lurker
-[1196] = { "льодолапий ведмідь", en="Ice Claw Bear" }, -- Ice Claw Bear
+[1194] = { [1] = "Гірський канюк", ["en"] = "Mountain Buzzard" }, -- Mountain Buzzard
+[1195] = { [1] = "Лісовий причаївник", ["en"] = "Forest Lurker" }, -- Forest Lurker
+[1196] = { [1] = "Ведмідь Крижаного Кігтя", ["en"] = "Ice Claw Bear" }, -- Ice Claw Bear
 [1197] = { "шаман Каменедробів", en="Stonesplinter Shaman" }, -- Stonesplinter Shaman
 [1198] = { "Раллік Фінн", "майстер луків", en="Rallic Finn" }, -- Rallic Finn <Bowyer>
 [1199] = { "молодий сніжний леопард", en="Juvenile Snow Leopard" }, -- Juvenile Snow Leopard
 [1200] = { "Морбент Скверн", en="Morbent Fel" }, -- Morbent Fel
 [1201] = { "сніжний леопард", en="Snow Leopard" }, -- Snow Leopard
-[1202] = { "тунельний щур", en="Tunnel Rat Kobold" }, -- Tunnel Rat Kobold
+[1202] = { [1] = "Кобольд Тунельних Щурів", ["en"] = "Tunnel Rat Kobold" }, -- Tunnel Rat Kobold
 [1203] = { "вартова Серіс", "Нічна варта", en="Watcher Sarys" }, -- Watcher Sarys <The Night Watch>
 [1204] = { "вартовий Корвін", "Нічна варта", en="Watcher Corwin" }, -- Watcher Corwin <The Night Watch>
 [1205] = { "Ґромаґ", en="Grawmug" }, -- Grawmug
@@ -786,11 +786,11 @@ local npc = { -- [id] = { title, description (optional) }
 [1214] = { "Олдрен Кордон", "продавець одягу", en="Aldren Cordon" }, -- Aldren Cordon <Clothier>
 [1215] = { "алхімік Меллорі", "алхімік-підмайстер", en="Alchemist Mallory" }, -- Alchemist Mallory <Journeyman Alchemist>
 [1216] = { "прибережний повзун", en="Shore Crawler" }, -- Shore Crawler
-[1217] = { "Ґлорін Сталебров", en="Glorin Steelbrow" }, -- Glorin Steelbrow
+[1217] = { [1] = "Ґлорін Стілбров", ["en"] = "Glorin Steelbrow" }, -- Glorin Steelbrow
 [1218] = { "травниця Померой", "тренерка травництва", en="Herbalist Pomeroy" }, -- Herbalist Pomeroy <Herbalism Trainer>
 [1222] = { "сапер Темного Заліза", en="Dark Iron Sapper" }, -- Dark Iron Sapper
-[1224] = { "молодий молотник", en="Young Threshadon" }, -- Young Threshadon
-[1225] = { "старий Чорниш", en="Ol' Sooty" }, -- Ol' Sooty
+[1224] = { [1] = "Молодий трешадон", ["en"] = "Young Threshadon" }, -- Young Threshadon
+[1225] = { [1] = "Старий Сажень", ["en"] = "Ol' Sooty" }, -- Ol' Sooty
 [1226] = { "Максан Анвол", "тренер жерців", en="Maxan Anvol" }, -- Maxan Anvol <Priest Trainer>
 [1228] = { "Чаклуній Іскрокрив", "тренер магів", en="Magis Sparkmantle" }, -- Magis Sparkmantle <Mage Trainer>
 [1229] = { "Ґраніс Прудкоруб", "тренер воїнів", en="Granis Swiftaxe" }, -- Granis Swiftaxe <Warrior Trainer>
@@ -800,12 +800,12 @@ local npc = { -- [id] = { title, description (optional) }
 [1236] = { "кобольд-землекоп", en="Kobold Digger" }, -- Kobold Digger
 [1237] = { "Казан Моґош", "продавець їжі та напоїв", en="Kazan Mogosh" }, -- Kazan Mogosh <Food & Drink Merchant>
 [1238] = { "Ґамілі Кригошкур", "продавець тканинних та шкіряних обладунків", en="Gamili Frosthide" }, -- Gamili Frosthide <Cloth & Leather Armor Merchant>
-[1239] = { "перший помічник Фіцсіммонс", en="First Mate Fitzsimmons" }, -- First Mate Fitzsimmons
+[1239] = { [1] = "Старший помічник Фітзсіммонс", ["en"] = "First Mate Fitzsimmons" }, -- First Mate Fitzsimmons
 [1240] = { "Боран Залізоклеп", "броняр", en="Boran Ironclink" }, -- Boran Ironclink <Armorer>
 [1241] = { "Тоґн Кресало", "коваль-підмайстер", en="Tognus Flintfire" }, -- Tognus Flintfire <Journeyman Blacksmith>
 [1242] = { "Карл Боран", en="Karl Boran" }, -- Karl Boran
 [1243] = { "Геґнар Грімостріл", "вогнепальна зброя", en="Hegnar Rumbleshot" }, -- Hegnar Rumbleshot <Gunsmith>
-[1244] = { "Ретіль Вартовий Природи", en="Rethiel the Greenwarden" }, -- Rethiel the Greenwarden
+[1244] = { [1] = "Ретіл те Ґрінварден", ["en"] = "Rethiel the Greenwarden" }, -- Rethiel the Greenwarden
 [1245] = { "Коґан Камнеков", en="Kogan Forgestone" }, -- Kogan Forgestone
 [1246] = { "Восур Брактель", "алхімік-підмайстер", en="Vosur Brakthel" }, -- Vosur Brakthel <Journeyman Alchemist>
 [1247] = { "корчмар Бельм", "корчмар", en="Innkeeper Belm" }, -- Innkeeper Belm <Innkeeper>
@@ -819,12 +819,12 @@ local npc = { -- [id] = { title, description (optional) }
 [1256] = { "начальник кар'єру Тестен", "Ліга шахтарів", en="Quarrymaster Thesten" }, -- Quarrymaster Thesten <Miners' League>
 [1257] = { "Келдрік Буше", "продавець магічних товарів", en="Keldric Boucher" }, -- Keldric Boucher <Arcane Goods Vendor>
 [1258] = { "чорний спустошник-мастиф", en="Black Ravager Mastiff" }, -- Black Ravager Mastiff
-[1259] = { "Жерун", en="Gobbler" }, -- Gobbler
+[1259] = { [1] = "Ґобблер", ["en"] = "Gobbler" }, -- Gobbler
 [1260] = { "Дід Арктик", en="Great Father Arctikus" }, -- Great Father Arctikus
 [1261] = { "Верон Бурштинник", "розвідник баранів", en="Veron Amberstill" }, -- Veron Amberstill
 [1262] = { "білий баран", en="White Ram" }, -- White Ram
-[1263] = { "Ярлін Бурштинник", en="Yarlyn Amberstill" }, -- Yarlyn Amberstill
-[1265] = { "Рудра Бурштинник", en="Rudra Amberstill" }, -- Rudra Amberstill
+[1263] = { [1] = "Иарлин Амберстілл", ["en"] = "Yarlyn Amberstill" }, -- Yarlyn Amberstill
+[1265] = { [1] = "Рудра Амберстілл", ["en"] = "Rudra Amberstill" }, -- Rudra Amberstill
 [1266] = { "Тундра Мак-Ґранн", en="Tundra MacGrann" }, -- Tundra MacGrann
 [1267] = { "Раґнар Громовар", en="Ragnar Thunderbrew" }, -- Ragnar Thunderbrew
 [1268] = { "Оззі Вольтон", en="Ozzie Togglevolt" }, -- Ozzie Togglevolt
@@ -834,11 +834,11 @@ local npc = { -- [id] = { title, description (optional) }
 [1273] = { "Ґраун Тромвін", "зброяр", en="Grawn Thromwyn" }, -- Grawn Thromwyn <Weaponsmith>
 [1274] = { "сенатор Берін Червонокамінь" }, -- Barin Redstone
 [1275] = { "Кіра Буше", "продавчиня реагентів", en="Kyra Boucher" }, -- Kyra Boucher <Reagent Vendor>
-[1276] = { "горянин Брокк", en="Mountaineer Brokk" }, -- Mountaineer Brokk
+[1276] = { [1] = "Горянин Брокк", ["en"] = "Mountaineer Brokk" }, -- Mountaineer Brokk
 [1277] = { "горянин Ганін", en="Mountaineer Ganin" }, -- Mountaineer Ganin
-[1278] = { "горянин Стенн", en="Mountaineer Stenn" }, -- Mountaineer Stenn
-[1279] = { "горянин Кремінь", en="Mountaineer Flint" }, -- Mountaineer Flint
-[1280] = { "горянин Дрокен", en="Mountaineer Droken" }, -- Mountaineer Droken
+[1278] = { [1] = "Горянин Стенн", ["en"] = "Mountaineer Stenn" }, -- Mountaineer Stenn
+[1279] = { [1] = "Горянин Флінт", ["en"] = "Mountaineer Flint" }, -- Mountaineer Flint
+[1280] = { [1] = "Горянин Дрокен", ["en"] = "Mountaineer Droken" }, -- Mountaineer Droken
 [1281] = { "горянка Зарен", en="Mountaineer Zaren" }, -- Mountaineer Zaren
 [1282] = { "горянин Вік", en="Mountaineer Veek" }, -- Mountaineer Veek
 [1283] = { "горянка Калміра", en="Mountaineer Kalmir" }, -- Mountaineer Kalmir
@@ -885,18 +885,18 @@ local npc = { -- [id] = { title, description (optional) }
 [1328] = { "Еллі Ленгстон", "офіціантка", en="Elly Langston" }, -- Elly Langston <Barmaid>
 [1329] = { "горянин Наарг", en="Mountaineer Naarh" }, -- Mountaineer Naarh
 [1330] = { "горянин Тірав", en="Mountaineer Tyraw" }, -- Mountaineer Tyraw
-[1331] = { "горянин Лакст", en="Mountaineer Luxst" }, -- Mountaineer Luxst
-[1332] = { "горянка Морран", en="Mountaineer Morran" }, -- Mountaineer Morran
+[1331] = { [1] = "Горянин Луксст", ["en"] = "Mountaineer Luxst" }, -- Mountaineer Luxst
+[1332] = { [1] = "Горянин Морран", ["en"] = "Mountaineer Morran" }, -- Mountaineer Morran
 [1333] = { "Герік Коен", "продавець дворучної зброї", en="Gerik Koen" }, -- Gerik Koen <Two Handed Weapon Merchant>
-[1334] = { "горянин Молотобій", en="Mountaineer Hammerfall" }, -- Mountaineer Hammerfall
-[1335] = { "горянка Ютта", en="Mountaineer Yuttha" }, -- Mountaineer Yuttha
-[1336] = { "горянин Зварн", en="Mountaineer Zwarn" }, -- Mountaineer Zwarn
-[1337] = { "горянка Гварт", en="Mountaineer Gwarth" }, -- Mountaineer Gwarth
-[1338] = { "горянин Далк", en="Mountaineer Dalk" }, -- Mountaineer Dalk
+[1334] = { [1] = "Горянин Гаммерфалл", ["en"] = "Mountaineer Hammerfall" }, -- Mountaineer Hammerfall
+[1335] = { [1] = "Горянин Иутта", ["en"] = "Mountaineer Yuttha" }, -- Mountaineer Yuttha
+[1336] = { [1] = "Горянин Зварн", ["en"] = "Mountaineer Zwarn" }, -- Mountaineer Zwarn
+[1337] = { [1] = "Горянин Ґварт", ["en"] = "Mountaineer Gwarth" }, -- Mountaineer Gwarth
+[1338] = { [1] = "Горянин Далк", ["en"] = "Mountaineer Dalk" }, -- Mountaineer Dalk
 [1339] = { "Майда Тан", "чоботарка", en="Mayda Thane" }, -- Mayda Thane
-[1340] = { "горянин Кедрел", en="Mountaineer Kadrell" }, -- Mountaineer Kadrell
+[1340] = { [1] = "Горянин Кадрелл", ["en"] = "Mountaineer Kadrell" }, -- Mountaineer Kadrell
 [1341] = { "Вільгельм Дивин", "продавець кольчужних обладунків", en="Wilhelm Strang" }, -- Wilhelm Strang <Mail Armor Merchant>
-[1342] = { "горянин Рокґар", en="Mountaineer Rockgar" }, -- Mountaineer Rockgar
+[1342] = { [1] = "Горянин Рокґар", ["en"] = "Mountaineer Rockgar" }, -- Mountaineer Rockgar
 [1343] = { "горянин Бурешпиль" }, -- Gringer Stormpike
 [1344] = { "розвідувач Залізоплет", en="Prospector Ironband" }, -- Prospector Ironband
 [1345] = { "Маґмар Люторуб", en="Magmar Fellhew" }, -- Magmar Fellhew
@@ -906,8 +906,8 @@ local npc = { -- [id] = { title, description (optional) }
 [1349] = { "Август Мулейн", "продавець кольчужних обладунків", en="Agustus Moulaine" }, -- Agustus Moulaine <Mail Armor Merchant>
 [1350] = { "Тереза Мулейн", "продавчиня мантій", en="Theresa Moulaine" }, -- Theresa Moulaine <Robe Vendor>
 [1351] = { "брат Кассій", "продавець реагентів", en="Brother Cassius" }, -- Brother Cassius <Reagent Vendor>
-[1352] = { "Пушок", en="Fluffy" }, -- Fluffy
-[1353] = { "Сарлозуб", en="Sarltooth" }, -- Sarltooth
+[1352] = { [1] = "Флуффи", ["en"] = "Fluffy" }, -- Fluffy
+[1353] = { [1] = "Сарлтут", ["en"] = "Sarltooth" }, -- Sarltooth
 [1354] = { "учень Сорен", en="Apprentice Soren" }, -- Apprentice Soren
 [1355] = { "кухар Ґільм", "тренер куховарства", en="Cook Ghilm" }, -- Cook Ghilm <Cooking Trainer>
 [1356] = { "розвідувач Бурешпиль", en="Prospector Stormpike" }, -- Prospector Stormpike
@@ -924,11 +924,11 @@ local npc = { -- [id] = { title, description (optional) }
 [1373] = { "Ярвен Громовар", en="Jarven Thunderbrew" }, -- Jarven Thunderbrew
 [1374] = { "Реджольд Ячміновар", en="Rejold Barleybrew" }, -- Rejold Barleybrew
 [1375] = { "Марлет Ячміновар", en="Marleth Barleybrew" }, -- Marleth Barleybrew
-[1376] = { "Белдін Сталешквар", en="Beldin Steelgrill" }, -- Beldin Steelgrill
-[1377] = { "пілот Камнелад", en="Pilot Stonegear" }, -- Pilot Stonegear
-[1378] = { "пілот Беллофіз", en="Pilot Bellowfiz" }, -- Pilot Bellowfiz
+[1376] = { [1] = "Белдін Стілґрілл", ["en"] = "Beldin Steelgrill" }, -- Beldin Steelgrill
+[1377] = { [1] = "Пілот Стонеґір", ["en"] = "Pilot Stonegear" }, -- Pilot Stonegear
+[1378] = { [1] = "Пілот Белловфіз", ["en"] = "Pilot Bellowfiz" }, -- Pilot Bellowfiz
 [1379] = { "Міран", en="Miran" }, -- Miran
-[1380] = { "Саян", en="Saean" }, -- Saean
+[1380] = { [1] = "Саін", ["en"] = "Saean" }, -- Saean
 [1381] = { "Кракк", "досвідчений броняр", en="Krakk" }, -- Krakk <Superior Armorer>
 [1382] = { "Муддук", "досвідчений кухар", en="Mudduk" }, -- Mudduk <Superior Cook>
 [1383] = { "Гарч", "коваль-експерт", en="Snarl" }, -- Snarl <Expert Blacksmith>
@@ -936,26 +936,26 @@ local npc = { -- [id] = { title, description (optional) }
 [1386] = { "Роґвар", "алхімік-майстер", en="Rogvar" }, -- Rogvar <Master Alchemist>
 [1387] = { "Тиста", "приборкувачка виверн", en="Thysta" }, -- Thysta <Wind Rider Master>
 [1388] = { "Ваґаш", en="Vagash" }, -- Vagash
-[1393] = { "трог-берсерк", en="Berserk Trogg" }, -- Berserk Trogg
+[1393] = { [1] = "Троґ-берсерк", ["en"] = "Berserk Trogg" }, -- Berserk Trogg
 [1395] = { "старий Бізлі", en="Ol' Beasley" }, -- Ol' Beasley
 [1397] = { "морозогривий провидець", en="Frostmane Seer" }, -- Frostmane Seer
 [1398] = { "бос Ґалґош", "вождь Каменедробів", en="Boss Galgosh" }, -- Boss Galgosh
 [1399] = { "Маґош", "шаман Каменедробів", en="Magosh" }, -- Magosh
-[1400] = { "кроколіск Заболоття", en="Wetlands Crocolisk" }, -- Wetlands Crocolisk
+[1400] = { [1] = "Кроколіск Заболоття", ["en"] = "Wetlands Crocolisk" }, -- Wetlands Crocolisk
 [1402] = { "Топпер Макнабб", en="Topper McNabb" }, -- Topper McNabb
 [1404] = { "Краґґ", "тренер мисливців", en="Kragg" }, -- Kragg <Hunter Trainer>
 [1405] = { "Моріс Лоурі", en="Morris Lawry" }, -- Morris Lawry
 [1407] = { "Шранда", "продавчиня легких обладунків та зброї", en="Sranda" }, -- Sranda
 [1411] = { "Ян Стром", "тренер пройдисвітів", en="Ian Strom" }, -- Ian Strom <Rogue Trainer>
-[1412] = { "білка", en="Squirrel" }, -- Squirrel
+[1412] = { [1] = "Білка", ["en"] = "Squirrel" }, -- Squirrel
 [1413] = { "Джені Аншип", en="Janey Anship" }, -- Janey Anship
 [1414] = { "Лісан Пірс", en="Lisan Pierce" }, -- Lisan Pierce
 [1415] = { "Сюзанна", en="Suzanne" }, -- Suzanne
 [1416] = { "Ґріманд Елмор", en="Grimand Elmore" }, -- Grimand Elmore
-[1417] = { "молодий кроколіск Заболоття", en="Young Wetlands Crocolisk" }, -- Young Wetlands Crocolisk
-[1418] = { "синьожабрий рейдер", en="Bluegill Raider" }, -- Bluegill Raider
+[1417] = { [1] = "Молодий кроколіск Заболоття", ["en"] = "Young Wetlands Crocolisk" }, -- Young Wetlands Crocolisk
+[1418] = { [1] = "Нальотник Синьозяберних", ["en"] = "Bluegill Raider" }, -- Bluegill Raider
 [1419] = { "Бульчик", en="Fizzles" }, -- Fizzles
-[1420] = { "ропуха", en="Toad" }, -- Toad
+[1420] = { [1] = "Ропуха", ["en"] = "Toad" }, -- Toad
 [1421] = { "рядовий Мерл", "солдат повстанців", en="Private Merle" }, -- Private Merle
 [1422] = { "капрал Сетман", en="Corporal Sethman" }, -- Corporal Sethman
 [1423] = { "вартовий Штормовію", en="Stormwind Guard" }, -- Stormwind Guard
@@ -969,7 +969,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1431] = { "Сузетта Ґелліна", en="Suzetta Gallina" }, -- Suzetta Gallina
 [1432] = { "Ренато Ґелліна", en="Renato Gallina" }, -- Renato Gallina
 [1433] = { "Корбет Шнайдер", en="Corbett Schneider" }, -- Corbett Schneider
-[1434] = { "караульний Менетіла", en="Menethil Sentry" }, -- Menethil Sentry
+[1434] = { [1] = "Вартовий Менетіла", ["en"] = "Menethil Sentry" }, -- Menethil Sentry
 [1435] = { "Зардет Чорний Кіготь", en="Zardeth of the Black Claw" }, -- Zardeth of the Black Claw
 [1436] = { "вартовий Катфорд", "Нічна варта", en="Watcher Cutford" }, -- Watcher Cutford <The Night Watch>
 [1437] = { "Томас Букер", en="Thomas Booker" }, -- Thomas Booker
@@ -979,9 +979,9 @@ local npc = { -- [id] = { title, description (optional) }
 [1442] = { "Гелґрам Прудкий", en="Helgrum the Swift" }, -- Helgrum the Swift
 [1443] = { "Фел'зерул", en="Fel'zerul" }, -- Fel'zerul
 [1444] = { "брат Крістофф", en="Brother Kristoff" }, -- Brother Kristoff
-[1445] = { "Джессі Галлоран", en="Jesse Halloran" }, -- Jesse Halloran
-[1446] = { "Регіна Галлоран", en="Regina Halloran" }, -- Regina Halloran
-[1447] = { "Гімлок Румднул", en="Gimlok Rumdnul" }, -- Gimlok Rumdnul
+[1445] = { [1] = "Джессе Галлоран", ["en"] = "Jesse Halloran" }, -- Jesse Halloran
+[1446] = { [1] = "Реґіна Галлоран", ["en"] = "Regina Halloran" }, -- Regina Halloran
+[1447] = { [1] = "Ґімлок Румднул", ["en"] = "Gimlok Rumdnul" }, -- Gimlok Rumdnul
 [1448] = { "Ніл Аллен", "інженерні припаси й товари загального вжитку", en="Neal Allen" }, -- Neal Allen
 [1449] = { "знахар Унбаґва", en="Witch Doctor Unbagwa" }, -- Witch Doctor Unbagwa
 [1450] = { "Бранмар", "броняр", en="Brahnmar" }, -- Brahnmar <Armorer>
@@ -1006,14 +1006,14 @@ local npc = { -- [id] = { title, description (optional) }
 [1472] = { "Морґ Бурестріл", en="Morgg Stormshot" }, -- Morgg Stormshot
 [1473] = { "Калі Цілителька", "травниця", en="Kali Healtouch" }, -- Kali Healtouch <Herbalist>
 [1474] = { "Ранн Вогнепряд", "кравецькі припаси", en="Rann Flamespinner" }, -- Rann Flamespinner <Tailoring Supplies>
-[1476] = { "Харґін Мундар", en="Hargin Mundar" }, -- Hargin Mundar
+[1476] = { [1] = "Гарґін Мундар", ["en"] = "Hargin Mundar" }, -- Hargin Mundar
 [1477] = { "Крістоф Ферел", en="Christoph Faral" }, -- Christoph Faral
 [1478] = { "Едіс Бром", en="Aedis Brom" }, -- Aedis Brom
-[1479] = { "Тімоті Кларк", en="Timothy Clark" }, -- Timothy Clark
-[1480] = { "Кейтлін Трав'яна", en="Caitlin Grassman" }, -- Caitlin Grassman
+[1479] = { [1] = "Тімоти Кларк", ["en"] = "Timothy Clark" }, -- Timothy Clark
+[1480] = { [1] = "Кейтлін Ґрассман", ["en"] = "Caitlin Grassman" }, -- Caitlin Grassman
 [1481] = { "Барт Приливень", "капітан \"Дівочої Цноти\"", en="Bart Tidewater" }, -- Bart Tidewater
-[1482] = { "Андреа Галлоран", en="Andrea Halloran" }, -- Andrea Halloran
-[1483] = { "Мерфі Вест", en="Murphy West" }, -- Murphy West
+[1482] = { [1] = "Андрі Галлоран", ["en"] = "Andrea Halloran" }, -- Andrea Halloran
+[1483] = { [1] = "Мурфи Вест", ["en"] = "Murphy West" }, -- Murphy West
 [1484] = { "Деріна Румднул", en="Derina Rumdnul" }, -- Derina Rumdnul
 [1487] = { "покоритель Сколотого Кулака", en="Splinter Fist Enslaver" }, -- Splinter Fist Enslaver
 [1488] = { "зомбі Занзіла" }, -- Zanzil the Outcast
@@ -1133,11 +1133,11 @@ local npc = { -- [id] = { title, description (optional) }
 [1686] = { "Ірен Міткостріл", "вогнепальна зброя", en="Irene Sureshot" }, -- Irene Sureshot <Gunsmith>
 [1687] = { "Кліфф Хадін", "майстер луків", en="Cliff Hadin" }, -- Cliff Hadin <Bowyer>
 [1688] = { "нічний колопряд-матріарх", en="Night Web Matriarch" }, -- Night Web Matriarch
-[1689] = { "рубчастий скельний кнур", en="Scarred Crag Boar" }, -- Scarred Crag Boar
+[1689] = { [1] = "Шрамований скельний вепр", ["en"] = "Scarred Crag Boar" }, -- Scarred Crag Boar
 [1690] = { "Травн Болтар", "ковальські припаси", en="Thrawn Boltar" }, -- Thrawn Boltar <Blacksmithing Supplies>
 [1691] = { "Креґ Більмн", "загальні припаси", en="Kreg Bilmn" }, -- Kreg Bilmn <General Supplies>
 [1692] = { "Ґолорн Кригобородий", "торговець", en="Golorn Frostbeard" }, -- Golorn Frostbeard <Tradesman>
-[1693] = { "озерний кроколіск", en="Loch Crocolisk" }, -- Loch Crocolisk
+[1693] = { [1] = "Кроколіск Лох-Модана", ["en"] = "Loch Crocolisk" }, -- Loch Crocolisk
 [1694] = { "Лослор Рудж", "інженерні припаси", en="Loslor Rudge" }, -- Loslor Rudge <Engineering Supplies>
 [1695] = { "Рендо", "продавчиня шкіряних обладунків", en="Rendow" }, -- Rendow <Leather Armor Merchant>
 [1696] = { "Тарґорр Жахливий", en="Targorr the Dread" }, -- Targorr the Dread
@@ -1200,7 +1200,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1773] = { "гнилошкурий містик", en="Rot Hide Mystic" }, -- Rot Hide Mystic
 [1775] = { "Зун'дарта", en="Zun'dartha" }, -- Zun'dartha
 [1776] = { "Маґтур", en="Magtoor" }, -- Magtoor
-[1777] = { "Дакк Грубостріл", en="Dakk Blunderblast" }, -- Dakk Blunderblast
+[1777] = { [1] = "Дакк Блундербласт", ["en"] = "Dakk Blunderblast" }, -- Dakk Blunderblast
 [1778] = { "лютий посивілий ведмідь", en="Ferocious Grizzled Bear" }, -- Ferocious Grizzled Bear
 [1779] = { "ненажера Місяцесказу", en="Moonrage Glutton" }, -- Moonrage Glutton
 [1780] = { "моховий ловець", en="Moss Stalker" }, -- Moss Stalker
@@ -1260,7 +1260,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1853] = { "темний магістр Ґандлінґ", en="Darkmaster Gandling" }, -- Darkmaster Gandling
 [1854] = { "верховний жрець Тель'даніс", en="High Priest Thel'danis" }, -- High Priest Thel'danis
 [1855] = { "Тіріон Фордрінґ", "орден Сріблястої Десниці", en="Tirion Fordring" }, -- Tirion Fordring
-[1860] = { "пустотник", en="Voidwalker" }, -- Voidwalker
+[1860] = { [1] = "Порожняк", ["en"] = "Voidwalker" }, -- Voidwalker
 [1863] = { "сукуб", en="succubus" }, -- succubus
 [1865] = { "рейдер Воронокігтя", en="Ravenclaw Raider" }, -- Ravenclaw Raider
 [1866] = { "невільник Воронокігтя", en="Ravenclaw Slave" }, -- Ravenclaw Slave
@@ -1302,12 +1302,12 @@ local npc = { -- [id] = { title, description (optional) }
 [1923] = { "кровожерливий ворг", en="Bloodsnout Worg" }, -- Bloodsnout Worg
 [1924] = { "кроворев Місяцесказу", en="Moonrage Bloodhowler" }, -- Moonrage Bloodhowler
 [1931] = { "полонений ревнитель Багряного Походу", en="Captured Scarlet Zealot" }, -- Captured Scarlet Zealot
-[1933] = { "вівця", en="Sheep" }, -- Sheep
+[1933] = { [1] = "Вівця", ["en"] = "Sheep" }, -- Sheep
 [1934] = { "тірісфальський фермер", en="Tirisfal Farmer" }, -- Tirisfal Farmer
 [1935] = { "тірісфальський робітник", en="Tirisfal Farmhand" }, -- Tirisfal Farmhand
 [1936] = { "фермер Солліден", en="Farmer Solliden" }, -- Farmer Solliden
 [1937] = { "аптекар Ренферрел", "Королівське товариство аптекарів", en="Apothecary Renferrel" }, -- Apothecary Renferrel <Royal Apothecary Society>
-[1938] = { "Далар Ранньоткач", en="Dalar Dawnweaver" }, -- Dalar Dawnweaver
+[1938] = { [1] = "Далар Давнвівер", ["en"] = "Dalar Dawnweaver" }, -- Dalar Dawnweaver
 [1939] = { "гнилошкурий моцак", en="Rot Hide Brute" }, -- Rot Hide Brute
 [1940] = { "гнилошкурий чумоткач", en="Rot Hide Plague Weaver" }, -- Rot Hide Plague Weaver
 [1941] = { "гнилошкурий розкрадач могил", en="Rot Hide Graverobber" }, -- Rot Hide Graverobber
@@ -1327,10 +1327,10 @@ local npc = { -- [id] = { title, description (optional) }
 [1956] = { "старий озерний підкрадач", en="Elder Lake Creeper" }, -- Elder Lake Creeper
 [1957] = { "береговий розвідник Злобного Плавника", en="Vile Fin Shorecreeper" }, -- Vile Fin Shorecreeper
 [1958] = { "хвилезов Злобного Плавника", en="Vile Fin Tidecaller" }, -- Vile Fin Tidecaller
-[1959] = { "горянин Ячміновар", en="Mountaineer Barleybrew" }, -- Mountaineer Barleybrew
+[1959] = { [1] = "Горянин Барлібрев", ["en"] = "Mountaineer Barleybrew" }, -- Mountaineer Barleybrew
 [1960] = { "пілот Молотоніг", en="Pilot Hammerfoot" }, -- Pilot Hammerfoot
 [1961] = { "Свербикіготь", en="Mangeclaw" }, -- Mangeclaw
-[1963] = { "Відра Вогнисько", en="Vidra Hearthstove" }, -- Vidra Hearthstove
+[1963] = { [1] = "Відра Гіртстове", ["en"] = "Vidra Hearthstove" }, -- Vidra Hearthstove
 [1964] = { "деревань", en="Treant" }, -- Treant
 [1965] = { "горянин Талос", en="Mountaineer Thalos" }, -- Mountaineer Thalos
 [1971] = { "Айвар Нечистий", en="Ivar the Foul" }, -- Ivar the Foul
@@ -1341,7 +1341,7 @@ local npc = { -- [id] = { title, description (optional) }
 [1976] = { "штормовійський патрульний", en="Stormwind City Patroller" }, -- Stormwind City Patroller
 [1977] = { "сенатор Мегр Камнедар" }, -- Mehr Stonehallow
 [1978] = { "смертолов Ерланд", en="Deathstalker Erland" }, -- Deathstalker Erland
-[1981] = { "душитель Темного Заліза", en="Dark Iron Ambusher" }, -- Dark Iron Ambusher
+[1981] = { [1] = "Засадник Темного Заліза", ["en"] = "Dark Iron Ambusher" }, -- Dark Iron Ambusher
 [1983] = { "Нічнохльостка", en="Nightlash" }, -- Nightlash
 [1984] = { "молодий татарний кнур", en="Young Thistle Boar" }, -- Young Thistle Boar
 [1985] = { "татарний кнур", en="Thistle Boar" }, -- Thistle Boar
@@ -1391,7 +1391,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2041] = { "древній захисник", en="Ancient Protector" }, -- Ancient Protector
 [2042] = { "ночезуб", en="Nightsaber" }, -- Nightsaber
 [2043] = { "ночезуб-ловець", en="Nightsaber Stalker" }, -- Nightsaber Stalker
-[2044] = { "неприкаяний дух", en="Forlorn Spirit" }, -- Forlorn Spirit
+[2044] = { [1] = "Покинутий дух", ["en"] = "Forlorn Spirit" }, -- Forlorn Spirit
 [2046] = { "Ендрю Крайтон", "броняр та майстер щитів", en="Andrew Krighton" }, -- Andrew Krighton <Armorer & Shieldcrafter>
 [2050] = { "Ралей Андреан", "колишній шеф-кухар", en="Raleigh Andrean" }, -- Raleigh Andrean
 [2053] = { "змучений біженець", en="Haggard Refugee" }, -- Haggard Refugee
@@ -1420,21 +1420,21 @@ local npc = { -- [id] = { title, description (optional) }
 [2082] = { "Ґілшалан Вітроступ", en="Gilshalan Windwalker" }, -- Gilshalan Windwalker
 [2083] = { "Сірел Клинколист", en="Syral Bladeleaf" }, -- Syral Bladeleaf
 [2084] = { "Натеріль Дощезов", "товари загального вжитку", en="Natheril Raincaller" }, -- Natheril Raincaller <General Goods>
-[2086] = { "Вальстаґ Залізогуб", en="Valstag Ironjaw" }, -- Valstag Ironjaw
-[2089] = { "гігантський кроколіск Заболоття", en="Giant Wetlands Crocolisk" }, -- Giant Wetlands Crocolisk
+[2086] = { [1] = "Валстаґ Іронджав", ["en"] = "Valstag Ironjaw" }, -- Valstag Ironjaw
+[2089] = { [1] = "Велетенський кроколіск Заболоття", ["en"] = "Giant Wetlands Crocolisk" }, -- Giant Wetlands Crocolisk
 [2090] = { "Ма'рук Змієлуска", "воєвода Драконової Пащі", en="Ma'ruk Wyrmscale" }, -- Ma'ruk Wyrmscale
 [2091] = { "ватаг Нек'рош", en="Chieftain Nek'rosh" }, -- Chieftain Nek'rosh
 [2092] = { "пілот Довгобород", "облогова бригада Залізогарта", en="Pilot Longbeard" }, -- Pilot Longbeard
-[2093] = { "Ейнар Кам'янохват", en="Einar Stonegrip" }, -- Einar Stonegrip
-[2094] = { "Джеймс Галлоран", en="James Halloran" }, -- James Halloran
-[2096] = { "Таррел Кам'яноткач", en="Tarrel Rockweaver" }, -- Tarrel Rockweaver
-[2097] = { "Гарло Барнабі", en="Harlo Barnaby" }, -- Harlo Barnaby
-[2098] = { "баран", en="Ram" }, -- Ram
-[2099] = { "член команди \"Дівоча цнота\"", en="Maiden's Virtue Crewman" }, -- Maiden's Virtue Crewman
-[2102] = { "бугай Драконової Пащі", en="Dragonmaw Grunt" }, -- Dragonmaw Grunt
-[2103] = { "розвідник Драконової Пащі", en="Dragonmaw Scout" }, -- Dragonmaw Scout
-[2104] = { "капітан Міцнорук", en="Captain Stoutfist" }, -- Captain Stoutfist
-[2105] = { "горянин Доккін", en="Mountaineer Dokkin" }, -- Mountaineer Dokkin
+[2093] = { [1] = "Еінар Стонеґріп", ["en"] = "Einar Stonegrip" }, -- Einar Stonegrip
+[2094] = { [1] = "Джамес Галлоран", ["en"] = "James Halloran" }, -- James Halloran
+[2096] = { [1] = "Таррел Роквівер", ["en"] = "Tarrel Rockweaver" }, -- Tarrel Rockweaver
+[2097] = { [1] = "Гарло Барнаби", ["en"] = "Harlo Barnaby" }, -- Harlo Barnaby
+[2098] = { [1] = "Баран", ["en"] = "Ram" }, -- Ram
+[2099] = { [1] = "Матрос «Дівочої Чесноти»", ["en"] = "Maiden's Virtue Crewman" }, -- Maiden's Virtue Crewman
+[2102] = { [1] = "Рубака Драконової Пащі", ["en"] = "Dragonmaw Grunt" }, -- Dragonmaw Grunt
+[2103] = { [1] = "Розвідник Драконової Пащі", ["en"] = "Dragonmaw Scout" }, -- Dragonmaw Scout
+[2104] = { [1] = "Капітан Стоутфіст", ["en"] = "Captain Stoutfist" }, -- Captain Stoutfist
+[2105] = { [1] = "Горянин Доккін", ["en"] = "Mountaineer Dokkin" }, -- Mountaineer Dokkin
 [2106] = { "аптекар Берард", en="Apothecary Berard" }, -- Apothecary Berard
 [2107] = { "Ґеролас Талветрен", en="Gaerolas Talvethren" }, -- Gaerolas Talvethren
 [2108] = { "Ґарнеґ Вуглечереп", en="Garneg Charskull" }, -- Garneg Charskull
@@ -1724,9 +1724,9 @@ local npc = { -- [id] = { title, description (optional) }
 [2462] = { "черв'як-плотожер", en="Flesh Eating Worm" }, -- Flesh Eating Worm
 [2464] = { "командир Аґґро'ґош", en="Commander Aggro'gosh" }, -- Commander Aggro'gosh
 [2465] = { "провидець Мок'тардін", en="Far Seer Mok'thardin" }, -- Far Seer Mok'thardin
-[2466] = { "горянин Ґруґельм", en="Mountaineer Grugelm" }, -- Mountaineer Grugelm
-[2468] = { "горянин Тар", en="Mountaineer Thar" }, -- Mountaineer Thar
-[2469] = { "горянин Рарен", en="Mountaineer Rharen" }, -- Mountaineer Rharen
+[2466] = { [1] = "Горянин Ґруґелм", ["en"] = "Mountaineer Grugelm" }, -- Mountaineer Grugelm
+[2468] = { [1] = "Горянин Тар", ["en"] = "Mountaineer Thar" }, -- Mountaineer Thar
+[2469] = { [1] = "Горянин Ргарен", ["en"] = "Mountaineer Rharen" }, -- Mountaineer Rharen
 [2470] = { "вартовий Фрейзер", "Нічна варта", en="Watcher Fraizer" }, -- Watcher Fraizer <The Night Watch>
 [2473] = { "Ґраністад", en="Granistad" }, -- Granistad
 [2474] = { "Курдрос", en="Kurdros" }, -- Kurdros
@@ -1760,30 +1760,30 @@ local npc = { -- [id] = { title, description (optional) }
 [2503] = { "гіллзбрадський десятник", en="Hillsbrad Foreman" }, -- Hillsbrad Foreman
 [2504] = { "Донял Товальд", "бібліотекар", en="Donyal Tovald" }, -- Donyal Tovald <Librarian>
 [2505] = { "морський тріскощелеп", en="Saltwater Snapjaw" }, -- Saltwater Snapjaw
-[2506] = { "горянин Гарн", en="Mountaineer Harn" }, -- Mountaineer Harn
-[2507] = { "горянин Утан", en="Mountaineer Uthan" }, -- Mountaineer Uthan
-[2508] = { "горянин Вуар", en="Mountaineer Wuar" }, -- Mountaineer Wuar
-[2509] = { "горянин Скелл", en="Mountaineer Cragg" }, -- Mountaineer Cragg
-[2510] = { "горянин Озмок", en="Mountaineer Ozmok" }, -- Mountaineer Ozmok
-[2511] = { "горянин Бладд", en="Mountaineer Bludd" }, -- Mountaineer Bludd
-[2512] = { "горянин Роган", en="Mountaineer Roghan" }, -- Mountaineer Roghan
-[2513] = { "горянка Жанга", en="Mountaineer Janha" }, -- Mountaineer Janha
-[2514] = { "горянин Модакс", en="Mountaineer Modax" }, -- Mountaineer Modax
-[2515] = { "горянин Фазґард", en="Mountaineer Fazgard" }, -- Mountaineer Fazgard
-[2516] = { "горянин Камдар", en="Mountaineer Kamdar" }, -- Mountaineer Kamdar
-[2517] = { "горянин Ланґар", en="Mountaineer Langarr" }, -- Mountaineer Langarr
-[2518] = { "горянин Сварт", en="Mountaineer Swarth" }, -- Mountaineer Swarth
+[2506] = { [1] = "Горянин Гарн", ["en"] = "Mountaineer Harn" }, -- Mountaineer Harn
+[2507] = { [1] = "Горянин Утан", ["en"] = "Mountaineer Uthan" }, -- Mountaineer Uthan
+[2508] = { [1] = "Горянин Вуар", ["en"] = "Mountaineer Wuar" }, -- Mountaineer Wuar
+[2509] = { [1] = "Горянин Краґґ", ["en"] = "Mountaineer Cragg" }, -- Mountaineer Cragg
+[2510] = { [1] = "Горянин Озмок", ["en"] = "Mountaineer Ozmok" }, -- Mountaineer Ozmok
+[2511] = { [1] = "Горянин Блудд", ["en"] = "Mountaineer Bludd" }, -- Mountaineer Bludd
+[2512] = { [1] = "Горянин Роґган", ["en"] = "Mountaineer Roghan" }, -- Mountaineer Roghan
+[2513] = { [1] = "Горянин Джанга", ["en"] = "Mountaineer Janha" }, -- Mountaineer Janha
+[2514] = { [1] = "Горянин Модакс", ["en"] = "Mountaineer Modax" }, -- Mountaineer Modax
+[2515] = { [1] = "Горянин Фазґард", ["en"] = "Mountaineer Fazgard" }, -- Mountaineer Fazgard
+[2516] = { [1] = "Горянин Камдар", ["en"] = "Mountaineer Kamdar" }, -- Mountaineer Kamdar
+[2517] = { [1] = "Горянин Ланґарр", ["en"] = "Mountaineer Langarr" }, -- Mountaineer Langarr
+[2518] = { [1] = "Горянин Сварт", ["en"] = "Mountaineer Swarth" }, -- Mountaineer Swarth
 [2519] = { "Кін'вілей", en="Kin'weelay" }, -- Kin'weelay
 [2520] = { "дистанційно керований голем", en="Remote-Controlled Golem" }, -- Remote-Controlled Golem
 [2521] = { "небогрива горила", en="Skymane Gorilla" }, -- Skymane Gorilla
 [2522] = { "ягуеро-ловець", en="Jaguero Stalker" }, -- Jaguero Stalker
-[2523] = { "тотем обпалення", en="Searing Totem" }, -- Searing Totem
+[2523] = { [1] = "Тотем випалювання", ["en"] = "Searing Totem" }, -- Searing Totem
 [2524] = { "горянин Хаґґіс", en="Mountaineer Haggis" }, -- Mountaineer Haggis
 [2525] = { "горянин Барн", en="Mountaineer Barn" }, -- Mountaineer Barn
 [2526] = { "горянин Морлік", en="Mountaineer Morlic" }, -- Mountaineer Morlic
 [2527] = { "горянин Роган", en="Mountaineer Angst" }, -- Mountaineer Angst
 [2528] = { "горянин Хаґґіль", en="Mountaineer Haggil" }, -- Mountaineer Haggil
-[2529] = { "син Аруґала", en="Son of Arugal" }, -- Son of Arugal
+[2529] = { [1] = "Син Аруґала", ["en"] = "Son of Arugal" }, -- Son of Arugal
 [2530] = { "Єнніку", "заручник із племені Темного Списа", en="Yenniku" }, -- Yenniku
 [2531] = { "посіпака Морґанта" }, -- Morganth
 [2532] = { "Донна", en="Donna" }, -- Donna
@@ -1808,7 +1808,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2553] = { "тінемов Зів'ялої Кори", en="Witherbark Shadowcaster" }, -- Witherbark Shadowcaster
 [2554] = { "сокирожбур Зів'ялої Кори", en="Witherbark Axe Thrower" }, -- Witherbark Axe Thrower
 [2555] = { "знахар Зів'ялої Кори", en="Witherbark Witch Doctor" }, -- Witherbark Witch Doctor
-[2556] = { "мисливець за головами Зів'ялої Кори", en="Witherbark Headhunter" }, -- Witherbark Headhunter
+[2556] = { [1] = "Мисливець за головами Зів'ялої Кори", ["en"] = "Witherbark Headhunter" }, -- Witherbark Headhunter
 [2557] = { "темний мисливець Зів'ялої Кори", en="Witherbark Shadow Hunter" }, -- Witherbark Shadow Hunter
 [2558] = { "берсерк Зів'ялої Кори", en="Witherbark Berserker" }, -- Witherbark Berserker
 [2559] = { "плоскогірний бігун", en="Highland Strider" }, -- Highland Strider
@@ -1874,7 +1874,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2626] = { "старий Гемінґ", "рибалка", en="Old Man Heming" }, -- Old Man Heming <Fisherman>
 [2627] = { "Ґрарнік Добрострок", "кравець-експерт", en="Grarnik Goodstitch" }, -- Grarnik Goodstitch <Expert Tailor>
 [2628] = { "даларанський робітник", en="Dalaran Worker" }, -- Dalaran Worker
-[2630] = { "тотем земного зв'язування", en="Earthbind Totem" }, -- Earthbind Totem
+[2630] = { [1] = "Тотем оков землі", ["en"] = "Earthbind Totem" }, -- Earthbind Totem
 [2634] = { "принцеса Пуба", en="Princess Poobah" }, -- Princess Poobah
 [2635] = { "старий морський кроколіск", en="Elder Saltwater Crocolisk" }, -- Elder Saltwater Crocolisk
 [2636] = { "матрос Чорноводдя", en="Blackwater Deckhand" }, -- Blackwater Deckhand
@@ -1906,7 +1906,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2668] = { "Даніель Розстіб", "кравецькі припаси", en="Danielle Zipstitch" }, -- Danielle Zipstitch <Tailoring Supplies>
 [2669] = { "Шері Розстіб", "кравецькі припаси", en="Sheri Zipstitch" }, -- Sheri Zipstitch <Tailoring Supplies>
 [2670] = { "Зиск Добрострок", "кравецькі припаси", en="Xizk Goodstitch" }, -- Xizk Goodstitch <Tailoring Supplies>
-[2671] = { "механічна білка", en="Mechanical Squirrel" }, -- Mechanical Squirrel
+[2671] = { [1] = "Механічна білка", ["en"] = "Mechanical Squirrel" }, -- Mechanical Squirrel
 [2672] = { "Боягуз Кросбі", "кравецькі припаси", en="Cowardly Crosby" }, -- Cowardly Crosby <Tailoring Supplies>
 [2673] = { "манекен-мішень", en="Target Dummy" }, -- Target Dummy
 [2674] = { "вдосконалений манекен-мішень", en="Advanced Target Dummy" }, -- Advanced Target Dummy
@@ -2006,7 +2006,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2783] = { "Марез Каптур", en="Marez Cowl" }, -- Marez Cowl
 [2784] = { "король Маґні Бронзобородий", "лорд Залізогарта" }, -- Magni Bronzebeard
 [2785] = { "Тельдурін Загублений", en="Theldurin the Lost" }, -- Theldurin the Lost
-[2786] = { "Ґерріґ Кісткохват", en="Gerrig Bonegrip" }, -- Gerrig Bonegrip
+[2786] = { [1] = "Ґерріґ Бонеґріп", ["en"] = "Gerrig Bonegrip" }, -- Gerrig Bonegrip
 [2787] = { "Зарук", en="Zaruk" }, -- Zaruk
 [2788] = { "учень Крітен", en="Apprentice Kryten" }, -- Apprentice Kryten
 [2789] = { "Скуерто", en="Skuerto" }, -- Skuerto
@@ -2327,7 +2327,7 @@ local npc = { -- [id] = { title, description (optional) }
 [3179] = { "Гарольд Ріґґс", "тренер рибальства", en="Harold Riggs" }, -- Harold Riggs <Fishing Trainer>
 [3180] = { "крамар Темного Заліза", "особливі товари", en="Dark Iron Entrepreneur" }, -- Dark Iron Entrepreneur
 [3181] = { "Фремал Дрібник", "тренер першої допомоги", en="Fremal Doohickey" }, -- Fremal Doohickey <First Aid Trainer>
-[3182] = { "Юндер Брокк", en="Junder Brokk" }, -- Junder Brokk
+[3182] = { [1] = "Джундер Брокк", ["en"] = "Junder Brokk" }, -- Junder Brokk
 [3183] = { "Ярроґ Погибелетінь", en="Yarrog Baneshadow" }, -- Yarrog Baneshadow
 [3184] = { "Мяо'дзан", "алхімік-підмайстер", en="Miao'zan" }, -- Miao'zan <Journeyman Alchemist>
 [3185] = { "Мішікі", "травниця", en="Mishiki" }, -- Mishiki <Herbalist>
@@ -2649,7 +2649,7 @@ local npc = { -- [id] = { title, description (optional) }
 [3522] = { "Констанс Брібуа", "учениця кравця", en="Constance Brisboise" }, -- Constance Brisboise
 [3523] = { "Боуен Брібуа", "кравець-підмайстер", en="Bowen Brisboise" }, -- Bowen Brisboise <Journeyman Tailor>
 [3524] = { "дух вовка", en="Spirit Wolf" }, -- Spirit Wolf
-[3527] = { "тотем цілющого потоку", en="Healing Stream Totem" }, -- Healing Stream Totem
+[3527] = { [1] = "Тотем цілющого струменя", ["en"] = "Healing Stream Totem" }, -- Healing Stream Totem
 [3528] = { "броняр Поховальних Вогнищ", en="Pyrewood Armorer" }, -- Pyrewood Armorer
 [3529] = { "броняр Місяцесказу", en="Moonrage Armorer" }, -- Moonrage Armorer
 [3530] = { "кравець Поховальних Вогнищ", en="Pyrewood Tailor" }, -- Pyrewood Tailor
@@ -2689,11 +2689,11 @@ local npc = { -- [id] = { title, description (optional) }
 [3569] = { "болотянчик", en="Bogling" }, -- Bogling
 [3571] = { "стражниця Тельдрассіля", en="Teldrassil Sentinel" }, -- Teldrassil Sentinel
 [3572] = { "Зіззек", "рибалка", en="Zizzek" }, -- Zizzek <Fisherman>
-[3573] = { "тотем джерела мани", en="Mana Spring Totem" }, -- Mana Spring Totem
+[3573] = { [1] = "Тотем джерела мани", ["en"] = "Mana Spring Totem" }, -- Mana Spring Totem
 [3574] = { "верховий кажан", en="Riding Bat" }, -- Riding Bat
 [3577] = { "даларанський бровар", en="Dalaran Brewmaster" }, -- Dalaran Brewmaster
 [3578] = { "даларанський шахтар", en="Dalaran Miner" }, -- Dalaran Miner
-[3579] = { "тотем кам'яного пазура", en="Stoneclaw Totem" }, -- Stoneclaw Totem
+[3579] = { [1] = "Тотем кам'яного кігтя", ["en"] = "Stoneclaw Totem" }, -- Stoneclaw Totem
 [3580] = { "тотем невидимості", en="Invisibility Totem" }, -- Invisibility Totem
 [3581] = { "стічний звір", en="Sewer Beast" }, -- Sewer Beast
 [3582] = { "Аман", en="Aman" }, -- Aman
@@ -2744,7 +2744,7 @@ local npc = { -- [id] = { title, description (optional) }
 [3629] = { "Девід Ленгстон", en="David Langston" }, -- David Langston
 [3630] = { "спотворений змій", en="Deviate Coiler" }, -- Deviate Coiler
 [3631] = { "спотворений жалохвіст", en="Deviate Stinglash" }, -- Deviate Stinglash
-[3632] = { "спотворений підкрадач", en="Deviate Creeper" }, -- Deviate Creeper
+[3632] = { [1] = "Збочений повзун", ["en"] = "Deviate Creeper" }, -- Deviate Creeper
 [3633] = { "спотворений вбивця", en="Deviate Slayer" }, -- Deviate Slayer
 [3634] = { "спотворений ловець", en="Deviate Stalker" }, -- Deviate Stalker
 [3636] = { "спотворений спустошник", en="Deviate Ravager" }, -- Deviate Ravager
@@ -2777,7 +2777,7 @@ local npc = { -- [id] = { title, description (optional) }
 [3672] = { "Боан", "друїд Ікла", en="Boahn" }, -- Boahn <Druid of the Fang>
 [3673] = { "лорд Серпентіс", "лідер Ікла", en="Lord Serpentis" }, -- Lord Serpentis <Fanglord>
 [3674] = { "Шкам", en="Skum" }, -- Skum
-[3678] = { "послідовник Наралекса", en="Disciple of Naralex" }, -- Disciple of Naralex
+[3678] = { [1] = "Учень Наралекса", ["en"] = "Disciple of Naralex" }, -- Disciple of Naralex
 [3679] = { "Наралекс", en="Naralex" }, -- Naralex
 [3680] = { "змієквітка", en="Serpentbloom Snake" }, -- Serpentbloom Snake
 [3681] = { "світлик", en="wisp" }, -- wisp
@@ -3051,7 +3051,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4036] = { "підлий дух вогню", en="Rogue Flame Spirit" }, -- Rogue Flame Spirit
 [4037] = { "палаючий спустошник", en="Burning Ravager" }, -- Burning Ravager
 [4038] = { "палаючий винищувач", en="Burning Destroyer" }, -- Burning Destroyer
-[4040] = { "печерний ловець", en="Cave Stalker" }, -- Cave Stalker
+[4040] = { [1] = "Печерний переслідувач", ["en"] = "Cave Stalker" }, -- Cave Stalker
 [4041] = { "обпалений василіск", en="Scorched Basilisk" }, -- Scorched Basilisk
 [4042] = { "обгорілий василіск", en="Singed Basilisk" }, -- Singed Basilisk
 [4043] = { "Ґал'тук", "продавець дворучної зброї", en="Galthuk" }, -- Galthuk <Two-Handed Weapons Merchant>
@@ -3371,7 +3371,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4452] = { "Крейвел Вуглеборід", en="Kravel Koalbeard" }, -- Kravel Koalbeard
 [4453] = { "Віззл Латуноболт", en="Wizzle Brassbolts" }, -- Wizzle Brassbolts
 [4454] = { "Фіззл Латуноболт", en="Fizzle Brassbolts" }, -- Fizzle Brassbolts
-[4455] = { "рудий Джек Флінт", en="Red Jack Flint" }, -- Red Jack Flint
+[4455] = { [1] = "Ред Джак Флінт", ["en"] = "Red Jack Flint" }, -- Red Jack Flint
 [4456] = { "Фіора Довговуха", en="Fiora Longears" }, -- Fiora Longears
 [4457] = { "хмурожабрий здобувач", en="Murkgill Forager" }, -- Murkgill Forager
 [4458] = { "хмурожабрий мисливець", en="Murkgill Hunter" }, -- Murkgill Hunter
@@ -3417,7 +3417,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4509] = { "Сарґат", en="Sargath" }, -- Sargath
 [4510] = { "Гералат Цілиноплин", en="Heralath Fallowbrook" }, -- Heralath Fallowbrook
 [4511] = { "аґам'ар", en="Agam'ar" }, -- Agam'ar
-[4512] = { "гнилий аґам'ар", en="Rotting Agam'ar" }, -- Rotting Agam'ar
+[4512] = { [1] = "Гниючий аґам'ар", ["en"] = "Rotting Agam'ar" }, -- Rotting Agam'ar
 [4514] = { "лютий аґам'ар", en="Raging Agam'ar" }, -- Raging Agam'ar
 [4515] = { "мертвоголова послушниця", en="Death's Head Acolyte" }, -- Death's Head Acolyte
 [4516] = { "мертвоголова адептка", en="Death's Head Adept" }, -- Death's Head Adept
@@ -3439,7 +3439,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4538] = { "краальський кажан", en="Kraul Bat" }, -- Kraul Bat
 [4539] = { "великий краальський кажан", en="Greater Kraul Bat" }, -- Greater Kraul Bat
 [4540] = { "монах Багряного Походу", en="Scarlet Monk" }, -- Scarlet Monk
-[4541] = { "кров Аґамаґґана", en="Blood of Agamaggan" }, -- Blood of Agamaggan
+[4541] = { [1] = "Кров Аґамаґґана", ["en"] = "Blood of Agamaggan" }, -- Blood of Agamaggan
 [4542] = { "верховний інквізитор Феєрбенкс", en="High Inquisitor Fairbanks" }, -- High Inquisitor Fairbanks
 [4543] = { "кривавий маг Талнос", en="Bloodmage Thalnos" }, -- Bloodmage Thalnos
 [4544] = { "Крюґ Черепотрощитель", en="Krueg Skullsplitter" }, -- Krueg Skullsplitter
@@ -3734,7 +3734,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4959] = { "Йорген", en="Jorgen" }, -- Jorgen
 [4960] = { "єпископ Делавей", en="Bishop DeLavey" }, -- Bishop DeLavey
 [4961] = { "Дешель Кам'яний Кулак", en="Dashel Stonefist" }, -- Dashel Stonefist
-[4962] = { "Ян \"Пронира\" Тапокі", en="Tapoke \"Slim\" Jahn" }, -- Tapoke "Slim" Jahn
+[4962] = { [1] = "Тапоке \"Слім\" Джагн", ["en"] = "Tapoke \"Slim\" Jahn" }, -- Tapoke "Slim" Jahn
 [4963] = { "Михайль", "бармен", en="Mikhail" }, -- Mikhail <Bartender>
 [4964] = { "командир Самол" }, -- Samaul
 [4965] = { "Страдниця", en="Pained" }, -- Pained
@@ -3742,7 +3742,7 @@ local npc = { -- [id] = { title, description (optional) }
 [4967] = { "архімаг Тервош", en="Archmage Tervosh" }, -- Archmage Tervosh
 [4968] = { "леді Джайна Праудмур", "правителька Терамору" }, -- Jaina Proudmoore
 [4969] = { "бандит Старого Міста", en="Old Town Thug" }, -- Old Town Thug
-[4971] = { "друг Пронири", en="Slim's Friend" }, -- Slim's Friend
+[4971] = { [1] = "Друг Худого", ["en"] = "Slim's Friend" }, -- Slim's Friend
 [4972] = { "Каґоро", en="Kagoro" }, -- Kagoro
 [4973] = { "вартовий Ласітер", en="Guard Lasiter" }, -- Guard Lasiter
 [4974] = { "Олдвін Сміхт", "розпорядник гільдій", en="Aldwin Laughlin" }, -- Aldwin Laughlin <Guild Master>
@@ -3772,7 +3772,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5057] = { "тераморський дезертир", en="Theramore Deserter" }, -- Theramore Deserter
 [5058] = { "ворг-вовкостраж", en="Wolfguard Worg" }, -- Wolfguard Worg
 [5081] = { "Коннор Річкар", "учень шеф-кухаря", en="Connor Rivers" }, -- Connor Rivers <Apprentice Chef>
-[5082] = { "Вінсент Хіал", en="Vincent Hyal" }, -- Vincent Hyal
+[5082] = { [1] = "Вінкент Гиал", ["en"] = "Vincent Hyal" }, -- Vincent Hyal
 [5083] = { "писар Лендрі", en="Clerk Lendry" }, -- Clerk Lendry
 [5085] = { "вартовий Караульної вежі", en="Sentry Point Guard" }, -- Sentry Point Guard
 [5086] = { "капітан Караульної вежі", en="Sentry Point Captain" }, -- Sentry Point Captain
@@ -3989,10 +3989,10 @@ local npc = { -- [id] = { title, description (optional) }
 [5400] = { "Зеккіс", en="Zekkis" }, -- Zekkis
 [5401] = { "Казказ Нечистий", en="Kazkaz the Unholy" }, -- Kazkaz the Unholy
 [5402] = { "хан Грата", en="Khan Hratha" }, -- Khan Hratha
-[5403] = { "білий жеребець", en="White Stallion" }, -- White Stallion
+[5403] = { [1] = "Білий жеребець", ["en"] = "White Stallion" }, -- White Stallion
 [5404] = { "вороний жеребець", en="Black Stallion" }, -- Black Stallion
 [5405] = { "рябий кінь", en="Pinto" }, -- Pinto
-[5406] = { "соловий кінь", en="Palomino" }, -- Palomino
+[5406] = { [1] = "Паломіно", ["en"] = "Palomino" }, -- Palomino
 [5407] = { "кошмар", en="Nightmare" }, -- Nightmare
 [5409] = { "рій женців", en="Harvester Swarm" }, -- Harvester Swarm
 [5411] = { "Крінкл Файносталь", "ковальські припаси", en="Krinkle Goodsteel" }, -- Krinkle Goodsteel <Blacksmithing Supplies>
@@ -4096,7 +4096,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5592] = { "Ток'Кар", en="Tok'Kar" }, -- Tok'Kar
 [5593] = { "Катар", en="Katar" }, -- Katar
 [5594] = { "алхімік Товкачер", "алхімічні припаси", en="Alchemist Pestlezugg" }, -- Alchemist Pestlezugg <Alchemy Supplies>
-[5595] = { "вартовий Залізогарта", en="Ironforge Guard" }, -- Ironforge Guard
+[5595] = { [1] = "Вартовий Стальгорна", ["en"] = "Ironforge Guard" }, -- Ironforge Guard
 [5597] = { "бугай Комак", en="Grunt Komak" }, -- Grunt Komak
 [5598] = { "вигнанець Атал'ай", en="Atal'ai Exile" }, -- Atal'ai Exile
 [5599] = { "Кон Жовтоокий", en="Kon Yelloweyes" }, -- Kon Yelloweyes
@@ -4317,8 +4317,8 @@ local npc = { -- [id] = { title, description (optional) }
 [5865] = { "Дішу", en="Dishu" }, -- Dishu
 [5870] = { "Кронд", "м'ясар", en="Krond" }, -- Krond <Butcher>
 [5871] = { "Ларка", "продавець напоїв", en="Larhka" }, -- Larhka
-[5873] = { "тотем кам'яної шкіри", en="Stoneskin Totem" }, -- Stoneskin Totem
-[5874] = { "тотем сили землі", en="Strength of Earth Totem" }, -- Strength of Earth Totem
+[5873] = { [1] = "Тотем кам'яної шкіри", ["en"] = "Stoneskin Totem" }, -- Stoneskin Totem
+[5874] = { [1] = "Тотем сили землі", ["en"] = "Strength of Earth Totem" }, -- Strength of Earth Totem
 [5875] = { "Ґан'рул Криваве Око", en="Gan'rul Bloodeye" }, -- Gan'rul Bloodeye
 [5878] = { "Тун'ґрім Вогнегляд", en="Thun'grim Firegaze" }, -- Thun'grim Firegaze
 [5879] = { "тотем вогненного спалаху", en="Fire Nova Totem" }, -- Fire Nova Totem
@@ -4335,7 +4335,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5890] = { "червоноскельний дух землі", en="Redrock Earth Spirit" }, -- Redrock Earth Spirit
 [5891] = { "менший прояв землі", en="Minor Manifestation of Earth" }, -- Minor Manifestation of Earth
 [5892] = { "Палько Вогняний Вартовий", en="Searn Firewarder" }, -- Searn Firewarder
-[5893] = { "менший прояв вогню", en="Minor Manifestation of Fire" }, -- Minor Manifestation of Fire
+[5893] = { [1] = "Мале втілення вогню", ["en"] = "Minor Manifestation of Fire" }, -- Minor Manifestation of Fire
 [5894] = { "зіпсований менший прояв води", en="Corrupt Minor Manifestation of Water" }, -- Corrupt Minor Manifestation of Water
 [5895] = { "менший прояв води", en="Minor Manifestation of Water" }, -- Minor Manifestation of Water
 [5899] = { "Бріна", en="Brine" }, -- Brine
@@ -4350,7 +4350,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5910] = { "Занкая", en="Zankaja" }, -- Zankaja
 [5911] = { "бугай Лоґмар", en="Grunt Logmar" }, -- Grunt Logmar
 [5912] = { "спотворений чарівний дракончик", en="Deviate Faerie Dragon" }, -- Deviate Faerie Dragon
-[5913] = { "тотем тремтіння", en="Tremor Totem" }, -- Tremor Totem
+[5913] = { [1] = "Тотем тремтіння", ["en"] = "Tremor Totem" }, -- Tremor Totem
 [5914] = { "спотворений кошмар", en="Deviate Nightmare" }, -- Deviate Nightmare
 [5915] = { "брат Крукодуб", en="Brother Ravenoak" }, -- Brother Ravenoak
 [5916] = { "стражниця Амарассан", en="Sentinel Amarassan" }, -- Sentinel Amarassan
@@ -4359,13 +4359,13 @@ local npc = { -- [id] = { title, description (optional) }
 [5920] = { "тотем кам'яної шкіри III" }, -- Stoneskin Totem
 [5921] = { "тотем сили землі II" }, -- Strength of Earth Totem
 [5922] = { "тотем сили землі III" }, -- Strength of Earth Totem
-[5923] = { "тотем очищення отрут", en="Poison Cleansing Totem" }, -- Poison Cleansing Totem
+[5923] = { [1] = "Тотем очищення від отрути", ["en"] = "Poison Cleansing Totem" }, -- Poison Cleansing Totem
 [5924] = { "тотем очищення хвороб", en="Disease Cleansing Totem" }, -- Disease Cleansing Totem
 [5925] = { "тотем заземлення", en="Grounding Totem" }, -- Grounding Totem
-[5926] = { "тотем опору кризі", en="Frost Resistance Totem" }, -- Frost Resistance Totem
-[5927] = { "тотем опору вогню", en="Fire Resistance Totem" }, -- Fire Resistance Totem
+[5926] = { [1] = "Тотем опору кризі", ["en"] = "Frost Resistance Totem" }, -- Frost Resistance Totem
+[5927] = { [1] = "Тотем опору вогню", ["en"] = "Fire Resistance Totem" }, -- Fire Resistance Totem
 [5928] = { "Крило Скорботи", en="Sorrow Wing" }, -- Sorrow Wing
-[5929] = { "тотем магми", en="Magma Totem" }, -- Magma Totem
+[5929] = { [1] = "Тотем магми", ["en"] = "Magma Totem" }, -- Magma Totem
 [5930] = { "сестра Терзателька", en="Sister Riven" }, -- Sister Riven
 [5931] = { "десятник Свердл", en="Foreman Rigger" }, -- Foreman Rigger
 [5932] = { "орудар Іклохляст", en="Taskmaster Whipfang" }, -- Taskmaster Whipfang
@@ -4380,7 +4380,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5942] = { "Зансоа", "рибальські принади", en="Zansoa" }, -- Zansoa <Fishing Supplies>
 [5943] = { "Рорк", "тренер першої допомоги", en="Rawrk" }, -- Rawrk <First Aid Trainer>
 [5944] = { "Йонада", "товари для кравецтва і шкірництва", en="Yonada" }, -- Yonada <Tailoring & Leatherworking Supplies>
-[5950] = { "тотем язика полум'я", en="Flametongue Totem" }, -- Flametongue Totem
+[5950] = { [1] = "Тотем язика полум'я", ["en"] = "Flametongue Totem" }, -- Flametongue Totem
 [5951] = { "заєць", en="Hare" }, -- Hare
 [5952] = { "бугай Лігва", en="Den Grunt" }, -- Den Grunt
 [5953] = { "бугай Колючого Пагорба", en="Razor Hill Grunt" }, -- Razor Hill Grunt
@@ -4434,7 +4434,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6027] = { "Кіта", "тренерка демонів", en="Kitha" }, -- Kitha <Demon Trainer>
 [6028] = { "Буркрум", "продавець важких обладунків", en="Burkrum" }, -- Burkrum <Heavy Armor Merchant>
 [6030] = { "Торвальд Ковоглиб", en="Thorvald Deepforge" }, -- Thorvald Deepforge
-[6031] = { "Торм Ковоглиб", en="Tormus Deepforge" }, -- Tormus Deepforge
+[6031] = { [1] = "Тормус Діпфорґе", ["en"] = "Tormus Deepforge" }, -- Tormus Deepforge
 [6033] = { "озерна навіженка", en="Lake Frenzy" }, -- Lake Frenzy
 [6034] = { "Лотеріас", en="Lotherias" }, -- Lotherias
 [6035] = { "бривоболотий ловець", en="Razorfen Stalker" }, -- Razorfen Stalker
@@ -4465,7 +4465,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6117] = { "високородна тінь", en="Highborne Lichling" }, -- Highborne Lichling
 [6118] = { "примара Варо'тена", en="Varo'then's Ghost" }, -- Varo'then's Ghost
 [6119] = { "Тоґ Ржавоверт", en="Tog Rustsprocket" }, -- Tog Rustsprocket
-[6120] = { "Лаґо Чорноключ", en="Lago Blackwrench" }, -- Lago Blackwrench
+[6120] = { [1] = "Лаґо Блаквренч", ["en"] = "Lago Blackwrench" }, -- Lago Blackwrench
 [6121] = { "Ремен Маркот", en="Remen Marcot" }, -- Remen Marcot
 [6122] = { "Ґакін Темнопряд", en="Gakin the Darkbinder" }, -- Gakin the Darkbinder
 [6123] = { "шпигун Темного Заліза", en="Dark Iron Spy" }, -- Dark Iron Spy
@@ -4495,13 +4495,13 @@ local npc = { -- [id] = { title, description (optional) }
 [6166] = { "Йорус Ячміновар", en="Yorus Barleybrew" }, -- Yorus Barleybrew
 [6167] = { "химера-матріарх", en="Chimaera Matriarch" }, -- Chimaera Matriarch
 [6168] = { "Руґуґ", en="Roogug" }, -- Roogug
-[6169] = { "Клокморт Гайковерт", en="Klockmort Spannerspan" }, -- Klockmort Spannerspan
+[6169] = { [1] = "Клокморт Спаннерспан", ["en"] = "Klockmort Spannerspan" }, -- Klockmort Spannerspan
 [6170] = { "Кишкодер", en="Gutspill" }, -- Gutspill
 [6171] = { "Даторіан Ралл", en="Duthorian Rall" }, -- Duthorian Rall
 [6172] = { "Гензе Фок", en="Henze Faulk" }, -- Henze Faulk
 [6173] = { "Ґазін Тенорм", en="Gazin Tenorm" }, -- Gazin Tenorm
 [6174] = { "Стефані Тернер", en="Stephanie Turner" }, -- Stephanie Turner
-[6175] = { "Джон Тернер", en="John Turner" }, -- John Turner
+[6175] = { [1] = "Джогн Турнер", ["en"] = "John Turner" }, -- John Turner
 [6176] = { "Бат'рах Вітрогляд", en="Bath'rah the Windwatcher" }, -- Bath'rah the Windwatcher
 [6177] = { "Нарм Фок", en="Narm Faulk" }, -- Narm Faulk
 [6178] = { "Муйредон Боєкузня", en="Muiredon Battleforge" }, -- Muiredon Battleforge
@@ -4536,7 +4536,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6213] = { "опромінений загарбник", en="Irradiated Invader" }, -- Irradiated Invader
 [6215] = { "Чавкун", en="Chomper" }, -- Chomper
 [6218] = { "опромінений слиз", en="Irradiated Slime" }, -- Irradiated Slime
-[6219] = { "їдкий маскун", en="Corrosive Lurker" }, -- Corrosive Lurker
+[6219] = { [1] = "Їдкий причаївник", ["en"] = "Corrosive Lurker" }, -- Corrosive Lurker
 [6220] = { "опромінений жах", en="Irradiated Horror" }, -- Irradiated Horror
 [6221] = { "божевільний лепрогном", en="Addled Leper" }, -- Addled Leper
 [6222] = { "опромінений технік", en="Leprous Technician" }, -- Leprous Technician
@@ -4558,7 +4558,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6238] = { "здоровань Вілл", en="Big Will" }, -- Big Will
 [6239] = { "Циклоніан", en="Cyclonian" }, -- Cyclonian
 [6240] = { "претендент Побоїща", en="Affray Challenger" }, -- Affray Challenger
-[6241] = { "Байлор Камнерук", en="Bailor Stonehand" }, -- Bailor Stonehand
+[6241] = { [1] = "Бейлор Стонеганд", ["en"] = "Bailor Stonehand" }, -- Bailor Stonehand
 [6243] = { "Ґеліхаст", en="Gelihast" }, -- Gelihast
 [6244] = { "Такар Провидець", en="Takar the Seer" }, -- Takar the Seer
 [6247] = { "Доан Карган", en="Doan Karhan" }, -- Doan Karhan
@@ -4629,7 +4629,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6408] = { "Ула'елек", en="Ula'elek" }, -- Ula'elek
 [6410] = { "Орм Кам'яне Копито", en="Orm Stonehoof" }, -- Orm Stonehoof
 [6411] = { "Велора Нітелі", en="Velora Nitely" }, -- Velora Nitely
-[6412] = { "скелет", en="Skeleton" }, -- Skeleton
+[6412] = { [1] = "Скелет", ["en"] = "Skeleton" }, -- Skeleton
 [6426] = { "змучений мрець", en="Anguished Dead" }, -- Anguished Dead
 [6427] = { "примарний фантом", en="Haunting Phantasm" }, -- Haunting Phantasm
 [6446] = { "Терзок", en="Therzok" }, -- Therzok
@@ -4640,7 +4640,7 @@ local npc = { -- [id] = { title, description (optional) }
 [6488] = { "полеглий герой", en="Fallen Champion" }, -- Fallen Champion
 [6489] = { "Залізоспин", en="Ironspine" }, -- Ironspine
 [6490] = { "Азшир Безсонний", en="Azshir the Sleepless" }, -- Azshir the Sleepless
-[6491] = { "зцілювач духу", en="Spirit Healer" }, -- Spirit Healer
+[6491] = { [1] = "Цілитель душ", ["en"] = "Spirit Healer" }, -- Spirit Healer
 [6492] = { "породження розлому", en="Rift Spawn" }, -- Rift Spawn
 [6493] = { "ілюзорний фантом", en="Illusionary Phantasm" }, -- Illusionary Phantasm
 [6494] = { "Тазан", en="Tazan" }, -- Tazan
@@ -4982,19 +4982,19 @@ local npc = { -- [id] = { title, description (optional) }
 [7372] = { "чорнокнижник Мертвого Вітру", en="Deadwind Warlock" }, -- Deadwind Warlock
 [7376] = { "небесна тінь", en="Sky Shadow" }, -- Sky Shadow
 [7379] = { "огр-маг Мертвого Вітру", en="Deadwind Ogre Mage" }, -- Deadwind Ogre Mage
-[7380] = { "сіамська кішка", en="Siamese" }, -- Siamese
+[7380] = { [1] = "Сіамський кіт", ["en"] = "Siamese" }, -- Siamese
 [7381] = { "срібляста смугаста кішка", en="Silver Tabby" }, -- Silver Tabby
-[7382] = { "руда смугаста кішка", en="Orange Tabby" }, -- Orange Tabby
+[7382] = { [1] = "Рудий смугастий кіт", ["en"] = "Orange Tabby" }, -- Orange Tabby
 [7383] = { "чорна смугаста кішка", en="Black Tabby" }, -- Black Tabby
-[7384] = { "корніш-рекс", en="Cornish Rex" }, -- Cornish Rex
-[7385] = { "бомбейська кішка", en="Bombay" }, -- Bombay
+[7384] = { [1] = "Корніш-рекс", ["en"] = "Cornish Rex" }, -- Cornish Rex
+[7385] = { [1] = "Бомбейський кіт", ["en"] = "Bombay" }, -- Bombay
 [7386] = { "біле кошеня", en="White Kitten" }, -- White Kitten
-[7387] = { "зеленокрилий макао", en="Green Wing Macaw" }, -- Green Wing Macaw
-[7389] = { "сенегальський папуга", en="Senegal" }, -- Senegal
+[7387] = { [1] = "Зеленокрилий ара", ["en"] = "Green Wing Macaw" }, -- Green Wing Macaw
+[7389] = { [1] = "Сенегальський папуга", ["en"] = "Senegal" }, -- Senegal
 [7390] = { "корела", en="Cockatiel" }, -- Cockatiel
 [7391] = { "гіацинтовий макао", en="Hyacinth Macaw" }, -- Hyacinth Macaw
-[7392] = { "степова курка", en="Prairie Chicken" }, -- Prairie Chicken
-[7394] = { "анконська курка", en="Ancona Chicken" }, -- Ancona Chicken
+[7392] = { [1] = "Степова курка", ["en"] = "Prairie Chicken" }, -- Prairie Chicken
+[7394] = { [1] = "Анконська курка", ["en"] = "Ancona Chicken" }, -- Ancona Chicken
 [7395] = { "великий тарган", en="Cockroach" }, -- Cockroach
 [7396] = { "земельник-камнелом", en="Earthen Stonebreaker" }, -- Earthen Stonebreaker
 [7397] = { "земельник-камнеріз", en="Earthen Stonecarver" }, -- Earthen Stonecarver
@@ -5074,13 +5074,13 @@ local npc = { -- [id] = { title, description (optional) }
 [7524] = { "замучена високородна", en="Anguished Highborne" }, -- Anguished Highborne
 [7527] = { "гоблінська міна", en="Goblin Land Mine" }, -- Goblin Land Mine
 [7543] = { "темне драконеня", en="Dark Whelpling" }, -- Dark Whelpling
-[7544] = { "багряний дракончик", en="Crimson Whelpling" }, -- Crimson Whelpling
+[7544] = { [1] = "Багряне драконеня", ["en"] = "Crimson Whelpling" }, -- Crimson Whelpling
 [7545] = { "смарагдове драконеня", en="Emerald Whelpling" }, -- Emerald Whelpling
 [7549] = { "деревна жаба", en="Tree Frog" }, -- Tree Frog
 [7550] = { "лісова жаба", en="Wood Frog" }, -- Wood Frog
-[7553] = { "велика рогата сова", en="Great Horned Owl" }, -- Great Horned Owl
+[7553] = { [1] = "Велика рогата сова", ["en"] = "Great Horned Owl" }, -- Great Horned Owl
 [7555] = { "соколина сова", en="Hawk Owl" }, -- Hawk Owl
-[7560] = { "кролик-снігоступ", en="Snowshoe Rabbit" }, -- Snowshoe Rabbit
+[7560] = { [1] = "Заєць-біляк", ["en"] = "Snowshoe Rabbit" }, -- Snowshoe Rabbit
 [7562] = { "бура змія", en="Brown Snake" }, -- Brown Snake
 [7564] = { "Марін Гогельмогель", en="Marin Noggenfogger" }, -- Marin Noggenfogger
 [7565] = { "чорна королівська змія", en="Black Kingsnake" }, -- Black Kingsnake
@@ -5272,7 +5272,7 @@ local npc = { -- [id] = { title, description (optional) }
 [8025] = { "мати Гостродзьоба" }, -- Sharpbeak
 [8026] = { "Тін'тель Лезоткаля", en="Thyn'tel Bladeweaver" }, -- Thyn'tel Bladeweaver
 [8035] = { "міна Темного Заліза", en="Dark Iron Land Mine" }, -- Dark Iron Land Mine
-[8055] = { "телсамарський горянин", en="Thelsamar Mountaineer" }, -- Thelsamar Mountaineer
+[8055] = { [1] = "Горянин Телсамара", ["en"] = "Thelsamar Mountaineer" }, -- Thelsamar Mountaineer
 [8075] = { "Едана Злопазур", en="Edana Hatetalon" }, -- Edana Hatetalon
 [8095] = { "сул'літуз-пісколаз", en="Sul'lithuz Sandcrawler" }, -- Sul'lithuz Sandcrawler
 [8096] = { "народний захисник", "Народне ополчення", en="Protector of the People" }, -- Protector of the People <The People's Militia>
@@ -5534,7 +5534,7 @@ local npc = { -- [id] = { title, description (optional) }
 [8668] = { "скверношукач", en="Felhound Tracker" }, -- Felhound Tracker
 [8669] = { "аукціоніст Толон", en="Auctioneer Tolon" }, -- Auctioneer Tolon
 [8670] = { "аукціоніст Чілтон", en="Auctioneer Chilton" }, -- Auctioneer Chilton
-[8671] = { "аукціоніст Баклер", en="Auctioneer Buckler" }, -- Auctioneer Buckler
+[8671] = { [1] = "Аукціоніст Буклер", ["en"] = "Auctioneer Buckler" }, -- Auctioneer Buckler
 [8672] = { "аукціоністка Ліка", en="Auctioneer Leeka" }, -- Auctioneer Leeka
 [8673] = { "аукціоніст Татунґ", en="Auctioneer Thathung" }, -- Auctioneer Thathung
 [8674] = { "аукціоніст Штампі", en="Auctioneer Stampi" }, -- Auctioneer Stampi
@@ -5547,7 +5547,7 @@ local npc = { -- [id] = { title, description (optional) }
 [8717] = { "вартовий скверни-гвардієць", en="Felguard Elite" }, -- Felguard Elite
 [8718] = { "гончак мани", en="Manahound" }, -- Manahound
 [8719] = { "аукціоніст Фітч", en="Auctioneer Fitch" }, -- Auctioneer Fitch
-[8720] = { "аукціоністка Червонка", en="Auctioneer Redmuse" }, -- Auctioneer Redmuse
+[8720] = { [1] = "Аукціоніст Редмусе", ["en"] = "Auctioneer Redmuse" }, -- Auctioneer Redmuse
 [8721] = { "аукціоністка Епітві", en="Auctioneer Epitwee" }, -- Auctioneer Epitwee
 [8722] = { "аукціоніст Ґуллем", en="Auctioneer Gullem" }, -- Auctioneer Gullem
 [8723] = { "аукціоніст Ґолотас", en="Auctioneer Golothas" }, -- Auctioneer Golothas
@@ -5574,8 +5574,8 @@ local npc = { -- [id] = { title, description (optional) }
 [8876] = { "послушник Піщанолютих", en="Sandfury Acolyte" }, -- Sandfury Acolyte
 [8877] = { "ревнитель Піщанолютих", en="Sandfury Zealot" }, -- Sandfury Zealot
 [8878] = { "Мууран", "досвідчений майстер булав", en="Muuran" }, -- Muuran <Superior Macecrafter>
-[8879] = { "королівський історик Архіна", en="Royal Historian Archesonus" }, -- Royal Historian Archesonus
-[8881] = { "верховий баран", en="Riding Ram" }, -- Riding Ram
+[8879] = { [1] = "Королівський історик Аркезон", ["en"] = "Royal Historian Archesonus" }, -- Royal Historian Archesonus
+[8881] = { [1] = "Верховий баран", ["en"] = "Riding Ram" }, -- Riding Ram
 [8882] = { "верховий тигр", en="Riding Tiger" }, -- Riding Tiger
 [8883] = { "верховий кінь", en="Riding Horse" }, -- Riding Horse
 [8884] = { "верховий кінь-скелет", en="Skeletal Mount" }, -- Skeletal Mount
@@ -5899,7 +5899,7 @@ local npc = { -- [id] = { title, description (optional) }
 [9856] = { "аукціоніст Хмурник", en="Auctioneer Grimful" }, -- Auctioneer Grimful
 [9857] = { "аукціоністка Ґрізлін", en="Auctioneer Grizzlin" }, -- Auctioneer Grizzlin
 [9858] = { "аукціоніст Крескі", en="Auctioneer Kresky" }, -- Auctioneer Kresky
-[9859] = { "аукціоністка Хромка", en="Auctioneer Lympkin" }, -- Auctioneer Lympkin
+[9859] = { [1] = "Аукціоніст Лимпкін", ["en"] = "Auctioneer Lympkin" }, -- Auctioneer Lympkin
 [9860] = { "Салія", en="Salia" }, -- Salia
 [9861] = { "Мура", en="Moora" }, -- Moora
 [9862] = { "джеденарський легіонер", en="Jaedenar Legionnaire" }, -- Jaedenar Legionnaire
@@ -6113,8 +6113,8 @@ local npc = { -- [id] = { title, description (optional) }
 [10442] = { "хроматичний дракончик", en="Chromatic Whelp" }, -- Chromatic Whelp
 [10445] = { "Селіна Дорман", "довідка про ярмарок Темного Місяця", en="Selina Dourman" }, -- Selina Dourman
 [10447] = { "хроматичний драконід", en="Chromatic Dragonspawn" }, -- Chromatic Dragonspawn
-[10455] = { "Бінні Пружеклин", en="Binny Springblade" }, -- Binny Springblade
-[10456] = { "Влізза", en="Prynne" }, -- Prynne
+[10455] = { [1] = "Бінни Спрінґбладе", ["en"] = "Binny Springblade" }, -- Binny Springblade
+[10456] = { [1] = "Принне", ["en"] = "Prynne" }, -- Prynne
 [10460] = { "розвідувач Залізочобіт", en="Prospector Ironboot" }, -- Prospector Ironboot
 [10461] = { "чумна комаха", en="Plagued Insect" }, -- Plagued Insect
 [10463] = { "вересклива банші", en="Shrieking Banshee" }, -- Shrieking Banshee
@@ -6277,7 +6277,7 @@ local npc = { -- [id] = { title, description (optional) }
 [10856] = { "квартирмейстер Гасана", "Сріблястий Світанок", en="Argent Quartermaster Hasana" }, -- Argent Quartermaster Hasana <The Argent Dawn>
 [10857] = { "квартирмейстер Іскросяй", "Сріблястий Світанок", en="Argent Quartermaster Lightspark" }, -- Argent Quartermaster Lightspark <The Argent Dawn>
 [10876] = { "невмерлий скарабей", en="Undead Scarab" }, -- Undead Scarab
-[10877] = { "кур'єр Молотобій", en="Courier Hammerfall" }, -- Courier Hammerfall
+[10877] = { [1] = "Кур'єр Молотопад", ["en"] = "Courier Hammerfall" }, -- Courier Hammerfall
 [10878] = { "провісниця Місяцескрад", en="Herald Moonstalker" }, -- Herald Moonstalker
 [10879] = { "провісник Бальтазад", en="Harbinger Balthazad" }, -- Harbinger Balthazad
 [10880] = { "закликач війни Ґорлач", en="Warcaller Gorlach" }, -- Warcaller Gorlach
@@ -6299,7 +6299,7 @@ local npc = { -- [id] = { title, description (optional) }
 [10925] = { "гнилий черв", en="Rotting Worm" }, -- Rotting Worm
 [10926] = { "Памела Редпат", en="Pamela Redpath" }, -- Pamela Redpath
 [10927] = { "Марлен Редпат", en="Marlene Redpath" }, -- Marlene Redpath
-[10928] = { "сукуб-прислужниця", en="Succubus Minion" }, -- Succubus Minion
+[10928] = { [1] = "Прислужниця-суккуб", ["en"] = "Succubus Minion" }, -- Succubus Minion
 [10929] = { "Гале", en="Haleh" }, -- Haleh
 [10930] = { "Дарґ Вірноціл", "тренер мисливців", en="Dargh Trueaim" }, -- Dargh Trueaim <Hunter Trainer>
 [10936] = { "Джозеф Редпат", en="Joseph Redpath" }, -- Joseph Redpath
@@ -6425,7 +6425,7 @@ local npc = { -- [id] = { title, description (optional) }
 [11141] = { "дух Трея Світлогарта" }, -- Trey Lightforge
 [11142] = { "невмерлий поштар", en="Undead Postman" }, -- Undead Postman
 [11143] = { "поштар Малоун", en="Postmaster Malown" }, -- Postmaster Malown
-[11145] = { "Мйолор Розкололют", en="Myolor Sunderfury" }, -- Myolor Sunderfury
+[11145] = { [1] = "Майолор Лють Розколу", ["en"] = "Myolor Sunderfury" }, -- Myolor Sunderfury
 [11146] = { "Залізій Кригосталь", "майстер особливої зброї", en="Ironus Coldsteel" }, -- Ironus Coldsteel
 [11153] = { "верховий кінь-скелет (червоний)", en="Riding Skeletal Horse (Red)" }, -- Riding Skeletal Horse (Red)
 [11154] = { "верховий кінь-скелет (блакитний)", en="Riding Skeletal Horse (Blue)" }, -- Riding Skeletal Horse (Blue)
@@ -7192,7 +7192,7 @@ local npc = { -- [id] = { title, description (optional) }
 [13021] = { "Хибнодрев-дробар", en="Warpwood Crusher" }, -- Warpwood Crusher
 [13022] = { "кнутохляст", en="Whip Lasher" }, -- Whip Lasher
 [13036] = { "мастиф Ґордоків", en="Gordok Mastiff" }, -- Gordok Mastiff
-[13076] = { "горянин Дун-Морога", en="Dun Morogh Mountaineer" }, -- Dun Morogh Mountaineer
+[13076] = { [1] = "Горянин Дун-Морога", ["en"] = "Dun Morogh Mountaineer" }, -- Dun Morogh Mountaineer
 [13078] = { "Умі Торсон", en="Umi Thorson" }, -- Umi Thorson
 [13079] = { "Кітар", en="Keetar" }, -- Keetar
 [13080] = { "залізодонний вартовий", en="Irondeep Guard" }, -- Irondeep Guard
@@ -7416,7 +7416,7 @@ local npc = { -- [id] = { title, description (optional) }
 [14122] = { "величезний гейзер", en="Massive Geyser" }, -- Massive Geyser
 [14123] = { "залізощелепий кусач", en="Steeljaw Snapper" }, -- Steeljaw Snapper
 [14182] = { "мисливець за головами Коларк", en="Bounty Hunter Kolark" }, -- Bounty Hunter Kolark
-[14183] = { "артилерист Шелдонор", en="Artilleryman Sheldonore" }, -- Artilleryman Sheldonore
+[14183] = { [1] = "Артилерист Шелдонор", ["en"] = "Artilleryman Sheldonore" }, -- Artilleryman Sheldonore
 [14185] = { "Наджак Проклятун", "мисливець за головами", en="Najak Hexxen" }, -- Najak Hexxen
 [14186] = { "Равак Зловісний Тотем", "мисливець за головами", en="Ravak Grimtotem" }, -- Ravak Grimtotem <Bounty Hunter>
 [14187] = { "Атраманіс", "мисливиця за головами", en="Athramanis" }, -- Athramanis
@@ -7499,10 +7499,10 @@ local npc = { -- [id] = { title, description (optional) }
 [14358] = { "старійшина Шен'дралар", en="Shen'dralar Ancient" }, -- Shen'dralar Ancient
 [14361] = { "світлик Шен'дралар", en="Shen'dralar Wisp" }, -- Shen'dralar Wisp
 [14362] = { "шипшинник", en="Thornling" }, -- Thornling
-[14363] = { "ловець злодіїв Тінеслід", en="Thief Catcher Shadowdelve" }, -- Thief Catcher Shadowdelve
+[14363] = { [1] = "Ловець злодіїв Тінерий", ["en"] = "Thief Catcher Shadowdelve" }, -- Thief Catcher Shadowdelve
 [14364] = { "дух Шен'дралар", en="Shen'dralar Spirit" }, -- Shen'dralar Spirit
-[14365] = { "ловець злодіїв Далекогір", en="Thief Catcher Farmountain" }, -- Thief Catcher Farmountain
-[14367] = { "ловець злодіїв Громовар", en="Thief Catcher Thunderbrew" }, -- Thief Catcher Thunderbrew
+[14365] = { [1] = "Ловець злодіїв Далекогір", ["en"] = "Thief Catcher Farmountain" }, -- Thief Catcher Farmountain
+[14367] = { [1] = "Ловець злодіїв Громовар", ["en"] = "Thief Catcher Thunderbrew" }, -- Thief Catcher Thunderbrew
 [14368] = { "хранитель знань Лідрос", en="Lorekeeper Lydros" }, -- Lorekeeper Lydros
 [14369] = { "ревнитель Шен'дралар", en="Shen'dralar Zealot" }, -- Shen'dralar Zealot
 [14370] = { "трупний черв'як", en="Cadaverous Worm" }, -- Cadaverous Worm
@@ -7918,7 +7918,7 @@ local npc = { -- [id] = { title, description (optional) }
 [15184] = { "піхотинець Кенарійської цитаделі", en="Cenarion Hold Infantry" }, -- Cenarion Hold Infantry
 [15185] = { "нащадок Ноздорму", en="Brood of Nozdormu" }, -- Brood of Nozdormu
 [15186] = { "Мурлик", en="Murky" }, -- Murky
-[15187] = { "кенарійський емісар Нефритовий Місяць", en="Cenarion Emissary Jademoon" }, -- Cenarion Emissary Jademoon
+[15187] = { [1] = "Кенарійський емісар Нефритовий Місяць", ["en"] = "Cenarion Emissary Jademoon" }, -- Cenarion Emissary Jademoon
 [15188] = { "кенарійський емісар Чорне Копито", en="Cenarion Emissary Blackhoof" }, -- Cenarion Emissary Blackhoof
 [15189] = { "Бітікс Хиткожвав", en="Beetix Ficklespragg" }, -- Beetix Ficklespragg
 [15190] = { "Ноґґл Хиткожвав", en="Noggle Ficklespragg" }, -- Noggle Ficklespragg
@@ -7943,7 +7943,7 @@ local npc = { -- [id] = { title, description (optional) }
 [15211] = { "лазурний храмовник", "Рада Безодні", en="Azure Templar" }, -- Azure Templar <Abyssal Council>
 [15212] = { "сивий храмовник", "Рада Безодні", en="Hoary Templar" }, -- Hoary Templar <Abyssal Council>
 [15213] = { "сутінковий властитель", "Сутінковий Молот", en="Twilight Overlord" }, -- Twilight Overlord <Twilight's Hammer>
-[15214] = { "невидимий ловець", en="Invisible Stalker" }, -- Invisible Stalker
+[15214] = { [1] = "Невидимий переслідувач", ["en"] = "Invisible Stalker" }, -- Invisible Stalker
 [15215] = { "майстриня Наталія Мар'аліт", "верховна жриця К'Туна" }, -- Natalia Mar'alith
 [15220] = { "герцог вітрів", "Рада Безодні", en="The Duke of Zephyrs" }, -- The Duke of Zephyrs <Abyssal Council>
 [15224] = { "туман Сну", en="Dream Fog" }, -- Dream Fog
@@ -8653,9 +8653,9 @@ local npc = { -- [id] = { title, description (optional) }
 [271546] = { "горянинка Ґретхен", en="Mountaineer Gretchen" }, -- Mountaineer Gretchen
 [258098] = { [1] = "Елдрун Бурелом", en = "Eldrun Stormbreaker" },
 [263643] = { [1] = "Шон Ґардофф", en = "Sean Guardoff" },
-[276740] = { [1] = "Седрік Каменешукач", en = "Cedrik Stonequest" },
+[276740] = { [1] = "Кедрік Стонеквест", ["en"] = "Cedrik Stonequest" },
 [270581] = { [1] = "Фіренз Вішонар", en = "Fyrenz Vishonar" },
-[270693] = { [1] = "Кинджалоікл", en = "Daggerfang" },
+[270693] = { [1] = "Кинджалозуб", ["en"] = "Daggerfang" },
 [256391] = { [1] = "Елейн Комптон", en = "Elaine Compton" },
 [256393] = { [1] = "В'ючний мул", en = "Pack Mule" },
 [256399] = { [1] = "В'ючний мул на відпочинку", en = "Off-Duty Pack Mule" },
@@ -8674,8 +8674,8 @@ local npc = { -- [id] = { title, description (optional) }
 [256738] = { [1] = "Кошик алхімічних товарів", en = "Basket of Alchemy Goods" },
 [256740] = { [1] = "Ящик припасів для зачарування", en = "Crate of Enchanting Supplies" },
 [258113] = { [1] = "Інґрід Данвальд", en = "Ingrid Dunwald" },
-[267687] = { [1] = "Синій механодоліт", en = "Blue Mechanostrider" },
-[267688] = { [1] = "Нефарбований механодоліт", en = "Unpainted Mechanostrider" },
+[267687] = { [1] = "Синій механострайдер", ["en"] = "Blue Mechanostrider" },
+[267688] = { [1] = "Нефарбований механострайдер", ["en"] = "Unpainted Mechanostrider" },
 [249363] = { [1] = "Яла Вітрогляд", en = "Yala Windwatcher" },
 [250868] = { [1] = "Вулдрен", en = "Vuldren" },
 [250873] = { [1] = "Молодий вулдрен", en = "Juvenile Vuldren" },
@@ -8767,9 +8767,9 @@ local npc = { -- [id] = { title, description (optional) }
 [276730] = { [1] = "Стрімкий бурешаблезуб", en = "Swift Stormsaber" },
 [7559] = { [1] = "Арктичний заєць", en = "Arctic Hare" },
 [264850] = { [1] = "Яструб", en = "Hawk" },
-[270637] = { [1] = "Говін Добропер", en = "Howin Kindfeather" },
-[271012] = { [1] = "Низькодзьоб", en = "Bassbeak" },
-[271351] = { [1] = "Відвойовник Драконячої Пащі", en = "Dragonmaw Reclaimer" },
+[270637] = { [1] = "Говін Кіндфітер", ["en"] = "Howin Kindfeather" },
+[271012] = { [1] = "Басодзьоб", ["en"] = "Bassbeak" },
+[271351] = { [1] = "Відвойовувач Драконової Пащі", ["en"] = "Dragonmaw Reclaimer" },
 }
 
 if addonTable.npc then
@@ -8780,32 +8780,32 @@ end
 
 -- Verified server NPC IDs observed in game.
 local verified_npcs = {
-    [49808] = { "Ґренгільда Темнокіготь", en="Grenhild Darktalon" },
+    [49808] = { [1] = "Ґренгілд Даркталон", ["en"] = "Grenhild Darktalon" },
     [10956] = { "нага-сирена", en="Naga Siren" },
-    [266025] = { "щур-фамільяр", en="Rat Familiar" },
+    [266025] = { [1] = "Щур-фамільяр", ["en"] = "Rat Familiar" },
     [264936] = { "землепровидець Фарсен", en="Earthseer Farsen" },
     [264937] = { "тотем Фарсена", en="Farsen's Totem" },
-    [267683] = { "червоний механобіг", en="Red Mechanostrider" },
+    [267683] = { [1] = "Червоний механострайдер", ["en"] = "Red Mechanostrider" },
     [271530] = { "старий вендиго", en="Elder Wendigo" },
     [276003] = { "незначний крижаний елементаль", en="Minor Ice Elemental" },
     [276009] = { "Авала", en="Avala" },
     [276080] = { "горянин Вуглебород", en="Mountaineer Coalbeard" },
     [276082] = { "горянин Сонцемолот", en="Mountaineer Sunhammer" },
     [276083] = { "горянин Кам'янаковадло", en="Mountaineer Stoneanvil" },
-    [276734] = { "стрімкий білий механобіг", en="Swift White Mechanostrider" },
-    [276735] = { "стрімкий жовтий механобіг", en="Swift Yellow Mechanostrider" },
-    [276736] = { "стрімкий зелений механобіг", en="Swift Green Mechanostrider" },
+    [276734] = { [1] = "Стрімкий білий механострайдер", ["en"] = "Swift White Mechanostrider" },
+    [276735] = { [1] = "Стрімкий жовтий механострайдер", ["en"] = "Swift Yellow Mechanostrider" },
+    [276736] = { [1] = "Стрімкий зелений механострайдер", ["en"] = "Swift Green Mechanostrider" },
     [271587] = { "Морозне Виття", en="Frosthowl" },
-    [274935] = { "захисник Залізогарта", en="Ironforge Protector" },
-    [274873] = { "коваль-воїн Ваельґрім", en="Battlesmith Vaelgrim" },
+    [274935] = { [1] = "Захисник Стальгорна", ["en"] = "Ironforge Protector" },
+    [274873] = { [1] = "Бойовий коваль Ваелґрім", ["en"] = "Battlesmith Vaelgrim" },
     [230319] = { "Деліана", en="Deliana" },
-    [260157] = { "старий сніговий леопард", en="Elder Snow Leopard" },
+    [260157] = { [1] = "Старий сніговий леопард", ["en"] = "Elder Snow Leopard" },
     [264943] = { "Афадра Данволл", en="Afadra Dunwall" },
     [265003] = { "Том Філч", en="Thom Filch" },
-    [274781] = { "залізний королівський вартовий", en="Iron Kingsguard" },
+    [274781] = { [1] = "Залізний королівський вартовий", ["en"] = "Iron Kingsguard" },
     [258548] = { "Еллі Камнебров", en="Ellie Stonebrow" },
     [258043] = { "Норрік Лохтан", en="Norric Lochthane" },
-    [259842] = { "музичний Гастджампер", en="Musical Gustjumper" },
+    [259842] = { [1] = "Музичний Вітроскок", ["en"] = "Musical Gustjumper" },
     [269153] = { "горянинка Ільва", en="Mountaineer Ylva" },
     [269185] = { "Головокол", en="Headsplitter" },
     [273127] = { "Фінайда Землебур", en="Finaida Earthbore" },

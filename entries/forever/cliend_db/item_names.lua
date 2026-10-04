@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70205",
-    count = 23785,
+    count = 23805,
     rows = {
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
@@ -23791,6 +23791,26 @@ local database = {
         [287090] = "Sharpened Letter Opener",
         [287416] = "Truskis' Cheesecake Slice",
         [287505] = "Tender Strider Meat",
+        [1522] = "Headhunting Spear",
+        [1728] = "Teebu's Blazing Longsword",
+        [1997] = "Pressed Felt Robe",
+        [5756] = "Sliverblade",
+        [7759] = "Archon Chestpiece",
+        [8224] = "Silithid Ripper",
+        [8225] = "Tainted Pierce",
+        [9447] = "Electrocutioner Lagnut",
+        [9448] = "Spidertank Oilrag",
+        [9458] = "Thermaplugg's Central Core",
+        [9459] = "Thermaplugg's Left Arm",
+        [9461] = "Charged Gear",
+        [9492] = "Electromagnetic Gigaflux Reactivator",
+        [10571] = "Ebony Boneclub",
+        [274043] = "Irradiated Shield",
+        [274425] = "White Obsidian Wand",
+        [274430] = "Rock Sentinel Slicer",
+        [282702] = "Molok's Masher",
+        [287958] = "Titan Relic",
+        [287959] = "Titan Relic",
     },
 }
 
