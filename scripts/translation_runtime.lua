@@ -920,7 +920,7 @@ runtime.restore_owned_source = function (region, claim)
     return runtime.show_original(region, true)
 end
 
-runtime.refresh_policy = function ()
+runtime.refresh_policy = function (include_hidden)
     for region, claim in pairs(claims) do
         local shown = true
         local method_ok, is_shown = pcall(function () return region.IsShown end)
@@ -928,7 +928,7 @@ runtime.refresh_policy = function ()
             local ok, value = pcall(is_shown, region)
             shown = ok and not is_secret_value(value) and value == true
         end
-        if shown then
+        if shown or include_hidden then
             local name_disabled = claim.category and claim.slot:match("%.name$")
                 and not (options.name_enabled and options.name_enabled(claim)
                     or not options.name_enabled and options.translate_name(claim.category))

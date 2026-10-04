@@ -16,20 +16,25 @@ local hooks = addon_table.use("translation_hooks").bind("map-labels")
 local ironforge_map_tile_ids = { [271410] = true, [8061347] = true }
 local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge1.png"
 local original_map_tiles = setmetatable({}, { __mode = "k" })
-local ironforge_detail_tiles = {
-    [8062942] = "ironforge_c601", [8062946] = "ironforge_c602",
-    [8062947] = "ironforge_c603", [8062948] = "ironforge_c604",
-    [8062949] = "ironforge_c605", [8062950] = "ironforge_c606",
-    [8062951] = "ironforge_c607", [8062952] = "ironforge_c608",
-    [8062953] = "ironforge_c609", [8062943] = "ironforge_c6010",
-    [8062944] = "ironforge_c6011", [8062945] = "ironforge_c6012",
-}
-local ironforge_detail_paths = {}
-for id, name in pairs(ironforge_detail_tiles) do
-    local replacement = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge_c60\\" .. name .. ".png"
-    ironforge_detail_tiles[id] = replacement
-    ironforge_detail_paths["interface/worldmap/ironforge_c60/" .. name] = replacement
+local map_detail_tiles = {}
+local map_detail_paths = {}
+local function register_map_detail_tiles(map_name, ids)
+    for index, id in ipairs(ids) do
+        local name = map_name .. index
+        local replacement = "Interface\\AddOns\\UA_Forever\\assets\\map\\"
+            .. map_name .. "\\" .. name .. ".png"
+        map_detail_tiles[id] = replacement
+        map_detail_paths["interface/worldmap/" .. map_name .. "/" .. name] = replacement
+    end
 end
+register_map_detail_tiles("ironforge_c60", {
+    8062942, 8062946, 8062947, 8062948, 8062949, 8062950,
+    8062951, 8062952, 8062953, 8062943, 8062944, 8062945,
+})
+register_map_detail_tiles("stormwindcity_c60", {
+    8038833, 8038837, 8038838, 8038839, 8038840, 8038841,
+    8038842, 8038843, 8038844, 8038834, 8038835, 8038836,
+})
 local original_detail_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 local coordinate_templates = setmetatable({}, { __mode = "k" })
@@ -59,6 +64,33 @@ local function apply_coordinate_rule(rule, source)
     return rule.replace(unpack_values(captures))
 end
 
+local function texture_path(texture)
+    return type(texture) == "string"
+        and texture:lower():gsub("\\", "/") or texture
+end
+
+local function same_texture(left, right)
+    return texture_path(left) == texture_path(right)
+end
+
+local function restore_map_textures()
+    if options.can_translate("translate_map_images") then return end
+    -- Settings can hide the map and release its active pools. Restore all
+    -- owned textures, including inactive ones, without touching reused tiles.
+    for tile, original in pairs(original_map_tiles) do
+        if same_texture(tile:GetTexture(), ironforge_map_tile) then
+            tile:SetTexture(original, nil, nil, "TRILINEAR")
+        end
+        original_map_tiles[tile] = nil
+    end
+    for tile, original in pairs(original_detail_tiles) do
+        if same_texture(tile:GetTexture(), original.replacement) then
+            tile:SetTexture(original.texture, nil, nil, "TRILINEAR")
+        end
+        original_detail_tiles[tile] = nil
+    end
+end
+
 local function replace_ironforge_map_tile(pin)
     if not pin or not pin.overlayTexturePool then return end
     local enabled = options.can_translate("translate_map_images")
@@ -69,6 +101,9 @@ local function replace_ironforge_map_tile(pin)
     end
     for tile in pin.overlayTexturePool:EnumerateActive() do
         local texture = tile:GetTexture()
+        if original_map_tiles[tile] and not same_texture(texture, ironforge_map_tile) then
+            original_map_tiles[tile] = nil
+        end
         if not enabled and original_map_tiles[tile] then
             tile:SetTexture(original_map_tiles[tile], nil, nil, "TRILINEAR")
             original_map_tiles[tile] = nil
@@ -102,14 +137,14 @@ local function prepare_ironforge_map_pins(world_map)
     end
 end
 
-local function replace_ironforge_detail_tiles(layer)
+local function replace_map_detail_tiles(layer)
     if not layer or not layer.detailTilePool then return end
     local enabled = options.can_translate("translate_map_images")
     for tile in layer.detailTilePool:EnumerateActive() do
         local texture = tile:GetTexture()
         local original = original_detail_tiles[tile]
         -- A pooled texture may already have been reused for another map.
-        if original and texture ~= original.replacement then
+        if original and not same_texture(texture, original.replacement) then
             original_detail_tiles[tile] = nil
             original = nil
         end
@@ -119,8 +154,8 @@ local function replace_ironforge_detail_tiles(layer)
         elseif enabled and not original then
             local path = type(texture) == "string"
                 and texture:lower():gsub("\\", "/"):gsub("%.blp$", "")
-            local replacement = ironforge_detail_tiles[texture]
-                or (path and ironforge_detail_paths[path])
+            local replacement = map_detail_tiles[texture]
+                or (path and map_detail_paths[path])
             if replacement then
                 original_detail_tiles[tile] = { texture = texture, replacement = replacement }
                 tile:SetTexture(replacement, nil, nil, "TRILINEAR")
@@ -129,17 +164,18 @@ local function replace_ironforge_detail_tiles(layer)
     end
 end
 
-local function prepare_ironforge_detail_layers(world_map)
+local function prepare_map_detail_layers(world_map)
     if not world_map or not world_map.detailLayerPool then return end
     for layer in world_map.detailLayerPool:EnumerateActive() do
-        hooks.region(layer, "RefreshDetailTiles", replace_ironforge_detail_tiles)
-        replace_ironforge_detail_tiles(layer)
+        hooks.region(layer, "RefreshDetailTiles", replace_map_detail_tiles)
+        replace_map_detail_tiles(layer)
     end
 end
 
 map_labels.refresh = function ()
+    restore_map_textures()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
-    prepare_ironforge_detail_layers(_G.WorldMapFrame)
+    prepare_map_detail_layers(_G.WorldMapFrame)
 end
 
 local function safe_string(value)
@@ -225,6 +261,7 @@ local function after_evaluate(label)
     local claim = runtime.get(region)
     if claim and (claim.owner == "gossip-map" or claim.owner == "zone-map")
         and current == claim.translated then
+        runtime.show_original(region, not runtime.allowed(claim))
         return
     end
     runtime.invalidate(region)
@@ -1000,8 +1037,9 @@ local function after_worldmap_menu(owner)
 end
 
 map_labels.refresh_active = function ()
+    restore_map_textures()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
-    prepare_ironforge_detail_layers(_G.WorldMapFrame)
+    prepare_map_detail_layers(_G.WorldMapFrame)
     after_minimap_update()
     after_zone_text_event()
     hook_worldmap_coords_panel()
@@ -1012,10 +1050,10 @@ map_labels.prepare = function ()
         replace_ironforge_map_tile)
     local world_map = _G.WorldMapFrame
     hooks.region(_G.MapCanvasDetailLayerMixin, "RefreshDetailTiles",
-        replace_ironforge_detail_tiles)
-    hooks.region(world_map, "RefreshDetailLayers", prepare_ironforge_detail_layers)
-    hooks.region_script(world_map, "OnShow", prepare_ironforge_detail_layers,
-        "ironforge-detail-art")
+        replace_map_detail_tiles)
+    hooks.region(world_map, "RefreshDetailLayers", prepare_map_detail_layers)
+    hooks.region_script(world_map, "OnShow", prepare_map_detail_layers,
+        "map-detail-art")
     hooks.region_script(world_map, "OnShow", prepare_ironforge_map_pins,
         "map-art")
     hooks.region_script(world_map, "OnShow", function ()
@@ -1024,7 +1062,7 @@ map_labels.prepare = function ()
             hook_worldmap_coords_panel)
     end, "worldmap-coords-instance")
     prepare_ironforge_map_pins(world_map)
-    prepare_ironforge_detail_layers(world_map)
+    prepare_map_detail_layers(world_map)
     hook_worldmap_coords_panel()
     hooks.global("Minimap_Update", after_minimap_update)
     hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
