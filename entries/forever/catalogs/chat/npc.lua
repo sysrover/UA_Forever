@@ -9300,6 +9300,108 @@ local chat_rows = {
     ["npcs"] = { [1] = "Hargin Mundar" },
     ["priority"] = 3,
 },
+    [1764118232] = {
+    ["english"] = { [1] = "DARKSHIRE...I HUNGER!!" },
+    ["text"] = "ТЕМНОКРАЙ... Я ГОЛОДНИЙ!!",
+    ["npcs"] = { [1] = "Stitches" },
+    ["priority"] = 3,
+},
+    [2319402592] = {
+    ["english"] = { [1] = "Scðpper!  I'm finished!" },
+    ["text"] = "Скіппере! Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
+    [1395316306] = {
+    ["english"] = { [1] = "Beware!  Beware!  A threat lurks in the wild!  Night Watchers, be on the alert!" },
+    ["text"] = "Обережно! Обережно! У хащах причаїлася загроза! Нічна варто, будьте напоготові!",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [1817483286] = {
+    ["english"] = { [1] = "When will someone do something about the undead?" },
+    ["text"] = "Коли вже хтось нарешті щось зробить із невмерлими?",
+    ["npcs"] = { [1] = "Farrin Daris" },
+    ["priority"] = 3,
+},
+    [962475951] = {
+    ["english"] = { [1] = "I can't even visit my father's grave in peace anymore." },
+    ["text"] = "Я вже навіть не можу спокійно відвідати могилу свого батька.",
+    ["npcs"] = { [1] = "Hogan Ference" },
+    ["priority"] = 3,
+},
+    [3776700707] = {
+    ["english"] = { [1] = "I fear something dark is coming." },
+    ["text"] = "Боюся, насувається щось лихе.",
+    ["npcs"] = { [1] = "Hogan Ference" },
+    ["priority"] = 3,
+},
+    [20405502] = {
+    ["english"] = { [1] = "Why haven't the Stormwind guards come?" },
+    ["text"] = "Чому варта Штормовію досі не прибула?",
+    ["npcs"] = { [1] = "Hogan Ference" },
+    ["priority"] = 3,
+},
+    [2119398776] = {
+    ["english"] = { [1] = "The Night Watch alone cannot protect us forever.  We need the backing of the Stormwind Army." },
+    ["text"] = "Нічна варта не зможе захищати нас вічно. Нам потрібна підтримка армії Штормовію.",
+    ["npcs"] = { [1] = "Lord Ello Ebonlocke" },
+    ["priority"] = 3,
+},
+    [1589445318] = {
+    ["english"] = { [1] = "This is grim news, and I fear it is linked to the dealings Shadow had with the Embalmer." },
+    ["text"] = "Це лихі новини, і я боюся, що вони пов’язані зі справами, які Шедоу мав із Бальзамувальником.",
+    ["npcs"] = { [1] = "Lord Ello Ebonlocke" },
+    ["priority"] = 3,
+},
+    [245203085] = {
+    ["english"] = { [1] = "Constant bickering will get us nowhere.  We need to take action." },
+    ["text"] = "Постійні чвари ні до чого нас не приведуть. Треба діяти.",
+    ["npcs"] = { [1] = "Role Dreuger" },
+    ["priority"] = 3,
+},
+    [1881619313] = {
+    ["english"] = { [1] = "The people of Darkshire expect more from the Council.  We cannot let them suffer from this unholy wrath which plagues us." },
+    ["text"] = "Жителі Темнокраю очікують від Ради більшого. Ми не можемо дозволити їм страждати від цієї нечестивої люті, що терзає нас.",
+    ["npcs"] = { [1] = "Role Dreuger" },
+    ["priority"] = 3,
+},
+    [343338757] = {
+    ["english"] = { [1] = "%s begins translating ..." },
+    ["text"] = "%s починає перекладати...",
+    ["npcs"] = { [1] = "Sirra Von'Indi" },
+    ["priority"] = 3,
+},
+    [1764724327] = {
+    ["english"] = { [1] = "Grimar, the translation is finished!" },
+    ["text"] = "Ґрімаре, переклад завершено!",
+    ["npcs"] = { [1] = "Sirra Von'Indi" },
+    ["priority"] = 3,
+},
+    [3618540451] = {
+    ["english"] = { [1] = "Shadow, the translation is finished!" },
+    ["text"] = "Шедоу, переклад завершено!",
+    ["npcs"] = { [1] = "Sirra Von'Indi" },
+    ["priority"] = 3,
+},
+    [574209632] = {
+    ["english"] = { [1] = "Make Way!  Make Way!" },
+    ["text"] = "Дорогу! Дорогу!",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [3618533912] = {
+    ["english"] = { [1] = "Mayor Ello!  Our graveyard scouts return with ominous reports..." },
+    ["text"] = "Мере Елло! Наші розвідники з кладовища повернулися з лихими звістками...",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [30440407] = {
+    ["english"] = { [1] = "Wolves head this way, as if fleeing from...something." },
+    ["text"] = "Вовки прямують сюди, ніби тікають від... чогось.",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
