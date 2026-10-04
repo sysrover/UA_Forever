@@ -16,6 +16,21 @@ local hooks = addon_table.use("translation_hooks").bind("map-labels")
 local ironforge_map_tile_ids = { [271410] = true, [8061347] = true }
 local ironforge_map_tile = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge1.png"
 local original_map_tiles = setmetatable({}, { __mode = "k" })
+local ironforge_detail_tiles = {
+    [8062942] = "ironforge_c601", [8062946] = "ironforge_c602",
+    [8062947] = "ironforge_c603", [8062948] = "ironforge_c604",
+    [8062949] = "ironforge_c605", [8062950] = "ironforge_c606",
+    [8062951] = "ironforge_c607", [8062952] = "ironforge_c608",
+    [8062953] = "ironforge_c609", [8062943] = "ironforge_c6010",
+    [8062944] = "ironforge_c6011", [8062945] = "ironforge_c6012",
+}
+local ironforge_detail_paths = {}
+for id, name in pairs(ironforge_detail_tiles) do
+    local replacement = "Interface\\AddOns\\UA_Forever\\assets\\map\\ironforge_c60\\" .. name .. ".png"
+    ironforge_detail_tiles[id] = replacement
+    ironforge_detail_paths["interface/worldmap/ironforge_c60/" .. name] = replacement
+end
+local original_detail_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 local coordinate_templates = setmetatable({}, { __mode = "k" })
 local coordinate_results = setmetatable({}, { __mode = "k" })
@@ -46,7 +61,7 @@ end
 
 local function replace_ironforge_map_tile(pin)
     if not pin or not pin.overlayTexturePool then return end
-    local enabled = options.can_translate("translate_zone")
+    local enabled = options.can_translate("translate_map_images")
     local probe
     if options.account.auto_scan_content and _G.UA_ForeverDB then
         local ok, map_id = pcall(function () return pin:GetMap():GetMapID() end)
@@ -87,8 +102,44 @@ local function prepare_ironforge_map_pins(world_map)
     end
 end
 
+local function replace_ironforge_detail_tiles(layer)
+    if not layer or not layer.detailTilePool then return end
+    local enabled = options.can_translate("translate_map_images")
+    for tile in layer.detailTilePool:EnumerateActive() do
+        local texture = tile:GetTexture()
+        local original = original_detail_tiles[tile]
+        -- A pooled texture may already have been reused for another map.
+        if original and texture ~= original.replacement then
+            original_detail_tiles[tile] = nil
+            original = nil
+        end
+        if original and not enabled then
+            tile:SetTexture(original.texture, nil, nil, "TRILINEAR")
+            original_detail_tiles[tile] = nil
+        elseif enabled and not original then
+            local path = type(texture) == "string"
+                and texture:lower():gsub("\\", "/"):gsub("%.blp$", "")
+            local replacement = ironforge_detail_tiles[texture]
+                or (path and ironforge_detail_paths[path])
+            if replacement then
+                original_detail_tiles[tile] = { texture = texture, replacement = replacement }
+                tile:SetTexture(replacement, nil, nil, "TRILINEAR")
+            end
+        end
+    end
+end
+
+local function prepare_ironforge_detail_layers(world_map)
+    if not world_map or not world_map.detailLayerPool then return end
+    for layer in world_map.detailLayerPool:EnumerateActive() do
+        hooks.region(layer, "RefreshDetailTiles", replace_ironforge_detail_tiles)
+        replace_ironforge_detail_tiles(layer)
+    end
+end
+
 map_labels.refresh = function ()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
+    prepare_ironforge_detail_layers(_G.WorldMapFrame)
 end
 
 local function safe_string(value)
@@ -950,6 +1001,7 @@ end
 
 map_labels.refresh_active = function ()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
+    prepare_ironforge_detail_layers(_G.WorldMapFrame)
     after_minimap_update()
     after_zone_text_event()
     hook_worldmap_coords_panel()
@@ -959,6 +1011,11 @@ map_labels.prepare = function ()
     hooks.region(_G.MapExplorationPinMixin, "RefreshOverlays",
         replace_ironforge_map_tile)
     local world_map = _G.WorldMapFrame
+    hooks.region(_G.MapCanvasDetailLayerMixin, "RefreshDetailTiles",
+        replace_ironforge_detail_tiles)
+    hooks.region(world_map, "RefreshDetailLayers", prepare_ironforge_detail_layers)
+    hooks.region_script(world_map, "OnShow", prepare_ironforge_detail_layers,
+        "ironforge-detail-art")
     hooks.region_script(world_map, "OnShow", prepare_ironforge_map_pins,
         "map-art")
     hooks.region_script(world_map, "OnShow", function ()
@@ -967,6 +1024,7 @@ map_labels.prepare = function ()
             hook_worldmap_coords_panel)
     end, "worldmap-coords-instance")
     prepare_ironforge_map_pins(world_map)
+    prepare_ironforge_detail_layers(world_map)
     hook_worldmap_coords_panel()
     hooks.global("Minimap_Update", after_minimap_update)
     hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)

@@ -130,6 +130,8 @@ local function make_item_state(item_id, key)
         if type(reagents) == "table" then
             local english_parts = {}
             local translated_parts = {}
+            local english_names = {}
+            local translated_names = {}
             local complete = true
             for _, reagent in ipairs(reagents) do
                 local reagent_id = type(reagent) == "table"
@@ -148,10 +150,14 @@ local function make_item_state(item_id, key)
                     .. " (" .. tostring(count) .. ")"
                 translated_parts[#translated_parts + 1] = deps().capitalize(
                     translated) .. " (" .. tostring(count) .. ")"
+                english_names[#english_names + 1] = english
+                translated_names[#translated_names + 1] = deps().capitalize(translated)
             end
             if complete and #english_parts > 0 then
                 recipe_reagent_lines[table.concat(english_parts, ", ")] =
                     table.concat(translated_parts, ", ")
+                recipe_reagent_lines[table.concat(english_names, ", ")] =
+                    table.concat(translated_names, ", ")
             end
         end
     end
@@ -440,9 +446,20 @@ local function translate_structured(tooltip, data, state)
                 local translated
                 local slot
 
-                if line_type == ITEM_NAME or line_index == 1 then
+                if line_index == 1 then
                     translated = source and translated_item_name(state, source)
                     slot = "item.name"
+                elseif line_type == ITEM_NAME then
+                    -- Recipe tooltips include a separate result-item title.
+                    -- Resolve its own native name instead of using the recipe ID.
+                    if source then
+                        local indent, name, trailing = source:match("^(%s*)(.-)(%s*)$")
+                        local result_name = client_db.get_name_by_english(name)
+                        if result_name then
+                            translated = indent .. contract.capitalize(result_name) .. trailing
+                        end
+                    end
+                    slot = "item.secondary-name:" .. line_index
                 elseif source and state.english_name
                     and source == state.english_name then
                     translated = translated_item_name(state, source)

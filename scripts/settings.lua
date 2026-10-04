@@ -258,6 +258,7 @@ local function refresh_open_text()
     if items.refresh_quest_rewards then items.refresh_quest_rewards() end
     registry.refresh_open()
     if tooltips.refresh_active then tooltips.refresh_active() end
+    if map_labels.refresh then map_labels.refresh() end
     local professions = addon_table.use("profession_frame_adapter")
     if professions.refresh then professions.refresh() end
 end
@@ -365,7 +366,6 @@ local function register_addon_settings()
     local function update_sections()
         refresh_tooltip_mode_controls()
         refresh_open_text()
-        if map_labels.refresh then map_labels.refresh() end
     end
     local function set_sections(sections, checked)
         for _, id in ipairs(sections) do options.account[options.section_key(id)] = checked end

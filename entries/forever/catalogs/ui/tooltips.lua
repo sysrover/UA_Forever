@@ -194,6 +194,7 @@ local item_stat_names = {
     Strength = "сили", Stamina = "витривалості",
     Agility = "спритності", Intellect = "інтелекту", Spirit = "духу",
     ["Spell Power"] = "сили заклинань",
+    ["Spell Damage"] = "шкоди заклинань",
     ["Attack Power"] = "сили атаки",
     ["ranged Attack Power"] = "сили дальньої атаки",
     ["Ranged Attack Power"] = "сили дальньої атаки",
@@ -1022,6 +1023,12 @@ tooltip.item_line_patterns = {
             or addonTable.use("entries").lookup_name("item", name)
         if not translated then return nil end
         return "Використання: навчає виготовляти «" .. translated .. "»."
+    end },
+    { "^Use: Teaches you how to cook (.+)%.$", function (name)
+        local translated = addonTable.use("item_client_db").get_name_by_english(name)
+            or addonTable.use("entries").lookup_name("item", name)
+        if not translated then return nil end
+        return "Використання: навчає готувати «" .. translated .. "»."
     end },
     { "^%+(%d+) ([A-Za-z]+) Resistance$",
         function (amount, school)

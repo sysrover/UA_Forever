@@ -9414,6 +9414,18 @@ local chat_rows = {
     ["npcs"] = { [1] = "Watcher Cutford" },
     ["priority"] = 3,
 },
+    [2402635574] = {
+    ["english"] = { [1] = "Ah, that sure does hit the spot!  I think I'll get myself a couple more...can you watch these barrels for me, <name>?" },
+    ["text"] = "Ох, оце саме те, що треба!  Піду візьму собі ще парочку...приглянеш за цими бочками, {ім'я:к}, поки мене нема?",
+    ["npcs"] = { [1] = "Jarven Thunderbrew" },
+    ["priority"] = 3,
+},
+    [3898731091] = {
+    ["english"] = { [1] = "Hey there, Belm!  Give me a mug of Thunder Ale, and one for my good friend <name>." },
+    ["text"] = "Гей, Белме!  Налий мені кухоль Громового елю, і ще один — для мого доброго друга {ім'я:р}.",
+    ["npcs"] = { [1] = "Jarven Thunderbrew" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

@@ -46,7 +46,7 @@ options.section_groups = {
     { id = "quests", sections = { "quest_names", "quest_text", "quest_ui", "gossip", "books" } },
     { id = "items", sections = { "item_names", "item_details", "quest_items", "bag_names", "bags", "merchant", "loot", "auction" } },
     { id = "spells", sections = { "spell_names", "spell_details", "auras", "talents", "spell_ui", "skill_names", "recipes", "profession_ui", "trainer", "cast_bars" } },
-    { id = "world", sections = { "npc_tooltips", "npc_target", "nameplates", "objects", "zone_names", "map_ui" } },
+    { id = "world", sections = { "npc_tooltips", "npc_target", "nameplates", "objects", "zone_names", "map_ui", "map_images" } },
     { id = "chat", sections = { "npc_chat", "chat_bubbles", "system_chat", "chat_links", "chat_ui", "combat_log", "combat_text", "loss_of_control", "mirror_timers" } },
     { id = "character", sections = { "character_ui", "reputation", "pvp", "achievements", "achievement_alerts", "level_up" } },
     { id = "social", sections = { "social_ui", "raid_ui", "lfg", "mail" } },
@@ -98,7 +98,7 @@ local scope_sections = {
     ["spell-tooltips"] = { "spell_names", "spell_details", "auras", "talents", "recipes" },
     ["npc-tooltips"] = { "npc_tooltips", "quest_names", "quest_text" },
     ["object-tooltips"] = { "objects", "zone_names" },
-    ["map-labels"] = { "zone_names", "map_ui", "gossip", "quest_text", "popups" },
+    ["map-labels"] = { "zone_names", "map_ui", "map_images", "gossip", "quest_text", "popups" },
     ["map-tooltips"] = { "zone_names", "map_ui", "quest_names", "quest_text" },
     ["cast-bar"] = { "cast_bars" }, ["target-auras"] = { "auras" },
     ["target-frame"] = { "npc_target" },
@@ -380,6 +380,7 @@ local section_flags = {
     translate_chat_bubble = "chat_bubbles", translate_quest_item = "quest_items",
     translate_nameplates = "nameplates", translate_npc_tooltip = "npc_tooltips",
     translate_npc_target_frame = "npc_target", translate_zone = "zone_names",
+    translate_map_images = "map_images",
 }
 local domains = {
     translate_item = { "item_names", "item_details", "quest_items" },
