@@ -278,6 +278,11 @@ local function objective_region(region, slot, after_apply, quest_id, surface)
     local ok, translated = pcall(entries.translate_quest_objective_task,
         source, quest_id, native)
     if not ok or not safe_string(translated) or translated == source then return false end
+    if surface == "quest-tracker" then
+        -- Journal paragraphs need blank lines; the narrow tracker does not.
+        translated = translated:gsub("\r\n", "\n"):gsub("\r", "\n")
+            :gsub("\n[ \t]*\n[ \t\n]*", "\n")
+    end
     return runtime.apply(region, {
         owner = "quest-objective", slot = slot, source = source,
         translated = translated, option = "translate_quest",
@@ -722,6 +727,40 @@ local function translate_header(block, id)
     quest_name_region(block.HeaderText, id, "quest-tracker")
 end
 
+local function prepare_tracker_line(block, key)
+    local line = block.usedLines and block.usedLines[key]
+    local region = line and line.Text
+    if not region then return end
+    hooks.region(region, "SetText", function (self)
+        if runtime.combat_locked() or runtime.is_applying(self) then return end
+        -- Lines are pooled, so resolve their current owner on every write.
+        local owner = line.parentBlock
+        if not owner or owner.parentModule ~= _G.QuestObjectiveTracker then return end
+        local id = safe_number(owner.id)
+        if not id then return end
+        objective_region(self,
+            "quest:" .. id .. ":" .. tostring(line.objectiveKey) .. ".description",
+            nil, id, "quest-tracker")
+    end)
+end
+
+local function prepare_tracker_block(module, id, template)
+    if module ~= _G.QuestObjectiveTracker then return end
+    id = safe_number(id)
+    if not id then return end
+    local blocks = module.usedBlocks and module.usedBlocks[template or module.blockTemplate]
+    local block = blocks and blocks[id]
+    if not block then return end
+    -- GetLine finishes before SetStringText writes and measures the text.
+    -- Hook the actual pooled frames rather than their copied mixin methods.
+    hooks.region(block, "GetLine", prepare_tracker_line)
+    if type(block.ForEachUsedLine) == "function" then
+        pcall(block.ForEachUsedLine, block, function (_, key)
+            prepare_tracker_line(block, key)
+        end)
+    end
+end
+
 -- Leave line/block sizes and layout bookkeeping to Blizzard. Writes here can
 -- taint a deferred tracker layout that accesses secret auras.
 local function translate_objectives(block, id)
@@ -732,7 +771,7 @@ local function translate_objectives(block, id)
         if not source then return end
         local applied = objective_region(region,
             "quest:" .. id .. ":" .. tostring(key) .. ".description",
-            nil, id)
+            nil, id, "quest-tracker")
         if not applied and options.can_translate("translate_quest") then
             strings.translate_region(region)
         end
@@ -900,6 +939,7 @@ quest_ui.prepare = function ()
     hooks.region_script(details, "OnShow", translate_quest_map_labels)
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
         translate_tracker_labels, "quest-labels")
+    hooks.region(_G.QuestObjectiveTracker, "GetBlock", prepare_tracker_block)
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
     -- The XML-created frame copies mixin methods during construction in client
     -- build 70058, so hooking the mixin afterwards does not reach that frame.
