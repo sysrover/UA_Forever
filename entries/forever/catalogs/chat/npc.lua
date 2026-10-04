@@ -9402,6 +9402,18 @@ local chat_rows = {
     ["npcs"] = { [1] = "Watcher Cutford" },
     ["priority"] = 3,
 },
+    [665175363] = {
+    ["english"] = { [1] = "Althea, there are reports of strange happenings at the graveyard.  Ello believes it portends an attack on Darkshire." },
+    ["text"] = "Алтеє, надходять повідомлення про дивні події на кладовищі. Елло вважає, що це віщує напад на Темнокрай.",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [3077646605] = {
+    ["english"] = { [1] = "Yes, commander!" },
+    ["text"] = "Так, командире!",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}
