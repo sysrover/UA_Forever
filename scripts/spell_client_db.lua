@@ -60,6 +60,41 @@ lookup.get_english_aura_description = function (spell_id)
     return get_row(databases.aura_descriptions_en, spell_id)
 end
 
+local details = addon_table.client_spell_details
+lookup.details_ready = type(details) == "table" and type(details.rows) == "table"
+    and details.sourceBuild == source_build and lookup.ready
+
+local function resolved_details(spell_id, seen, depth)
+    if not lookup.details_ready then return nil end
+    if (depth or 0) >= 16 or seen and seen[spell_id] then return nil end
+    local row = details.rows[spell_id]
+    if type(row) ~= "table" then return nil end
+    seen = seen or {}
+    seen[spell_id] = true
+    local result = {}
+    local inherited = row.ref and resolved_details(row.ref, seen, (depth or 0) + 1)
+    for key, value in pairs(inherited or {}) do result[key] = value end
+    for key, value in pairs(row) do result[key] = value end
+    seen[spell_id] = nil
+    return result
+end
+
+lookup.get_details = function (spell_id)
+    return resolved_details(spell_id)
+end
+
+-- Compatibility consumers receive the same record shape, owned by client DBs.
+-- The inherited detail record must never supply a second spell-name source.
+lookup.get_entry = function (spell_id)
+    if not lookup.ready then return nil end
+    local result = resolved_details(spell_id) or {}
+    result[1] = lookup.get_name(spell_id)
+    result.en = lookup.get_english_name(spell_id)
+    result[2] = lookup.get_description(spell_id) or result[2]
+    result[3] = lookup.get_aura_description(spell_id) or result[3]
+    if next(result) then return result end
+end
+
 local function safe_number(value)
     if type(value) ~= "number" then return nil end
     if type(_G.issecretvalue) == "function" then
@@ -139,7 +174,7 @@ end
 -- Exact build-owned names only. Deterministic ID ordering matches the item
 -- name lookup; no substring replacement or translated-text recognition.
 local spell_id_by_english_name
-lookup.get_name_by_english = function (english_name)
+lookup.get_id_by_english_name = function (english_name)
     if not lookup.ready or type(english_name) ~= "string" then return nil end
     if not spell_id_by_english_name then
         spell_id_by_english_name = {}
@@ -151,6 +186,10 @@ lookup.get_name_by_english = function (english_name)
             end
         end
     end
-    local id = spell_id_by_english_name[english_name]
+    return spell_id_by_english_name[english_name]
+end
+
+lookup.get_name_by_english = function (english_name)
+    local id = lookup.get_id_by_english_name(english_name)
     return id and lookup.get_name(id) or nil
 end

@@ -4,6 +4,7 @@ local dev_log   = addon_table.use("dev_log") ---@class dev_log_class
 local entries   = addon_table.use("entries") ---@class entries_class
 local options   = addon_table.use("options") ---@class options_class
 local utils     = addon_table.use("utils") ---@class utils_class
+local spell_db = addon_table.use("spell_client_db")
 local gossip_hashed = addon_table.use("gossip_hashed")
 local chat_hashed = addon_table.use("chat_hashed")
 local function chat_lookup()
@@ -139,9 +140,17 @@ local function prepare_glossary()
         end
     end
 
-    -- collect id-key entries: spell, npc, quest. Item names are owned by the
-    -- build-validated item_client_db and must not enter the generic glossary.
-    for _, entry_type in ipairs({ "spell", "npc", "quest_faction", "quest_both" }) do
+    -- Spell names have one owner, including text-only glossary consumers.
+    local spell_names = type(spell_db.get_english_name_rows) == "function"
+        and spell_db.get_english_name_rows() or nil
+    for _, english in pairs(spell_names or {}) do
+        local key = string_trim(english:lower())
+        local translated = spell_db.get_name_by_english(english)
+        if not glossary[key] and translated then glossary[key] = translated end
+    end
+
+    -- Item names stay in item_client_db; NPC/quest vocabulary stays contextual.
+    for _, entry_type in ipairs({ "npc", "quest_faction", "quest_both" }) do
         for _, entry_value in pairs(at[entry_type]) do
             if entry_value.en then
                 local glossary_key = string_trim(entry_value.en:lower())
@@ -162,7 +171,6 @@ local function prepare_name_lookup()
     local quest_title_ids = {}
     local quest_task_names = {}
     for _, group in ipairs({
-        { "spell", at.spell },
         { "quest", at.quest_faction }, { "quest", at.quest_both },
     }) do
         for id, entry in pairs(group[2] or {}) do
@@ -226,12 +234,22 @@ end
 
 entries.lookup_name = function (category, english)
     local names = entries.names and entries.names[category]
-    local translated = names and names[english] or nil
+    local translated
+    if category == "spell" then
+        translated = type(spell_db.get_name_by_english) == "function"
+            and spell_db.get_name_by_english(english) or nil
+    else
+        translated = names and names[english] or nil
+    end
     if translated and not translated:find("{%d+}")
         and not translated:find("#", 1, true) then return translated end
 end
 
 entries.lookup_id = function (category, english)
+    if category == "spell" then
+        return type(spell_db.get_id_by_english_name) == "function"
+            and spell_db.get_id_by_english_name(english) or nil
+    end
     local ids = entries.name_ids and entries.name_ids[category]
     return ids and ids[english] or nil
 end
@@ -498,6 +516,11 @@ entries.get_entry = function (entry_type, entry_id, field)
     entry_id = tonumber(entry_id)
     if entry_id == 0 then
         return
+    end
+
+    if entry_type == "spell" then
+        return type(spell_db.get_entry) == "function"
+            and spell_db.get_entry(entry_id) or nil
     end
 
     if entry_type == "quest" then

@@ -499,13 +499,13 @@ diagnostics.install = function (tooltips, api)
     end
     
     local diagnostic_catalog_paths = {
-        classic_string = "entries/string.lua",
-        ui = "entries/forever/catalogs/ui/core.lua",
-        settings = "entries/forever/catalogs/ui/settings.lua",
-        skills = "entries/forever/catalogs/ui/skills.lua",
-        client_domains_skills = "entries/forever/catalogs/ui/client_skills.lua",
-        client_verified_ui = "entries/forever/catalogs/ui/client_verified.lua",
-        client_global_strings = "entries/forever/catalogs/ui/client_global.lua",
+        classic_string = "entries/forever/cliend_db/ui_names_uk.lua",
+        ui = "entries/forever/cliend_db/ui_names_uk.lua",
+        settings = "entries/forever/cliend_db/ui_names_uk.lua",
+        skills = "entries/forever/cliend_db/ui_names_uk.lua",
+        client_domains_skills = "entries/forever/cliend_db/ui_names_uk.lua",
+        client_verified_ui = "entries/forever/cliend_db/ui_names_uk.lua",
+        client_global_strings = "entries/forever/cliend_db/ui_names_uk.lua",
     }
     
     local function diagnostic_edit_target(claim)
@@ -517,7 +517,7 @@ diagnostics.install = function (tooltips, api)
         local category = safe_string(claim.category)
         local owner = safe_string(claim.owner)
         if slot:find("comparison.label:", 1, true) == 1 then
-            return "entries/forever/catalogs/ui/tooltips.lua"
+            return "entries/forever/cliend_db/tooltip_rules.lua"
         end
         if category == "item" or owner == "item-tooltip" then
             if slot:find("item.name", 1, true) == 1
@@ -530,20 +530,29 @@ diagnostics.install = function (tooltips, api)
             if slot:find("item.effect", 1, true) == 1 then
                 return "entries/forever/cliend_db/spell_descriptions_uk.lua"
             end
-            return "entries/forever/catalogs/ui/tooltips.lua"
+            return "entries/forever/cliend_db/tooltip_rules.lua"
         end
         if category == "spell" or owner == "spell-tooltip" then
-            return "entries/forever/catalogs/spells/"
+            if slot:find("name", 1, true) then
+                return "entries/forever/cliend_db/spell_names_uk.lua"
+            end
+            if slot:find("aura.description", 1, true) == 1 then
+                return "entries/forever/cliend_db/aura_descriptions_uk.lua"
+            end
+            if slot:find("spell.description", 1, true) == 1 then
+                return "entries/forever/cliend_db/spell_descriptions_uk.lua"
+            end
+            return "entries/forever/cliend_db/spell_details.lua"
         end
         if category == "npc" or owner == "npc-tooltip" then
-            return "entries/forever/catalogs/npcs/catalog.lua"
+            return "entries/forever/cliend_db/npcs.lua"
         end
         if category == "object" or owner == "object-tooltip" then
-            return "entries/forever/catalogs/objects/catalog.lua"
+            return "entries/forever/cliend_db/objects.lua"
         end
         if owner == "generic" or slot:find("generic.", 1, true) == 1
             or slot == "comparison.header" then
-            return "entries/forever/catalogs/ui/core.lua"
+            return "entries/forever/cliend_db/ui_names_uk.lua"
         end
     end
     

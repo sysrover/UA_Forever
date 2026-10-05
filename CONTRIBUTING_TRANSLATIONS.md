@@ -6,21 +6,22 @@
 
 ## Куди додавати переклад
 
-| Domain | Канонічний каталог |
+| Категорія | Канонічний файл у `entries/forever/cliend_db/` |
 |---|---|
-| Item | `entries/forever/catalogs/items/catalog.lua` |
-| Spell/aura | `entries/forever/catalogs/spells/catalog.lua` або відповідний класовий файл у `spells/` |
-| Talent | `entries/forever/catalogs/talents/` |
-| Quest і tasks | відповідний файл у `entries/forever/catalogs/quests/` |
-| NPC | `entries/forever/catalogs/npcs/catalog.lua` |
-| Object | `entries/forever/catalogs/objects/catalog.lua` |
-| Zone | `entries/zone.lua`; Forever client additions у `entries/forever/catalogs/zones/` |
-| UI exact key | `entries/forever/catalogs/ui/core.lua`, `settings.lua` або `skills.lua` |
-| NPC speech | `entries/forever/catalogs/chat/npc.lua` |
-| Gossip | `entries/forever/catalogs/gossip/catalog.lua` |
-| Blizzard/system chat wording | `entries/forever/catalogs/chat/system.lua` |
-| Tooltip/surface formatter | `entries/forever/catalogs/ui/tooltips.lua` або `surfaces.lua` |
-| Власний UI UA Forever | `entries/forever/catalogs/addon/locale_uk.lua` |
+| Предмети | `item_names_uk.lua`, `item_descriptions_uk.lua` |
+| Спели й аури | `spell_names_uk.lua`, `spell_descriptions_uk.lua`, `aura_descriptions_uk.lua`, `spell_details.lua` |
+| NPC / об’єкти / зони | `npcs.lua` / `objects.lua` / `zones.lua` |
+| Квести й цілі | `quests.lua`; окремі таблиці фракцій у тому самому файлі |
+| Книги | `books.lua` |
+| Діалоги / репліки NPC | `gossip.lua` / `npc_chat.lua` |
+| UI exact key | `ui_names_uk.lua` |
+| Контекстні правила й шаблони UI | `ui_rules.lua` |
+| Системний чат | `system_chat.lua` |
+| Форматування підказок / інших поверхонь | `tooltip_rules.lua` / `surface_rules.lua` |
+| Таланти | `talent_ui.lua`, `trait_entries.lua`, `trait_definition_overrides.lua`; назви й описи беруться зі спелів |
+| Власний UI аддона | `addon_locale_uk.lua` |
+| Класи, раси, граматика й службові рядки | `shared_text.lua` |
+| Англійські source literals | `ui_source_literals.lua`; окремий простір, не переклад для гравця |
 
 Окремих `*_manual.lua` та override-каталогів більше немає. Після перевірки
 додавайте або виправляйте запис безпосередньо в канонічному доменному файлі.
@@ -42,20 +43,16 @@
 - Якщо новий текст потребує читання іншого API, нового native writer або
   окремого semantic slot, потрібен surface adapter, а не ширший regex.
 
-## UI tier і пріоритет
+## Єдине джерело UI
 
-UI compiler застосовує порядок:
+Звичайний exact English key має один запис у `cliend_db/ui_names_uk.lua`.
+Під час міграції збережено чинні переможні переклади й provenance.
+Старі tier-каталоги більше не завантажуються; їхні конфлікти збережено в
+`tools/archive/catalog-migration/migration_report.json`.
 
-```text
-manual_override > curated > reviewed_import > validated_legacy > generated_fallback
-```
-
-Для звичайного перевіреного UI-перекладу додайте exact English key до
-`catalogs/ui/core.lua` або до контекстного `settings.lua` / `skills.lua`.
-Client-каталоги в `catalogs/ui/client_*.lua` зберігають сумісність і provenance;
-не дублюйте в них новий curated-запис. Якщо одна фраза потребує різного
-перекладу за контекстом, оформіть це в контекстному каталозі або resolver,
-задокументувавши причину.
+Різні переклади за контекстом і функції для динамічного тексту належать до
+`cliend_db/ui_rules.lua`. Контекстний виняток не є другим загальним перекладом.
+Оригінальні англійські source literals зберігаються окремо в `ui_source_literals.lua`.
 
 ## Placeholders і WoW markup
 

@@ -31,6 +31,36 @@ local ITEM_SPELL_EQUIP = 45
 local ITEM_SPELL_PROC = 46
 local UNTYPED_LINE = 0
 
+local function migrated_line(spell_id, source, kind, tooltip)
+    if type(client_db.get_details) ~= "function" then return nil end
+    local detail = client_db.get_details(spell_id)
+    if not detail or type(source) ~= "string" then return nil end
+    local exact = kind == "aura" and detail.aura_lines or detail.tooltip_lines
+    if type(exact) == "table" and type(exact[source]) == "string" then
+        return exact[source]
+    end
+    local patterns = kind == "aura" and detail.aura_patterns or nil
+    for _, rule in ipairs(patterns or {}) do
+        if type(rule) == "table" and type(rule[1]) == "string"
+            and type(rule[2]) == "string" then
+            local values = { source:match(rule[1]) }
+            if #values > 0 then
+                local ok, translated = pcall(string.format, rule[2], unpack(values))
+                if ok then return translated end
+            end
+        end
+    end
+    -- $ token rows and legacy # capture templates are different schemas.
+    -- A canonical translated description always takes precedence.
+    local current = kind == "aura" and client_db.get_aura_description(spell_id)
+        or kind == "spell" and client_db.get_description(spell_id)
+    local template = detail[kind == "aura" and 3 or 2]
+    if not current and type(template) == "string"
+        and type(deps().make_text) == "function" then
+        return deps().make_text(template, tooltip, source)
+    end
+end
+
 adapter.translate_crafting_requirements = function (source, spell_id)
     if type(source) ~= "string" then return nil end
     return catalog.translate_spell_requirements(source, function (body)
@@ -204,11 +234,11 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         ) or applied
                     end
                 elseif line_type == SPELL_DESCRIPTION then
-                    if region and source and english_raw and ukrainian_raw
+                    if details_enabled and region and source
                         and options.can_translate("translate_spell") then
-                        local translated = renderer.render(
-                            spell_id, "spell", english_raw, ukrainian_raw, source
-                        )
+                        local translated = english_raw and ukrainian_raw and renderer.render(
+                            spell_id, "spell", english_raw, ukrainian_raw, source)
+                            or migrated_line(spell_id, source, "spell", tooltip)
                         if translated then
                             applied = contract.set_translation(
                                 tooltip, region, source, translated,
@@ -262,7 +292,8 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                     end
                 else
                     local translated = details_enabled and source and line_type == UNTYPED_LINE
-                        and adapter.translate_crafting_requirements(source, spell_id)
+                        and (adapter.translate_crafting_requirements(source, spell_id)
+                            or migrated_line(spell_id, source, "spell", tooltip))
                     if translated and region and options.can_translate("translate_spell") then
                         applied = contract.set_translation(
                             tooltip, region, source, translated,
@@ -426,11 +457,11 @@ adapter.add_structured_aura = function (tooltip, data)
                         tooltip, "Left", line_index, true)
                     source = contract.safe_string(visible_source) or source
                     local translated
-                    if region and source and english_raw and ukrainian_raw
+                    if region and source
                         and options.can_translate("translate_spell") then
-                        translated = renderer.render(
-                            spell_id, "aura", english_raw, ukrainian_raw, source
-                        )
+                        translated = english_raw and ukrainian_raw and renderer.render(
+                            spell_id, "aura", english_raw, ukrainian_raw, source)
+                            or migrated_line(spell_id, source, "aura", tooltip)
                         if translated then
                             applied = contract.set_translation(
                                 tooltip, region, source, translated,
