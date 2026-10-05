@@ -263,6 +263,22 @@ local function after_static_popup_update(dialog)
     end
 end
 
+local function translate_cinematic_close_dialog(dialog)
+    if not dialog then return end
+    strings.translate_region(popup_text_region(dialog), nil,
+        "cinematic.message", nil, nil, nil, "popups")
+    for _, suffix in ipairs({ "ConfirmButton", "ResumeButton" }) do
+        local button = _G["CinematicFrameCloseDialog" .. suffix]
+        if button and type(button.GetFontString) == "function" then
+            local ok, region = pcall(button.GetFontString, button)
+            if ok then
+                strings.translate_region(region, nil,
+                    "cinematic." .. suffix, nil, nil, nil, "popups")
+            end
+        end
+    end
+end
+
 popup_ui.prepare = function ()
     hooks.global("StaticPopup_Show", after_static_popup_show)
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
@@ -272,4 +288,11 @@ popup_ui.prepare = function ()
         end)
     end
 
+    -- This XML-owned confirmation bypasses StaticPopup_Show in build 70205.
+    local cinematic = _G.CinematicFrame
+    local dialog = cinematic and cinematic.closeDialog
+        or _G.CinematicFrameCloseDialog
+    hooks.region_script(dialog, "OnShow", translate_cinematic_close_dialog,
+        "cinematic-close")
+    translate_cinematic_close_dialog(dialog)
 end
