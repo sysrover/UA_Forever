@@ -754,7 +754,7 @@ end
 local function tooltip_work_enabled(kind)
     local scopes = { item="item-tooltips", spell="spell-tooltips", aura="target-auras",
         npc="npc-tooltips", quest="quest-tooltips", object="object-tooltips",
-        minimap="map-tooltips" }
+        minimap="map-tooltips", ["character-currency"]="character" }
     return not options.work_enabled or options.work_enabled(scopes[kind] or "tooltips")
 end
 
@@ -1475,6 +1475,10 @@ local function translate_generic_tooltip(tooltip)
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
+    if tooltip.uaForeverKind == "character-currency" then
+        rewrite_generic_lines(tooltip, nil, 1)
+        return
+    end
     if tooltip.uaForeverQuestPinOwner then
         tooltips.process_quest_pin(tooltip, { id = tooltip.uaForeverID,
             uaForeverMapPin = tooltip.uaForeverQuestPinOwner })
@@ -2297,6 +2301,9 @@ end
 
 tooltips.prepare = function ()
     character_adapter.prepare()
+    hooks.global("MovementSpeed_OnEnter", function (frame)
+        tooltips.translate_character_stat(frame)
+    end, "character")
     if options.on_activity_change then
         options.on_activity_change("quest-pin-cache", function ()
             quest_pin_cache = setmetatable({}, { __mode = "k" })
@@ -2392,6 +2399,16 @@ tooltips.prepare = function ()
             end, tooltips)
     end
     local types = Enum.TooltipDataType
+    if types.Currency then
+        TooltipDataProcessor.AddTooltipPostCall(types.Currency, function (tooltip, data)
+            if not tooltip_work_enabled("character-currency") then return end
+            local id = type(data) == "table" and not is_secret(data) and safe_number(data.id)
+            begin_tooltip(tooltip, "currency:" .. tostring(id or "native"), true)
+            tooltip.uaForeverKind = "character-currency"
+            tooltip.uaForeverID = nil
+            if not tooltip.uaForeverShowOriginal then rewrite_generic_lines(tooltip, nil, 1) end
+        end)
+    end
     local function translate_pending_sell_price(tooltip)
         local pending = tooltip and tooltip.uaForeverSellPriceLine
         if not pending or tooltip.uaForeverShowOriginal then return false end

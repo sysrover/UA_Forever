@@ -8,7 +8,22 @@ local hooks = addon_table.use("translation_hooks").bind("character")
 local catalog = addon_table.forever_tooltip_ui
 local labels = setmetatable({}, { __mode = "k" })
 local primary_templates = setmetatable({}, { __mode = "k" })
+local power_templates = {}
 local plans, plan_dictionary
+
+local function remember_power_template(unit)
+    if type(_G.UnitPowerType) ~= "function" then return end
+    local ok, _, token = pcall(_G.UnitPowerType, unit or "player")
+    token = ok and runtime.safe_string_or_nil(token)
+    if not token then return end
+    -- PaperDollFrame_SetPower selects STAT_<powerToken>_TOOLTIP, including
+    -- resources changed by shapeshifting or supplied by the server.
+    local name = "STAT_" .. token .. "_TOOLTIP"
+    if not power_templates[name] then
+        power_templates[name] = true
+        plans = nil
+    end
+end
 
 -- Native references from build 70205's Camelot PaperDollFrame/Stats. The
 -- live client owns their English formats, precision, colors and arguments.
@@ -70,9 +85,11 @@ local function wording(original)
 end
 
 local function rebuild_plans()
+    remember_power_template("player")
     plans, plan_dictionary = {}, addon_table.forever_ui
     local keys, classes = {}, {}
     for _, name in ipairs(template_names) do keys[name] = true end
+    for name in pairs(power_templates) do keys[name] = true end
     for class in pairs(_G.LOCALIZED_CLASS_NAMES_MALE or {}) do classes[class] = true end
     if type(_G.UnitClass) == "function" then
         local ok, _, class = pcall(_G.UnitClass, "player")
@@ -193,6 +210,9 @@ end
 
 adapter.prepare = function ()
     plans = nil
+    hooks.global("PaperDollFrame_SetPower", function (_, unit)
+        if not runtime.is_secret_value(unit) then remember_power_template(unit) end
+    end)
     hooks.global("PaperDollFrame_SetLabelAndText", function (frame, label)
         if frame then labels[frame] = runtime.safe_string_or_nil(label) end
     end)

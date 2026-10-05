@@ -4,6 +4,7 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
+    ["Honor is gained by killing members of the opposite faction in PvP combat. You can use honor points to purchase special items."] = "Очки честі здобувають за вбивства представників протилежної фракції в PvP-боях. За них можна придбати особливі предмети.",
     -- Active-client stamina format retains the bonus omitted by the legacy row.
     ["Increases |cFFFFFFFFHealth|r by %s"] = "Збільшує запас |cFFFFFFFFздоров’я|r на %s",
     -- ItemClass/ItemSubClass and auction category labels, client 1.60.1.70205.

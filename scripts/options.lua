@@ -320,6 +320,7 @@ options.section_for = function (spec, region)
         local kinds = { item = "item_details", spell = "spell_details", aura = "auras",
             talent = "talents", npc = "npc_tooltips", quest = "quest_text",
             ["character-stat"] = "character_ui", ["equipment-slot"] = "character_ui",
+            ["character-currency"] = "character_ui",
             ["empty-bag-slot"] = "bags", trainer = "trainer" }
         return kinds[kind] or "generic_tooltips"
     end
