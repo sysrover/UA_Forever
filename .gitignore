@@ -1,4 +1,5 @@
-/tools
+/tools/*
+!/tools/archive/
 /build
 /.dayzdiag
 /automation
