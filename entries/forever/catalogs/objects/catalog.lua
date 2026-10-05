@@ -3866,6 +3866,12 @@ addonTable.object = { -- [key] = text
 ["Bell"] = "Дзвін",
 ["Empty Vial"] = "Порожній флакон",
 ["Overgrown Duskweed"] = "Розросле сутінкозілля",
+["Ancient Switch"] = "Стародавній перемикач",
+["Discarded Fishing Toolbox"] = "Покинутий ящик із рибальськими снастями",
+["DwarvenBrazier02"] = "Дворфійська жаровня02",
+["Forgotten Shrine"] = "Забуте святилище",
+["Khaz Modan Iron"] = "Залізо Каз-Модана",
+["Nord'el"] = "Норд'ел",
 }
 
 addonTable.translate_object_name = function (name)

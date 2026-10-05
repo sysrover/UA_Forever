@@ -9456,6 +9456,102 @@ local chat_rows = {
     ["npcs"] = { [1] = "Tormus Deepforge" },
     ["priority"] = 3,
 },
+    [1788370995] = {
+    ["english"] = { [1] = "Farewell, Cerellean, until we are joined once again..." },
+    ["text"] = "Прощавай, Керелліане, доки ми знову не возз'єднаємося...",
+    ["npcs"] = { [1] = "Anaya" },
+    ["priority"] = 3,
+},
+    [1724019306] = {
+    ["english"] = { [1] = "Feeling blue? Come on down to the Blue Recluse for a good time!" },
+    ["text"] = "Засумував? Завітай до «Синього Самітника» — тут завжди весело!",
+    ["npcs"] = { [1] = "Erich Lohan" },
+    ["priority"] = 3,
+},
+    [1046852679] = {
+    ["english"] = { [1] = "Toil not in matters of the past, <name>!" },
+    ["text"] = "Не переймайся справами минулого, <name>!",
+    ["npcs"] = { [1] = "Forlorn Spirit" },
+    ["priority"] = 3,
+},
+    [203924225] = {
+    ["english"] = { [1] = "Who is this mere dwarf that meddles with that which is past?  May the legend of Stalvan die along with you!" },
+    ["text"] = "Хто цей нікчемний дворф, що втручається в минуле?  Нехай легенда про Сталвана помре разом із тобою!",
+    ["npcs"] = { [1] = "Forlorn Spirit" },
+    ["priority"] = 3,
+},
+    [4195739368] = {
+    ["english"] = { [1] = "The light appears to have forsaken us." },
+    ["text"] = "Схоже, Світло покинуло нас.",
+    ["npcs"] = { [1] = "Hogan Ference" },
+    ["priority"] = 3,
+},
+    [943202087] = {
+    ["english"] = { [1] = "Always so negative. The chances of that happening are between zero and none." },
+    ["text"] = "Завжди ти про погане. Шанси на це — між нулем і ніякими.",
+    ["npcs"] = { [1] = "Janey Anship" },
+    ["priority"] = 3,
+},
+    [4101012411] = {
+    ["english"] = { [1] = "Don't forget the orphans of Stormwind!" },
+    ["text"] = "Не забувайте про сиріт Штормовію!",
+    ["npcs"] = { [1] = "John Turner" },
+    ["priority"] = 3,
+},
+    [3085303866] = {
+    ["english"] = { [1] = "Into the box me pretties! Thas it. One by one ye go." },
+    ["text"] = "У коробку, мої красунчики! Отак. Один за одним.",
+    ["npcs"] = { [1] = "Monty" },
+    ["priority"] = 3,
+},
+    [734527559] = {
+    ["english"] = { [1] = "Holy, the translation is finished!" },
+    ["text"] = "Святе небо, переклад завершено!",
+    ["npcs"] = { [1] = "Sirra Von'Indi" },
+    ["priority"] = 3,
+},
+    [3454624716] = {
+    ["english"] = { [1] = "Who dares disturb me?  Die <name>!" },
+    ["text"] = "Хто сміє мене турбувати?  Помри, <name>!",
+    ["npcs"] = { [1] = "Stalvan Mistmantle" },
+    ["priority"] = 3,
+},
+    [3795077838] = {
+    ["english"] = { [1] = "If the Captain finds out, it'll be the end of me." },
+    ["text"] = "Якщо капітан дізнається, мені кінець.",
+    ["npcs"] = { [1] = "Warden Thelwater" },
+    ["priority"] = 3,
+},
+    [48219426] = {
+    ["english"] = { [1] = "Hideous bellows and growls are heard coming from that old hermit's shack!" },
+    ["text"] = "З халупи старого відлюдника долинають жахливі ревіння й гарчання!",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [2411910374] = {
+    ["english"] = { [1] = "Lord Mayor!  Our scouts report strange activity to the west." },
+    ["text"] = "Пане мер!  Наші розвідники доповідають про дивну активність на заході.",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [2201780582] = {
+    ["english"] = { [1] = "Yes, Lord Mayor." },
+    ["text"] = "Так, пане мер.",
+    ["npcs"] = { [1] = "Watcher Cutford" },
+    ["priority"] = 3,
+},
+    [2944506931] = {
+    ["english"] = { [1] = "Knall ran the Gauntlet!  Three cheers for Knall!" },
+    ["text"] = "Кналл пройшов Випробування!  Тричі слава Кналлу!",
+    ["npcs"] = { [1] = "Yorus Barleybrew" },
+    ["priority"] = 3,
+},
+    [3939452909] = {
+    ["english"] = { [1] = "가학 ran the Gauntlet!  Three cheers for 가학!" },
+    ["text"] = "가학 пройшов Випробування!  Тричі слава 가학!",
+    ["npcs"] = { [1] = "Yorus Barleybrew" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

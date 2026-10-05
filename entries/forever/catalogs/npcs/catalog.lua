@@ -8835,6 +8835,19 @@ local npc = { -- [id] = { title, description (optional) }
 [276779] = { [1] = "Швидкий бурий баран", ["en"] = "Swift Brown Ram" },
 [276783] = { [1] = "Швидкий білий баран", ["en"] = "Swift White Ram" },
 [277037] = { [1] = "Пелла Латунна Щітка", [2] = "Перукар", ["en"] = "Pella Brassbrush" },
+[211033] = { [1] = "Ґаріон Венделл", en = "Garion Wendell" },
+[228609] = { [1] = "Контрабандист Сульфурона", en = "Sulfuron Smuggler" },
+[254078] = { [1] = "Том \"Напівриба\" Вілсон", en = "Tom \"Half-fish\" Wilson" },
+[256742] = { [1] = "Діанна М'якоступ", en = "Dianne Softstep" },
+[258880] = { [1] = "Неперевірений вантаж", en = "Uninspected Shipment" },
+[263644] = { [1] = "Феррі Лефті", en = "Pherry Leftee" },
+[264551] = { [1] = "Стривожений гуль", en = "Disturbed Ghoul" },
+[265675] = { [1] = "Маг Вищого Ордену", en = "High Order Mage" },
+[269254] = { [1] = "Зголоднілий чорноворг", en = "Famished Blackworg" },
+[272260] = { [1] = "Загублений переслідувач", en = "Lost Stalker" },
+[273065] = { [1] = "Рібблі Свистокрут", en = "Ribbly Spinwhistle" },
+[274927] = { [1] = "Фалуріс", en = "Faluris" },
+[276316] = { [1] = "Рауль Світ", en = "Raul Sweete" },
 }
 
 if addonTable.npc then
