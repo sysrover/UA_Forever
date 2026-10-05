@@ -132,6 +132,8 @@ local function make_item_state(item_id, key)
             local translated_parts = {}
             local english_names = {}
             local translated_names = {}
+            local english_display_parts = {}
+            local translated_display_parts = {}
             local complete = true
             for _, reagent in ipairs(reagents) do
                 local reagent_id = type(reagent) == "table"
@@ -152,12 +154,19 @@ local function make_item_state(item_id, key)
                     translated) .. " (" .. tostring(count) .. ")"
                 english_names[#english_names + 1] = english
                 translated_names[#translated_names + 1] = deps().capitalize(translated)
+                -- The client omits (1), but keeps counts for other reagents.
+                local quantity = count > 1 and " (" .. tostring(count) .. ")" or ""
+                english_display_parts[#english_display_parts + 1] = english .. quantity
+                translated_display_parts[#translated_display_parts + 1] =
+                    deps().capitalize(translated) .. quantity
             end
             if complete and #english_parts > 0 then
                 recipe_reagent_lines[table.concat(english_parts, ", ")] =
                     table.concat(translated_parts, ", ")
                 recipe_reagent_lines[table.concat(english_names, ", ")] =
                     table.concat(translated_names, ", ")
+                recipe_reagent_lines[table.concat(english_display_parts, ", ")] =
+                    table.concat(translated_display_parts, ", ")
             end
         end
     end

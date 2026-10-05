@@ -9426,6 +9426,36 @@ local chat_rows = {
     ["npcs"] = { [1] = "Jarven Thunderbrew" },
     ["priority"] = 3,
 },
+    [1406701728] = {
+    ["english"] = { [1] = "Bob!  I'm finished!" },
+    ["text"] = "Бобе!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
+    [2216953908] = {
+    ["english"] = { [1] = "Bran!  I'm finished!" },
+    ["text"] = "Бране!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
+    [3894432653] = {
+    ["english"] = { [1] = "Etam!  I'm finished!" },
+    ["text"] = "Етаме!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
+    [720744741] = {
+    ["english"] = { [1] = "Widdle!  I'm finished!" },
+    ["text"] = "Віддле!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
+    [3849640231] = {
+    ["english"] = { [1] = "Zunguzung!  I'm finished!" },
+    ["text"] = "Зунґузунґе!  Я закінчив!",
+    ["npcs"] = { [1] = "Tormus Deepforge" },
+    ["priority"] = 3,
+},
 }
 
 addonTable.chat_hashed = addonTable.chat_hashed or {version=1, rows={}}

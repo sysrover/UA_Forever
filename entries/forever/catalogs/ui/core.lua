@@ -4,6 +4,8 @@ local _, addonTable = ...
 -- These are display-only replacements; global Blizzard string constants are
 -- intentionally left untouched because Camelot also uses some as lookup keys.
 local ui = {
+    -- Active-client stamina format retains the bonus omitted by the legacy row.
+    ["Increases |cFFFFFFFFHealth|r by %s"] = "Збільшує запас |cFFFFFFFFздоров’я|r на %s",
     -- ItemClass/ItemSubClass and auction category labels, client 1.60.1.70205.
     ["Plate"] = "Лати",
     ["Polearm"] = "Древкова зброя",

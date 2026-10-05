@@ -822,22 +822,34 @@ local function translate_consumable_use(source)
     if tail:match("^If you spend at least ") then
         local wait, wait_unit, eating, bonus, stats, minutes, remaining = tail:match(
             "^If you spend at least ([%d%.,]+) ([%a]+) ([%a]+),? you will become well fed and gain ([%d%.,]+) (.-) for ([%d%.,]+) min%.%s*(.*)$")
+        local movement_zone
+        if not wait then
+            wait, wait_unit, eating, bonus, movement_zone, minutes, remaining = tail:match(
+                "^If you spend at least ([%d%.,]+) ([%a]+) ([%a]+),? you will become well fed and gain ([%d%.,]+)%% movement speed while in (.-) for ([%d%.,]+) min%.%s*(.*)$")
+        end
         if not wait or (wait_unit ~= "sec" and wait_unit ~= "seconds"
             and wait_unit ~= "second") or (eating ~= "eating" and eating ~= "drinking") then
             return nil
         end
-        local translated_stats = {}
-        for stat in (stats .. " and "):gmatch("(.-) and ") do
-            local name = item_stat_name(stat)
-                or (stat == "Healing Power" and "сили зцілення")
-            if not name then return nil end
-            translated_stats[#translated_stats + 1] = name
-        end
-        if #translated_stats == 0 then return nil end
         result = result .. " Якщо " .. (eating == "eating" and "їсти" or "пити")
             .. " щонайменше " .. wait .. " с, ви насититеся й отримаєте "
-            .. bonus .. " од. " .. table.concat(translated_stats, " та ")
-            .. " на " .. minutes .. " хв."
+        if movement_zone then
+            local zone = addonTable.zone and addonTable.zone[movement_zone]
+            if type(zone) ~= "string" then return nil end
+            result = result .. "збільшення швидкості руху на " .. bonus
+                .. "% у зоні «" .. zone .. "» на " .. minutes .. " хв."
+        else
+            local translated_stats = {}
+            for stat in (stats .. " and "):gmatch("(.-) and ") do
+                local name = item_stat_name(stat)
+                    or (stat == "Healing Power" and "сили зцілення")
+                if not name then return nil end
+                translated_stats[#translated_stats + 1] = name
+            end
+            if #translated_stats == 0 then return nil end
+            result = result .. bonus .. " од. " .. table.concat(translated_stats, " та ")
+                .. " на " .. minutes .. " хв."
+        end
         tail = remaining
     end
     if tail ~= "" then
@@ -848,6 +860,43 @@ local function translate_consumable_use(source)
             .. experience .. "%."
     end
     return result .. cooldown
+end
+
+-- Resolve the full product name before removing English recipe articles.
+-- Only known modifiers and complete suffixes are accepted: extra flavor text
+-- must be translated, never silently removed from the learn instruction.
+local recipe_actions = {
+    cook = "готувати", craft = "виготовляти", make = "виготовляти", sew = "шити",
+}
+local recipe_suffixes = {
+    [""] = "",
+    ["Don't ask, you don't want to know."] = " Не питайте — краще вам не знати.",
+}
+
+local function translate_recipe_use(action, body)
+    local verb = recipe_actions[action]
+    if not verb then return nil end
+    local name, suffix = body:match("^(.*)%.%s*(Don't ask, you don't want to know%.)$")
+    if not name then name, suffix = body:match("^(.*)%.$"), "" end
+    if not name or recipe_suffixes[suffix] == nil then return nil end
+    local function lookup(value)
+        return addonTable.use("item_client_db").get_name_by_english(value)
+            or addonTable.use("entries").lookup_name("item", value)
+    end
+    local translated = lookup(name)
+    local delicious = false
+    if not translated then
+        name = name:gsub("^an ", ""):gsub("^a ", "")
+        translated = lookup(name)
+        if not translated and action == "cook" then
+            local dish = name:match("^delicious (.+)$")
+            if dish then translated, delicious = lookup(dish), true end
+        end
+    end
+    if not translated then return nil end
+    return "Використання: навчає " .. verb
+        .. (delicious and " смачну страву «" or " «") .. translated .. "»."
+        .. recipe_suffixes[suffix]
 end
 
 -- CONTAINER_SLOTS (%d Slot %s) and current ItemSubClass labels in
@@ -1018,18 +1067,7 @@ tooltip.item_line_patterns = {
             return "Екіпірування: збільшує зцілення від усіх магічних заклять та ефектів на "
                 .. healing .. ", а шкоду — на " .. damage .. "."
         end },
-    { "^Use: Teaches you how to craft (.+)%.$", function (name)
-        local translated = addonTable.use("item_client_db").get_name_by_english(name)
-            or addonTable.use("entries").lookup_name("item", name)
-        if not translated then return nil end
-        return "Використання: навчає виготовляти «" .. translated .. "»."
-    end },
-    { "^Use: Teaches you how to cook (.+)%.$", function (name)
-        local translated = addonTable.use("item_client_db").get_name_by_english(name)
-            or addonTable.use("entries").lookup_name("item", name)
-        if not translated then return nil end
-        return "Використання: навчає готувати «" .. translated .. "»."
-    end },
+    { "^Use: Teaches you how to ([a-z]+) (.+)$", translate_recipe_use },
     { "^%+(%d+) ([A-Za-z]+) Resistance$",
         function (amount, school)
             local name = item_resistance_names[school]

@@ -5535,6 +5535,13 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
 },
+    [1692283520] = {
+    ["english"] = { [1] = "I am sorry, <class>, but you are not experienced enough yet to enter Darkspear Islands." },
+    ["text"] = "Перепрошую, {клас:к}, але тобі ще бракує досвіду, щоб потрапити на Острови Темносписа.",
+    ["npcs"] = { [1] = 263643 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
 }
 for key, row in pairs(rows) do
     local existing = addonTable.gossip_hashed.rows[key]

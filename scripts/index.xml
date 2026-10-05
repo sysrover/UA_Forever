@@ -29,6 +29,7 @@
     <Script file="tooltip_map_adapter.lua"/>
     <Script file="tooltip_spell_adapter.lua"/>
     <Script file="tooltip_talent_adapter.lua"/>
+    <Script file="tooltip_character_adapter.lua"/>
     <Script file="talent_frame_adapter.lua"/>
     <Script file="profession_frame_adapter.lua"/>
     <Script file="profession_recipe_adapter.lua"/>

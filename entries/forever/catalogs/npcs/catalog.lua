@@ -374,7 +374,7 @@ local npc = { -- [id] = { title, description (optional) }
 [721] = { [1] = "Кролик", ["en"] = "Rabbit" }, -- Rabbit
 [723] = { "мош'оґґський м'ясар", en="Mosh'Ogg Butcher" }, -- Mosh'Ogg Butcher
 [724] = { "кремезний кам'янощелепий трог", en="Burly Rockjaw Trogg" }, -- Burly Rockjaw Trogg
-[727] = { [1] = "Горянин Стальгорна", ["en"] = "Ironforge Mountaineer" }, -- Ironforge Mountaineer
+[727] = { [1] = "Горянин Залізогарта", ["en"] = "Ironforge Mountaineer" }, -- Ironforge Mountaineer
 [728] = { "Баґ'тіра", en="Bhag'thera" }, -- Bhag'thera
 [729] = { "Сін'Далл", en="Sin'Dall" }, -- Sin'Dall
 [730] = { "Тетіс", en="Tethis" }, -- Tethis
@@ -2004,7 +2004,7 @@ local npc = { -- [id] = { title, description (optional) }
 [2781] = { "доглядач Вестон", en="Caretaker Weston" }, -- Caretaker Weston
 [2782] = { "доглядач Аларік", en="Caretaker Alaric" }, -- Caretaker Alaric
 [2783] = { "Марез Каптур", en="Marez Cowl" }, -- Marez Cowl
-[2784] = { [1] = "король Маґні Бронзобородий", [2] = "Володар Стальгорна", ["en"] = "King Magni Bronzebeard" }, -- Magni Bronzebeard
+[2784] = { [1] = "король Маґні Бронзобородий", [2] = "Володар Залізогарта", ["en"] = "King Magni Bronzebeard" }, -- Magni Bronzebeard
 [2785] = { "Тельдурін Загублений", en="Theldurin the Lost" }, -- Theldurin the Lost
 [2786] = { [1] = "Ґерріґ Бонеґріп", ["en"] = "Gerrig Bonegrip" }, -- Gerrig Bonegrip
 [2787] = { "Зарук", en="Zaruk" }, -- Zaruk
@@ -4096,7 +4096,7 @@ local npc = { -- [id] = { title, description (optional) }
 [5592] = { "Ток'Кар", en="Tok'Kar" }, -- Tok'Kar
 [5593] = { "Катар", en="Katar" }, -- Katar
 [5594] = { "алхімік Товкачер", "алхімічні припаси", en="Alchemist Pestlezugg" }, -- Alchemist Pestlezugg <Alchemy Supplies>
-[5595] = { [1] = "Вартовий Стальгорна", ["en"] = "Ironforge Guard" }, -- Ironforge Guard
+[5595] = { [1] = "Вартовий Залізогарта", ["en"] = "Ironforge Guard" }, -- Ironforge Guard
 [5597] = { "бугай Комак", en="Grunt Komak" }, -- Grunt Komak
 [5598] = { "вигнанець Атал'ай", en="Atal'ai Exile" }, -- Atal'ai Exile
 [5599] = { "Кон Жовтоокий", en="Kon Yelloweyes" }, -- Kon Yelloweyes
@@ -8861,7 +8861,7 @@ local verified_npcs = {
     [276735] = { [1] = "Стрімкий жовтий механострайдер", ["en"] = "Swift Yellow Mechanostrider" },
     [276736] = { [1] = "Стрімкий зелений механострайдер", ["en"] = "Swift Green Mechanostrider" },
     [271587] = { "Морозне Виття", en="Frosthowl" },
-    [274935] = { [1] = "Захисник Стальгорна", ["en"] = "Ironforge Protector" },
+    [274935] = { [1] = "Захисник Залізогарта", ["en"] = "Ironforge Protector" },
     [274873] = { [1] = "Бойовий коваль Ваелґрім", ["en"] = "Battlesmith Vaelgrim" },
     [230319] = { "Деліана", en="Deliana" },
     [260157] = { [1] = "Старий сніговий леопард", ["en"] = "Elder Snow Leopard" },
