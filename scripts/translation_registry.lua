@@ -359,7 +359,7 @@ registry.register_defaults = function (translate_frame)
         { "professions", { "ProfessionsFrame", "ProfessionsBookFrame" }, "skill" },
         { "trainer", { "ClassTrainerFrame" }, "skill" },
         { "items", { "MerchantFrame", "BankFrame", "ContainerFrameCombinedBags", "LootFrame" }, "item" },
-        { "social", { "FriendsFrame", "FriendsTooltip", "FriendsFriendsFrame",
+        { "social", { "SocialUIFrame", "FriendsFrame", "FriendsTooltip", "FriendsFriendsFrame",
             "AddFriendFrame", "BattleNetInviteFrame", "GuildFrame",
             "CommunitiesFrame", "GuildInviteFrame" }, "none" },
         { "collections", { "CollectionsJournal", "WardrobeCollectionFrame",

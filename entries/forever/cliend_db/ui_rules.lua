@@ -996,6 +996,13 @@ addonTable.forever_ui_patterns = {
         replace = function (count, maximum) return "Недавні союзники " .. count .. "/" .. maximum end,
     },
     {
+        pattern = "^Friends List (%d+)/(%d+)$",
+        replace = function (count, maximum)
+            local label = social_label("Friends List")
+            return label and (label .. " " .. count .. "/" .. maximum) or nil
+        end,
+    },
+    {
         pattern = "^last online (.+) ago$",
         replace = function (time)
             local translated = translate_social_time(time)
