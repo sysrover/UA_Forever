@@ -133,6 +133,22 @@ lookup.get_metadata = function (item_id)
     return row(databases.metadata, item_id)
 end
 
+-- Build-owned classification is queried on demand, including sparse items that
+-- have no saved set/profession requirements. Never cache an unavailable result.
+lookup.get_classification = function (item_id)
+    if type(item_id) ~= "number" or not C_Item
+        or type(C_Item.GetItemInfoInstant) ~= "function" then return nil end
+    local ok, _, _, _, _, _, class_id, subclass_id = pcall(
+        C_Item.GetItemInfoInstant, item_id)
+    if not ok then return nil end
+    if issecretvalue and (issecretvalue(class_id)
+        or issecretvalue(subclass_id)) then return nil end
+    if type(class_id) ~= "number" or type(subclass_id) ~= "number" then
+        return nil
+    end
+    return class_id, subclass_id
+end
+
 -- Optional build-local table: a missing/mismatched set table must not disable
 -- ordinary item names and effects.
 lookup.get_item_set = function (set_id)

@@ -103,7 +103,7 @@ end
 
 local function make_item_state(item_id, key)
     local effects = client_db.get_spell_effects(item_id) or {}
-    local metadata = client_db.get_metadata(item_id)
+    local metadata = client_db.get_metadata(item_id) or {}
     local buckets = {}
     for line_type, triggers in pairs(EFFECT_TRIGGER_BY_LINE) do
         local bucket = {}
@@ -177,12 +177,9 @@ local function make_item_state(item_id, key)
         english_description = client_db.get_english_description(item_id),
         translated_description = client_db.get_description(item_id),
         metadata = metadata,
-        item_set = type(metadata) == "table"
-            and client_db.get_item_set(tonumber(metadata.ItemSet)) or nil,
-        required_skill = type(metadata) == "table"
-            and tonumber(metadata.RequiredSkill) or nil,
-        required_skill_rank = type(metadata) == "table"
-            and tonumber(metadata.RequiredSkillRank) or nil,
+        item_set = client_db.get_item_set(tonumber(metadata.ItemSet) or 0),
+        required_skill = tonumber(metadata.RequiredSkill) or 0,
+        required_skill_rank = tonumber(metadata.RequiredSkillRank) or 0,
         effects = buckets,
         recipe_reagent_lines = recipe_reagent_lines,
         rendered_lines = {},
@@ -330,11 +327,8 @@ local function translate_skill_requirement(state, source)
 end
 
 local function translate_classification(state, source)
-    if type(source) ~= "string" or type(state.metadata) ~= "table" then
-        return nil
-    end
-    local class_id = tonumber(state.metadata.ClassID)
-    local subclass_id = tonumber(state.metadata.SubclassID)
+    if type(source) ~= "string" then return nil end
+    local class_id, subclass_id = client_db.get_classification(state.item_id)
     local class = class_id and client_db.get_item_class(class_id) or nil
     if type(class) == "table" and source == class.ClassName_lang then
         return catalog.item_class_names
