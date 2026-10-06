@@ -61,6 +61,7 @@ local hooks = addon_table.use("translation_hooks").bind("main")
 local utils = addon_table.use("utils")
 
 local function prepare_menu_panels()
+    addon_table.use("legacy_ui").prepare()
     social_ui.prepare()
     raid_ui.prepare()
     trade_ui.prepare()

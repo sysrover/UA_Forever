@@ -1454,6 +1454,84 @@ local chat_rows = {
     [987719060] = { ["english"] = { [1] = "Now, let's see... If I am correct, then... Hmmm..." }, ["npcs"] = { [1] = "J.D. Collie" }, ["priority"] = 1, ["text"] = "Такс, погляньмо... Якщо я не помиляюсь... Хммм..." },
     [989305921] = { ["english"] = { [1] = "Fall!" }, ["npcs"] = { [1] = "Witch Doctor Zum'rah" }, ["priority"] = 1, ["text"] = "Помри!" },
     [99773683] = { ["english"] = { [1] = "Alms for the poor?" }, ["npcs"] = { [1] = "Topper McNabb" }, ["priority"] = 1, ["text"] = "Милостиню бідному?" },
+    [1251391917] = {
+    ["english"] = { [1] = "The ch-ch-chains... must... not..." },
+    ["text"] = "Ланцюги... мусять... не...",
+    ["npcs"] = { [1] = "Goaz Warder" },
+    ["priority"] = 3,
+},
+    [2932634775] = {
+    ["english"] = { [1] = "%s sifts through the trash." },
+    ["text"] = "%s перебирає сміття.",
+    ["npcs"] = { [1] = "Haggle" },
+    ["priority"] = 3,
+},
+    [4251862878] = {
+    ["english"] = { [1] = "Where is everyone?" },
+    ["text"] = "Де всі?",
+    ["npcs"] = { [1] = "Hogan Ference" },
+    ["priority"] = 3,
+},
+    [2197965417] = {
+    ["english"] = { [1] = "Ah! That ought to work nicely!" },
+    ["text"] = "А! Це має чудово спрацювати!",
+    ["npcs"] = { [1] = "Howin Kindfeather" },
+    ["priority"] = 3,
+},
+    [2364193030] = {
+    ["english"] = { [1] = "Maginor says that twisting alternating flows of positive energy actually creates a much more stable flow." },
+    ["text"] = "Маґінор каже, що закручування почергових потоків позитивної енергії насправді створює значно стабільніший потік.",
+    ["npcs"] = { [1] = "Lisan Pierce" },
+    ["priority"] = 3,
+},
+    [2920888762] = {
+    ["english"] = { [1] = "If you are interested in learning more, feel free to speak to Elaine Compton nearby. She would be happy to answer your questions." },
+    ["text"] = "Якщо ви хочете дізнатися більше, зверніться до Елейн Комптон неподалік. Вона залюбки відповість на ваші запитання.",
+    ["npcs"] = { [1] = "Marcy Baker" },
+    ["priority"] = 3,
+},
+    [727336959] = {
+    ["english"] = { [1] = "%s lets out a high pitched screech, calling for help!" },
+    ["text"] = "%s видає пронизливий вереск, кличучи на допомогу!",
+    ["npcs"] = { [1] = "Mottled Screecher" },
+    ["priority"] = 3,
+},
+    [1939892284] = {
+    ["english"] = { [1] = "This should ease the pain." },
+    ["text"] = "Це має втамувати біль.",
+    ["npcs"] = { [1] = "Nurse Lillian" },
+    ["priority"] = 3,
+},
+    [4039448297] = {
+    ["english"] = { [1] = "Cedric, the translation is finished!" },
+    ["text"] = "Седрику, переклад завершено!",
+    ["npcs"] = { [1] = "Sirra Von'Indi" },
+    ["priority"] = 3,
+},
+    [1532913355] = {
+    ["english"] = { [1] = "You can go tell Stoutmantle this is where the Defias Gang is holed up, Straub." },
+    ["text"] = "Можете сказати Міцнокажану, що саме тут засіла банда Непокірних, Страубе.",
+    ["npcs"] = { [1] = "The Defias Traitor" },
+    ["priority"] = 3,
+},
+    [1384458378] = {
+    ["english"] = { [1] = "It's all their fault, stupid orcs. Had to burn my farm to the ground." },
+    ["text"] = "Це все через них, клятих орків. Довелося спалити мою ферму дощенту.",
+    ["npcs"] = { [1] = "Topper McNabb" },
+    ["priority"] = 3,
+},
+    [4237477136] = {
+    ["english"] = { [1] = "Spare some change for a poor blind man? ...What do you mean I'm not blind? ...I'M NOT BLIND! I CAN SEE!! It's a miracle!" },
+    ["text"] = "Пожертвуйте дрібняк бідному сліпому? ...Що значить, я не сліпий? ...Я НЕ СЛІПИЙ! Я БАЧУ!! Це диво!",
+    ["npcs"] = { [1] = "Topper McNabb" },
+    ["priority"] = 3,
+},
+    [3468404305] = {
+    ["english"] = { [1] = "%s cuts and shapes the logs into smooth wooden planks." },
+    ["text"] = "%s ріже й обробляє колоди, перетворюючи їх на гладкі дерев’яні дошки.",
+    ["npcs"] = { [1] = "Westfall Woodworker" },
+    ["priority"] = 3,
+},
 }
 addonTable.chat_hashed = { ["version"] = 1 }
 addonTable.chat_hashed.rows = chat_rows

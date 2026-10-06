@@ -50,6 +50,7 @@
     <Script file="compact_raid_manager_ui.lua"/>
     <Script file="stack_split_ui.lua"/>
     <Script file="panel_ui_adapter.lua"/>
+    <Script file="legacy_ui.lua"/>
     <Script file="guild_registrar_ui.lua"/>
     <Script file="petition_ui.lua"/>
     <Script file="tabard_ui.lua"/>

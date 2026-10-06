@@ -6951,6 +6951,48 @@ local rows = {
     [997765192] = { ["english"] = { [1] = "Recently, a night elf druid named Naralex discovered a network of underground caverns within the heart of the Barrens. Believing he could use the caverns' springs to restore lushness to the Barrens, the druid began siphoning the energies of the fabled Emerald Dream. His vision somehow became a nightmare, however, and soon the Wailing Caverns changed into a den of vicious, deadly predators. It is said that Naralex still resides somewhere inside the labyrinth, trapped beyond the edges of the Emerald Dream. \n" }, ["npcs"] = { [1] = 295, [10] = 5814, [11] = 6272, [12] = 6727, [13] = 6734, [14] = 6735, [15] = 6736, [16] = 6737, [17] = 6738, [18] = 6739, [19] = 6740, [2] = 1247, [20] = 6741, [21] = 6746, [22] = 6747, [23] = 6790, [24] = 6791, [25] = 6807, [26] = 6928, [27] = 6929, [28] = 6930, [29] = 7714, [3] = 1464, [30] = 7731, [31] = 7733, [32] = 7736, [33] = 7737, [34] = 7744, [35] = 8931, [36] = 9356, [37] = 9501, [38] = 11103, [39] = 11106, [4] = 2352, [40] = 11116, [41] = 11118, [42] = 12196, [43] = 14731, [44] = 16458, [5] = 2388, [6] = 2808, [7] = 3934, [8] = 5111, [9] = 5688 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Нещодавно друїд нічних ельфів на ім’я Наралекс відкрив мережу підземних печер у самому серці Степів. Вірячи, що джерела печер допоможуть повернути Степам пишну рослинність, друїд почав черпати енергію легендарного Смарагдового Сну. Та його видіння якимось чином перетворилося на кошмар, і невдовзі Плачучі печери стали лігвом лютих смертоносних хижаків. Кажуть, Наралекс досі перебуває десь у лабіринті, ув’язнений за межами Смарагдового Сну. " },
     [999753059] = { ["english"] = { [1] = "You're looking for Urtrun Clanbringer in the Horde Embassy.  Find it on the west side of the Valley of Strength." }, ["npcs"] = { [1] = 3296 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Шукаєш Уртруна Кланоносця в Посольстві Орди. Воно на західному боці Долини Сили." },
     ["274781:tebp"] = { ["english"] = { [1] = "The barbershop" }, ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "tebp" } }, ["npcs"] = { [1] = 274781 }, ["priority"] = 3, ["roles"] = { ["reply"] = true }, ["text"] = "Перукарня" },
+    [3127258071] = {
+    ["english"] = { [1] = "What did ya say, sonny?  You're going to have to speak up if ya want me to hear a blasted word you're saying!  All those years in the artillery have left my ears ringing!" },
+    ["text"] = "Що ти сказав, синку?  Говори голосніше, якщо хочеш, щоб я розчув хоч одне кляте слово!  Усі ті роки в артилерії так і залишили мені дзвін у вухах!",
+    ["npcs"] = { [1] = 1073 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [1053653054] = {
+    ["english"] = { [1] = "Alchemy can help so many people! It's my life's passion." },
+    ["text"] = "Алхімія може допомогти стільком людям! Це пристрасть усього мого життя.",
+    ["npcs"] = { [1] = 1480 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [1751044593] = {
+    ["english"] = { [1] = "What goods have I earned the right to purchase from the League of Arathor?" },
+    ["text"] = "Які товари я заслужив право придбати у Ліги Аратора?",
+    ["npcs"] = { [1] = 15127 },
+    ["priority"] = 3,
+    ["roles"] = { ["reply"] = true },
+},
+    [2656636563] = {
+    ["english"] = { [1] = "Elune-adore, traveler. I am Cyriden. My partner Relathor and I are working to unearth the lost artifacts of our people.\013\010\013\010Much is remembered by the older kaldorei, but there is no telling what tales have been forgotten. Without our intervention, they will vanish from this world forever." },
+    ["text"] = "Елуне-адоре, мандрівнику. Я Кіріден. Ми з моїм напарником Релатором працюємо над тим, щоб віднайти втрачені артефакти нашого народу.\013\010\013\010Старші калдорай пам’ятають чимало, та ніхто не знає, скільки оповідей уже забуто. Без нашого втручання вони назавжди зникнуть із цього світу.",
+    ["npcs"] = { [1] = 185403 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [2815754768] = {
+    ["english"] = { [1] = "Hello, <name>! What can I do for you?" },
+    ["text"] = "Вітаю, <name>! Чим можу допомогти?",
+    ["npcs"] = { [1] = 2277 },
+    ["priority"] = 3,
+    ["roles"] = { ["greeting"] = true, ["reply"] = true, ["box"] = true },
+},
+    [2910225511] = {
+    ["english"] = { [1] = "I would like to see your wares." },
+    ["text"] = "Я хотів би поглянути на ваші товари.",
+    ["npcs"] = { [1] = 3955 },
+    ["priority"] = 3,
+    ["roles"] = { ["reply"] = true },
+},
 }
 addonTable.gossip_hashed = { ["version"] = 1 }
 addonTable.gossip_hashed.rows = rows

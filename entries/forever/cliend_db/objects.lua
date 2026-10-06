@@ -3851,6 +3851,12 @@ addonTable.object = {
     ["unk"] = "невідомо",
     ["upperLdoor"] = "верхні ліві двері",
     ["ward"] = "оберіг",
+    ["Archaeologist's Cart"] = "Віз археолога",
+    ["Attack Plan: Ironforge"] = "План нападу: Стальгорн",
+    ["Attack Plan: Menethil Harbor"] = "План нападу: гавань Менетілів",
+    ["Attack Plan: Southshore"] = "План нападу: Південнобережжя",
+    ["Library Book"] = "Бібліотечна книга",
+    ["Tattered Spellbook"] = "Пошарпаний гримуар",
 }
 
 addonTable.translate_object_name = function (name)

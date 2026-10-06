@@ -8886,6 +8886,13 @@ local npc = {
     [9997] = { [1] = "Сулиця Везам", ["en"] = "Spraggle Frock" },
     [9998] = { [1] = "Шиззл", ["en"] = "Shizzle" },
     [9999] = { [1] = "Рінґо", ["en"] = "Ringo" },
+    [221827] = { [1] = "Магістр Фалат", en = "Magister Falath" },
+    [248248] = { [1] = "Бліксі Фіцвінк", en = "Blixie Fitzwink" },
+    [258785] = { [1] = "Верховна жриця Мімс", en = "High Priestess Mims" },
+    [270438] = { [1] = "Смертолов Масодж", en = "Deathstalker Masoj" },
+    [270892] = { [1] = "Вартовий Ґоаза", en = "Goaz Warder" },
+    [271460] = { [1] = "Модр", en = "Modr" },
+    [274942] = { [1] = "Боб Макнот", en = "Bob McNaught" },
 }
 addonTable.npc = npc
 

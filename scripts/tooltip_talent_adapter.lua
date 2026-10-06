@@ -121,6 +121,8 @@ local function effective_spell_id(entry_id)
     return nil, row
 end
 
+adapter.get_spell_id_for_entry = effective_spell_id
+
 local function processing_trait_context(tooltip)
     if not tooltip or type(tooltip.GetProcessingTooltipInfo) ~= "function" then
         return nil
@@ -342,11 +344,14 @@ adapter.translate = function (_, button, tooltip)
     if options.can_lookup_section and not options.can_lookup_section("talents") then return end
     local contract = deps()
     local talent_frame = _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.TalentsFrame
-    if not talent_frame or not button or not tooltip
+    local legacy_frame = _G.LegacySystemFrame and _G.LegacySystemFrame.TreePage
+        and _G.LegacySystemFrame.TreePage.LegacyTreeTraitPanel
+    if not button or not tooltip
         or type(button.GetTalentFrame) ~= "function"
         or type(button.GetSpellID) ~= "function" then return end
     local frame_ok, owner = pcall(button.GetTalentFrame, button)
-    if not frame_ok or owner ~= talent_frame then return end
+    if not frame_ok or not owner
+        or (owner ~= talent_frame and owner ~= legacy_frame) then return end
     local id_ok, id = pcall(button.GetSpellID, button)
     id = id_ok and contract.safe_number(id) or nil
     local entry_id
@@ -355,8 +360,8 @@ adapter.translate = function (_, button, tooltip)
         entry_id = ok and contract.safe_number(value) or nil
     end
     local mapped_id = entry_id and effective_spell_id(entry_id) or nil
-    id = id or mapped_id
-    if not id then return end
+    if not id or id <= 0 then id = mapped_id end
+    if not id or id <= 0 then return end
     if not options.can_lookup("translate_spell")
         or not options.can_translate("translate_spell") then return end
     local count_ok, count = pcall(tooltip.NumLines, tooltip)
