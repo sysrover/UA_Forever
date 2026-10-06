@@ -136,7 +136,8 @@ local function translate_open_menu()
                 section = "edit_mode"
             elseif type(menu.ToDebugString) == "function" then
                 local ok, tag = pcall(menu.ToDebugString, menu)
-                if ok and type(tag) == "string" and tag:match("^MENU_UNIT_") then
+                if ok and type(tag) == "string"
+                    and (tag:match("^MENU_UNIT_") or tag:match("^MENU_SOCIAL_UI_")) then
                     section = "social_ui"
                 end
             end

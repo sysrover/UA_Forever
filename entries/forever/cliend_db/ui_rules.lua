@@ -978,6 +978,13 @@ addonTable.forever_ui_patterns = {
         replace = function (count) return "Запрошення в друзі (" .. count .. ")" end,
     },
     {
+        pattern = "^Received %((%d+)%)$",
+        replace = function (count)
+            local template = social_label("Received (%d)")
+            return template and string.format(template, tonumber(count)) or nil
+        end,
+    },
+    {
         pattern = "^Quick Join %((%d+)%)$",
         replace = function (count)
             return (social_label("Quick Join") or "Швидке приєднання") .. " (" .. count .. ")"
@@ -1035,6 +1042,15 @@ addonTable.forever_ui_patterns = {
         replace = function (color, status, reset)
             local translated = social_label(status)
             return translated and ("Статус: " .. color .. translated .. reset) or nil
+        end,
+    },
+    {
+        pattern = "^(|A:friends%-status%-[%a]+:[^|]+|a)(%s+)(.+)$",
+        replace = function (icon, spacing, status)
+            if status ~= "Online" and status ~= "Away" and status ~= "Busy"
+                and status ~= "Appear Offline" then return nil end
+            local translated = social_label(status)
+            return translated and (icon .. spacing .. translated) or nil
         end,
     },
     {
