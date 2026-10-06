@@ -537,9 +537,11 @@ entries.get_entry = function (entry_type, entry_id, field)
             -- every paragraph of the quest. Keep substitutions live because
             -- player/target codes can change without reloading the catalog.
             if type(field) == "number" then
-                return { [field] = make_text(quest[field]) }
+                return { [field] = make_text(quest[field]), en = quest.en }
             end
-            return make_text_array(quest)
+            local result = make_text_array(quest)
+            result.en = quest.en
+            return result
         elseif options.account.dev_mode then
             dev_log.missing_quest(entry_id)
         end
