@@ -206,6 +206,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     local english_raw = (details_enabled or capture) and client_db.get_english_description(spell_id) or nil
     local ukrainian_raw = (details_enabled or capture) and client_db.get_description(spell_id) or nil
     local native_name
+    local crafted_item = false
     local applied = false
     local service_indexes = {}
     local max_line_index = 0
@@ -248,6 +249,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         end
                     end
                 elseif line_type == ITEM_NAME then
+                    crafted_item = true
                     if region and source and options.can_translate("translate_item") then
                         local prefix, name, suffix = source:match("^(%s*)(.-)(%s*)$")
                         local translated = name and item_db.get_name_by_english(name)
@@ -260,7 +262,11 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         end
                     end
                 elseif line_type == ITEM_SPELL_USE or line_type == ITEM_SPELL_EQUIP
-                    or line_type == ITEM_SPELL_PROC then
+                    or line_type == ITEM_SPELL_PROC
+                    or (crafted_item and line_type == UNTYPED_LINE) then
+                    -- Recipes embed an item tooltip after ITEM_NAME. Build
+                    -- 70235 also emits its effects and stats as type 0; use
+                    -- the shared item rules instead of requiring effect types.
                     if region and options.can_translate("translate_item")
                         and (not options.section_enabled
                             or options.section_enabled("item_details")) then
@@ -275,6 +281,8 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                                 "item.crafted-effect:" .. line_type .. ":" .. line_index,
                                 nil, "spell-tooltip", "tooltip-adapter"
                             ) or applied
+                        elseif line_type == UNTYPED_LINE then
+                            service_indexes[line_index] = true
                         end
                     end
                 elseif details_enabled and line_type == SPELL_PASSIVE then
