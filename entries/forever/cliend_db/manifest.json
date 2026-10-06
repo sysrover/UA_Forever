@@ -1,12 +1,12 @@
 {
-  "sourceBuild": "1.60.1.70205",
-  "factionSourceBuild": "1.60.1.70205",
+  "sourceBuild": "1.60.1.70235",
+  "factionSourceBuild": "1.60.1.70235",
   "factions": 253,
   "factionNamesUk": 253,
   "factionDescriptionsUk": 59,
-  "itemSourceBuild": "1.60.1.70205",
-  "skillLineSourceBuild": "1.60.1.70205",
-  "traitSourceBuild": "1.60.1.70205",
+  "itemSourceBuild": "1.60.1.70235",
+  "skillLineSourceBuild": "1.60.1.70235",
+  "traitSourceBuild": "1.60.1.70235",
   "spellIDs": 32862,
   "names": 32748,
   "descriptions": 17602,
@@ -14,16 +14,16 @@
   "skillLines": 154,
   "spellsWithSkillLines": 7369,
   "itemIDs": 25821,
-  "itemNames": 23834,
-  "itemDescriptions": 4845,
+  "itemNames": 23866,
+  "itemDescriptions": 4846,
   "itemsWithSpellEffects": 8950,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12588,
   "resolvedItemSpellEffects": 12580,
-  "itemNamesUk": 23834,
+  "itemNamesUk": 23866,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
-  "itemDescriptionsUk": 4845,
+  "itemDescriptionsUk": 4846,
   "itemDescriptionsNeedTranslation": 0,
   "spellNamesUkV4": 32743,
   "spellNamesNeedTranslation": 5,
@@ -1444,5 +1444,17 @@
         "sha256": "c92666a0e58090b148b1f79c86bb801ddcd81a77e17c5176406ed4a1440473cf"
       }
     ]
+  },
+  "buildVersionUpdate": {
+    "previousBuild": "1.60.1.70205",
+    "sourceBuild": "1.60.1.70235",
+    "scope": "Database version synchronization; existing rows preserved; reviewed cache item translations applied separately",
+    "baseComparison": "build/forever-client-inventory/70235/semantic_base_70205_70235.json",
+    "cacheSHA256": "d7282f2131c39d66bc290d4bb597ff8f4902105900758c1711b8fe3eca4fbfd1",
+    "cacheSnapshot": "build/forever-client-inventory/70235/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
+    "inventory": "build/forever-client-inventory/70235",
+    "translationImportReport": "build/forever-client-inventory/70235/cache-check/applied-70235/apply_report.json",
+    "itemNamesAdded": 32,
+    "itemDescriptionsAdded": 1
   }
 }

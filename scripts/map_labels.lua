@@ -35,6 +35,22 @@ register_map_detail_tiles("stormwindcity_c60", {
     8038833, 8038837, 8038838, 8038839, 8038840, 8038841,
     8038842, 8038843, 8038844, 8038834, 8038835, 8038836,
 })
+register_map_detail_tiles("orgrimmar_c60", {
+    8093509, 8093513, 8093514, 8093515, 8093516, 8093517,
+    8093518, 8093519, 8093520, 8093510, 8093511, 8093512,
+})
+register_map_detail_tiles("undercity_c60", {
+    8067697, 8067701, 8067702, 8067703, 8067704, 8067705,
+    8067706, 8067707, 8067708, 8067698, 8067699, 8067700,
+})
+register_map_detail_tiles("thunderbluff_c60", {
+    8096388, 8096392, 8096393, 8096394, 8096395, 8096396,
+    8096397, 8096398, 8096399, 8096389, 8096390, 8096391,
+})
+register_map_detail_tiles("darnassus_c60", {
+    8085593, 8085597, 8085598, 8085599, 8085600, 8085601,
+    8085602, 8085603, 8085604, 8085594, 8085595, 8085596,
+})
 local original_detail_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 local coordinate_templates = setmetatable({}, { __mode = "k" })
