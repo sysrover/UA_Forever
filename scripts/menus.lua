@@ -9,6 +9,23 @@ local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local options = addon_table.use("options")
 local hooks = addon_table.use("translation_hooks").bind("menus_ui")
+local micro_button_names = {
+    "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
+    "SpellbookMicroButton", "SpellBookMicroButton", "TalentMicroButton",
+    "AchievementMicroButton", "QuestLogMicroButton", "GuildMicroButton",
+    "LFDMicroButton", "CollectionsMicroButton", "EJMicroButton",
+    "StoreMicroButton", "MainMenuMicroButton", "HelpMicroButton",
+}
+
+tooltips.is_micro_button_tooltip = function (tooltip)
+    if not tooltip or type(tooltip.GetOwner) ~= "function" then return false end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or runtime.is_secret_value(owner) or not owner then return false end
+    for _, name in ipairs(micro_button_names) do
+        if owner == _G[name] then return true end
+    end
+    return false
+end
 
 local menu_walks = {
     modern = { id = "modern-open-menu", surface = "menus",
@@ -89,7 +106,10 @@ end
 local function translate_micro_button_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip.GetOwner or tooltip:GetOwner() ~= button then return end
-    if tooltips.finalize then tooltips.finalize(tooltip) end
+    if tooltips.finalize then
+        tooltip.uaForeverKind = "micro-button"
+        tooltips.finalize(tooltip)
+    end
 end
 
 local function is_edit_mode_layout_menu(menu)
@@ -224,13 +244,7 @@ menus_ui.prepare = function ()
 
     -- Micro buttons are created before third-party addons, so Camelot has
     -- already copied the mixin method onto each instance by this point.
-    for _, name in ipairs({
-        "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
-        "SpellbookMicroButton", "TalentMicroButton",
-        "AchievementMicroButton", "QuestLogMicroButton", "GuildMicroButton",
-        "LFDMicroButton", "CollectionsMicroButton", "EJMicroButton",
-        "StoreMicroButton", "MainMenuMicroButton", "HelpMicroButton",
-    }) do
+    for _, name in ipairs(micro_button_names) do
         local button = _G[name]
         hooks.region(button, "EvaluateTooltipVisibility",
             translate_micro_button_tooltip)

@@ -209,7 +209,8 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     end
     local combat_tooltip_text = false
     if (tooltip.uaForeverKind == "npc" or tooltip.uaForeverKind == "player"
-            or tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell")
+            or tooltip.uaForeverKind == "item" or tooltip.uaForeverKind == "spell"
+            or tooltip.uaForeverKind == "micro-button")
         and type(_G.InCombatLockdown) == "function" then
         local ok, in_combat = pcall(_G.InCombatLockdown)
         combat_tooltip_text = ok and not is_secret(in_combat)
@@ -231,9 +232,12 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     local combat_spell_text = combat_tooltip_text
         and tooltip.uaForeverKind == "spell"
         and (owner == "spell-tooltip" or owner == "generic")
+    local combat_micro_button_text = combat_tooltip_text
+        and tooltip.uaForeverKind == "micro-button" and owner == "generic"
     local combat_text_only = combat_tooltip_text
         and (owner == "npc-tooltip" or combat_npc_threat
-            or combat_npc_unit_detail or combat_npc_quest or combat_spell_text)
+            or combat_npc_unit_detail or combat_npc_quest or combat_spell_text
+            or combat_micro_button_text)
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
         if adjust_layout ~= false and not combat_tooltip_text then
@@ -439,6 +443,21 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                 if not translated_left then
                     translated_left, _, left_kind, _, _, _, left_provenance =
                         strings.find_ui_translation(left, left_region)
+                    if not translated_left and index == 1
+                        and tooltip.uaForeverKind == "micro-button" then
+                        local title = safe_string(left)
+                        local base, suffix
+                        if title then
+                            base, suffix = title:match("^(.-)(%s+%(.+%)%s*)$")
+                        end
+                        if base then
+                            translated_left, _, left_kind, _, _, _, left_provenance =
+                                strings.find_ui_translation(base, left_region)
+                            if translated_left then
+                                translated_left = translated_left .. suffix
+                            end
+                        end
+                    end
                 end
             end
             if not right_stable then
@@ -1480,6 +1499,12 @@ local function translate_generic_tooltip(tooltip)
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
+    if tooltips.is_micro_button_tooltip
+        and tooltips.is_micro_button_tooltip(tooltip) then
+        tooltip.uaForeverKind = "micro-button"
+        rewrite_generic_lines(tooltip, nil, 1)
+        return
+    end
     if tooltip.uaForeverKind == "character-currency" then
         rewrite_generic_lines(tooltip, nil, 1)
         return
