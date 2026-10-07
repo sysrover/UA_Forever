@@ -226,9 +226,14 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             or source == "Skinnable")
     local combat_npc_quest = combat_tooltip_text
         and tooltip.uaForeverKind == "npc" and owner == "quest-tooltip"
+    -- Spell tooltips use guarded text writes during combat; font and layout
+    -- changes remain disabled by combat_tooltip_text above.
+    local combat_spell_text = combat_tooltip_text
+        and tooltip.uaForeverKind == "spell"
+        and (owner == "spell-tooltip" or owner == "generic")
     local combat_text_only = combat_tooltip_text
         and (owner == "npc-tooltip" or combat_npc_threat
-            or combat_npc_unit_detail or combat_npc_quest)
+            or combat_npc_unit_detail or combat_npc_quest or combat_spell_text)
     if region and not options.is_bilingual_tooltip() then
         local previous_height, previous_tooltip_height
         if adjust_layout ~= false and not combat_tooltip_text then
