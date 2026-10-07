@@ -635,6 +635,11 @@ addonTable.object_ids = {
     [80023] = { [1] = "Ватор", ["en"] = "Vator" },
     [83763] = { [1] = "Вкрадені книги", ["en"] = "Stolen Books" },
     [90566] = { [1] = "Двері майстерні", ["en"] = "Workshop Door" },
+    [409735] = { [1] = "Книга заклять", ["en"] = "Spellbook" },
+    [612122] = { [1] = "Дубильна рама", ["en"] = "Tanning Rack" },
+    [612351] = { [1] = "Прапор фракції", ["en"] = "Faction Banner" },
+    [642320] = { [1] = "Побита скриня", ["en"] = "Battered Trunk" },
+    [694772] = { [1] = "Рибальська пастка", ["en"] = "Fishing Trap" },
 }
 
 addonTable.object = {
@@ -3857,6 +3862,11 @@ addonTable.object = {
     ["Attack Plan: Southshore"] = "План нападу: Південнобережжя",
     ["Library Book"] = "Бібліотечна книга",
     ["Tattered Spellbook"] = "Пошарпаний гримуар",
+    ["Spellbook"] = "Книга заклять",
+    ["Tanning Rack"] = "Дубильна рама",
+    ["Faction Banner"] = "Прапор фракції",
+    ["Battered Trunk"] = "Побита скриня",
+    ["Fishing Trap"] = "Рибальська пастка",
 }
 
 addonTable.translate_object_name = function (name)

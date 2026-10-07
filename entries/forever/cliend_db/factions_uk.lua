@@ -2,7 +2,7 @@ local _, addon_table = ...
 
 -- User-supplied faction translations matched by ID to the active client inventory.
 local database = {
-    sourceBuild = "1.60.1.70235",
+    sourceBuild = "1.60.1.70245",
     count = 253,
     rows = {
         [1] = { en = "PLAYER, Human", name = "ГРАВЕЦЬ, людина", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },

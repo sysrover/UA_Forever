@@ -8893,6 +8893,8 @@ local npc = {
     [270892] = { [1] = "Вартовий Ґоаза", en = "Goaz Warder" },
     [271460] = { [1] = "Модр", en = "Modr" },
     [274942] = { [1] = "Боб Макнот", en = "Bob McNaught" },
+    [268047] = { [1] = "Посланець Терамора", ["en"] = "Theramore Emissary" },
+    [274902] = { [1] = "Захисник Штормовію", ["en"] = "Stormwind City Defender" },
 }
 addonTable.npc = npc
 

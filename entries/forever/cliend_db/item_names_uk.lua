@@ -1,11 +1,11 @@
 -- Consolidated Ukrainian item names for the exact client build.
 -- Sources: validated ClassicUA names plus completed UA_Forever worklists.
--- Client build: 1.60.1.70235; existing source rows verified unchanged from 70058.
+-- Client build: 1.60.1.70245; existing source rows verified unchanged from 70058.
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70235",
-    count = 23866,
+    sourceBuild = "1.60.1.70245",
+    count = 23879,
     rows = {
         [753] = "короткий меч Драконової Пащі",
         [756] = "тунельна кирка",
@@ -23873,6 +23873,19 @@ local database = {
         [285100] = "Зазубрені зуби раптора",
         [285102] = "Кортик Темної Мли",
         [286572] = "Огрячий плащ заклинача",
+        [812] = "Сяйливий посох Світлолісся",
+        [869] = "Сліпучий довгий меч",
+        [1982] = "Нічний клинок",
+        [2624] = "Ковпак мислителя",
+        [3475] = "Плащ полум’я",
+        [5624] = "Вінець Ордену",
+        [9391] = "Копач",
+        [9393] = "Маяк надії",
+        [10578] = "Чоботи втіленої думки",
+        [10769] = "Сяйливе око Мордреша",
+        [10776] = "Шовковистий павучий плащ",
+        [23192] = "Гербова накидка Багряного Походу",
+        [285284] = "Збалансовані ножі",
     },
 }
 

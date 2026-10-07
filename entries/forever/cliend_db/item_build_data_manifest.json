@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70235",
+  "sourceBuild": "1.60.1.70245",
   "itemMetadata": 3989,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,6 +17,6 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "1d58fa0919a41ff036479d5e1877bd7fc15f990ec9bef13f6187faac260ffb07",
-  "inventory": "build/forever-client-inventory/70205/hotfix-20261003T131403Z-1d58fa0919a4/db2"
+  "cacheSHA256": "14007e9d6d0313dec0eba1aaaae1b5d273a4625625c76dd814ba954c4906523d",
+  "inventory": "build/forever-client-inventory/70245/db2"
 }
