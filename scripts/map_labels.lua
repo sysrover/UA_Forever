@@ -51,6 +51,18 @@ register_map_detail_tiles("darnassus_c60", {
     8085593, 8085597, 8085598, 8085599, 8085600, 8085601,
     8085602, 8085603, 8085604, 8085594, 8085595, 8085596,
 })
+register_map_detail_tiles("world_c60", {
+    8025428, 8025432, 8025433, 8025434, 8025435, 8025436,
+    8025437, 8025438, 8025439, 8025429, 8025430, 8025431,
+})
+register_map_detail_tiles("kalimdor_c60", {
+    8025526, 8025566, 8025567, 8025572, 8025573, 8025574,
+    8025575, 8025576, 8025577, 8025527, 8025548, 8025561,
+})
+register_map_detail_tiles("easternkingdoms_c60", {
+    8023297, 8023301, 8023302, 8023303, 8023304, 8023305,
+    8023306, 8023307, 8023308, 8023298, 8023299, 8023300,
+})
 local original_detail_tiles = setmetatable({}, { __mode = "k" })
 local wrapped_ui_error_frames = setmetatable({}, { __mode = "k" })
 local coordinate_templates = setmetatable({}, { __mode = "k" })
