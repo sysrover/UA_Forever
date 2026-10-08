@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70245",
-    count = 23896,
+    count = 23917,
     rows = {
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
@@ -23902,6 +23902,27 @@ local database = {
         [287979] = "Lesser Wizard Oil",
         [287980] = "Elemental Sharpening Stone",
         [287992] = "Old Key",
+        [1624] = "Skullsplitter Helm",
+        [7755] = "Flintrock Shoulders",
+        [9397] = "Energy Cloak",
+        [273033] = "Gravespike Repeater",
+        [273036] = "Graveweave Bindings",
+        [279845] = "Solid Gold Band",
+        [279846] = "Larcenist's Belt",
+        [282088] = "Heart of Smoldar",
+        [284713] = "Accursed Legguards",
+        [1602] = "Sickle Axe",
+        [2621] = "Cowl of Necromancy",
+        [7719] = "Raging Berserker's Helm",
+        [7736] = "Fight Club",
+        [9378] = "Shovelphlange's Mining Axe",
+        [9382] = "Tromping Miner's Boots",
+        [9390] = "Revelosh's Gloves",
+        [279888] = "Tidesoaked Leggings",
+        [279889] = "Naga Priestess's Mantle",
+        [284228] = "Vial of Vile Liquid",
+        [284866] = "Windserpent Scaled Cloak",
+        [285103] = "Marsh Serpent's Scales",
     },
 }
 

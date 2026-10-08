@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70245",
-    count = 4847,
+    count = 4849,
     rows = {
         [728] = "Teaches you how to cook Westfall Stew.",
         [734] = "Upon this iron disk are stamped the words: \"Footman Malakai Stone\"",
@@ -4853,6 +4853,8 @@ local database = {
         [285094] = "Still surprisingly durable.",
         [282706] = "There's no questioning how Foulbelly earned that name.",
         [287992] = "An old key.",
+        [279845] = "A small prize in exchange for tremendous knowledge.",
+        [284228] = "Maybe don't drink this one.",
     },
 }
 
