@@ -115,6 +115,7 @@ end
 local function prepare_glossary()
     local at = addon_table
     local glossary = {}
+    local npc_names = {}
 
     -- collect text-key entries: misc, string, object, zone
     for _, entry_type in ipairs({ "misc", "string", "object", "zone" }) do
@@ -153,6 +154,17 @@ local function prepare_glossary()
     for _, entry_type in ipairs({ "npc", "quest_faction", "quest_both" }) do
         for _, entry_value in pairs(at[entry_type]) do
             if entry_value.en then
+                -- Build the exact NPC index during the existing startup pass.
+                -- Display callbacks must not scan or normalize the NPC catalog.
+                if entry_type == "npc" then
+                    local name, text = entry_value.en, entry_value[1]
+                    if type(name) == "string" and type(text) == "string" and text ~= ""
+                        and text ~= name and not text:find("{%d+}") and not text:find("#", 1, true) then
+                        local previous = npc_names[name]
+                        if previous == nil then npc_names[name] = text
+                        elseif previous ~= text then npc_names[name] = false end
+                    end
+                end
                 local glossary_key = string_trim(entry_value.en:lower())
                 if not glossary[glossary_key] then
                     glossary[glossary_key] = entry_value[1]
@@ -162,6 +174,7 @@ local function prepare_glossary()
     end
 
     at.glossary = glossary
+    entries.npc_names = npc_names
 end
 
 local function prepare_name_lookup()
@@ -233,6 +246,9 @@ entries.prepare = function ()
 end
 
 entries.lookup_name = function (category, english)
+    if category == "npc" then
+        return entries.npc_names and entries.npc_names[english] or nil
+    end
     local names = entries.names and entries.names[category]
     local translated
     if category == "spell" then

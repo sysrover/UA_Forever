@@ -4,6 +4,9 @@ local _, addon_table = ...
 local database = {
     sourceBuild = "1.60.1.70245",
     count = 436,
+    criteria = {
+        ["Played in the World of Warcraft: Forever Beta"] = "Участь у бета-тестуванні WoW: Forever",
+    },
     rows = {
         [49] = { title = "Перемоги в Альтерацькій долині", description = "Перемоги в Альтерацькій долині", reward = "" },
         [51] = { title = "Перемоги в Низині Араті", description = "Перемоги в Низині Араті", reward = "" },

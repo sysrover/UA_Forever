@@ -107,6 +107,7 @@ local function prepare_challenge(row)
     for _, key in ipairs({ "Label", "Description", "HiddenDescription" }) do
         watch(row[key], function () translate_challenge(row) end)
     end
+    watch(row.Tracked and row.Tracked.Text)
     -- Native InitRewards is a Legacy no-op, but occurs before Expand and the
     -- final row layout. Instance hooks also cover templates copied before us.
     api.hooks.region(row, "InitRewards", translate_challenge)
@@ -214,10 +215,27 @@ local function prepare_preview(row)
     translate()
 end
 
+local function translate_criterion(region)
+    local source = api.text(region)
+    local previous = region and runtime.get(region)
+    if previous and source == previous.translated then source = previous.source end
+    if not source then return end
+    local translated = achievements.get_criteria_text(source)
+    if translated then
+        apply(region, translated, nil, "achievement.criteria")
+    else
+        api.label(region)
+    end
+end
+
+local function prepare_criterion(row)
+    watch(row.Name, translate_criterion)
+end
+
 local function prepare_objectives(frame)
     local pool = frame and frame.criteriaPool
     if pool and type(pool.EnumerateActive) == "function" then
-        for row in pool:EnumerateActive() do watch(row.Name) end
+        for row in pool:EnumerateActive() do prepare_criterion(row) end
     end
 end
 
@@ -314,7 +332,7 @@ legacy.prepare = function ()
     declare("LegacyChallengeTemplateMixin", "InitRewards", translate_challenge)
     declare("LegacyChallengeTemplateMixin", "Init", prepare_challenge)
     declare("LegacyChallengeCategoryMixin", "Init", prepare_category)
-    declare("LegacyChallengeCriteriaMixin", "Init", function (row) watch(row.Name) end)
+    declare("LegacyChallengeCriteriaMixin", "Init", prepare_criterion)
     declare("LegacyChallengeObjectivesMixin", "Display", prepare_objectives)
     declare("LegacyChallengeDetailPaneMixin", "GenerateDataProvider", remember_descriptions)
     for _, pair in ipairs({ { "LegacySystemFrameMixin", "SelectPage" },

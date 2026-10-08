@@ -447,10 +447,11 @@ registry.register_defaults = function (translate_frame)
         clear_on_reuse = true })
     registry.register_surface({ id = "achievement-ui", roots = {},
         domains = {},
-        slots = { "achievement.name", "achievement.description", "achievement.reward", "achievement.category" },
+        slots = { "achievement.name", "achievement.description", "achievement.reward", "achievement.category", "achievement.criteria" },
         dynamic_hooks = { "AchievementTemplateMixin.InitRewards",
             "AchievementCategoryTemplateMixin.Init", "AchievementFrameSummary_UpdateAchievements",
-            "AchievementComparisonTemplateMixin.Init", "AchievementFrameSearch_InitButton" },
+            "AchievementComparisonTemplateMixin.Init", "AchievementFrameSearch_InitButton",
+            "AchievementFrame_LocalizeCriteria", "AchievementObjectives_DisplayCriteria" },
         clear_on_reuse = true })
 end
 

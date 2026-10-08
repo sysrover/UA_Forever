@@ -5,6 +5,34 @@ local registry = addon_table.use("translation_registry")
 local strings = addon_table.use("strings")
 local runtime = addon_table.use("translation_runtime")
 local database = addon_table.use("achievement_client_db")
+local api = addon_table.use("panel_ui_adapter").bind("achievement-ui")
+
+local function translate_criterion(region)
+    local source = api.text(region)
+    local previous = region and runtime.get(region)
+    if previous and source == previous.translated then source = previous.source
+    elseif previous then runtime.invalidate(region) end
+    if not source then return end
+    local prefix, name, suffix = source:match("^(|[cC]%x%x%x%x%x%x%x%x)(.-)(|r)$")
+    prefix, name, suffix = prefix or "", name or source, suffix or ""
+    if name:sub(1, 2) == "- " then
+        prefix, name = prefix .. "- ", name:sub(3)
+    end
+    local translated = database.get_criteria_text(name)
+    if translated then
+        api.apply(region, prefix .. translated .. suffix, "achievement.criteria")
+    else
+        strings.translate_region(region, nil, "ui.label", api.surface)
+    end
+end
+
+local function prepare_criterion(frame)
+    if frame then api.watch(frame.Name, translate_criterion) end
+end
+
+local function prepare_objectives(frame)
+    for _, row in ipairs(frame and frame.criterias or {}) do prepare_criterion(row) end
+end
 
 local function apply(region, text, id, slot, surface_id)
     if not region or type(region.GetText) ~= "function" or not text or text == "" then return end
@@ -94,12 +122,12 @@ local function declare_hooks()
         verifiedBuild = 70205,
         callback = translate_alert,
     })
-    local function ui_hook(id, kind, target, method, callback)
+    local function ui_hook(id, kind, target, method, callback, build)
         registry.declare_hook({
             id = "achievement-ui." .. id, surface = "achievement-ui",
             kind = kind, target = target, method = method,
             blizzardAddon = "Blizzard_AchievementUI", required = true,
-            verifiedBuild = 70205, callback = callback,
+            verifiedBuild = build or 70205, callback = callback,
         })
     end
     ui_hook("rewards", "mixin", "AchievementTemplateMixin", "InitRewards", translate_rewards)
@@ -107,8 +135,13 @@ local function declare_hooks()
     ui_hook("summary", "global", "AchievementFrameSummary_UpdateAchievements", nil, translate_summary)
     ui_hook("comparison", "mixin", "AchievementComparisonTemplateMixin", "Init", translate_comparison)
     ui_hook("search", "global", "AchievementFrameSearch_InitButton", nil, translate_search)
+    ui_hook("criteria-create", "global", "AchievementFrame_LocalizeCriteria", nil, prepare_criterion, 70291)
+    ui_hook("criteria-display", "global", "AchievementObjectives_DisplayCriteria", nil, prepare_objectives, 70291)
 end
 
 achievements.prepare = function ()
+    api.surface = registry.get("achievement-ui")
     declare_hooks()
+    prepare_objectives(_G.AchievementFrameAchievementsObjectives)
+    prepare_objectives(_G.AchievementFrameAchievementsObjectivesOffScreen)
 end
