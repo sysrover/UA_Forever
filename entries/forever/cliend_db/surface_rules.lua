@@ -65,6 +65,20 @@ addonTable.forever_surface_ui = {
         end,
     },
     character = {
+        pet_level = function (source, lookup)
+            local level, description = source:match("^Level (%d+) (.+)$")
+            if not level then return nil end
+            local family, color, loyalty = description:match(
+                "^(.-)%s+(|c%x%x%x%x%x%x%x%x)%((.-)%)|r$")
+            family = family or description
+            local suffix = ""
+            if loyalty then
+                local translated_loyalty = lookup(loyalty)
+                    or loyalty:gsub("Loyalty: (%d+)", "Лояльність: %1")
+                suffix = " " .. color .. "(" .. translated_loyalty .. ")|r"
+            end
+            return "Рівень " .. level .. ": " .. (lookup(family) or family) .. suffix
+        end,
         level = function (level, color, description)
             return "Рівень " .. level .. ": " .. color .. description .. "|r"
         end,
@@ -158,6 +172,11 @@ addonTable.forever_surface_ui = {
     },
     menus = {
         lfg_text = function (source, translate_name)
+            local voice_mode = source:match("^Voice Chat: |cnHIGHLIGHT_FONT_COLOR:(.-)|r$")
+            if voice_mode then
+                return "Голосовий чат: |cnHIGHLIGHT_FONT_COLOR:"
+                    .. translate_name(voice_mode) .. "|r"
+            end
             local applicants = source:match("^(%d+) Pending Applicant[s]?$")
                 or source:match("^(%d+) |4Pending Applicant:Pending Applicants;$")
             if applicants then return "Заявок на розгляді: " .. applicants end

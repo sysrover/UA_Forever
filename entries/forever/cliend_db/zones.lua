@@ -3624,5 +3624,8 @@ addonTable.zone = {
     ["Zuuldaia Ruins"] = "руїни Зуулдая",
     ["crypt"] = "склеп",
     ["nothing to see here"] = "тут нічого дивитися",
+    ["Dreambound Pinnacle"] = "Вершина Сновузлів’я",
+    ["Twilight Hollow"] = "Сутінкова улоговина",
+    ["The Cave"] = "Печера",
 }
 

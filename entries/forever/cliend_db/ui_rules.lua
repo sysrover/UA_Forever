@@ -910,7 +910,51 @@ local function popup_destination(zone)
     return addonTable.zone and addonTable.zone[zone] or zone
 end
 
+-- These 70291 popup templates are formatted before the display is translated.
+-- Match their exact native text, preserving the player-name argument.
+local function popup_argument_rule(tag, translate_argument)
+    local template = _G[tag]
+    local target = template and addonTable.forever_ui[template]
+    if not target then return { pattern = "^$", replace = function () end } end
+    local first, last = template:find("%s", 1, true)
+    if not first then return { pattern = "^$", replace = function () end } end
+    local function literal(text)
+        return text:gsub("%%%%", "%%"):gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    end
+    return {
+        pattern = "^" .. literal(template:sub(1, first - 1)) .. "(.-)"
+            .. literal(template:sub(last + 1)) .. "$",
+        replace = function (argument)
+            if translate_argument then
+                argument = addonTable.use("translation_resolver").find_ui(argument) or argument
+            end
+            return string.format(target, argument)
+        end,
+    }
+end
+
 addonTable.forever_ui_patterns = {
+    popup_argument_rule("CONFIRM_XP_LOSS", true),
+    popup_argument_rule("CONFIRM_XP_LOSS_AGAIN", true),
+    popup_argument_rule("TAKE_MONEY_FROM_STRANGER_WARNING", false),
+    {
+        -- VOICE_CHAT_JOIN_GROUP composes these two exact display strings.
+        pattern = "^(This group is using voice chat for easier communication%.)\n\n(Text%-to%-Speech and Speech%-to%-Text are not supported in this channel because it uses the Discord service%..-)$",
+        replace = function (message, warning)
+            return (addonTable.forever_ui[message] or message) .. "\n\n"
+                .. (addonTable.forever_ui[warning] or warning)
+        end,
+    },
+    {
+        -- Audio accessibility settings append a Discord warning in 70291.
+        -- Translate both display components and retain the named error color.
+        pattern = "^(.+)\n\n(|cnERROR_COLOR:)(.-)|r$",
+        replace = function (tooltip, color, warning)
+            local dictionary = addonTable.forever_ui
+            return (dictionary[tooltip] or tooltip) .. "\n\n" .. color
+                .. (dictionary[warning] or warning) .. "|r"
+        end,
+    },
     {
         pattern = "^Tools:(.*)$",
         replace = function (body)

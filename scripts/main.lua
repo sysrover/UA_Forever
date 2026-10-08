@@ -64,6 +64,7 @@ local utils = addon_table.use("utils")
 local function prepare_menu_panels()
     forever_vo_ui.prepare()
     addon_table.use("legacy_ui").prepare()
+    addon_table.use("inspect_ui").prepare()
     social_ui.prepare()
     raid_ui.prepare()
     trade_ui.prepare()
@@ -337,6 +338,16 @@ local function translate_character_level(region)
         or not options.can_translate("translate_string") then return end
     local ok, source = pcall(region.GetText, region)
     if not ok or type(source) ~= "string" or is_secret(source) then return end
+    if region == _G.PetCharacterLevelText then
+        local wording = addon_table.forever_surface_ui.character
+        local translated = wording and wording.pet_level(source, strings.find_ui_translation)
+        if translated then
+            runtime.apply(region, { owner = "character-level",
+                slot = "character.pet_level", source = source, translated = translated,
+                option = "translate_string", priority = runtime.PRIORITY.CONTEXT })
+        end
+        return
+    end
     -- Build 70170 formats PLAYER_LEVEL[_NO_SPEC] with a colored class/spec
     -- and can use an effective level such as "20 (30)". Apply once from the
     -- native text so original mode retains the whole Blizzard string.
@@ -544,7 +555,7 @@ local function prepare_panel_hooks()
     hooks.region(_G.CharacterFrame, "ShowSubFrame", translate_character_subframe)
     hooks.region(_G.CharacterFrame, "UpdateTitle", translate_character_title)
     translate_character_title(_G.CharacterFrame)
-    for _, name in ipairs({ "CharacterLevelText", "HonorLevelText" }) do
+    for _, name in ipairs({ "CharacterLevelText", "HonorLevelText", "PetCharacterLevelText" }) do
         local region = _G[name]
         if region then
             hooks.region(region, "SetText", translate_character_level)
@@ -555,6 +566,9 @@ local function prepare_panel_hooks()
     hooks.global("PaperDollFrame_SetLevel", function ()
         translate_character_level(_G.CharacterLevelText)
         translate_character_level(_G.HonorLevelText)
+    end)
+    hooks.global("PaperDollFrame_SetPetLevel", function ()
+        translate_character_level(_G.PetCharacterLevelText)
     end)
     local paper_doll = _G.PaperDollFrame
     hooks.region_script(paper_doll and paper_doll.EquipmentManagerPane,

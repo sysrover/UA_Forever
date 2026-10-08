@@ -536,7 +536,7 @@ layout.fit_lfg_tooltip = function (tooltip)
     end
     for _, key in ipairs({ "Delisted", "NewPlayerFriendlyIcon",
         "NewPlayerFriendlyText", "LeaderIcon", "MemberCount",
-        "CompletedEncounterHeader" }) do add(tooltip[key]) end
+        "CompletedEncounterHeader", "VoiceChat" }) do add(tooltip[key]) end
     add(tooltip.Comment, true)
     local function add_member(member)
         if not member or type(member.IsShown) ~= "function" then return end

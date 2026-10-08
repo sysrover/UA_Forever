@@ -4,6 +4,7 @@ local edit_mode = addon_table.use("edit_mode")
 local auto_scan = addon_table.use("auto_scan")
 local registry = addon_table.use("translation_registry")
 local strings = addon_table.use("strings")
+local hooks = addon_table.use("translation_hooks").bind("edit-mode")
 
 local function translate_frame(frame)
     local surface = registry.get("edit-mode")
@@ -187,6 +188,23 @@ edit_mode.prepare = function ()
     end
     declare_hooks()
     local manager = _G.EditModeManagerFrame
+    -- XML has already copied the mixins onto these frames. Observe the live
+    -- writers as well, including the new gamepad action-bar selection.
+    hooks.region(manager, "UpdateDropdownOptions", translate_manager)
+    hooks.region(manager and manager.AccountSettings, "SetExpandedState", translate_manager)
+    hooks.region(_G.EditModeSystemSettingsDialog, "UpdateDialog", translate_settings_dialog)
+    hooks.region(_G.EditModeLayoutDialog, "SetupControlsForMode", translate_layout_dialog)
+    hooks.region(_G.EditModeImportLayoutDialog, "SetupControlsForMode", translate_layout_dialog)
+    hooks.region(_G.EditModeUnsavedChangesDialog, "ShowDialog", translate_layout_dialog)
+    local function bind_system(_, system)
+        local selection = system and system.Selection
+        hooks.region(selection, "UpdateLabelVisibility", translate_system_selection)
+        translate_system_selection(selection)
+    end
+    hooks.region(manager, "RegisterSystemFrame", bind_system)
+    for _, system in ipairs(manager and manager.registeredSystemFrames or {}) do
+        bind_system(manager, system)
+    end
     if manager and manager.IsShown then
         local ok, shown = pcall(manager.IsShown, manager)
         if ok and shown then translate_manager() end

@@ -46,6 +46,18 @@ local function replace_once(text, source, replacement)
     return text:sub(1, first - 1) .. replacement .. text:sub(last + 1)
 end
 
+local quest_tags = { ["(Elite)"] = true, ["(Dungeon)"] = true,
+    ["(Raid)"] = true, ["(PvP)"] = true }
+
+local function translate_title_tag(source, region)
+    if not source or not options.can_translate("translate_string") then return source end
+    local prefix, tag, reset = source:match("^(.-)(%b())(|r)$")
+    if not tag then prefix, tag = source:match("^(.-)(%b())$") end
+    if not quest_tags[tag] then return source end
+    local translated = strings.find_ui_translation(tag, region)
+    return translated and (prefix .. translated .. (reset or "")) or source
+end
+
 local function english_title(id)
     local original = translation.original
         and translation.original["C_QuestLog.GetTitleForQuestID"]
@@ -71,6 +83,10 @@ end
 local function quest_name_region(region, id, owner)
     if options.can_lookup_section and not options.can_lookup_section("quest_names") then return false end
     local current = safe_text(region)
+    local claim = region and runtime.get(region)
+    if owner == "quest-tracker" and claim and current == claim.translated then
+        current = claim.source
+    end
     if region then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
     local english = type(id) == "number" and english_title(id)
@@ -85,6 +101,9 @@ local function quest_name_region(region, id, owner)
         display_source = strings.find_ui_translation(source, region) or source
     end
     local translated = replace_once(display_source, english, ukrainian)
+    if owner == "quest-tracker" then
+        translated = translate_title_tag(translated, region)
+    end
     if not translated then return false end
     return runtime.apply(region, {
         owner = owner, slot = "quest:" .. id .. ".name",
@@ -322,7 +341,7 @@ local function quest_log_titles(scroll)
         local id = button.questID
         local region = button.Text
         local tag = button.TagText
-        if safe_text(tag) == "(Elite)" then
+        if quest_tags[safe_text(tag)] then
             strings.translate_region(tag)
         end
         local current = safe_text(region)
@@ -738,7 +757,18 @@ local function prepare_dialog_hooks()
 end
 
 local function translate_header(block, id)
-    quest_name_region(block.HeaderText, id, "quest-tracker")
+    local region = block.HeaderText
+    local source = safe_text(region)
+    local claim = region and runtime.get(region)
+    if claim and source == claim.translated then source = claim.source end
+    if quest_name_region(region, id, "quest-tracker") then return end
+    -- Tags also need localization when the quest has no translated name.
+    local translated = translate_title_tag(source, region)
+    if source and translated ~= source then
+        runtime.apply(region, { owner = "quest-tracker-tag", slot = "ui.quest_tag",
+            source = source, translated = translated, option = "translate_string",
+            priority = runtime.PRIORITY.CONTEXT })
+    end
 end
 
 local function prepare_tracker_line(block, key)

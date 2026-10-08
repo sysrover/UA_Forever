@@ -217,7 +217,60 @@ local function translate_legacy_dropdown(_, level)
     scheduler.request("legacy-dropdown:" .. level, nil, translate)
 end
 
+local function translate_gamepad_prompt(prompt)
+    local control = prompt and prompt.ControlDescText
+    local label = control and control.FontString
+    if not label or runtime.is_applying(label) then return end
+    if not strings.translate_region(label, nil, "ui.action") then return end
+    if runtime.combat_locked() or not runtime.can_write_text(prompt) then return end
+    local width = addon_table.use("translation_layout").safe_dimension(label, "GetStringWidth")
+    if width and type(control.SetWidth) == "function" then
+        pcall(control.SetWidth, control, width)
+        if type(prompt.RefreshInputPromptSize) == "function" then
+            pcall(prompt.RefreshInputPromptSize, prompt)
+        end
+    end
+end
+
+local function bind_gamepad_legend(legend)
+    if not legend or not runtime.can_write_text(legend) or type(legend.promptFrames) ~= "table"
+        or type(legend.RefreshWithPromptedBindings) ~= "function" then return end
+    local function bind_prompts(self)
+        for _, prompt in pairs(self.promptFrames) do
+            hooks.region(prompt, "SetPromptText", translate_gamepad_prompt)
+            translate_gamepad_prompt(prompt)
+        end
+    end
+    -- Bind newly pooled prompts before RefreshWithPromptedBindings writes
+    -- their labels and measures the legend, including the new hold icons.
+    hooks.region(legend, "GetOrCreatePromptFrameUsingTemplateAndInputs", bind_prompts)
+    bind_prompts(legend)
+    if not runtime.combat_locked() and runtime.can_write_text(legend)
+        and type(legend.ApplyDefaultPromptPositioning) == "function" then
+        pcall(legend.ApplyDefaultPromptPositioning, legend)
+    end
+end
+
+local function prepare_gamepad_prompts()
+    hooks.region(_G.InputPromptLegends, "CreateInputLegend", function (parent, key)
+        bind_gamepad_legend(parent and parent[key])
+    end)
+    -- These panels can create their footer before UA_Forever loads.
+    for _, name in ipairs({ "GameMenuFrame", "WorldMapFrame",
+        "ContainerFrameCombinedBags", "ProfessionsFrame", "PlayerSpellsFrame",
+        "LegacySystemFrame", "CatalogShopFrame" }) do
+        local root = _G[name]
+        if root and type(root.GetChildren) == "function" then
+            local ok, children = pcall(function () return { root:GetChildren() } end)
+            if ok then
+                for _, child in ipairs(children) do bind_gamepad_legend(child) end
+            end
+        end
+    end
+end
+
 menus_ui.prepare = function ()
+    prepare_gamepad_prompts()
     declare_game_menu_hook()
     local game_menu = registry.get("game-menu")
     if game_menu then

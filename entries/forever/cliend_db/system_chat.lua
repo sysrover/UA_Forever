@@ -1744,6 +1744,11 @@ local chat = {
         Neutral = "нейтральне", Honored = "шанобливе",
     },
     exact = {
+        -- ChannelFrame writes these notices directly through AddMessage.
+        ["Switching to voice chat service: Discord"] = "Перемикання на службу голосового чату: Discord",
+        ["Switching to voice chat service: Legacy"] = "Перемикання на службу голосового чату: попередня служба",
+        ["Text-to-Speech and Speech-to-Text enabled"] = "Озвучення тексту та розпізнавання мовлення ввімкнено",
+        ["Text-to-Speech and Speech-to-Text disabled"] = "Озвучення тексту та розпізнавання мовлення вимкнено",
         ["You have been disconnected from Blizzard services."] =
             "Вас відключено від сервісів Blizzard.",
         ["You are no longer Away."] = "Ви повернулися.",

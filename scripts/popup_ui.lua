@@ -11,6 +11,7 @@ local resolver = addon_table.use("translation_resolver")
 local hooks = addon_table.use("translation_hooks").bind("popup_ui")
 
 local dynamic_dialogs = {
+    XP_LOSS = true, VOICE_CHAT_JOIN_GROUP = true,
     GROUP_INVITE_CONFIRMATION = true, PARTY_INVITE = true,
     DUEL_REQUESTED = true, DUEL_TO_THE_DEATH_REQUESTED = true,
     PET_BATTLE_PVP_DUEL_REQUESTED = true, TRADE = true,
@@ -256,7 +257,7 @@ local function after_static_popup_update(dialog)
         translate_exit_countdown(dialog)
     elseif which == "RESURRECT" or which == "RESURRECT_NO_SICKNESS" then
         translate_resurrection_popup(dialog)
-    elseif which == "CONFIRM_SUMMON" or which == "CONFIRM_SUMMON_STARTING_AREA"
+    elseif which == "XP_LOSS" or which == "CONFIRM_SUMMON" or which == "CONFIRM_SUMMON_STARTING_AREA"
         or which == "CONFIRM_SUMMON_SCENARIO" then
         -- GetExpirationText rewrites the native message as timeleft changes.
         translate_dynamic_popup(dialog)

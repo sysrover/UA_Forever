@@ -17,12 +17,14 @@ local function is_secret(value)
     return not ok or secret == true
 end
 
-local function hook_text_region(region)
+local function hook_text_region(region, after_translate)
     if not region then return end
     hooks.region(region, "SetText", function (self)
         if not runtime.is_applying(self) then strings.translate_region(self) end
+        if after_translate then after_translate() end
     end)
     strings.translate_region(region)
+    if after_translate then after_translate() end
 end
 
 local function hook_button(button, fit)
@@ -360,15 +362,32 @@ local function translate_create_controls(page)
     hook_create_button(page.CreateAllButton)
 end
 
+local function fit_track_recipe_label(checkbox, region)
+    if not checkbox or not region or runtime.combat_locked()
+        or not runtime.can_write_text(checkbox)
+        or type(checkbox.GetPoint) ~= "function"
+        or type(region.GetStringWidth) ~= "function" then return end
+    local ok, point, relative, relative_point, _, y = pcall(checkbox.GetPoint, checkbox, 1)
+    -- Only the 70291 Camelot layout uses this width-dependent native anchor.
+    if not ok or is_secret(point) or is_secret(y)
+        or point ~= "BOTTOMRIGHT" or y ~= 11 then return end
+    local width_ok, width = pcall(region.GetStringWidth, region)
+    if width_ok and not is_secret(width) and type(width) == "number"
+        and width > 0 and width < math.huge then
+        pcall(checkbox.SetPoint, checkbox, point, relative, relative_point, -(width + 20), y)
+    end
+end
+
 local function translate_form_chrome(form)
     if not form then return end
+    local checkbox = form.TrackRecipeCheckbox
+    local label = checkbox and (checkbox.Text or checkbox.Label)
+    hook_text_region(label, function () fit_track_recipe_label(checkbox, label) end)
     for _, region in pairs({
         form.OutputSubText,
         form.Cooldown,
         form.MinimizedCooldown,
         form.RecraftingDescription,
-        form.TrackRecipeCheckbox and
-            (form.TrackRecipeCheckbox.Text or form.TrackRecipeCheckbox.Label),
         form.AllocateBestQualityCheckbox and
             (form.AllocateBestQualityCheckbox.Text
                 or form.AllocateBestQualityCheckbox.Label),
@@ -453,6 +472,8 @@ local function hook_instances()
     hooks.region(form, "Refresh", translate_form_chrome)
     hooks.region(form, "Update", translate_form_chrome)
     hooks.region(frame, "Refresh", translate_frame)
+    hooks.region(frame, "OnTradeSkillClosed", translate_frame)
+    hooks.region(frame, "OnSkillAbandoned", translate_frame)
     hooks.region(frame, "SelectBookPage", translate_frame)
     hooks.region(frame, "RefreshRightTab", after_refresh_right_tab)
     hooks.region(frame and frame.BookPage, "Update", translate_book)

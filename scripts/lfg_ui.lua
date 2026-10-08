@@ -168,6 +168,8 @@ local function translate_lfg_vanilla_listing()
     local view = frame.ActivityView
     bind_lfg_display(view and view.LevelRangesCheckbox and view.LevelRangesCheckbox.Text)
     bind_lfg_display(view and view.PlayStyleDropdown and view.PlayStyleDropdown.Text)
+    bind_lfg_display(view and view.VoiceChatLabel)
+    bind_lfg_display(view and view.VoiceChatDropdown and view.VoiceChatDropdown.Text)
     bind_lfg_display(view and view.Comment and view.Comment.EditBox
         and view.Comment.EditBox.Instructions)
     local locked = frame.LockedView
@@ -220,7 +222,7 @@ end
 local function translate_lfg_vanilla_tooltip(frame)
     if not frame then return end
     for _, key in ipairs({ "Delisted", "NewPlayerFriendlyText",
-        "CompletedEncounterHeader", "MemberCount" }) do
+        "CompletedEncounterHeader", "MemberCount", "VoiceChat" }) do
         bind_lfg_display(frame[key])
     end
     bind_lfg_display(frame.Leader and frame.Leader.Level)
