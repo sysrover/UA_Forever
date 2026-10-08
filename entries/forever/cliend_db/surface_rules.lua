@@ -11,7 +11,16 @@ addonTable.forever_surface_ui = {
         },
     },
     forever_vo = {
+        queue_label = function (title, name, color)
+            title = title or ""
+            if not name then return title end
+            return title ~= "" and (title .. "  " .. color .. name .. "|r") or name
+        end,
         value = function (source)
+            local queued = source:match("^(%d+) more queued$")
+            if queued then return "Ще в черзі: " .. queued end
+            local more = source:match("^and (%d+) more$")
+            if more then return "і ще " .. more end
             local channels = { Master = "Загальна гучність", Dialog = "Діалоги",
                 SFX = "Звукові ефекти", Music = "Музика", Ambience = "Звуки оточення" }
             if channels[source] then return channels[source] end

@@ -20,8 +20,8 @@ local tooltip = {
         day = "дн", days = "дн",
     },
     requirement_names = {
-        Shield = "щит",
-        Shields = "щит",
+        Shield = "Щит",
+        Shields = "Щити",
     },
     power_resources = {
         Rage = "люті",
@@ -40,14 +40,14 @@ local tooltip = {
     },
     comparison_item_labels = {
         ["Critical Strike Chance"] = "ймовірність критичного удару",
-        Cloth = "Тканина", Leather = "Шкіра", Mail = "Кольчуга",
+        Cloth = "Тканина", Leather = "Шкіряний", Mail = "Кольчуга",
         Plate = "Лати", Head = "Голова", Neck = "Шия",
-        Shoulder = "Плечі", Shoulders = "Плечі", Back = "Спина",
-        Chest = "Груди", Wrist = "Зап'ястя", Hands = "Кисті",
+        Shoulder = "Плечі", Shoulders = "Плечі", Back = "Назад",
+        Chest = "скриня", Wrist = "Зап'ястя", Hands = "Кисті",
         Waist = "Пояс", Legs = "Ноги", Feet = "Ступні",
         Finger = "Палець", Trinket = "Аксесуар",
-        Shirt = "Сорочка", Tabard = "Накидка",
-        Sword = "Меч", Dagger = "Кинджал", Staff = "Посох",
+        Shirt = "Сорочка", Tabard = "Гербова накидка",
+        Sword = "Меча", Dagger = "Кинджал", Staff = "Посох",
         Polearm = "Древкова зброя", Gun = "Рушниця",
         Bow = "Лук", Crossbow = "Арбалет", Wand = "Жезл",
     },
@@ -165,17 +165,17 @@ tooltip.format = {
 -- wording is retained from factions-taxi-titles/titles_uk.json.
 tooltip.pvp_rank_names = {
     Private = "Рядовий", Corporal = "Капрал", Sergeant = "Сержант",
-    ["Master Sergeant"] = "Майстер-сержант", ["Sergeant Major"] = "Сержант-майор",
+    ["Master Sergeant"] = "Майстер-сержант", ["Sergeant Major"] = "Старший сержант",
     Knight = "Лицар", ["Knight-Lieutenant"] = "Лицар-лейтенант",
     ["Knight-Captain"] = "Лицар-капітан", ["Knight-Champion"] = "Лицар-чемпіон",
     ["Lieutenant Commander"] = "Лейтенант-командир", Commander = "Командир",
     Marshal = "Маршал", ["Field Marshal"] = "Фельдмаршал",
-    ["Grand Marshal"] = "Великий маршал", Scout = "Розвідник", Grunt = "Рубака",
+    ["Grand Marshal"] = "Великий маршал", Scout = "Розвідник", Grunt = "Рубайло",
     ["Senior Sergeant"] = "Старший сержант", ["First Sergeant"] = "Перший сержант",
     ["Stone Guard"] = "Кам'яний вартовий", ["Blood Guard"] = "Кривавий вартовий",
     Legionnaire = "Легіонер", Centurion = "Центуріон", Champion = "Чемпіон",
     ["Lieutenant General"] = "Генерал-лейтенант", General = "Генерал",
-    Warlord = "Воєвода", ["High Warlord"] = "Верховний воєвода",
+    Warlord = "Воєначальник", ["High Warlord"] = "Верховний воєвода",
 }
 
 tooltip.item_set_names = {

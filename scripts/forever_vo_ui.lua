@@ -127,6 +127,7 @@ local function prepare_category(category)
 end
 
 forever_vo_ui.prepare = function ()
+    addon_table.use("forever_vo_playback").prepare()
     -- Also retry before a category is displayed when ForeverVO loaded later.
     hooks.region(_G.SettingsPanel, "SetCurrentCategory", forever_vo_ui.prepare, "settings")
     local voiceover = _G.ForeverVO
