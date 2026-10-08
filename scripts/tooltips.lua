@@ -223,6 +223,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     local combat_npc_unit_detail = combat_tooltip_text
         and tooltip.uaForeverKind == "npc" and owner == "generic"
         and source and (source:match("^Level %d+$") ~= nil
+            or source:match("^Level %d+ %(Elite%)$") ~= nil
             or npc_creature_type_sources[source] == true
             or source == "Skinnable")
     local combat_npc_quest = combat_tooltip_text
@@ -2003,9 +2004,19 @@ local function prepare_tooltip_frames()
     for _, tooltip in ipairs(tooltip_frames) do
         if tooltip then
             if tooltip == _G.GameTooltip then
-                hooks.region(tooltip, "SetUnit", function (self)
+                hooks.region(tooltip, "SetUnit", function (self, unit)
                     note_tooltip_event(self, "unitMethod")
                     translate_player_unit_tooltip(self)
+                    if tooltip_work_enabled("npc") then
+                        -- GetUnit/TooltipData may not expose the NPC identity
+                        -- during the structured post-call. SetUnit has now
+                        -- finished building the native rows.
+                        local id = utils.npc_id_from_unit_id(safe_string(unit))
+                        if id then
+                            safe_process(self, { uaForeverID = id }, "npc", true)
+                            arm_tooltip_updates(self)
+                        end
+                    end
                 end)
                 hooks.region(tooltip, "SetTrainerService", function (self, index)
                     if is_secret(index) then return end
@@ -2142,6 +2153,20 @@ local function after_game_tooltip_update(tooltip)
         return
     end
     local budget = tooltip.uaForeverUpdateBudget or 0
+    -- Native unit refreshes can overwrite rows after the bounded fallback
+    -- budget is exhausted. Keep the visible NPC surface current at 10 Hz.
+    if tooltip.uaForeverKind == "npc" and not tooltip.uaForeverShowOriginal then
+        local time_ok, now = pcall(_G.GetTime)
+        now = time_ok and safe_number(now) or nil
+        if now and now >= (tooltip.uaForeverUnitRefreshAt or 0) then
+            tooltip.uaForeverUnitRefreshAt = now + 0.1
+            npc_adapter.refresh_name(tooltip)
+            npc_adapter.refresh_subtitle(tooltip)
+            rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2,
+                false, false)
+            quest_adapter.translate_embedded(tooltip)
+        end
+    end
     if budget <= 0 then return end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
     local owner_updates = false
