@@ -252,6 +252,8 @@ settings_ui.show_export_window = show_export_window
 local function refresh_open_text()
     runtime.refresh_policy(true)
     if options.refresh_activity then options.refresh_activity() end
+    local fonts = addon_table.use("fonts")
+    if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
     if strings.refresh_combat_text_globals then
         strings.refresh_combat_text_globals()
     end

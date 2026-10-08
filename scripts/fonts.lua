@@ -15,6 +15,29 @@ local item_text_fonts = {}
 local item_text_font_count = 0
 local applied_signatures = setmetatable({}, { __mode = "k" })
 local original_damage_text_font
+local owns_damage_text_font = false
+local refresh_combat_text_fonts
+local original_combat_fonts = setmetatable({}, { __mode = "k" })
+-- Exact client defaults; addon font paths must remain under their owner's control.
+local native_combat_fonts = {
+    ["fonts/frizqt__.ttf"] = true,
+    ["fonts/frizqt___cyr.ttf"] = true,
+    ["fonts/2002.ttf"] = true,
+    ["fonts/2002b.ttf"] = true,
+    ["fonts/k_damage.ttf"] = true,
+    ["fonts/arkai_c.ttf"] = true,
+    ["fonts/bkai00m.ttf"] = true,
+}
+local function is_native_combat_font(file)
+    return type(file) == "string"
+        and native_combat_fonts[file:gsub("\\", "/"):lower()] == true
+end
+
+local function combat_fonts_enabled()
+    return options.can_translate("override_system_fonts")
+        and options.can_translate("translate_string")
+        and options.translate_combat_text()
+end
 local combat_text_font_names = {
     "CombatTextFont",
     "CombatTextFontOutline",
@@ -22,14 +45,21 @@ local combat_text_font_names = {
 
 fonts.refresh_damage_text_font = function ()
     local current = _G.DAMAGE_TEXT_FONT
-    if original_damage_text_font == nil and type(current) == "string"
-        and current ~= "" then
+    if current ~= assets.font_frizqt then
+        -- A later-loading font addon supersedes our previous assignment.
         original_damage_text_font = current
+        owns_damage_text_font = false
     end
-    if original_damage_text_font then
-        _G.DAMAGE_TEXT_FONT = options.can_translate("override_system_fonts")
-            and assets.font_frizqt or original_damage_text_font
+    if combat_fonts_enabled() then
+        if is_native_combat_font(current) then
+            _G.DAMAGE_TEXT_FONT = assets.font_frizqt
+            owns_damage_text_font = true
+        end
+    elseif owns_damage_text_font and current == assets.font_frizqt then
+        _G.DAMAGE_TEXT_FONT = original_damage_text_font
+        owns_damage_text_font = false
     end
+    if refresh_combat_text_fonts then refresh_combat_text_fonts() end
 end
 
 local function sanitize_font_flags(font_flags)
@@ -75,17 +105,45 @@ local function set_font_if_needed(font, file, height, flags)
     return true
 end
 
-local function apply_combat_text_font_objects()
-    if not options.can_translate("override_system_fonts") then return end
+local function apply_combat_font(font, file, height, flags)
+    if not combat_fonts_enabled() then return false end
+    if file ~= assets.font_frizqt and not is_native_combat_font(file) then
+        original_combat_fonts[font] = nil
+        -- The font addon owns this face. Report it as ready so runtime.apply
+        -- still writes the Ukrainian text without replacing the chosen font.
+        return type(file) == "string" and file ~= ""
+    end
+    if file ~= assets.font_frizqt then
+        original_combat_fonts[font] = { file, height, sanitize_font_flags(flags) }
+    end
+    if type(height) ~= "number" or height <= 0 or height > 120 then height = 25 end
+    return set_font_if_needed(font, assets.font_frizqt, height, flags)
+end
+
+refresh_combat_text_fonts = function ()
+    if not combat_fonts_enabled() then
+        for font, original in pairs(original_combat_fonts) do
+            local ok, file, height = pcall(font.GetFont, font)
+            if ok and file == assets.font_frizqt then
+                -- Preserve the rendered height when GetFont reports FIXEDHEIGHT.
+                local original_height = original[2]
+                if type(original_height) ~= "number" or original_height <= 0
+                    or original_height > 120 then original_height = height end
+                if set_font_if_needed(font, original[1], original_height, original[3]) then
+                    original_combat_fonts[font] = nil
+                end
+            elseif ok then
+                original_combat_fonts[font] = nil
+            end
+        end
+        return
+    end
     for _, name in ipairs(combat_text_font_names) do
         local font = _G[name]
         if font then
-            local get_ok, _, height, flags = pcall(font.GetFont, font)
+            local get_ok, file, height, flags = pcall(font.GetFont, font)
             if get_ok then
-                if type(height) ~= "number" or height <= 0 or height > 120 then
-                    height = 25
-                end
-                set_font_if_needed(font, assets.font_frizqt, height, flags)
+                apply_combat_font(font, file, height, flags)
             end
         end
     end
@@ -239,8 +297,30 @@ fonts.apply_to_font_string = function (font_string)
         return false
     end
 
-    local ok, _, height, flags = pcall(get_font, font_string)
+    local ok, file, height, flags = pcall(get_font, font_string)
     if not ok or type(height) ~= "number" or height <= 0 then return false end
+
+    if not guarded then
+        local combat_ok, is_combat, object = pcall(function ()
+            local parent = font_string.GetParent and font_string:GetParent()
+            local object = font_string.GetFontObject and font_string:GetFontObject()
+            return parent ~= nil and parent == _G.CombatText
+                or object ~= nil and (object == _G.CombatTextFont
+                    or object == _G.CombatTextFontOutline), object
+        end)
+        if combat_ok and is_combat then
+            -- A pooled string may already inherit our changed FontObject.
+            -- Remember its native face before SetFont creates a local override.
+            local original = object and original_combat_fonts[object]
+            if combat_fonts_enabled() and file == assets.font_frizqt
+                and not original_combat_fonts[font_string] and original then
+                original_combat_fonts[font_string] = {
+                    original[1], height, sanitize_font_flags(flags),
+                }
+            end
+            return apply_combat_font(font_string, file, height, flags)
+        end
+    end
 
     -- Some Camelot menu strings report an internal FIXEDHEIGHT value instead
     -- of their rendered size. Measure the still-English text before replacing
@@ -270,9 +350,6 @@ fonts.prepare = function ()
     -- World-space damage and combat-result text is rendered by the engine and
     -- has no FontString that an addon can safely update afterward.
     fonts.refresh_damage_text_font()
-    -- CombatText1..N inherit these two FontObjects. They are safe to update
-    -- independently of the protected unit/nameplate fonts skipped below.
-    apply_combat_text_font_objects()
     if not options.can_translate("override_system_fonts") then
         return
     end
