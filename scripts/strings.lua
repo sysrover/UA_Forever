@@ -193,12 +193,17 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     local ok, text = pcall(get_text, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return false end
     if text == "" then return false end
+    -- Escape-menu buttons are rebuilt even during combat. Only their public
+    -- label text may be updated then; font and layout work waits until combat ends.
+    local text_only = type(surface) == "table" and surface.id == "game-menu"
+        and type(runtime.combat_locked) == "function" and runtime.combat_locked()
 
     -- A cold login can leave already translated button labels on their old
     -- Latin-only font when the addon font was not ready during the first
     -- pass. OnShow and the post-login refresh must be able to repair the font
     -- even though there is no longer an English string to translate.
     if contains_cyrillic(text) then
+        if text_only then return true end
         if not options.can_translate("override_system_fonts") then return false end
         return runtime.ensure_font(region)
     end
@@ -243,8 +248,11 @@ local function translate_font_string(region, category, slot, surface, phase, ins
         surface = surface, phase = phase, section = section,
         generation = phase == "dynamic" and runtime.generation(surface) or nil,
         instance = instance,
+        combat_text_only = text_only == true,
+        layout_pending = text_only == true,
         priority = priority, tooltip = is_tooltip(parent) and parent or nil,
         after_apply = function (applied)
+            if text_only then return end
             fit_tooltip_width_to_region(parent, applied)
             fit_tooltip_height_to_region(parent, applied,
                 previous_height, previous_tooltip_height)

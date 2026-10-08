@@ -4,6 +4,30 @@ local _, addonTable = ...
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
 addonTable.forever_surface_ui = {
+    mail = {
+        -- Observed delivery headers; reuse the approved item-name catalog.
+        item_deliveries = {
+            ["Datto Glowspindle"] = { ["Expert Cookbook"] = 16072 },
+        },
+    },
+    forever_vo = {
+        value = function (source)
+            local channels = { Master = "Загальна гучність", Dialog = "Діалоги",
+                SFX = "Звукові ефекти", Music = "Музика", Ambience = "Звуки оточення" }
+            if channels[source] then return channels[source] end
+            local count = source:match("^Send (%d+) Quests? to Project$")
+            if count then return "Надіслати квести до проєкту: " .. count end
+            local race, gender = source:match("^(.+) (male)$")
+            if not race then race, gender = source:match("^(.+) (female)$") end
+            local races = { Human = "Людина", Dwarf = "Дворф", ["Night elf"] = "Нічний ельф",
+                Orc = "Орк", Troll = "Троль", Tauren = "Таурен", Gnome = "Гном",
+                Goblin = "Гоблін", ["Blood elf"] = "Кривавий ельф", Undead = "Невмерлий",
+                Skyborne = "Небонароджений", Draenei = "Дреней" }
+            if races[race] then
+                return races[race] .. (gender == "female" and " — жіночий голос" or " — чоловічий голос")
+            end
+        end,
+    },
     social_toast = {
         online = "тепер |cff00ff00у мережі|r.",
         offline = "тепер |cffff0000поза мережею|r.",

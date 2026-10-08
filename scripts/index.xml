@@ -39,6 +39,7 @@
     <Script file="loss_of_control_adapter.lua"/>
     <Script file="mirror_timer_adapter.lua"/>
     <Script file="settings.lua"/>
+    <Script file="forever_vo_ui.lua"/>
     <Script file="menus.lua"/>
     <Script file="mail_ui.lua"/>
     <Script file="auction_ui.lua"/>

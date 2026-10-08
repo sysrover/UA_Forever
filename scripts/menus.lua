@@ -48,6 +48,8 @@ local function translate_game_menu(frame)
     if not surface then return end
     local instance = "game-menu:" .. tostring(frame)
     runtime.begin_generation(surface, instance)
+    local text_only = type(runtime.combat_locked) == "function"
+        and runtime.combat_locked()
 
     -- GameMenuFrame is protected in Camelot, so the generic recursive walker
     -- intentionally refuses it. Its public display surface is small and
@@ -57,7 +59,7 @@ local function translate_game_menu(frame)
     local header = frame.Header
     strings.translate_region(header and header.Text, nil, "ui.title",
         surface, "dynamic", instance)
-    if header and type(header.UpdateWidth) == "function" then
+    if not text_only and header and type(header.UpdateWidth) == "function" then
         pcall(header.UpdateWidth, header)
     end
 
@@ -69,10 +71,12 @@ local function translate_game_menu(frame)
                 if ok then
                     strings.translate_region(font_string, nil, "ui.action",
                         surface, "dynamic", instance)
-                    strings.fit_button_to_text(button, font_string)
-                    local width_ok, width = pcall(button.GetWidth, button)
-                    if width_ok and type(width) == "number" then
-                        widest_button = math.max(widest_button, width)
+                    if not text_only then
+                        strings.fit_button_to_text(button, font_string)
+                        local width_ok, width = pcall(button.GetWidth, button)
+                        if width_ok and type(width) == "number" then
+                            widest_button = math.max(widest_button, width)
+                        end
                     end
                 end
             end

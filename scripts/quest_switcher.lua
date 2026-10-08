@@ -5,6 +5,24 @@ local quest_ui = addon_table.use("quest_ui")
 local translation = addon_table.use("translation")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
+local hooks = addon_table.use("translation_hooks").bind("quest-switcher")
+
+local function update_map_anchor()
+    local button = quest_switcher.map_button
+    local details = _G.QuestMapFrame and _G.QuestMapFrame.DetailsFrame
+    local back = details and details.BackFrame and details.BackFrame.BackButton
+    if not button or not back then return end
+    local voiceover = _G.ForeverVO
+    local quest_log = voiceover and voiceover.UI and voiceover.UI.QuestLog
+    local play = quest_log and quest_log.detailsButton
+    button:ClearAllPoints()
+    if play then
+        button:SetPoint("LEFT", play, "RIGHT", 8, 0)
+    else
+        -- ForeverVO creates Play lazily; reserve its 6 + 70 pixel span.
+        button:SetPoint("LEFT", back, "RIGHT", quest_log and 84 or 8, 0)
+    end
+end
 
 local function update_button()
     local language = translation.get_quest_language()
@@ -42,6 +60,9 @@ local function on_leave()
 end
 
 quest_switcher.prepare = function ()
+    local voiceover = _G.ForeverVO
+    local quest_log = voiceover and voiceover.UI and voiceover.UI.QuestLog
+    hooks.region(quest_log, "UpdateDetailsButton", update_map_anchor, "quest")
     if not quest_switcher.button and _G.QuestFrame then
         local button = CreateFrame("Button", "UA_ForeverQuestLanguageButton",
             _G.QuestFrame, "UIPanelButtonTemplate")
@@ -65,13 +86,17 @@ quest_switcher.prepare = function ()
         button:SetScript("OnClick", on_click)
         button:SetScript("OnEnter", on_enter)
         button:SetScript("OnLeave", on_leave)
-        button:SetScript("OnShow", update_button)
+        button:SetScript("OnShow", function ()
+            update_map_anchor()
+            update_button()
+        end)
         quest_switcher.map_button = button
     end
+    update_map_anchor()
     update_button()
 end
 
 quest_switcher.refresh = function ()
     quest_switcher.prepare()
-    update_button()
+    refresh_quest_text()
 end

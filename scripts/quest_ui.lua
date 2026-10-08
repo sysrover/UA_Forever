@@ -103,7 +103,9 @@ end
 
 local function apply_dialog_language(region)
     local claim = region and runtime.get(region)
-    if claim and claim.owner == "quest-dialog" then
+    if claim and (claim.owner == "quest-dialog"
+        or (claim.owner == "quest-objective"
+            and claim.slot:find(":info-objective:", 1, true))) then
         local english = translation.get_quest_language() == "en"
             or (claim.category == "quest" and not options.translate_name("quest"))
         runtime.show_original(region, english)
@@ -117,6 +119,14 @@ quest_ui.refresh_dialog_language = function ()
         "QuestProgressTitleText", "QuestProgressText",
     }) do
         apply_dialog_language(_G[name])
+    end
+    local frame = _G.QuestInfoObjectivesFrame
+    for _, row in ipairs(frame and frame.Objectives or {}) do
+        apply_dialog_language(row)
+    end
+    for _, region in pairs({ _G.QuestInfoDescriptionHeader,
+        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header }) do
+        runtime.show_original(region, translation.get_quest_language() == "en")
     end
 end
 
@@ -270,6 +280,7 @@ local function objective_region(region, slot, after_apply, quest_id, surface)
     if not source then return false end
     local previous = runtime.get(region)
     if previous and previous.slot == slot and source == previous.translated then
+        apply_dialog_language(region)
         return true
     end
     runtime.invalidate(region)
@@ -283,12 +294,14 @@ local function objective_region(region, slot, after_apply, quest_id, surface)
         translated = translated:gsub("\r\n", "\n"):gsub("\r", "\n")
             :gsub("\n[ \t]*\n[ \t\n]*", "\n")
     end
-    return runtime.apply(region, {
+    local applied = runtime.apply(region, {
         owner = "quest-objective", slot = slot, source = source,
         translated = translated, option = "translate_quest",
         priority = runtime.PRIORITY.DOMAIN, after_apply = after_apply,
         surface = surface,
     })
+    if applied then apply_dialog_language(region) end
+    return applied
 end
 
 local function grow_quest_log_row(button, delta)
@@ -579,6 +592,7 @@ local function translate_quest_map_labels()
         if quest_map_labels[safe_text(region)] then
             strings.translate_region(region)
         end
+        runtime.show_original(region, translation.get_quest_language() == "en")
     end
 end
 

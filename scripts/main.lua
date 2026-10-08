@@ -46,6 +46,7 @@ local quest_switcher = addon_table.use("quest_switcher")
 local quest_ui = addon_table.use("quest_ui")
 local scanner = addon_table.use("scanner")
 local settings_ui = addon_table.use("settings_ui")
+local forever_vo_ui = addon_table.use("forever_vo_ui")
 local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local talent_frame_adapter = addon_table.use("talent_frame_adapter")
@@ -61,6 +62,7 @@ local hooks = addon_table.use("translation_hooks").bind("main")
 local utils = addon_table.use("utils")
 
 local function prepare_menu_panels()
+    forever_vo_ui.prepare()
     addon_table.use("legacy_ui").prepare()
     social_ui.prepare()
     raid_ui.prepare()
@@ -1036,6 +1038,10 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
     if scope and options.work_enabled and not options.work_enabled(scope) then return end
     if event == "ADDON_LOADED" then
         local loaded_addon = ...
+        if loaded_addon == "ForeverVO" then
+            quest_switcher.prepare()
+            forever_vo_ui.prepare()
+        end
         if loaded_addon ~= addon_name then
             if self.uaForeverLoginReady and type(loaded_addon) == "string"
                 and loaded_addon:find("^Blizzard_") then
@@ -1143,6 +1149,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         -- Writes to protected regions are intentionally skipped in combat.
         -- Once combat ends, retry only the surfaces that are still visible.
         scheduler.request("post-combat-surfaces", nil, function ()
+            if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
             if runtime.retry_deferred then runtime.retry_deferred() end
             registry.refresh_open()
             if tooltips.refresh_active then tooltips.refresh_active() end

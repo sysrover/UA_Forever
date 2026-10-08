@@ -18,6 +18,31 @@ local original_damage_text_font
 local owns_damage_text_font = false
 local refresh_combat_text_fonts
 local original_combat_fonts = setmetatable({}, { __mode = "k" })
+local combat_font_sources = setmetatable({}, { __mode = "k" })
+
+local function nice_damage_profile()
+    if not _G.LibStub then return nil end
+    local ok, addon = pcall(function ()
+        local ace = _G.LibStub("AceAddon-3.0", true)
+        return ace and ace:GetAddon("NiceDamage", true)
+    end)
+    if not ok or not addon or not addon.db then return nil end
+    local profile = addon.db.profile
+    -- The existing hook service installs this once per addon instance.
+    local hooks = addon_table.use("translation_hooks")
+    if type(hooks.bind) == "function" then
+        hooks.bind("fonts").region(addon, "ApplySystemFonts", function ()
+            fonts.refresh_damage_text_font()
+        end)
+    end
+    if not profile or profile.enabled ~= true then return nil end
+    return profile
+end
+
+local function nice_damage_controls(target)
+    local profile = nice_damage_profile()
+    return profile and profile[target] == true
+end
 -- Exact client defaults; addon font paths must remain under their owner's control.
 local native_combat_fonts = {
     ["fonts/frizqt__.ttf"] = true,
@@ -50,7 +75,12 @@ fonts.refresh_damage_text_font = function ()
         original_damage_text_font = current
         owns_damage_text_font = false
     end
-    if combat_fonts_enabled() then
+    if nice_damage_controls("updateWorldText") then
+        if owns_damage_text_font and current == assets.font_frizqt then
+            _G.DAMAGE_TEXT_FONT = original_damage_text_font
+        end
+        owns_damage_text_font = false
+    elseif combat_fonts_enabled() then
         if is_native_combat_font(current) then
             _G.DAMAGE_TEXT_FONT = assets.font_frizqt
             owns_damage_text_font = true
@@ -106,6 +136,10 @@ local function set_font_if_needed(font, file, height, flags)
 end
 
 local function apply_combat_font(font, file, height, flags)
+    if nice_damage_controls("updateUiText") then
+        original_combat_fonts[font] = nil
+        return type(file) == "string" and file ~= ""
+    end
     if not combat_fonts_enabled() then return false end
     if file ~= assets.font_frizqt and not is_native_combat_font(file) then
         original_combat_fonts[font] = nil
@@ -120,7 +154,41 @@ local function apply_combat_font(font, file, height, flags)
     return set_font_if_needed(font, assets.font_frizqt, height, flags)
 end
 
+local function release_combat_font_override(region, source)
+    if not original_combat_fonts[region] then return true end
+    if type(runtime.combat_locked) == "function" and runtime.combat_locked() then
+        return false
+    end
+    if type(runtime.can_write_text) == "function"
+        and not runtime.can_write_text(region) then return false end
+    local ok, file, height = pcall(region.GetFont, region)
+    if not ok then return false end
+    if file ~= assets.font_frizqt then
+        original_combat_fonts[region] = nil
+        return true
+    end
+    -- Reattach to the client's FontObject rather than creating another local
+    -- override. Later NiceDamage changes will then propagate automatically.
+    local applied = pcall(function ()
+        region:SetFontObject(source)
+        if type(region.SetTextHeight) == "function" and type(height) == "number"
+            and height > 0 and height <= 120 then
+            region:SetTextHeight(height)
+        end
+    end)
+    if applied then
+        original_combat_fonts[region] = nil
+        applied_signatures[region] = nil
+    end
+    return applied
+end
+
 refresh_combat_text_fonts = function ()
+    if nice_damage_controls("updateUiText") then
+        for region, source in pairs(combat_font_sources) do
+            release_combat_font_override(region, source)
+        end
+    end
     if not combat_fonts_enabled() then
         for font, original in pairs(original_combat_fonts) do
             local ok, file, height = pcall(font.GetFont, font)
@@ -309,6 +377,11 @@ fonts.apply_to_font_string = function (font_string)
                     or object == _G.CombatTextFontOutline), object
         end)
         if combat_ok and is_combat then
+            object = object or _G.CombatTextFont
+            if object then combat_font_sources[font_string] = object end
+            if object and nice_damage_controls("updateUiText") then
+                return release_combat_font_override(font_string, object)
+            end
             -- A pooled string may already inherit our changed FontObject.
             -- Remember its native face before SetFont creates a local override.
             local original = object and original_combat_fonts[object]

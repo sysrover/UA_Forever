@@ -6,6 +6,9 @@ local registry = addon_table.use("translation_registry")
 local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
 local tooltips = addon_table.use("tooltips")
+local item_db = addon_table.use("item_client_db")
+local utils = addon_table.use("utils")
+local delivery_headers = addon_table.forever_surface_ui.mail.item_deliveries
 local hooks = addon_table.use("translation_hooks").bind("mail_ui")
 
 local original_mail_widths = setmetatable({}, { __mode = "k" })
@@ -104,6 +107,24 @@ local function translate_open_mail_button(button)
     if ok then translate_mail_region(region) end
 end
 
+local function translate_delivery_subject(mail_id, region)
+    if not region or type(_G.GetInboxHeaderInfo) ~= "function" then return false end
+    local ok, _, _, sender, subject = pcall(_G.GetInboxHeaderInfo, mail_id)
+    if not ok or runtime.is_secret_value(sender) or runtime.is_secret_value(subject)
+        or type(sender) ~= "string" or type(subject) ~= "string" then return false end
+    local deliveries = delivery_headers[sender]
+    local item_id = deliveries and deliveries[subject]
+    if not item_id then return false end
+    local translated = item_db.get_name(item_id)
+    if type(translated) ~= "string" or translated == "" then return false end
+    return runtime.apply(region, {
+        owner = "mail-delivery", slot = "mail.subject", section = "mail",
+        source = subject, translated = utils.cap(translated),
+        option = "translate_string", priority = runtime.PRIORITY.DOMAIN,
+        surface = registry.get("mail"), reapply_cached = true,
+    })
+end
+
 local function update_inbox_row(index)
     local prefix = "MailItem" .. index
     local expire = _G[prefix .. "ExpireTime"]
@@ -112,14 +133,18 @@ local function update_inbox_row(index)
     translate_open_mail_button(expire)
 
     -- Native Update has finished assigning the row's current mail index.
-    -- Only auction invoices own translatable sender/subject text. Do not
+    -- Auction invoices and known deliveries own translatable header text. Do not
     -- retain SetText hooks when this row is reused for a player's letter.
     local button = _G[prefix .. "Button"]
     local mail_id = button and button.index
-    if runtime.is_secret_value(mail_id) or type(mail_id) ~= "number"
-        or type(_G.GetInboxText) ~= "function" then return end
-    local ok, _, _, _, _, invoice = pcall(_G.GetInboxText, mail_id)
-    if not ok or runtime.is_secret_value(invoice) or invoice ~= true then return end
+    if runtime.is_secret_value(mail_id) or type(mail_id) ~= "number" then return end
+    if translate_delivery_subject(mail_id, _G[prefix .. "Subject"]) then return end
+    if type(_G.GetInboxInvoiceInfo) ~= "function" then return end
+    -- GetInboxText marks letters read. Retry missing invoice data on Update.
+    local ok, invoice_type = pcall(_G.GetInboxInvoiceInfo, mail_id)
+    if not ok or runtime.is_secret_value(invoice_type)
+        or (invoice_type ~= "buyer" and invoice_type ~= "seller"
+            and invoice_type ~= "seller_temp_invoice") then return end
     strings.translate_region(_G[prefix .. "Subject"], nil, "mail.subject",
         registry.get("mail"), nil, nil, "mail")
     strings.translate_region(_G[prefix .. "Sender"], nil, "mail.sender",
@@ -136,9 +161,11 @@ local function update_open_mail_controls()
         hooks.region(button, "SetFormattedText", translate_open_mail_button)
         translate_open_mail_button(button)
     end
-    -- Subject and sender are user text for ordinary letters. Translate them
-    -- only for native auction invoices, after Update has finished rendering.
+    -- Recognize known deliveries by headers; ordinary player text stays native.
+    -- Auction sender/subject translation runs after native rendering below.
     local id = _G.InboxFrame and _G.InboxFrame.openMailID
+    if id and not runtime.is_secret_value(id) and type(id) == "number"
+        and translate_delivery_subject(id, _G.OpenMailSubject) then return end
     if not id or type(_G.GetInboxText) ~= "function" then return end
     local ok, _, _, _, _, invoice = pcall(_G.GetInboxText, id)
     if not ok or runtime.is_secret_value(invoice) or invoice ~= true then return end
