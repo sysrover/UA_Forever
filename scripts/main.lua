@@ -669,6 +669,28 @@ local function register_slash_command()
                 capture_owner()
             end
         elseif command == "tooltip" then
+            local write_id, write_delay = value:match("^write%s+(%d+)%s*(%d*)$")
+            if write_id then
+                local function probe_npc_write()
+                    local ok, report = pcall(tooltips.capture_npc_write, tonumber(write_id))
+                    if not ok then
+                        tooltip_diagnostics.append_report("npcWriteProbe", {
+                            version = 1, status = "error", error = tostring(report),
+                        })
+                    end
+                    message("NPC write probe: " .. (ok and tostring(report.status) or "error"))
+                    message("/reload; результат: UA_ForeverDB.scan.npcWriteProbe")
+                end
+                local delay = math.min(tonumber(write_delay) or 3, 30)
+                scheduler.cancel("manual-npc-write-probe")
+                if delay > 0 then
+                    message(string.format("контрольний запис NPC %s через %.1f с — наведіть на цього NPC", write_id, delay))
+                    scheduler.request("manual-npc-write-probe", nil, probe_npc_write, delay)
+                else
+                    probe_npc_write()
+                end
+                return
+            end
             local all_value = value:match("^all%s*(.-)$")
             if all_value ~= nil then
                 local function capture_all_tooltips()
@@ -996,7 +1018,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help .. cast_bar_probe_text.help)
+            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]|write ID [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help .. cast_bar_probe_text.help)
         end
     end
 end

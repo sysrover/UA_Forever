@@ -3,6 +3,8 @@ local _, addon_table = ...
 local diagnostics = addon_table.use("tooltip_diagnostics")
 local item_client_db = addon_table.use("item_client_db")
 local spell_client_db = addon_table.use("spell_client_db")
+local entries = addon_table.use("entries")
+local utils = addon_table.use("utils")
 
 -- Append diagnostic results, preserving reports saved before history support.
 diagnostics.append_report = function (key, report)
@@ -619,10 +621,174 @@ diagnostics.install = function (tooltips, api)
         return result
     end
     
+    local function diagnostic_api_call(callback, ...)
+        if type(callback) ~= "function" then return { state = "unavailable" } end
+        local ok, value = pcall(callback, ...)
+        if not ok then return { state = "error", error = safe_string(value) } end
+        if type(_G.issecretvalue) == "function" then
+            local check_ok, secret = pcall(_G.issecretvalue, value)
+            if not check_ok then
+                return { state = "secret_check_error", error = safe_string(secret) }
+            end
+            if secret == true then return { state = "secret" } end
+        end
+        if value == nil then return { state = "nil" } end
+        return { state = "public", value = diagnostic_scalar(value) }, value
+    end
+
+    -- Query native tooltip data without creating, showing or changing a tooltip.
+    -- Record each field's accessibility before considering its value.
+    local function diagnostic_tooltip_query(callback, argument)
+        local result, data = diagnostic_api_call(callback, argument)
+        if result.state ~= "public" or type(data) ~= "table" then return result end
+        result.fields = {}
+        for _, key in ipairs({ "type", "id", "guid", "hyperlink" }) do
+            result.fields[key] = diagnostic_api_call(function () return data[key] end)
+        end
+        local lines_read, lines = diagnostic_api_call(function () return data.lines end)
+        result.lines = lines_read
+        if lines_read.state ~= "public" or type(lines) ~= "table" then return result end
+        local count_read = diagnostic_api_call(function () return #lines end)
+        lines_read.count = count_read
+        if count_read.state ~= "public" or type(count_read.value) ~= "number" then
+            return result
+        end
+        lines_read.entries = {}
+        for index = 1, math.min(count_read.value, MAX_TOOLTIP_LINES) do
+            local row, line = diagnostic_api_call(function () return lines[index] end)
+            row.index = index
+            if row.state == "public" and type(line) == "table" then
+                row.fields = {}
+                for _, key in ipairs({ "type", "lineIndex", "leftText", "rightText" }) do
+                    row.fields[key] = diagnostic_api_call(function () return line[key] end)
+                end
+            end
+            lines_read.entries[#lines_read.entries + 1] = row
+        end
+        return result
+    end
+
+    local function diagnostic_unit_access()
+        local secrets = _G.C_Secrets or {}
+        local tooltip_info = _G.C_TooltipInfo or {}
+        local quest_log = _G.C_QuestLog or {}
+        local restrictions = _G.C_RestrictedActions or {}
+        local restriction_types = _G.Enum and _G.Enum.AddOnRestrictionType or {}
+        local result = {
+            inCombatLockdown = diagnostic_api_call(_G.InCombatLockdown),
+            playerInCombat = diagnostic_api_call(_G.UnitAffectingCombat, "player"),
+            hasSecretRestrictions = diagnostic_api_call(secrets.HasSecretRestrictions),
+            targetIsMouseover = diagnostic_api_call(_G.UnitIsUnit, "target", "mouseover"),
+            restrictions = {}, units = {}, knownNPCs = {},
+        }
+        for _, name in ipairs({ "Combat", "Encounter", "ChallengeMode", "PvPMatch", "Map", "Chat" }) do
+            local restriction_type = restriction_types[name]
+            result.restrictions[name] = restriction_type ~= nil
+                and diagnostic_api_call(restrictions.GetAddOnRestrictionState, restriction_type)
+                or { state = "unavailable" }
+        end
+        for _, unit in ipairs({ "target", "mouseover" }) do
+            result.units[unit] = {
+                exists = diagnostic_api_call(_G.UnitExists, unit),
+                name = diagnostic_api_call(_G.UnitName, unit),
+                guid = diagnostic_api_call(_G.UnitGUID, unit),
+                creatureID = diagnostic_api_call(_G.UnitCreatureID, unit),
+                identityShouldBeSecret = diagnostic_api_call(secrets.ShouldUnitIdentityBeSecret, unit),
+                directTooltip = diagnostic_tooltip_query(tooltip_info.GetUnit, unit),
+            }
+        end
+        for _, id in ipairs({ 1708, 1715 }) do
+            result.knownNPCs[id] = diagnostic_tooltip_query(tooltip_info.GetHyperlink,
+                "unit:Creature-0-0-0-0-" .. id)
+        end
+        result.questLinks = { quests = {}, limit = 60 }
+        local ids, seen = {}, {}
+        local function add_id(id)
+            id = safe_number(id)
+            if id and id > 0 and not seen[id] then
+                seen[id] = true
+                ids[#ids + 1] = id
+            end
+        end
+        add_id(387)
+        add_id(388)
+        local count = diagnostic_api_call(quest_log.GetNumQuestLogEntries)
+        result.questLinks.logCount = count
+        if count.state == "public" and type(count.value) == "number" then
+            for index = 1, math.min(count.value, 60) do
+                local read, info = diagnostic_api_call(quest_log.GetInfo, index)
+                if read.state == "public" and type(info) == "table" then
+                    add_id(diagnostic_field(info, "questID"))
+                end
+            end
+        end
+        for _, id in ipairs(ids) do
+            result.questLinks.quests[#result.questLinks.quests + 1] = {
+                id = id,
+                title = diagnostic_api_call(quest_log.GetTitleForQuestID, id),
+                target = diagnostic_api_call(quest_log.IsUnitOnQuest, "target", id),
+                mouseover = diagnostic_api_call(quest_log.IsUnitOnQuest, "mouseover", id),
+            }
+        end
+        return result
+    end
+
+    -- Explicit diagnostic only: the supplied ID is never treated as an observed
+    -- identity. Keep the native value opaque and pass it back only to SetText,
+    -- which accepts secret text. Never rebuild native unit data from addon code.
+    tooltips.capture_npc_write = function (id)
+        local report = { version = 1, status = "no_tooltip", requestedID = id }
+        local tooltip = _G.GameTooltip
+        local function finish()
+            diagnostics.append_report("npcWriteProbe", report)
+            return report
+        end
+        if not tooltip or public_object_value(tooltip, "IsShown") ~= true then
+            return finish()
+        end
+        local data_read, data = diagnostic_api_call(function () return tooltip:GetTooltipData() end)
+        if data_read.state ~= "public" or type(data) ~= "table"
+            or diagnostic_field(data, "type") ~= 2 then
+            report.status = "not_unit_tooltip"
+            return finish()
+        end
+        local entry = entries.get_entry("npc", id)
+        local name = type(entry) == "table" and safe_string(entry[1]) or nil
+        if not name then report.status = "missing_translation"; return finish() end
+        report.translation = utils.cap(name)
+        local _, region = tooltip_line(tooltip, "Left", 1, true)
+        if not region then report.status = "no_title_region"; return finish() end
+        local native_ok, native_text = pcall(function () return region:GetText() end)
+        report.before = diagnostic_api_call(function ()
+            if not native_ok then error("native text capture failed") end
+            return native_text
+        end)
+        report.unitAccess = diagnostic_unit_access()
+        if not native_ok then
+            report.status = "native_capture_failed"
+            return finish()
+        end
+        local allowed, reason, detail = runtime.can_write_text(region)
+        if not allowed then
+            report.status, report.reason, report.detail = "write_blocked", reason, detail
+            return finish()
+        end
+        report.write = diagnostic_api_call(function () region:SetText(report.translation); return true end)
+        report.after = diagnostic_api_call(function () return region:GetText() end)
+        if report.after.state == "public" then
+            report.matches = report.after.value == report.translation
+        end
+        report.status = report.write.state == "public" and "write_called" or "write_error"
+        report.restore = diagnostic_api_call(function () region:SetText(native_text); return true end)
+        report.restoredText = diagnostic_api_call(function () return region:GetText() end)
+        return finish()
+    end
+
     local function diagnostic_region(region, location, index, side)
         if not region then return nil end
-        local ok, value = pcall(function () return region:GetText() end)
-        local secret = not ok or is_secret(value)
+        local read = diagnostic_api_call(function () return region:GetText() end)
+        local value = read.value
+        local secret = read.state ~= "public" and read.state ~= "nil"
         local visible = not secret and safe_string(value) or nil
         return {
             location = location,
@@ -632,6 +798,8 @@ diagnostics.install = function (tooltips, api)
             shown = public_object_value(region, "IsShown") == true,
             isVisible = public_object_value(region, "IsVisible") == true,
             secret = secret,
+            readState = read.state,
+            readError = read.error,
             visible = visible,
             claim = diagnostic_claim(runtime.get(region), visible),
             availableTranslation = diagnostic_lookup(region, visible),
@@ -1246,6 +1414,7 @@ diagnostics.install = function (tooltips, api)
             status = #visible > 0 and "captured" or "no_tooltip",
             count = #visible,
             tooltips = {},
+            unitAccess = diagnostic_unit_access(),
         }
         if type(_G.time) == "function" then
             local ok, timestamp = pcall(_G.time)
