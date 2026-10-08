@@ -7,3 +7,4 @@
 /vmangos-core
 __pycache__/
 *.pyc
+/AGENTS.md
