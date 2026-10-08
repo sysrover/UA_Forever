@@ -2,6 +2,7 @@
 local _, addonTable = ...
 
 local ui = {
+    ["|c0042b1feThe 'Open Issue Report' keybind is not bound.\nBind via the PTR section in the Key Bindings Menu."] = "|c0042b1feКлавішу для «Відкрити звіт про проблему» не призначено.\nПризначте її в розділі PTR меню призначення клавіш.",
     ["Up next"] = "Далі в черзі",
     ["Clear all"] = "Очистити все",
     ["Nothing else is waiting to play."] = "У черзі більше немає реплік.",

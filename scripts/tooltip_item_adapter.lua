@@ -194,7 +194,13 @@ local function translated_item_name(state, native)
     if type(native) == "string" and type(english) == "string"
         and native:sub(1, #english) == english then
         local suffix = native:sub(#english + 1)
-        if suffix ~= "" then translated = translated .. suffix end
+        if suffix ~= "" then
+            local leading, name, trailing = suffix:match("^(%s*)(.-)(%s*)$")
+            local suffix_translation = catalog.item_name_suffixes
+                and catalog.item_name_suffixes[name]
+            translated = translated .. (suffix_translation
+                and (leading .. suffix_translation .. trailing) or suffix)
+        end
     end
     return translated
 end

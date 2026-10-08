@@ -2263,7 +2263,8 @@ local function prepare_ptr_feedback_hook()
             local source, region = tooltip_line(tooltip, "Left", count, true)
             source = safe_string(source)
             if not source or not region
-                or not source:find("to submit an issue for this", 1, true) then
+                or not (source:find("to submit an issue for this", 1, true)
+                    or source == safe_string(reporter.MissingBindTooltipString)) then
                 return
             end
             local cached = ptr_feedback_cache[source]

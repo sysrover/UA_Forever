@@ -101,10 +101,36 @@ local open_mail_buttons = {
     "OpenMailReplyButton", "OpenMailReportSpamButton",
 }
 
+local function widen_open_mail_frame(button, label)
+    if not label or type(label.GetUnboundedStringWidth) ~= "function" then return end
+    local ok, text_width = pcall(label.GetUnboundedStringWidth, label)
+    if not ok or runtime.is_secret_value(text_width)
+        or type(text_width) ~= "number" or text_width <= 0 then return end
+    if not original_mail_widths[button] then widen_mail_region(button, 0) end
+    local button_width = original_mail_widths[button]
+    if not button_width then return end
+    local extra_width = math.max(0, math.ceil(text_width + 24) - button_width)
+    -- The button is right-anchored. Grow its parent by the same amount so
+    -- the sender keeps its native space, and stretch the fixed-width body.
+    widen_mail_region(button, extra_width)
+    for _, name in ipairs({
+        "OpenMailFrame", "OpenMailSubject", "OpenMailScrollFrame",
+        "OpenMailScrollChildFrame", "OpenMailBodyText",
+        "OpenStationeryBackgroundLeft", "OpenMailHorizontalBarLeft",
+    }) do
+        widen_mail_region(_G[name], extra_width)
+    end
+end
+
 local function translate_open_mail_button(button)
     if not button or type(button.GetFontString) ~= "function" then return end
     local ok, region = pcall(button.GetFontString, button)
-    if ok then translate_mail_region(region) end
+    if ok then
+        translate_mail_region(region)
+        if button == _G.OpenMailReportSpamButton then
+            widen_open_mail_frame(button, region)
+        end
+    end
 end
 
 local function translate_delivery_subject(mail_id, region)

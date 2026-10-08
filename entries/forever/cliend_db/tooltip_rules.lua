@@ -35,6 +35,9 @@ local tooltip = {
         equip = "Екіпірування:",
         hit = "При влучанні:",
     },
+    item_name_suffixes = {
+        ["of Eluding"] = "ухилення",
+    },
     translated_cast_markers = {
         ["Миттєво"] = true,
     },
@@ -978,6 +981,12 @@ tooltip.item_line_patterns = {
     { "^Equip: Improves your chance to get a critical strike by ([%d%.,]+)%%%.$",
         function (value)
             return "Екіпірування: збільшує ймовірність критичного удару на " .. value .. "%."
+        end },
+    -- Random enchantments can supply this effect without an ItemEffect row.
+    { "^Equip: Increases your chance to [Dd]odge an attack by ([%d%.,]+)%%%.$",
+        function (value)
+            return tooltip.item_effect_prefix.equip
+                .. " Збільшує шанс ухилитися від атаки на " .. value .. "%."
         end },
     { "^([%+%-]?[%d%.,]+)%% Critical Strike Chance$", function (value)
         return value .. "% до ймовірності критичного удару"
