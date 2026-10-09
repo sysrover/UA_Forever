@@ -1,8 +1,10 @@
 local addon_name, addon_table = ...
 local addon_version = "0.19.5"
-local panel_probe_text = assert(addon_table.addon_locale_uk,
-    "UA Forever addon locale is not loaded").panel_probe
-local cast_bar_probe_text = addon_table.addon_locale_uk.cast_bar_probe
+local addon_locale = assert(addon_table.addon_locale_uk,
+    "UA Forever addon locale is not loaded")
+local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
+local panel_probe_text = addon_locale.panel_probe
+local cast_bar_probe_text = addon_locale.cast_bar_probe
 
 local assets = addon_table.use("assets")
 local achievements = addon_table.use("achievements")
@@ -87,7 +89,7 @@ end
 
 local function message(text)
     if DEFAULT_CHAT_FRAME then
-        DEFAULT_CHAT_FRAME:AddMessage(assets.icon_ua_inline .. " |cff55aaffUA Forever:|r " .. text)
+        DEFAULT_CHAT_FRAME:AddMessage(assets.icon_ua_inline .. message_text.prefix .. text)
     end
 end
 
@@ -618,16 +620,16 @@ end
 
 local function show_status()
     local status = string.format(
-        "v%s; WoW %s; Interface %s; переклад %s; автоскан %s; dev %s",
+        message_text.status,
         addon_version,
         tostring(utils.build_version),
         tostring(utils.interface_version),
-        options.account.enabled and "увімкнено" or "вимкнено",
-        options.account.auto_scan_content and "увімкнено" or "вимкнено",
-        options.account.dev_mode and "увімкнено" or "вимкнено"
+        options.account.enabled and message_text.enabled or message_text.disabled,
+        options.account.auto_scan_content and message_text.enabled or message_text.disabled,
+        options.account.dev_mode and message_text.enabled or message_text.disabled
     )
     if options.account.auto_scan_content then
-        status = status .. string.format("; пропусків %d", missing_count())
+        status = status .. string.format(message_text.status_missing, missing_count())
     end
     message(status)
 end
@@ -647,7 +649,7 @@ local function register_slash_command()
             end
             registry.refresh_open()
             if tooltips.refresh_active then tooltips.refresh_active() end
-            message("переклад увімкнено")
+            message(message_text.translation_enabled)
         elseif command == "off" then
             options.account.enabled = false
             runtime.refresh_policy()
@@ -658,17 +660,17 @@ local function register_slash_command()
                 strings.refresh_combat_text_globals()
             end
             if tooltips.refresh_active then tooltips.refresh_active() end
-            message("переклад вимкнено")
+            message(message_text.translation_disabled)
         elseif command == "dev" and (value == "on" or value == "off") then
             options.account.dev_mode = value == "on"
             options.refresh_activity()
-            message("режим розробки " .. (options.account.dev_mode and "увімкнено" or "вимкнено"))
+            message(message_text.developer_mode_prefix .. (options.account.dev_mode and message_text.enabled or message_text.disabled))
         elseif command == "autoscan" and (value == "on" or value == "off") then
             options.account.auto_scan_content = value == "on"
             options.refresh_activity()
-            message("автоскан контенту " .. (options.account.auto_scan_content and "увімкнено" or "вимкнено"))
+            message(message_text.autoscan_prefix .. (options.account.auto_scan_content and message_text.enabled or message_text.disabled))
         elseif command == "menus" then
-            message(string.format("автосканом пройдено меню: %d", scanner.menu_count()))
+            message(string.format(message_text.menus_summary, scanner.menu_count()))
         elseif command == "owner" then
             local function capture_owner()
                 if tooltips.capture_mouse_focus then
@@ -693,13 +695,13 @@ local function register_slash_command()
                             version = 1, status = "error", error = tostring(report),
                         })
                     end
-                    message("NPC write probe: " .. (ok and tostring(report.status) or "error"))
-                    message("/reload; результат: UA_ForeverDB.scan.npcWriteProbe")
+                    message(message_text.npc_write_prefix .. (ok and tostring(report.status) or "error"))
+                    message(message_text.npc_write_saved)
                 end
                 local delay = math.min(tonumber(write_delay) or 3, 30)
                 scheduler.cancel("manual-npc-write-probe")
                 if delay > 0 then
-                    message(string.format("контрольний запис NPC %s через %.1f с — наведіть на цього NPC", write_id, delay))
+                    message(string.format(message_text.npc_write_delayed, write_id, delay))
                     scheduler.request("manual-npc-write-probe", nil, probe_npc_write, delay)
                 else
                     probe_npc_write()
@@ -715,12 +717,12 @@ local function register_slash_command()
                             version = 1, status = "error",
                             error = tostring(report),
                         })
-                        message("захоплення tooltip-ів завершилося помилкою; стан збережено")
+                        message(message_text.tooltip_capture_error)
                         return
                     end
-                    message(string.format("tooltip-звіт: %s; знайдено %d",
+                    message(string.format(message_text.tooltip_capture_summary,
                         tostring(report.status), report.count or 0))
-                    message("зробіть /reload; результат: UA_ForeverDB.scan.tooltipProbe у SavedVariables/UA_Forever.lua")
+                    message(message_text.tooltip_capture_saved)
                 end
                 local delay = tonumber(all_value)
                 if delay and delay > 0 then
@@ -728,7 +730,7 @@ local function register_slash_command()
                     tooltip_diagnostics.append_report("tooltipProbe", {
                         version = 1, status = "waiting", delay = delay,
                     })
-                    message(string.format("захоплю всі tooltip-и через %.1f с — наведіть курсор на предмет", delay))
+                    message(string.format(message_text.tooltip_capture_delayed, delay))
                     scheduler.cancel("manual-tooltip-capture")
                     scheduler.request("manual-tooltip-capture", nil,
                         capture_all_tooltips, delay)
@@ -751,12 +753,12 @@ local function register_slash_command()
                 tooltip_diagnostics.append_report("tooltipProbe", {
                     version = 1, status = "no_tooltips", count = 0, tooltips = {},
                 })
-                message("немає відкритої підказки")
+                message(message_text.tooltip_none)
             else
                 local function short(text)
                     if type(text) ~= "string" then return "?" end
                     text = text:gsub("%s+", " ")
-                    return #text > 55 and text:sub(1, 55) .. "…" or text
+                    return #text > 55 and text:sub(1, 55) .. message_text.ellipsis or text
                 end
                 local limit = math.max(1, math.min(tonumber(value) or 12, 20))
                 local lines = tooltips.inspect(tooltip, limit)
@@ -766,16 +768,16 @@ local function register_slash_command()
                         kind = tooltip.uaForeverKind or "generic", lines = lines,
                     } },
                 })
-                message(string.format("підказка: %s; рядків %d",
+                message(string.format(message_text.tooltip_summary,
                     tostring(tooltip.uaForeverKind or "generic"), #lines))
                 for _, line in ipairs(lines) do
                     local location = line.side .. line.index
                     if line.owner then
-                        message(string.format("%s %s/%s: %s → %s", location,
+                        message(string.format(message_text.tooltip_claim_row, location,
                             tostring(line.owner), tostring(line.slot),
                             short(line.source), short(line.translated)))
                     else
-                        message(location .. " без claim: " .. short(line.visible))
+                        message(location .. message_text.tooltip_unclaimed_prefix .. short(line.visible))
                     end
                 end
             end
@@ -789,7 +791,7 @@ local function register_slash_command()
                     and select(2, pcall(tooltip.IsShown, tooltip))
                 if not shown then
                     status.state = "no_tooltip"
-                    message("підказка аури не відкрита; наведіть курсор і повторіть /uaf aura 5")
+                    message(message_text.aura_none)
                     return false
                 end
                 local report = tooltips.capture_aura(tooltip)
@@ -801,15 +803,15 @@ local function register_slash_command()
                     for _, line in ipairs(data.lines or {}) do
                         line_types[#line_types + 1] = tostring(line.type or "?")
                     end
-                    message(string.format("скан аури: getter %s, type %s, data.id %s, data.spellID %s, GetSpell %s, типи рядків [%s], переклад %s → %s",
+                    message(string.format(message_text.aura_summary,
                         tostring(before.getterName or "?"),
                         tostring(data.type or "?"), tostring(data.id or "?"),
                         tostring(data.spellID or "?"),
                         tostring(before.spellID or "?"),
                         table.concat(line_types, ","),
-                        before.translated and "так" or "ні",
-                        after.translated and "так" or "ні"))
-                    message("зробіть /reload; результат: UA_ForeverDB.scan.auraProbe у SavedVariables/UA_Forever.lua")
+                        before.translated and message_text.yes or message_text.no,
+                        after.translated and message_text.yes or message_text.no))
+                    message(message_text.aura_saved)
                     return true
                 end
                 status.state = "capture_failed"
@@ -818,7 +820,7 @@ local function register_slash_command()
             local delay = tonumber(value)
             if delay and delay > 0 then
                 delay = math.min(delay, 15)
-                message(string.format("шукаю ауру протягом %.1f с — наведіть курсор на її значок", delay))
+                message(string.format(message_text.aura_delayed, delay))
                 scheduler.cancel("manual-aura-capture")
                 local max_attempts = math.max(1, math.ceil(delay * 4))
                 local function poll()
@@ -829,7 +831,7 @@ local function register_slash_command()
                     end
                     if status.attempts >= max_attempts then
                         status.state = "no_matching_tooltip"
-                        message("скан не побачив підказки аури; стан записано в SavedVariables")
+                        message(message_text.aura_missing)
                     else
                         scheduler.request("manual-aura-capture", nil, poll, 0.25)
                     end
@@ -841,26 +843,26 @@ local function register_slash_command()
         elseif command == "fullscan" then
             local function start_full_scan(duration)
                 local report = tooltips.scan_all_objects(function (completed)
-                    message(string.format("скан %s: %d проходів, %d об'єктів, %d текстів, %d глобальних рядків; зробіть /reload",
+                    message(string.format(message_text.fullscan_summary,
                         completed.status, completed.passes or 0, completed.totalObjects or 0, completed.stats.texts or 0,
                         completed.stats.globals or 0))
                 end, duration)
                 if report.status == "running" then
-                    message("скан усіх доступних об'єктів триває; дочекайтеся повідомлення про завершення")
+                    message(message_text.fullscan_running)
                 else
-                    message("скан: " .. tostring(report.status))
+                    message(message_text.fullscan_prefix .. tostring(report.status))
                 end
             end
             local multi_duration = value:match("^multi%s*(%d*)$")
             if multi_duration then
                 local duration = math.min(math.max(tonumber(multi_duration) or 15, 1), 60)
-                message(string.format("сканую всі доступні UI-об'єкти протягом %d с", duration))
+                message(string.format(message_text.fullscan_duration, duration))
                 start_full_scan(duration)
             else
                 local delay = tonumber(value)
                 if delay and delay > 0 then
                     delay = math.min(delay, 30)
-                    message(string.format("повний скан почнеться через %.1f с", delay))
+                    message(string.format(message_text.fullscan_delayed, delay))
                     scheduler.request("manual-full-object-scan", nil, start_full_scan,
                         delay)
                 else
@@ -874,19 +876,19 @@ local function register_slash_command()
                     UA_ForeverDB.scan = UA_ForeverDB.scan or {}
                     UA_ForeverDB.scan.windowProbe = { status = "error",
                         error = tostring(report) }
-                    message("скан вікна завершився помилкою; її записано в SavedVariables")
+                    message(message_text.window_error)
                     return
                 end
-                message(string.format("скан вікна: %s; об'єктів %d; верхніх вікон %d",
+                message(string.format(message_text.window_summary,
                     report.status, #report.objects, #report.topLevel))
-                message("зробіть /reload; результат: UA_ForeverDB.scan.windowProbe")
+                message(message_text.window_saved)
             end
             local duration = tonumber(value)
             if duration and duration > 0 then
                 duration = math.min(duration, 30)
                 UA_ForeverDB.scan = UA_ForeverDB.scan or {}
                 UA_ForeverDB.scan.windowProbe = { status = "waiting" }
-                message(string.format("шукаю відкрите вікно підказки протягом %.1f с", duration))
+                message(string.format(message_text.window_delayed, duration))
                 scheduler.cancel("manual-window-capture")
                 local attempts, max_attempts = 0, math.max(1, math.ceil(duration * 4))
                 local function poll()
@@ -1005,17 +1007,17 @@ local function register_slash_command()
             end
         elseif command == "ui" then
             local stats = strings.translate_visible_ui()
-            message(string.format("UI: перевірено %d фреймів, перекладено %d написів", stats.frames, stats.translated))
+            message(string.format(message_text.ui_summary, stats.frames, stats.translated))
         elseif command == "capture" then
             local function run_capture()
                 local stats = strings.capture_visible_ui()
-                message(string.format("UI capture: перевірено %d фреймів, знайдено %d написів, нових %d, усього %d",
+                message(string.format(message_text.ui_capture_summary,
                     stats.frames, stats.captured, stats.new, stats.unique))
             end
             local delay = tonumber(value)
             if delay and delay > 0 then
                 delay = math.min(delay, 30)
-                message(string.format("захоплення UI через %.1f с — відкрийте потрібне меню", delay))
+                message(string.format(message_text.ui_capture_delayed, delay))
                 manual_capture_sequence = manual_capture_sequence + 1
                 scheduler.request("manual-ui-capture:" .. manual_capture_sequence,
                     nil, run_capture, delay)
@@ -1025,7 +1027,7 @@ local function register_slash_command()
         elseif command == "export" then
             settings_ui.show_export_window()
         elseif command == "scan" then
-            message("починаю перевірку API та вибіркове зіставлення даних...")
+            message(message_text.scan_started)
             local report = scanner.run()
             message(scanner.summary(report))
         elseif command == "report" then
@@ -1033,7 +1035,7 @@ local function register_slash_command()
         elseif command == "status" or command == "" then
             show_status()
         else
-            message("команди: /uaf status, /uaf owner, /uaf tooltip [рядки|all [секунди]|write ID [секунди]], /uaf aura [секунди], /uaf window [секунди], /uaf fullscan [секунди|multi 15], /uaf ui, /uaf capture [секунди], /uaf export, /uaf scan, /uaf report, /uaf menus, /uaf autoscan on|off, /uaf on, /uaf off, /uaf dev on|off" .. panel_probe_text.help .. cast_bar_probe_text.help)
+            message(message_text.command_help .. panel_probe_text.help .. cast_bar_probe_text.help)
         end
     end
 end
@@ -1125,14 +1127,14 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         self.uaForeverReady = true
 
         if not utils.is_forever then
-            message("непідтримуваний клієнт; очікується WoW Forever Interface 16001")
+            message(message_text.unsupported_client)
         end
 
     elseif event == "PLAYER_LOGIN" then
         local ok, err = pcall(entries.prepare)
         if not ok then
             dev_log.issue("entries.prepare", tostring(err))
-            message("помилка підготовки словників: " .. tostring(err))
+            message(message_text.entries_error_prefix .. tostring(err))
             return
         end
 

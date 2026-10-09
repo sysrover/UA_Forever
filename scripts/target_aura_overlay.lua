@@ -7,6 +7,7 @@ local scheduler = addon_table.use("translation_scheduler")
 local renderer = addon_table.use("spell_template_renderer")
 local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
+local hooks = addon_table.use("translation_hooks").bind("target-auras")
 
 local SMALL_AURA_SIZE = 17
 local LARGE_AURA_SIZE = 21
@@ -479,9 +480,27 @@ local function layout_group(auras, state)
     end
 end
 
+local function sync_root_scale()
+    local target_frame = _G.TargetFrame
+    if not root or not target_frame then return end
+    local target_scale = safe_number(safe_call(
+        target_frame.GetEffectiveScale, target_frame))
+    local parent_scale = safe_number(safe_call(UIParent.GetEffectiveScale, UIParent))
+    if not target_scale or target_scale <= 0
+        or not parent_scale or parent_scale <= 0 then return end
+
+    -- Anchoring to TargetFrame does not inherit its scale: root belongs to
+    -- UIParent so Blizzard's protected aura frames remain untouched.
+    local scale = target_scale / parent_scale
+    if safe_number(safe_call(root.GetScale, root)) ~= scale then
+        root:SetScale(scale)
+    end
+end
+
 local function anchor_root()
     local target_frame = _G.TargetFrame
     if not target_frame then return false end
+    sync_root_scale()
     local container = safe_field(target_frame, "TargetFrameContainer")
     local texture = container and safe_field(container, "FrameTexture")
     local anchor = texture or target_frame
@@ -545,6 +564,9 @@ local function mark_dirty()
 end
 
 overlay.prepare = function ()
+    -- Edit Mode changes SetScale without necessarily updating the unit's auras.
+    hooks.region(_G.TargetFrame, "SetScale", sync_root_scale)
+    hooks.region(UIParent, "SetScale", sync_root_scale)
     if prepared then
         mark_dirty()
         return

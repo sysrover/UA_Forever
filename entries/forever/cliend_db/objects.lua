@@ -648,6 +648,15 @@ addonTable.object_ids = {
     [656308] = { [1] = "Окутаний імлою", ["en"] = "Mistbound" },
     [659520] = { [1] = "PVP СВЯТО АЛЬЯНС ОСТРОВИ ТЕМНОСПИСА", ["en"] = "PVP HOLIDAY ALLIANCE DARKSPEAR ISLANDS" },
     [673429] = { [1] = "Бібліотека", ["en"] = "Library" },
+    [175148] = { [1] = "Багаття невмерлих", ["en"] = "Doodad_UndeadCampFire25" },
+    [37] = { [1] = "надгробок Елізи", ["en"] = "Eliza's Tombstone" },
+    [61] = { [1] = "занедбана могила", ["en"] = "A Weathered Grave" },
+    [51708] = { [1] = "могила Елізи", ["en"] = "Eliza's Grave Dirt" },
+    [92419] = { [1] = "Ковадло", ["en"] = "Anvil" },
+    [164872] = { [1] = "Пастка спалення II", ["en"] = "Immolation Trap II" },
+    [175149] = { [1] = "Стілець", ["en"] = "Chair" },
+    [175150] = { [1] = "Стілець", ["en"] = "Chair" },
+    [175151] = { [1] = "Стілець", ["en"] = "Chair" },
 }
 
 addonTable.object = {
@@ -3890,6 +3899,7 @@ addonTable.object = {
     ["Mistbound"] = "Окутаний імлою",
     ["PVP HOLIDAY ALLIANCE DARKSPEAR ISLANDS"] = "PVP СВЯТО АЛЬЯНС ОСТРОВИ ТЕМНОСПИСА",
     ["Library"] = "Бібліотека",
+    ["Doodad_UndeadCampFire25"] = "Багаття невмерлих",
 }
 
 addonTable.translate_object_name = function (name)

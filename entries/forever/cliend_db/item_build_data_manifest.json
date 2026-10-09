@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70291",
+  "sourceBuild": "1.60.1.70334",
   "itemMetadata": 4000,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,9 +17,9 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "97f36a7891c331ea46ab96dc2f5c7bf22b2d5c1332166dbd466939a3d57769c8",
-  "inventory": "build/forever-client-inventory/70291/db2",
-  "itemMetadataInventory": "automation/results/cache_results/current/decoded/itemsparse.json",
-  "itemMetadataCacheSnapshot": "automation/results/cache_results/current/snapshots/DBCache.bin",
-  "cacheScope": "ItemSparse compact metadata; other loaded metadata compared against the exact-build base inventory."
+  "cacheSHA256": "6d7f816cc69693e85f22d146e1614e1a104e41236af2a7ef70f513d8b9c1579e",
+  "inventory": "build/forever-client-inventory/70334/db2",
+  "itemMetadataInventory": "build/forever-client-inventory/70334/db2/itemsparse.json",
+  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70334/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
+  "cacheScope": "All available decoded ItemSparse rows and compact metadata compared with matching 70334 snapshot; other item sources unchanged in exact-build base comparison. Historical addon rows retained."
 }

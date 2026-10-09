@@ -15,18 +15,9 @@ local social_toast_hooks = addon_table.use("translation_hooks").bind("social-toa
 local social_toast_online, social_toast_offline = 1, 2
 local debug_name
 
-local combat_text_globals = {
-    COMBAT_TEXT_MISS = "Промах",
-    COMBAT_TEXT_DODGE = "Ухилення",
-    COMBAT_TEXT_PARRY = "Парирування",
-    COMBAT_TEXT_BLOCK = "Блокування",
-    COMBAT_TEXT_EVADE = "Уникнення",
-    COMBAT_TEXT_IMMUNE = "Несприйнятливість",
-    COMBAT_TEXT_RESIST = "Опір",
-    COMBAT_TEXT_ABSORB = "Поглинання",
-    COMBAT_TEXT_DEFLECT = "Відбиття",
-    COMBAT_TEXT_REFLECT = "Віддзеркалення",
-}
+local combat_text_globals = assert(addon_table.addon_locale_uk
+    and addon_table.addon_locale_uk.combat_text,
+    "UA Forever combat text catalog is not loaded")
 local combat_text_event_globals = {
     MISS = "COMBAT_TEXT_MISS",
     DODGE = "COMBAT_TEXT_DODGE",

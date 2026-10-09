@@ -11,6 +11,7 @@ local resolver = addon_table.use("translation_resolver")
 local hooks = addon_table.use("translation_hooks").bind("popup_ui")
 
 local dynamic_dialogs = {
+    DEATH = true,
     XP_LOSS = true, VOICE_CHAT_JOIN_GROUP = true,
     GROUP_INVITE_CONFIRMATION = true, PARTY_INVITE = true,
     DUEL_REQUESTED = true, DUEL_TO_THE_DEATH_REQUESTED = true,
@@ -234,6 +235,7 @@ local function after_static_popup_show(which, _, _, data)
         translate_dynamic_popup(dialog)
         translate_popup_button(dialog, "GetButton1")
         translate_popup_button(dialog, "GetButton2")
+        if which == "DEATH" then translate_popup_button(dialog, "GetButton4") end
         return
     end
     if which ~= "GENERIC_CONFIRMATION" and which ~= "QUIT" and which ~= "CAMP"
@@ -255,6 +257,14 @@ local function after_static_popup_update(dialog)
     local which = dialog.which
     if which == "QUIT" or which == "CAMP" then
         translate_exit_countdown(dialog)
+    elseif which == "DEATH" then
+        -- The expiration formatter and DEATH.OnUpdate rewrite the message and
+        -- release button every frame. Translate after both native callbacks.
+        -- Native Resize also ran with English text, so refit the final message.
+        dialog.uaForeverLayoutText = nil
+        translate_dynamic_popup(dialog)
+        translate_popup_button(dialog, "GetButton1")
+        translate_popup_button(dialog, "GetButton4")
     elseif which == "RESURRECT" or which == "RESURRECT_NO_SICKNESS" then
         translate_resurrection_popup(dialog)
     elseif which == "XP_LOSS" or which == "CONFIRM_SUMMON" or which == "CONFIRM_SUMMON_STARTING_AREA"

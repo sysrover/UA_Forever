@@ -258,6 +258,22 @@ addonTable.forever_surface_ui = {
         quit_countdown = function (count)
             return "До виходу залишилося " .. count .. " с"
         end,
+        death_release_countdown = function (count, unit)
+            local forms
+            if unit == "Minute" or unit == "Minutes" then
+                forms = { "хвилина", "хвилини", "хвилин" }
+            elseif unit == "Second" or unit == "Seconds" then
+                forms = { "секунда", "секунди", "секунд" }
+            else
+                return nil
+            end
+            local amount = tonumber(count)
+            if not amount then return nil end
+            local last, last_two = amount % 10, amount % 100
+            local form = last_two >= 11 and last_two <= 14 and 3
+                or last == 1 and 1 or last >= 2 and last <= 4 and 2 or 3
+            return count .. " " .. forms[form] .. " до звільнення духу"
+        end,
         resurrection = function (name, seconds, sickness)
             local result = name .. " хоче воскресити вас"
             if seconds then

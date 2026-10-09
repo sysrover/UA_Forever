@@ -1,12 +1,12 @@
 {
-  "sourceBuild": "1.60.1.70291",
-  "factionSourceBuild": "1.60.1.70291",
+  "sourceBuild": "1.60.1.70334",
+  "factionSourceBuild": "1.60.1.70334",
   "factions": 253,
   "factionNamesUk": 253,
   "factionDescriptionsUk": 59,
-  "itemSourceBuild": "1.60.1.70291",
-  "skillLineSourceBuild": "1.60.1.70291",
-  "traitSourceBuild": "1.60.1.70291",
+  "itemSourceBuild": "1.60.1.70334",
+  "skillLineSourceBuild": "1.60.1.70334",
+  "traitSourceBuild": "1.60.1.70334",
   "spellIDs": 32862,
   "names": 32862,
   "descriptions": 17680,
@@ -14,13 +14,13 @@
   "skillLines": 154,
   "spellsWithSkillLines": 7369,
   "itemIDs": 25962,
-  "itemNames": 23946,
+  "itemNames": 23947,
   "itemDescriptions": 4849,
   "itemsWithSpellEffects": 8974,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12612,
   "resolvedItemSpellEffects": 12604,
-  "itemNamesUk": 23946,
+  "itemNamesUk": 23947,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4849,
@@ -1474,7 +1474,7 @@
     ],
     "inGameVerified": false
   },
-  "itemCacheTranslationSourceBuild": "1.60.1.70291",
+  "itemCacheTranslationSourceBuild": "1.60.1.70334",
   "metadataFinalization70291": {
     "sourceBuild": "1.60.1.70291",
     "previousBuild": "1.60.1.70245",
@@ -1590,6 +1590,69 @@
         "approvedUkrainianUnchanged": true
       }
     },
+    "testedInGame": false
+  },
+  "buildUpdate70334": {
+    "sourceBuild": "1.60.1.70334",
+    "previousBuild": "1.60.1.70291",
+    "updatedAtUTC": "2026-10-09T23:43:16+00:00",
+    "inventory": "build/forever-client-inventory/70334",
+    "baseComparison": "build/forever-client-inventory/70334/semantic_base.json",
+    "cacheComparison": "build/forever-client-inventory/70334/semantic_with_cache.json",
+    "cacheSHA256": "6d7f816cc69693e85f22d146e1614e1a104e41236af2a7ef70f513d8b9c1579e",
+    "cacheSnapshot": "build/forever-client-inventory/70334/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
+    "cacheProvenance": "build/forever-client-inventory/70334/cache_provenance.json",
+    "backup": "build/forever-client-inventory/70334/database-update/backup",
+    "policy": "Preserve approved Ukrainian rows and historical IDs; exact-build base sources unchanged. Matching cache confirms current item rows and compact metadata.",
+    "itemNamesAdded": [
+      7718
+    ],
+    "npcNamesAdded": [
+      277645
+    ],
+    "objectNamesAdded": [
+      175148
+    ],
+    "objectIDMappingsReused": [
+      37,
+      61,
+      51708,
+      92419,
+      164872,
+      175149,
+      175150,
+      175151
+    ],
+    "questEnglishTitleCaseUpdated": [
+      177
+    ],
+    "approvedQuestSlotsAndTasksPreserved": true,
+    "synchronizedBuildTables": [
+      "achievements_uk.lua",
+      "aura_descriptions.lua",
+      "aura_descriptions_uk.lua",
+      "factions_uk.lua",
+      "item_classes.lua",
+      "item_descriptions.lua",
+      "item_descriptions_uk.lua",
+      "item_metadata.lua",
+      "item_names.lua",
+      "item_names_uk.lua",
+      "item_sets.lua",
+      "item_spell_effects.lua",
+      "profession_category_names_uk.lua",
+      "profession_recipes.lua",
+      "skill_lines.lua",
+      "skill_lines_uk.lua",
+      "spell_descriptions.lua",
+      "spell_descriptions_uk.lua",
+      "spell_details.lua",
+      "spell_names.lua",
+      "spell_names_uk.lua",
+      "spell_reagents.lua",
+      "trait_definition_overrides.lua",
+      "trait_entries.lua"
+    ],
     "testedInGame": false
   }
 }

@@ -955,6 +955,31 @@ end
 
 addonTable.forever_ui_patterns = {
     {
+        pattern = "^Version ([%d%.]+)$",
+        replace = function (version)
+            return addonTable.forever_ui["Version"] .. " " .. version
+        end,
+    },
+    {
+        pattern = "^You have (%d+) quests that we need!$",
+        replace = function (count)
+            local number = tonumber(count)
+            local last_two, last = number % 100, number % 10
+            if last == 1 and last_two ~= 11 then
+                return "У вас є " .. count .. " квест, який нам потрібен!"
+            elseif last >= 2 and last <= 4 and (last_two < 12 or last_two > 14) then
+                return "У вас є " .. count .. " квести, які нам потрібні!"
+            end
+            return "У вас є " .. count .. " квестів, які нам потрібні!"
+        end,
+    },
+    {
+        pattern = "^(%d+) (%a+) until release$",
+        replace = function (count, unit)
+            return addonTable.forever_surface_ui.menus.death_release_countdown(count, unit)
+        end,
+    },
+    {
         -- AuctionHouseRefreshFrameMixin formats the currently available stock.
         pattern = "^([%d,]+) Available$",
         replace = function (quantity)

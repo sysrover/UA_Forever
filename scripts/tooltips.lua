@@ -38,10 +38,10 @@ local quest_pin_cache = setmetatable({}, { __mode = "k" })
 local character_stat_line_heights = setmetatable({}, { __mode = "k" })
 local active_tooltips = tooltip_session.active
 local tooltip_events = setmetatable({}, { __mode = "k" })
+local native_tooltip_data = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
 local ptr_feedback_hooked = false
-local ptr_feedback_guarded = false
 local ptr_feedback_cache = {}
 
 local function arm_tooltip_updates(tooltip, budget)
@@ -72,11 +72,13 @@ local function begin_tooltip(tooltip, key, force)
     end, force)
     if not started then return false end
     tooltip_font_strings[tooltip] = nil
+    native_tooltip_data[tooltip] = nil
     return true
 end
 
 local function reapply_cached_surface(tooltip)
-    if not tooltip or tooltip.uaForeverShowOriginal then return false end
+    if not tooltip or tooltip.uaForeverShowOriginal
+        or options.is_bilingual_tooltip() then return false end
     local rows = {}
     local valid = true
     runtime.for_each_claim(tooltip, function (region, claim)
@@ -122,6 +124,15 @@ local function safe_number(value)
     if is_secret(value) or value == nil then return nil end
     local ok, result = pcall(tonumber, value)
     if ok then return result end
+end
+
+local function is_ptr_feedback_instruction(source)
+    if not source then return false end
+    local reporter = _G.PTR_IssueReporter
+    if type(reporter) ~= "table" and type(reporter) ~= "userdata" then return false end
+    local partial = safe_string(reporter.BugTooltipPartialString)
+    return partial and source:find(partial, 1, true) ~= nil
+        or source == safe_string(reporter.MissingBindTooltipString)
 end
 
 local function first_template_part(text)
@@ -174,6 +185,9 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     if not tooltip or not translated then return false end
     if source and translated == source then return false end
     if not options.can_translate() then return false end
+    -- PTR's native duplicate scan needs this exact English row. Its post-hook
+    -- adds a separate translated line without replacing the native function.
+    if region and is_ptr_feedback_instruction(source) then return false end
     slot = slot or "generic.text"
     local name_enabled = not category or not slot:match("%.name$")
         or (options.name_enabled and options.name_enabled({
@@ -302,7 +316,13 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         end
     end
 
-    if allow_fallback == false then return false end
+    -- Item adapters reject failed in-place writes, but bilingual mode needs a
+    -- separate Ukrainian row for a readable native source. Secret rows keep
+    -- the same no-fallback rule as Ukrainian-only mode.
+    if allow_fallback == false and not (owner == "item-tooltip"
+        and options.is_bilingual_tooltip() and source and not source_unsafe) then
+        return false
+    end
 
     -- A rejected generic write must not reappear as an addon-owned line when
     -- a domain or context handler already owns this FontString.
@@ -707,6 +727,17 @@ local function process(tooltip, data, kind, native_rebuild)
         native_rebuild == true and kind ~= "item")
     tooltip.uaForeverKind = kind
     tooltip.uaForeverID = id
+    if kind == "item" or kind == "spell" or kind == "aura" then
+        -- Retain the native rows and full item link even when Shift prevents
+        -- the first write. An ID alone cannot rebuild structured descriptions.
+        local native = native_tooltip_data[tooltip]
+        if not native then
+            native = {}
+            native_tooltip_data[tooltip] = native
+        end
+        native.data, native.kind, native.id = data, kind, id
+        native.generation = tooltip.uaForeverGeneration
+    end
     local translated = false
     if kind == "item" then
         local count_ok, line_count = pcall(tooltip.NumLines, tooltip)
@@ -1143,6 +1174,7 @@ end
 
 local function reset_tooltip(self)
     quest_pin_cache[self] = nil
+    native_tooltip_data[self] = nil
     tooltip_session.reset(self, function (region)
         character_stat_line_heights[region] = nil
     end)
@@ -2271,50 +2303,16 @@ local function prepare_ptr_feedback_hook()
     if not reporter or type(reporter.HookIntoTooltip) ~= "function" then
         return false
     end
-    if not ptr_feedback_guarded then
-        local original = reporter.HookIntoTooltip
-        reporter.HookIntoTooltip = function (tooltip, tooltip_type, tooltip_id, ...)
-            -- The native duplicate check reads English text in the first 15
-            -- rows. A translated current claim must count as that same row.
-            -- Match its retained source, never a hardcoded Ukrainian label.
-            if tooltip and not is_secret(tooltip_type) and tooltip_type
-                and not is_secret(tooltip_id) and tooltip_id then
-                local partial = safe_string(reporter.BugTooltipPartialString)
-                if partial then
-                    for index = 1, 15 do
-                        local visible, region = tooltip_line(tooltip, "Left", index, true)
-                        local claim = region and runtime.get(region)
-                        local source = claim and safe_string(claim.source)
-                        if source and source:find(partial, 1, true)
-                            and claim.surface == tooltip
-                            and claim.generation == tooltip.uaForeverGeneration
-                            and safe_string(visible) == claim.translated then
-                            return
-                        end
-                    end
-                end
-            end
-            return original(tooltip, tooltip_type, tooltip_id, ...)
-        end
-        ptr_feedback_guarded = true
-    end
     ptr_feedback_hooked = hooks.region(reporter, "HookIntoTooltip",
         function (tooltip)
             if not tooltip or tooltip.uaForeverShowOriginal
                 or not options.can_translate() then return end
-            -- Talent rows belong to the final TooltipCreated adapter. The
-            -- guard above preserves native duplicate detection after that
-            -- adapter translates the instruction, including later rank passes.
-            if tooltip.uaForeverKind == "talent"
-                or talent_adapter.is_processing_trait(tooltip) then return end
             local count_ok, count = pcall(tooltip.NumLines, tooltip)
             count = count_ok and safe_number(count) or nil
             if not count or count < 1 then return end
             local source, region = tooltip_line(tooltip, "Left", count, true)
             source = safe_string(source)
-            if not source or not region
-                or not (source:find("to submit an issue for this", 1, true)
-                    or source == safe_string(reporter.MissingBindTooltipString)) then
+            if not source or not region or not is_ptr_feedback_instruction(source) then
                 return
             end
             local cached = ptr_feedback_cache[source]
@@ -2338,9 +2336,14 @@ local function prepare_ptr_feedback_hook()
             if not tooltip.uaForeverSessionKey then
                 begin_tooltip(tooltip, "ptr-feedback:" .. tostring(tooltip))
             end
-            set_tooltip_translation(tooltip, region, source, translated,
+            -- Preserve native text for duplicate detection, also on talents.
+            local applied = set_tooltip_translation(tooltip, nil, source, translated,
                 "ptr-feedback", nil, "generic", source_kind,
-                false, true, nil, nil, catalog_source)
+                true, true, nil, nil, catalog_source)
+            if applied and not runtime.combat_locked()
+                and type(tooltip.Show) == "function" then
+                pcall(tooltip.Show, tooltip)
+            end
         end) == true
     return ptr_feedback_hooked
 end
@@ -2704,6 +2707,7 @@ tooltips.refresh_active = function ()
             end
         end
         if not show then
+            local native = native_tooltip_data[tooltip]
             if is_shopping_tooltip(tooltip) then
                 if reapply_comparison_claims(tooltip)
                     or translate_shopping_tooltip(tooltip) then
@@ -2714,6 +2718,10 @@ tooltips.refresh_active = function ()
             elseif tooltip.uaForeverKind == "character-stat" then
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
                 if owner_ok and owner then tooltips.translate_character_stat(owner) end
+            elseif native and native.generation == tooltip.uaForeverGeneration
+                and native.kind == tooltip.uaForeverKind
+                and native.id == tooltip.uaForeverID then
+                safe_process(tooltip, native.data, native.kind)
             elseif tooltip.uaForeverKind and tooltip.uaForeverID
                 and tooltip.uaForeverKind ~= "item" then
                 -- Item claims already contain both native and translated text;
@@ -2723,6 +2731,14 @@ tooltips.refresh_active = function ()
                     tooltip.uaForeverKind)
             else
                 translate_generic_tooltip(tooltip)
+            end
+            -- The native post-call normally ends with Show(), which lays out
+            -- appended, wrapping lines. A manual mode/Shift refresh runs outside
+            -- that lifecycle and must request the same layout after item rows.
+            if tooltip.uaForeverKind == "item" and tooltip.uaForeverBilingualLines
+                and type(tooltip.Show) == "function"
+                and runtime.can_write_text(tooltip) then
+                pcall(tooltip.Show, tooltip)
             end
         end
     end
