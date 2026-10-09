@@ -78,6 +78,7 @@
     <Script file="chat_links.lua"/>
     <Script file="combat_log.lua"/>
     <Script file="chat_config_ui.lua"/>
+    <Script file="channel_ui.lua"/>
     <Script file="scanner.lua"/>
     <Script file="skills.lua"/>
     <Script file="main.lua"/>

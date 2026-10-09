@@ -5,6 +5,18 @@ local _, addonTable = ...
 -- reads, semantic slots and Blizzard lifecycle; this catalog owns Ukrainian
 -- labels, grammar and dynamic formatters.
 local tooltip = {
+    legacy_reward_descriptions = {
+        ["Summons a tiny spectral bear cub as your companion."] =
+            "Викликає маленьке примарне ведмежа, яке супроводжуватиме вас.",
+        ["Show your dedication with this spectral bear-themed tabard."] =
+            "Покажіть свою відданість, одягнувши цю гербову накидку із зображенням примарного ведмедя.",
+        ["Summons and dismisses an Epic rideable spectral bear mount that moves at 100% increased speed."] =
+            "Викликає або відпускає епічного примарного ведмедя для верхової їзди, який збільшує швидкість пересування на 100%.",
+        ["Join a shootout with your air rifle. You and other players with this rifle can Stun each other. Even keeps score!"] =
+            "Влаштуйте перестрілку з пневматичної рушниці. Ви та інші гравці з такою рушницею можете приголомшувати одне одного. Вона навіть веде рахунок!",
+    },
+    legacy_reward_claim_source = "Visit Innkeeper Wiley in Ratchet to claim your reward.",
+    legacy_reward_claim = "Відвідайте корчмаря Вайлі в Брашпилі, щоб отримати нагороду.",
     -- AuraUtil's dispel categories in build 1.60.1.70170. Display labels only.
     aura_dispel_names = {
         Magic = "Магія",
@@ -1608,6 +1620,18 @@ function tooltip.points_form(amount)
         if last >= 2 and last <= 4 then return "очки" end
     end
     return "очок"
+end
+
+function tooltip.legacy_reward_description(source)
+    local body, claim = source:match("^(.-)|n|n(.*)$")
+    local translated = tooltip.legacy_reward_descriptions[body or source]
+    if not claim then return translated end
+    local color, text, reset = claim:match("^(|[cC]%x%x%x%x%x%x%x%x)(.-)(|[rR])$")
+    text = text or claim
+    if text ~= tooltip.legacy_reward_claim_source then return nil end
+    -- Translate the shared claim instruction even for a new reward body.
+    return (translated or body) .. "|n|n" .. (color or "")
+        .. tooltip.legacy_reward_claim .. (reset or "")
 end
 
 addonTable.forever_tooltip_ui = tooltip

@@ -66,6 +66,7 @@ local function prepare_menu_panels()
     addon_table.use("legacy_ui").prepare()
     addon_table.use("inspect_ui").prepare()
     social_ui.prepare()
+    addon_table.use("channel_ui").prepare()
     raid_ui.prepare()
     trade_ui.prepare()
     compact_raid_manager_ui.prepare()
@@ -1187,6 +1188,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         scheduler.request("post-combat-surfaces", nil, function ()
             if fonts.refresh_damage_text_font then fonts.refresh_damage_text_font() end
             if runtime.retry_deferred then runtime.retry_deferred() end
+            addon_table.use("translation_layout").retry_tooltip_layout()
             registry.refresh_open()
             if tooltips.refresh_active then tooltips.refresh_active() end
             if map_labels.refresh_active then map_labels.refresh_active() end

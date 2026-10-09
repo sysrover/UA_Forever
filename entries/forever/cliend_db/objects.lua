@@ -640,6 +640,14 @@ addonTable.object_ids = {
     [612351] = { [1] = "Прапор фракції", ["en"] = "Faction Banner" },
     [642320] = { [1] = "Побита скриня", ["en"] = "Battered Trunk" },
     [694772] = { [1] = "Рибальська пастка", ["en"] = "Fishing Trap" },
+    [421066] = { [1] = "Полиця", ["en"] = "Shelf" },
+    [612130] = { [1] = "Арканічний утилізатор", ["en"] = "Arcane Salvager" },
+    [651948] = { [1] = "Колодязь мани", ["en"] = "Mana Well" },
+    [651954] = { [1] = "Акваріум", ["en"] = "Fish Bowl" },
+    [654168] = { [1] = "Небесний портал до Даларана", ["en"] = "Skyborne Portal to Dalaran" },
+    [656308] = { [1] = "Окутаний імлою", ["en"] = "Mistbound" },
+    [659520] = { [1] = "PVP СВЯТО АЛЬЯНС ОСТРОВИ ТЕМНОСПИСА", ["en"] = "PVP HOLIDAY ALLIANCE DARKSPEAR ISLANDS" },
+    [673429] = { [1] = "Бібліотека", ["en"] = "Library" },
 }
 
 addonTable.object = {
@@ -3874,6 +3882,14 @@ addonTable.object = {
     ["Messenger Bag"] = "Сумка посильного",
     ["Nailed Plank"] = "Прибита дошка",
     ["Pocket Litter"] = "Кишенькове сміття",
+    ["Shelf"] = "Полиця",
+    ["Arcane Salvager"] = "Арканічний утилізатор",
+    ["Mana Well"] = "Колодязь мани",
+    ["Fish Bowl"] = "Акваріум",
+    ["Skyborne Portal to Dalaran"] = "Небесний портал до Даларана",
+    ["Mistbound"] = "Окутаний імлою",
+    ["PVP HOLIDAY ALLIANCE DARKSPEAR ISLANDS"] = "PVP СВЯТО АЛЬЯНС ОСТРОВИ ТЕМНОСПИСА",
+    ["Library"] = "Бібліотека",
 }
 
 addonTable.translate_object_name = function (name)

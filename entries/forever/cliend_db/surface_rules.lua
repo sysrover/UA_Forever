@@ -3,7 +3,23 @@ local _, addonTable = ...
 
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
+local function channel_name(name)
+    local aliases = { Services = "Послуги", TradeLocal = "Місцева торгівля" }
+    return addonTable.forever_chat_system.channel_names[name] or aliases[name]
+end
+
 addonTable.forever_surface_ui = {
+    channel_panel = {
+        name = function (source)
+            local color, plain, reset = source:match("^(|[cC]%x%x%x%x%x%x%x%x)(.-)(|[rR])$")
+            plain = plain or source
+            local prefix, name, trailing = plain:match("^(%d+%.%s*)(.-)(%s*)$")
+            if not name then prefix, name, trailing = "", plain, "" end
+            local translated = channel_name(name)
+            return translated and ((color or "") .. prefix .. translated
+                .. trailing .. (reset or "")) or nil
+        end,
+    },
     inspect = {
         detail = function (source, lookup)
             local count = source:match("^Lifetime: (.+)$")
@@ -67,9 +83,7 @@ addonTable.forever_surface_ui = {
         channel = function (source)
             local prefix, name = source:match("^(%d+%.%s*)(.+)$")
             if not name then return nil end
-            local aliases = { Services = "Послуги", TradeLocal = "Місцева торгівля" }
-            local translated = addonTable.forever_chat_system.channel_names[name]
-                or aliases[name]
+            local translated = channel_name(name)
             return translated and (prefix .. translated) or nil
         end,
         header = function (name)

@@ -14,13 +14,13 @@
   "skillLines": 154,
   "spellsWithSkillLines": 7369,
   "itemIDs": 25892,
-  "itemNames": 23917,
+  "itemNames": 23946,
   "itemDescriptions": 4849,
   "itemsWithSpellEffects": 8949,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12587,
   "resolvedItemSpellEffects": 12579,
-  "itemNamesUk": 23917,
+  "itemNamesUk": 23946,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4849,
@@ -1473,5 +1473,6 @@
       }
     ],
     "inGameVerified": false
-  }
+  },
+  "itemCacheTranslationSourceBuild": "1.60.1.70291"
 }

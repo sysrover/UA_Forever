@@ -10,6 +10,8 @@ local items = addon_table.use("item_client_db")
 local entries = addon_table.use("entries")
 local resolver = addon_table.use("translation_resolver")
 local strings = addon_table.use("strings")
+local tooltip_catalog = assert(addon_table.forever_tooltip_ui)
+local layout = addon_table.use("translation_layout")
 local descriptions = {}
 local scroll_boxes = setmetatable({}, { __mode = "k" })
 
@@ -46,7 +48,8 @@ local function apply(region, text, id, slot, option, category, tooltip)
         section = slot == "talent.name" and "talents"
             or (not category and not tooltip and not slot:match("^achievement%.") and ui_section(region)) or nil,
         options = tooltip and { "translate_other_tooltips" } or nil,
-        priority = runtime.PRIORITY.DOMAIN, reapply_cached = true })
+        priority = runtime.PRIORITY.DOMAIN, reapply_cached = true,
+        after_apply = tooltip and layout.tooltip_after_text(tooltip, region, source) or nil })
 end
 
 local function formatted(region, template, ...)
@@ -170,6 +173,17 @@ local function translate_reward_tooltip(row)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip:IsOwned(row) then return end
     api.tooltip(row)
+    local count_ok, count = pcall(tooltip.NumLines, tooltip)
+    if count_ok and not runtime.is_secret_value(count) and type(count) == "number" then
+        for index = 1, math.min(count, 40) do
+            local region = _G["GameTooltipTextLeft" .. index]
+            local source = api.text(region)
+            local translated = source and tooltip_catalog.legacy_reward_description(source)
+            if translated and translated ~= source then
+                apply(region, translated, nil, "achievement.reward.description", nil, nil, tooltip)
+            end
+        end
+    end
     local rewards = row.info and row.info.rewardInfo
     if type(rewards) ~= "table" or row.isCapstone then return end
     for _, reward in ipairs(rewards) do

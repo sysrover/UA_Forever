@@ -15,6 +15,7 @@ local TOOLTIP_TEXT_PADDING = 24
 local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
+local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
 local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
 local AUCTION_TAB_SOURCES = {
     Auctions = true, Bid = true, Bids = true, Browse = true, Buy = true,
@@ -309,6 +310,65 @@ local function is_shown(frame)
     if not method_ok or type(callback) ~= "function" then return false end
     local ok, value = pcall(callback, frame)
     return ok and not is_secret(value) and value == true
+end
+
+-- Direct tooltip writers bypass tooltips.set_translation. Give them the same
+-- text/font-to-layout lifecycle, with incremental, repeat-safe height changes.
+layout.tooltip_after_text = function (tooltip, region, source)
+    if not is_tooltip(tooltip) or not region then return nil end
+    local previous_height = safe_dimension(region, "GetHeight")
+        or safe_dimension(region, "GetStringHeight")
+    local generation = tooltip.uaForeverGeneration
+    local active_claim
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or is_secret(owner) then return nil end
+    local function fit()
+        local claim = runtime.get(region)
+        local current_owner_ok, current_owner = pcall(tooltip.GetOwner, tooltip)
+        if not claim or active_claim and claim ~= active_claim
+            or claim.surface ~= tooltip or not is_shown(tooltip)
+            or tooltip.uaForeverGeneration ~= generation
+            or not current_owner_ok or is_secret(current_owner) or current_owner ~= owner then
+            pending_tooltip_layout[region] = nil
+            return false
+        end
+        active_claim = claim
+        if runtime.combat_locked() then
+            pending_tooltip_layout[region] = fit
+            return false
+        end
+        if not runtime.can_write_text(tooltip) or not runtime.can_write_text(region) then return false end
+        pending_tooltip_layout[region] = nil
+        local tooltip_height = safe_dimension(tooltip, "GetHeight")
+        fit_tooltip_width_to_region(tooltip, region, source)
+        -- Release any native line/height caps before measuring, otherwise the
+        -- measurement can describe the clipped text rather than its full body.
+        if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
+        if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
+        if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, true) end
+        if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+        local height = safe_dimension(region, "GetStringHeight")
+        if not height or height <= 0 then
+            if previous_height and type(region.SetHeight) == "function" then
+                pcall(region.SetHeight, region, previous_height)
+            end
+            return false
+        end
+        if height and previous_height and tooltip_height then
+            if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, height) end
+            fit_tooltip_height_to_region(tooltip, region, previous_height, tooltip_height)
+            previous_height = height
+        end
+        return true
+    end
+    return fit
+end
+
+layout.retry_tooltip_layout = function ()
+    if runtime.combat_locked() then return end
+    local callbacks = {}
+    for _, callback in pairs(pending_tooltip_layout) do callbacks[#callbacks + 1] = callback end
+    for _, callback in ipairs(callbacks) do callback() end
 end
 
 local function fit_profession_recipe_label(row)

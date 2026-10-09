@@ -86,6 +86,38 @@ end
 
 local function refresh_social() registry.refresh("social") end
 
+local function translate_community_action(row)
+    translate_social_region(row and row.Name)
+end
+
+local function prepare_community_row(row, element_data)
+    if not row then return end
+    if not element_data and type(row.GetElementData) == "function" then
+        local ok, value = pcall(row.GetElementData, row)
+        if ok and not runtime.is_secret_value(value) then element_data = value end
+    end
+    -- Init rewrites pooled rows as either club names or navigation actions.
+    -- Translate only the actions identified by native data, even when a club
+    -- happens to have the same name as one of those labels.
+    runtime.invalidate(row.Name)
+    if type(element_data) == "table" and not element_data.clubInfo
+        and (element_data.setGuildFinder or element_data.setFindCommunity
+            or element_data.setJoinCommunity) then
+        translate_community_action(row)
+    end
+    hooks.region(row, "Init", prepare_community_row)
+    for _, method in ipairs({ "SetGuildFinder", "SetFindCommunity", "SetAddCommunity" }) do
+        hooks.region(row, method, translate_community_action)
+    end
+    hooks.region_script(row, "OnHide", function () runtime.invalidate(row.Name) end)
+end
+
+local function prepare_community_rows()
+    local root = _G.CommunitiesFrame
+    local list = root and root.CommunitiesList
+    prepare_social_scroll_box(list and list.ScrollBox, prepare_community_row)
+end
+
 local function prepare_modern_social()
     local root = _G.SocialUIFrame
     if not root then return end
@@ -119,6 +151,7 @@ end
 
 local function prepare_social_rows()
     prepare_modern_social()
+    prepare_community_rows()
     local friends = _G.FriendsListFrame
     local recent = _G.RecentAlliesFrame
     for _, pair in ipairs({

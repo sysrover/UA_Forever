@@ -7,6 +7,7 @@ local resolver = addon_table.use("translation_resolver")
 local entries = addon_table.use("entries")
 local item_db = addon_table.use("item_client_db")
 local utils = addon_table.use("utils")
+local layout = addon_table.use("translation_layout")
 
 -- Shared guarded label operations; each panel owns its fields and lifecycle.
 adapter.bind = function (id)
@@ -57,7 +58,8 @@ adapter.bind = function (id)
             source = source, translated = translated, option = option or "translate_string",
             options = tooltip and { "translate_other_tooltips" } or nil,
             category = category, surface = tooltip or api.surface, tooltip = tooltip,
-            priority = runtime.PRIORITY.DOMAIN, phase = "direct", reapply_cached = true })
+            priority = runtime.PRIORITY.DOMAIN, phase = "direct", reapply_cached = true,
+            after_apply = tooltip and layout.tooltip_after_text(tooltip, region, source) or nil })
     end
     api.formatted = function (region, template, ...)
         template = runtime.safe_string_or_nil(template)

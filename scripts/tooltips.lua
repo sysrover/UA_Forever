@@ -41,6 +41,7 @@ local tooltip_events = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
 local ptr_feedback_hooked = false
+local ptr_feedback_guarded = false
 local ptr_feedback_cache = {}
 
 local function arm_tooltip_updates(tooltip, budget)
@@ -2270,16 +2271,40 @@ local function prepare_ptr_feedback_hook()
     if not reporter or type(reporter.HookIntoTooltip) ~= "function" then
         return false
     end
+    if not ptr_feedback_guarded then
+        local original = reporter.HookIntoTooltip
+        reporter.HookIntoTooltip = function (tooltip, tooltip_type, tooltip_id, ...)
+            -- The native duplicate check reads English text in the first 15
+            -- rows. A translated current claim must count as that same row.
+            -- Match its retained source, never a hardcoded Ukrainian label.
+            if tooltip and not is_secret(tooltip_type) and tooltip_type
+                and not is_secret(tooltip_id) and tooltip_id then
+                local partial = safe_string(reporter.BugTooltipPartialString)
+                if partial then
+                    for index = 1, 15 do
+                        local visible, region = tooltip_line(tooltip, "Left", index, true)
+                        local claim = region and runtime.get(region)
+                        local source = claim and safe_string(claim.source)
+                        if source and source:find(partial, 1, true)
+                            and claim.surface == tooltip
+                            and claim.generation == tooltip.uaForeverGeneration
+                            and safe_string(visible) == claim.translated then
+                            return
+                        end
+                    end
+                end
+            end
+            return original(tooltip, tooltip_type, tooltip_id, ...)
+        end
+        ptr_feedback_guarded = true
+    end
     ptr_feedback_hooked = hooks.region(reporter, "HookIntoTooltip",
         function (tooltip)
             if not tooltip or tooltip.uaForeverShowOriginal
                 or not options.can_translate() then return end
-            -- Build 70058 appends every talent rank through GetTraitEntry and
-            -- the PTR reporter checks its still-English partial text to avoid
-            -- adding the same F6 line again. Translating that line here makes
-            -- Blizzard's following rank pass miss its own duplicate. Leave it
-            -- intact while the talent tooltip is assembled; the final
-            -- TalentDisplay.TooltipCreated adapter translates the single line.
+            -- Talent rows belong to the final TooltipCreated adapter. The
+            -- guard above preserves native duplicate detection after that
+            -- adapter translates the instruction, including later rank passes.
             if tooltip.uaForeverKind == "talent"
                 or talent_adapter.is_processing_trait(tooltip) then return end
             local count_ok, count = pcall(tooltip.NumLines, tooltip)
@@ -2315,7 +2340,7 @@ local function prepare_ptr_feedback_hook()
             end
             set_tooltip_translation(tooltip, region, source, translated,
                 "ptr-feedback", nil, "generic", source_kind,
-                false, false, nil, nil, catalog_source)
+                false, true, nil, nil, catalog_source)
         end) == true
     return ptr_feedback_hooked
 end

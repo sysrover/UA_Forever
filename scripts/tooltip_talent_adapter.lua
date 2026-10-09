@@ -14,6 +14,9 @@ local trait_entries = addon_table.client_trait_entries
 local trait_overrides = addon_table.client_trait_definition_overrides_en
 local talent_ui = assert(addon_table.talent_ui,
     "UA Forever talent UI catalog is not loaded")
+local runtime = addon_table.use("translation_runtime")
+local hooks = addon_table.use("translation_hooks").bind("talent-frame")
+local tooltip_contexts = setmetatable({}, { __mode = "k" })
 
 local SPELL_NAME = 13
 local SPELL_PASSIVE = 33
@@ -267,6 +270,13 @@ local function points_requirement(source)
         "^Spend ([%d,]+) more points? in (.-) Talents$")
     local names = talent_ui.spec_names
     local translated_tree = tree and names and names[tree]
+    if not translated_tree then
+        count, tree = visible:match("^Spend ([%d,]+) more points? in the (.-) Legacy Tree$")
+        if not count then
+            count, tree = visible:match("^Spend ([%d,]+) more points? in (.-) Talents$")
+        end
+        translated_tree = tree and talent_ui.legacy_tree_names[tree]
+    end
     if not count or not translated_tree then return nil end
     local digits = count:gsub(",", "")
     local amount = tonumber(digits)
@@ -340,6 +350,59 @@ local function replacement_line(button, spell_id, entry_id, source)
     end
 end
 
+local function current_context(tooltip)
+    local context = tooltip_contexts[tooltip]
+    if not context or tooltip.uaForeverSessionKey ~= "talent:structured"
+        or tooltip.uaForeverGeneration ~= context.generation then return nil end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or runtime.is_secret_value(owner) or owner ~= context.button then return nil end
+    return context
+end
+
+local function translate_region(tooltip, side, index)
+    local context = current_context(tooltip)
+    if not context or not options.can_lookup_section("talents") then return end
+    local contract = deps()
+    local source, region = contract.tooltip_line(tooltip, side, index)
+    if not region or runtime.is_applying(region) then return end
+    local visible = contract.normalized_text(source)
+    if not visible or visible == "" then return end
+    local translated = points_requirement(source)
+        or replacement_line(context.button, context.id, context.entryID, source)
+        or contract.translate_static(source, region)
+    if translated and translated ~= source and not translated:find("{%d+}") then
+        local slot = side == "Left" and "talent.requirement:" .. index
+            or "talent.requirement:Right:" .. index
+        contract.set_translation(tooltip, region, source, translated,
+            slot, nil, "talent-tooltip")
+    end
+end
+
+local function prepare_tooltip_rows(tooltip)
+    if not current_context(tooltip) then return end
+    local contract = deps()
+    local ok, count = pcall(tooltip.NumLines, tooltip)
+    count = ok and contract.safe_number(count) or nil
+    if not count then return end
+    for index = 1, math.min(count, contract.max_lines) do
+        for _, side in ipairs({ "Left", "Right" }) do
+            -- The left title belongs to the structured spell-name handler.
+            if index > 1 or side == "Right" then
+                local _, region = contract.tooltip_line(tooltip, side, index)
+                if region then
+                    local row_index, row_side = index, side
+                    local function written()
+                        translate_region(tooltip, row_side, row_index)
+                    end
+                    hooks.region(region, "SetText", written)
+                    hooks.region(region, "SetFormattedText", written)
+                    written()
+                end
+            end
+        end
+    end
+end
+
 adapter.translate = function (_, button, tooltip)
     if options.can_lookup_section and not options.can_lookup_section("talents") then return end
     local contract = deps()
@@ -371,6 +434,14 @@ adapter.translate = function (_, button, tooltip)
     tooltip.uaForeverID = id
     tooltip.uaForeverTalentEntryID = entry_id
     tooltip.uaForeverReservedFirst = 2
+    tooltip_contexts[tooltip] = { button = button, id = id, entryID = entry_id,
+        generation = tooltip.uaForeverGeneration }
+    -- Issue-submission tools can append another instruction after TooltipCreated.
+    -- Translate those writes immediately, including newly allocated rows.
+    local function appended() prepare_tooltip_rows(tooltip) end
+    hooks.region(tooltip, "AddLine", appended)
+    hooks.region(tooltip, "AddDoubleLine", appended)
+    hooks.region(tooltip, "ClearLines", function () tooltip_contexts[tooltip] = nil end)
 
     local title_source, title_region = contract.tooltip_line(tooltip, "Left", 1)
     local translated_name = client_db.get_name(id)
@@ -379,19 +450,5 @@ adapter.translate = function (_, button, tooltip)
             translated_name, "talent.name", "spell", "talent-tooltip")
     end
 
-    for index = 2, math.min(count, contract.max_lines) do
-        local source, region = contract.tooltip_line(tooltip, "Left", index)
-        local visible = contract.normalized_text(source)
-        if region and visible and visible ~= "" then
-            local translated = points_requirement(source)
-                or replacement_line(button, id, entry_id, source)
-                or contract.translate_static(source, region)
-            if translated and translated ~= source
-                and not translated:find("{%d+}") then
-                contract.set_translation(tooltip, region, source,
-                    translated, "talent.requirement:" .. index, nil,
-                    "talent-tooltip")
-            end
-        end
-    end
+    prepare_tooltip_rows(tooltip)
 end
