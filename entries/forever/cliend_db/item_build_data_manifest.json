@@ -1,10 +1,10 @@
 {
-  "sourceBuild": "1.60.1.70245",
-  "itemMetadata": 3989,
+  "sourceBuild": "1.60.1.70291",
+  "itemMetadata": 4000,
   "itemClasses": 17,
   "itemSubclasses": 100,
   "itemSets": 536,
-  "itemSetBonuses": 1465,
+  "itemSetBonuses": 1477,
   "itemEnchantments": 2216,
   "gemProperties": 0,
   "itemNameDescriptions": 92,
@@ -17,6 +17,9 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "14007e9d6d0313dec0eba1aaaae1b5d273a4625625c76dd814ba954c4906523d",
-  "inventory": "build/forever-client-inventory/70245/db2"
+  "cacheSHA256": "97f36a7891c331ea46ab96dc2f5c7bf22b2d5c1332166dbd466939a3d57769c8",
+  "inventory": "build/forever-client-inventory/70291/db2",
+  "itemMetadataInventory": "automation/results/cache_results/current/decoded/itemsparse.json",
+  "itemMetadataCacheSnapshot": "automation/results/cache_results/current/snapshots/DBCache.bin",
+  "cacheScope": "ItemSparse compact metadata; other loaded metadata compared against the exact-build base inventory."
 }

@@ -1,10 +1,10 @@
 -- Consolidated Ukrainian item names for the exact client build.
 -- Sources: validated ClassicUA names plus completed UA_Forever worklists.
--- Client build: 1.60.1.70245; existing source rows verified unchanged from 70058.
+-- Client build: 1.60.1.70291; existing source rows verified unchanged from 70058.
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70245",
+    sourceBuild = "1.60.1.70291",
     count = 23946,
     rows = {
         [753] = "короткий меч Драконової Пащі",

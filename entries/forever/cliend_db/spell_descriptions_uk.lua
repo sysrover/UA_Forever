@@ -1,10 +1,10 @@
 -- Consolidated Ukrainian spell descriptions for the exact client build.
 -- Includes safe token-aware imports from ClassicUA.
--- Client build: 1.60.1.70245; source: Spell.db2:Description_lang
+-- Client build: 1.60.1.70291; source: Spell.db2:Description_lang
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70245",
+    sourceBuild = "1.60.1.70291",
     count = 17681,
     rows = {
         [23584] = "Збільшує шкоду зброї в лівій руці на $m1% і кількість люті, яку генерують атаки лівою рукою, на $m2%.",

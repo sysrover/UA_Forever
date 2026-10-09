@@ -4,11 +4,11 @@ UA Forever is a Ukrainian localization addon for World of Warcraft: Forever
 Beta, built for its modern Camelot interface. It translates quests, tooltips,
 menus, character and profession panels, chat, NPC names, and other visible text.
 Hold Shift to see the original tooltip; quest conversations have an EN/UA
-switch. Target client: `wow_forever_beta` build `1.60.1.70205` (Interface
+switch. Target client: `wow_forever_beta` build `1.60.1.70291` (Interface
 `16001`).
 
 UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever Beta, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
-Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: wow_forever_beta, збірка 1.60.1.70205 (інтерфейс 16001).
+Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: wow_forever_beta, збірка 1.60.1.70291 (інтерфейс 16001).
 
 ## Реліз 0.19.5
 
@@ -36,7 +36,7 @@ ClassicUA: [GitHub](https://github.com/greenya/ClassicUA) ·
 [CurseForge](https://www.curseforge.com/wow/addons/classicua).
 
 Classic translations can be outdated when Forever changes a spell or quest.
-The bundled client catalog declares `1.60.1.70205` in its manifest;
+The bundled client catalog declares `1.60.1.70291` in its manifest;
 `/uaf scan` reports a build mismatch when the running client differs.
 
 ## Commands

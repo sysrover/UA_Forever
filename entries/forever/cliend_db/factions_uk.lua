@@ -2,7 +2,7 @@ local _, addon_table = ...
 
 -- User-supplied faction translations matched by ID to the active client inventory.
 local database = {
-    sourceBuild = "1.60.1.70245",
+    sourceBuild = "1.60.1.70291",
     count = 253,
     rows = {
         [1] = { en = "PLAYER, Human", name = "ГРАВЕЦЬ, людина", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
@@ -232,7 +232,7 @@ local database = {
         [2759] = { en = "Neutral Can Attack", name = "Нейтральний, можна атакувати", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
         [2760] = { en = "Neutral Both But Horde Can Attack", name = "Нейтральний для обох, але Орда може атакувати", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
         [2761] = { en = "Fenwick", name = "Фенвік", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
-        [2765] = { en = "Guardians of Hyjal", name = "Вартові Гіджалу", en_description = "Charged with the protection and preservation of Mount Hyjal, this splinter faction of the Cenarion Circle welcome any who are willing to push back the forces of evil.", description = "Це відгалуження Кенарієвого Кола покликане захищати й зберігати гору Гіджал і радо приймає всіх, хто готовий відтісняти сили зла.", parent = 0, reputation_index = 62, flags = 0 },
+        [2765] = { en = "Guardians of Hyjal", name = "Вартові Гіджалу", en_description = "Charged with the protection and preservation of Mount Hyjal, this splinter faction of the Cenarion Circle welcomes any who are willing to push back the forces of evil.", description = "Це відгалуження Кенарієвого Кола покликане захищати й зберігати гору Гіджал і радо приймає всіх, хто готовий відтісняти сили зла.", parent = 0, reputation_index = 62, flags = 0 },
         [2768] = { en = "The Blackthorne Pact", name = "Пакт Чорноколючки", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
         [2769] = { en = "Gelkis Outcasts", name = "Вигнанці Ґелкіс", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },
         [2777] = { en = "Beast - Predatory Stag", name = "Звір — хижий олень", en_description = "", description = "", parent = 0, reputation_index = -1, flags = 0 },

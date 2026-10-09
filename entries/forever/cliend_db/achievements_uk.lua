@@ -2,7 +2,7 @@ local _, addon_table = ...
 
 -- Approved Ukrainian achievement translations, keyed by client IDs.
 local database = {
-    sourceBuild = "1.60.1.70245",
+    sourceBuild = "1.60.1.70291",
     count = 436,
     criteria = {
         ["Played in the World of Warcraft: Forever Beta"] = "Участь у бета-тестуванні WoW: Forever",
