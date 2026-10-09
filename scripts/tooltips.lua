@@ -2237,10 +2237,10 @@ local function after_game_tooltip_update(tooltip)
             if current == _G.Minimap or current == _G.MinimapCluster then
                 local title = tooltip_line(tooltip, "Left", 1)
                 title = safe_string(title)
-                if title and type(entries.lookup_id) == "function" then
-                    local id = entries.lookup_id("quest", title)
+                if title and type(entries.lookup_quest_id_for_task) == "function" then
+                    local id = entries.lookup_quest_id_for_task(title)
                     local entry = id and entries.get_entry("quest", id)
-                    if entry and entry.en == title then
+                    if entry and utils.same_english_name(entry.en, title) then
                         safe_process(tooltip, { id = id }, "quest")
                     end
                 end

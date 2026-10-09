@@ -131,6 +131,24 @@ utils.lower = function (str)
     return (str:lower():gsub("Ї", "ї"):gsub("Є", "є"):gsub("І", "і"):gsub("Ґ", "ґ"))
 end
 
+-- Normalize English identity metadata only; keep native/display strings intact.
+utils.normalize_english_name = function (value)
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, value)
+        if not ok or secret then return nil end
+    end
+    if type(value) ~= "string" or value == "" then return nil end
+    local normalized = value:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        :gsub("|n", " "):gsub("\194\160", " "):gsub("%s+", " ")
+        :match("^%s*(.-)%s*$"):lower()
+    return normalized ~= "" and normalized or nil
+end
+
+utils.same_english_name = function (left, right)
+    local normalized = utils.normalize_english_name(left)
+    return normalized ~= nil and normalized == utils.normalize_english_name(right)
+end
+
 utils.esc = function (x) -- https://stackoverflow.com/questions/9790688/escaping-strings-for-gsub
     return (x:gsub('%%', '%%%%')
              :gsub('^%^', '%%^')

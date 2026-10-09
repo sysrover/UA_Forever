@@ -9,6 +9,9 @@ local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("forever-vo-playback")
 local wording = addon_table.forever_surface_ui.forever_vo
 local display_items = setmetatable({}, { __mode = "k" })
+local head_sessions = setmetatable({}, { __mode = "k" })
+local queue_items = setmetatable({}, { __mode = "k" })
+local quest_fields = { accept = 2, progress = 4, complete = 5 }
 
 local function readable(value)
     return not runtime.is_secret_value(value) and type(value) == "string" and value ~= ""
@@ -19,9 +22,10 @@ local function enabled(option, section)
 end
 
 local function quest_entry(item)
-    if item.kind ~= "quest" or type(item.questID) ~= "number" then return end
+    if item.kind ~= "quest" or runtime.is_secret_value(item.questID)
+        or type(item.questID) ~= "number" then return end
     local entry = entries.get_entry("quest", item.questID)
-    if entry and (not readable(entry.en) or entry.en == item.title) then return entry end
+    if entry and (not readable(entry.en) or utils.same_english_name(entry.en, item.title)) then return entry end
 end
 
 local function title_for(item)
@@ -45,10 +49,10 @@ local function name_for(item)
     if not enabled("translate_npc", "npc_target")
         or not options.translate_name("npc") then return item.name end
     local id = item.speakerKey
-    if type(id) ~= "number" or id == 0 then return item.name end
+    if runtime.is_secret_value(id) or type(id) ~= "number" or id == 0 then return item.name end
     local entry = entries.get_entry(id > 0 and "npc" or "object", math.abs(id))
     if entry and readable(entry[1])
-        and (not readable(entry.en) or entry.en == item.name) then return utils.cap(entry[1]) end
+        and (not readable(entry.en) or utils.same_english_name(entry.en, item.name)) then return utils.cap(entry[1]) end
     return item.name
 end
 
@@ -56,7 +60,7 @@ local function text_for(item)
     if item.kind == "quest" and enabled("translate_quest", "quest_text")
         and translation.get_quest_language() ~= "en" then
         local entry = quest_entry(item)
-        local field = ({ accept = 2, progress = 4, complete = 5 })[item.event]
+        local field = quest_fields[item.event]
         if entry and field and readable(entry[field]) then return entry[field] end
     elseif item.kind == "gossip" and enabled("translate_gossip", "gossip")
         and type(item.speakerKey) == "number" and item.speakerKey > 0 then
@@ -66,17 +70,36 @@ local function text_for(item)
     return item.text
 end
 
-local function apply(region, source, translated, slot, option, category, section)
+local function apply(region, source, translated, slot, option, category, section, surface)
     if not region or runtime.is_applying(region) then return end
     runtime.ensure_font(region)
-    if not readable(source) or not readable(translated) or translated == source then return end
+    if not readable(source) or not readable(translated) then return end
+    if translated == source then
+        local claim = runtime.get(region)
+        if claim and claim.owner == "forever-vo-playback" then runtime.invalidate(region) end
+        return
+    end
     runtime.apply(region, {
         owner = "forever-vo-playback", slot = slot, source = source, translated = translated,
         option = option, category = category,
         section = section or (category == "npc" and "npc_target" or "game_settings"),
+        surface = surface,
+        generation = surface and runtime.generation(surface) or nil,
+        instance = surface and runtime.generation_instance(surface) or nil,
         priority = runtime.PRIORITY.DOMAIN,
         reapply_cached = true,
     })
+end
+
+local function head_generation(head)
+    local item, frame = head.displayed, head.frame
+    if not item or not frame then return end
+    local language = translation.get_quest_language()
+    local session = head_sessions[head]
+    if not session or session.item ~= item or session.language ~= language then
+        runtime.begin_generation(frame, tostring(item))
+        head_sessions[head] = { item = item, language = language }
+    end
 end
 
 local function ui_region(region)
@@ -122,13 +145,16 @@ local function prepare_head(head)
             local item = head.displayed
             if not item or runtime.is_applying(self) then return end
             local original = field == "Name" and item.name or item.title
-            if source ~= original then return end
+            local translated = field == "Name" and name_for(item) or title_for(item)
+            if source ~= original and source ~= translated then return end
+            head_generation(head)
             local is_name = field == "Name"
-            apply(self, original, field == "Name" and name_for(item) or title_for(item),
+            apply(self, original, translated,
                 "forever-vo:" .. tostring(is_name and item.speakerKey or item.questID) .. ".name",
                 is_name and "translate_npc" or (item.kind == "gossip" and "translate_gossip" or "translate_quest"),
                 is_name and "npc" or (item.kind == "quest" and "quest" or nil),
-                is_name and "npc_target" or (item.kind == "gossip" and "gossip" or "quest_names"))
+                is_name and "npc_target" or (item.kind == "gossip" and "gossip" or "quest_names"),
+                frame)
         end
         hooks.region(region, "SetText", update)
         if region then
@@ -157,8 +183,13 @@ local function update_queue(list)
     for row in list.rowPool:EnumerateActive() do
         local item = row.item
         if item then
+            if queue_items[row] ~= item then
+                runtime.begin_generation(row, tostring(item))
+                queue_items[row] = item
+            end
             local label = wording.queue_label(title_for(item), name_for(item), _G.GRAY_FONT_COLOR_CODE or "")
-            apply(row.Text, row.Text:GetText(), label, "forever-vo.queue", "translate_string")
+            apply(row.Text, row.Text:GetText(), label, "forever-vo.queue", "translate_string",
+                nil, nil, row)
             hooks.region_script(row, "OnEnter", function(self)
                 local current = self.item
                 if not current or not _G.GameTooltip then return end
@@ -170,6 +201,23 @@ local function update_queue(list)
                 end
             end)
         end
+    end
+end
+
+local function refresh_playback()
+    local ui = _G.ForeverVO and _G.ForeverVO.UI
+    local head = ui and ui.TalkingHead
+    local item, frame = head and head.displayed, head and head.frame
+    if item and frame then
+        -- These setters use the native queue record, so the same refresh also
+        -- restores English when a language or translation setting is disabled.
+        if frame.Name then runtime.restore_source(frame.Name, item.name or "") end
+        if frame.Title then runtime.restore_source(frame.Title, item.title or "") end
+        prepare_head(head)
+        if type(head.Repaginate) == "function" then head:Repaginate() end
+    end
+    if ui and ui.QueueList and type(ui.QueueList.Update) == "function" then
+        ui.QueueList:Update()
     end
 end
 
@@ -206,13 +254,16 @@ playback.prepare = function ()
     hooks.region(head, "CreateControls", prepare_head)
     hooks.region(head, "Present", prepare_head)
     prepare_head(head)
-    hooks.region(addon_table.use("quest_ui"), "refresh_dialog_language", function ()
-        local item, frame = head.displayed, head.frame
-        if not item or not frame then return end
-        if frame.Name then frame.Name:SetText(item.name or "") end
-        if frame.Title then frame.Title:SetText(item.title or "") end
-        if type(head.Repaginate) == "function" then head:Repaginate() end
+    hooks.region(head, "CloseFrame", function(self)
+        if not self.displayed and self.frame then
+            runtime.clear_surface(self.frame)
+            head_sessions[self] = nil
+        end
     end)
+    hooks.region(addon_table.use("quest_ui"), "refresh_dialog_language", refresh_playback)
+    if type(options.on_activity_change) == "function" then
+        options.on_activity_change("forever-vo-playback", refresh_playback)
+    end
     local list = ui.QueueList
     hooks.region(list, "Update", update_queue)
     if list then update_queue(list) end

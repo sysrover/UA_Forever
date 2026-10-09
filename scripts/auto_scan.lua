@@ -154,7 +154,7 @@ local function translated_name(group, id, name)
     local domain = domains[group]
     local entry = domain and entries.get_entry and entries.get_entry(domain, id)
     if group == "quests" and entry and type(name) == "string"
-        and type(entry.en) == "string" and entry.en ~= name then
+        and type(entry.en) == "string" and not utils.same_english_name(entry.en, name) then
         return false
     end
     local source = entry and type(entry.en) == "string" and entry.en or name

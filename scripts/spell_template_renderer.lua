@@ -57,6 +57,10 @@ local function match_dynamic_token(text)
         or text:match("^%$%d*[A-Za-z]~?%d+%.%d+")
         or text:match("^%$%d*[A-Za-z]~?%d+")
         or text:match("^%$<[%a_][%w_]*>")
+        -- Skill tooltips use multi-letter values outside formula braces too.
+        or text:match("^%$sk%d+")
+        or text:match("^%$PL")
+        or text:match("^%$proccooldown")
         or text:match("^%$%d*[A-Za-z]")
 end
 
@@ -579,9 +583,8 @@ local function match_program(matcher, native_text)
             end
         elseif instruction.kind == "token" then
             for next_position = position, #native_text + 1 do
-                -- Dynamic values belong to one rendered tooltip line. Letting
-                -- a capture cross a newline makes repeated line terminators
-                -- ambiguous and can consume following optional aura rows.
+                -- Only an explicit nested tooltip may span lines. Ordinary
+                -- values must not consume following optional aura rows.
                 if not instruction.multiline and next_position > position then
                     local previous = native_text:sub(
                         next_position - 1, next_position - 1)

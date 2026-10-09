@@ -404,7 +404,7 @@ local function translate_set_line(state, source, region)
     return result and catalog.format.item_set_bonus(count, result) or nil
 end
 
-local function translate_shared_line(state, source, region)
+local function translate_shared_line(state, source, region, recipe_result)
     if type(source) ~= "string" then return nil end
     local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     local translated = translate_set_line(state, clean, region)
@@ -415,6 +415,7 @@ local function translate_shared_line(state, source, region)
     end
     translated = translated
         or translate_visible_effect(state, clean)
+        or (recipe_result and translate_visible_effect(recipe_result, clean))
         or catalog.translate_item_line(source)
         or strings.find_ui_translation(source, region)
     if not translated and clean ~= source then
@@ -431,6 +432,7 @@ local function translate_structured(tooltip, data, state)
 
     local applied = false
     local effect_indexes = {}
+    local recipe_result
     local transmog_name_index
     local max_line_index = 0
 
@@ -467,6 +469,18 @@ local function translate_structured(tooltip, data, state)
                         if result_name then
                             translated = indent .. contract.capitalize(result_name) .. trailing
                         end
+                    end
+                    -- A recipe includes the crafted item's effects before its
+                    -- own learn line. Identify that item from the native title;
+                    -- repeated passes may already see a translated FontString.
+                    recipe_result = nil
+                    local native_name = (structured_source or source)
+                    native_name = native_name and native_name:match("^%s*(.-)%s*$")
+                    local _, result_id = client_db.get_name_by_english(native_name)
+                    if result_id and result_id ~= state.item_id
+                        and #(state.effects[ITEM_SPELL_LEARN] or {}) > 0 then
+                        local key = "id:" .. tostring(result_id)
+                        recipe_result = item_cache[key] or make_item_state(result_id, key)
                     end
                     slot = "item.secondary-name:" .. line_index
                 elseif source and state.english_name
@@ -506,7 +520,7 @@ local function translate_structured(tooltip, data, state)
                     -- Recipe learn lines can lack a translated spell effect.
                     -- Use the shared visible-text templates as a fallback.
                     if not translated and source then
-                        translated = translate_shared_line(state, source, region)
+                        translated = translate_shared_line(state, source, region, recipe_result)
                     end
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
@@ -526,7 +540,7 @@ local function translate_structured(tooltip, data, state)
                             and "item.classification:" .. line_index or nil
                     end
                     if not translated and source then
-                        translated = translate_shared_line(state, source, region)
+                        translated = translate_shared_line(state, source, region, recipe_result)
                         slot = translated and "item.shared-line:" .. line_index or nil
                     end
                 end
@@ -535,7 +549,7 @@ local function translate_structured(tooltip, data, state)
                 -- specialized TooltipData types. The fallback must run after
                 -- every semantic branch, rather than only for type 0.
                 if not translated and source and line_index > 1 then
-                    translated = translate_shared_line(state, source, region)
+                    translated = translate_shared_line(state, source, region, recipe_result)
                     slot = translated and "item.shared-line:" .. line_index or slot
                 end
                 if translated and source and region then

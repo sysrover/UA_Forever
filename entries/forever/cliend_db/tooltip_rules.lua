@@ -54,6 +54,7 @@ local tooltip = {
         ["Миттєво"] = true,
     },
     comparison_item_labels = {
+        Armor = "Броня", armor = "Броня",
         ["Critical Strike Chance"] = "ймовірність критичного удару",
         Cloth = "Тканина", Leather = "Шкіряний", Mail = "Кольчуга",
         Plate = "Лати", Head = "Голова", Neck = "Шия",
@@ -1061,6 +1062,9 @@ tooltip.item_line_patterns = {
             local name = item_stat_name(stat)
             return name and (sign .. amount .. " до " .. name) or nil
         end },
+    { "^[Aa]rmor ([%+%-][%d,.]+)$", function (amount)
+        return "Броня " .. amount
+    end },
     -- TOOLTIP_ITEM_STAT_RANGE_FORMAT; accept only known stat labels.
     { "^([%+%-])([%d,.]+)%-([%d,.]+) (.+)$",
         function (sign, minimum, maximum, stat)

@@ -4,6 +4,7 @@ local entries = addon_table.use("entries")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local translation = addon_table.use("translation")
+local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("quest-tooltips")
 local adapter = addon_table.use("tooltip_quest_adapter")
 local dependencies
@@ -32,8 +33,7 @@ adapter.resolve_blob_id = function (tooltip)
         title = claim.source
     end
     title = contract.safe_string(title)
-    if not title or not entries.quest_title_ids
-        or not entries.quest_title_ids[title] then return nil end
+    if not title or not entries.get_quest_title_ids(title) then return nil end
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and contract.safe_number(count) or nil
     if not count then return nil end
@@ -119,8 +119,7 @@ adapter.translate_embedded = function (tooltip)
             and claim.source or visible
         local normalized = contract.normalized_text(source)
         local id
-        if normalized and entries.quest_title_ids
-            and entries.quest_title_ids[normalized] then
+        if normalized and entries.get_quest_title_ids(normalized) then
             for next_index = index + 1, math.min(index + 4, count) do
                 local next_text = contract.tooltip_line(
                     tooltip, "Left", next_index)
@@ -163,8 +162,7 @@ adapter.translate_embedded = function (tooltip)
                         "npc.quest.objective:" .. index, nil,
                         "quest-tooltip") or applied
                 end
-            elseif normalized and entries.quest_title_ids
-                and entries.quest_title_ids[normalized] then
+            elseif normalized and entries.get_quest_title_ids(normalized) then
                 quest_id = nil
             end
         end
@@ -348,7 +346,7 @@ adapter.visible_title_matches = function (tooltip, id, cached)
     current = contract.safe_string(current)
     if not current then return false end
     cached = contract.safe_string(cached)
-    if cached and current == cached then return true end
+    if cached and utils.same_english_name(current, cached) then return true end
     local quest_api = _G.C_QuestLog
     local get_title = quest_api and quest_api.GetTitleForQuestID
     local original = translation.original
@@ -357,7 +355,7 @@ adapter.visible_title_matches = function (tooltip, id, cached)
         if type(getter) == "function" then
             local ok, title = pcall(getter, id)
             title = ok and contract.safe_string(title) or nil
-            return title and current == title
+            return title and utils.same_english_name(current, title)
         end
     end
     if matches(get_title) or matches(original) then return true end
@@ -365,7 +363,7 @@ adapter.visible_title_matches = function (tooltip, id, cached)
     if task_api and type(task_api.GetQuestInfoByQuestID) == "function" then
         local ok, title = pcall(task_api.GetQuestInfoByQuestID, id)
         title = ok and contract.safe_string(title) or nil
-        if title and current == title then return true end
+        if title and utils.same_english_name(current, title) then return true end
     end
     return false
 end

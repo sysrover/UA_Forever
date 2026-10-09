@@ -292,7 +292,7 @@ local function collect_quest_log_ids()
         if quest_id and quest_id > 0 and not is_header then
             local entry = entries.get_entry("quest", quest_id)
             if entry and title and type(entry.en) == "string"
-                and entry.en ~= title then
+                and not utils.same_english_name(entry.en, title) then
                 entry = nil
             end
             dev_log.record_id("quests", quest_id, title, entry ~= nil)
@@ -496,7 +496,7 @@ scanner.capture_quest_greeting = function (snapshot, verify)
         if id and quest.source and title then
             local entry = entries.get_entry("quest", id)
             local source_title = quest.source
-            local translated = entry and entry.en == source_title and entry[1]
+            local translated = entry and utils.same_english_name(entry.en, source_title) and entry[1]
             local expected = options.can_translate("translate_gossip", "translate_quest")
                 and options.translate_name("quest")
             auto_scan.record_visible_quest_title(id, source_title, title, expected)
@@ -578,7 +578,7 @@ scanner.capture_current_quest = function (event)
     for _, field in ipairs(current_quest_fields) do
         local source = original_quest_text(field.getter)
         if field.key == "title" and entry and source
-            and type(entry.en) == "string" and entry.en ~= source then
+            and type(entry.en) == "string" and not utils.same_english_name(entry.en, source) then
             catalog_matches = false
             visible_translation_missing = true
         end

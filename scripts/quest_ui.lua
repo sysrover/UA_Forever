@@ -74,7 +74,8 @@ end
 local function matching_quest_entry(id, english, field)
     local entry = type(id) == "number" and entries.get_entry("quest", id, field or 1)
     if not entry then return nil end
-    if safe_string(english) and safe_string(entry.en) and entry.en ~= english then
+    if safe_string(english) and safe_string(entry.en)
+        and not utils.same_english_name(entry.en, english) then
         return nil
     end
     return entry

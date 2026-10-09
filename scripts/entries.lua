@@ -182,6 +182,7 @@ local function prepare_name_lookup()
     local names = { quest = {}, spell = {} }
     local name_ids = { quest = {}, spell = {} }
     local quest_title_ids = {}
+    local normalized_quest_title_ids = {}
     local quest_task_names = {}
     for _, group in ipairs({
         { "quest", at.quest_faction }, { "quest", at.quest_both },
@@ -207,12 +208,20 @@ local function prepare_name_lookup()
                     end
                 end
                 local titles = { entry.en, entry[1] }
+                local seen_titles = {}
                 for index = 1, 2 do
                     local title = titles[index]
                     if type(title) == "string" and title ~= ""
                         and (index == 1 or title ~= entry.en) then
                         quest_title_ids[title] = quest_title_ids[title] or {}
                         quest_title_ids[title][#quest_title_ids[title] + 1] = id
+                        local normalized = utils.normalize_english_name(title)
+                        if normalized and not seen_titles[normalized] then
+                            local ids = normalized_quest_title_ids[normalized] or {}
+                            ids[#ids + 1] = id
+                            normalized_quest_title_ids[normalized] = ids
+                            seen_titles[normalized] = true
+                        end
                     end
                 end
             end
@@ -221,6 +230,7 @@ local function prepare_name_lookup()
     entries.names = names
     entries.name_ids = name_ids
     entries.quest_title_ids = quest_title_ids
+    entries.normalized_quest_title_ids = normalized_quest_title_ids
     entries.quest_task_names = quest_task_names
 end
 
@@ -270,14 +280,25 @@ entries.lookup_id = function (category, english)
     return ids and ids[english] or nil
 end
 
+entries.get_quest_title_ids = function (title)
+    local normalized = utils.normalize_english_name(title)
+    return normalized and entries.normalized_quest_title_ids
+        and entries.normalized_quest_title_ids[normalized] or nil
+end
+
 entries.lookup_quest_id_for_task = function (title, task)
-    local ids = entries.quest_title_ids and entries.quest_title_ids[title]
+    local ids = entries.get_quest_title_ids(title)
     if not ids then return nil end
     if type(task) == "string" then
+        local match
         for _, id in ipairs(ids) do
             local quest = addon_table.quest_faction[id] or addon_table.quest_both[id]
-            if quest and quest.tasks and quest.tasks[task] then return id end
+            if quest and quest.tasks and quest.tasks[task] then
+                if match and match ~= id then return nil end
+                match = id
+            end
         end
+        if match then return match end
     end
     return #ids == 1 and ids[1] or nil
 end

@@ -842,6 +842,26 @@ local function social_label(source)
         or addonTable.string and addonTable.string[source] or ui[source]
 end
 
+-- MicroButtonTooltipText in 70291 appends an opaque binding to these titles.
+-- Parenthesized explanations elsewhere are not binding suffixes.
+local binding_titles = {
+    ["Character Info"] = true, ["Game Menu"] = true,
+    ["Quest Log"] = true, ["Spellbook"] = true, ["Social"] = true,
+    ["Guild"] = true, ["Spellbook & Professions"] = true,
+    ["Achievements"] = true, ["Group Finder"] = true,
+    ["Guild Finder"] = true, ["Dungeon Journal"] = true,
+    ["Account Collections"] = true, ["Adventure Guide"] = true,
+    ["Guild & Communities"] = true, ["Professions"] = true,
+    ["Talents"] = true, ["Housing Dashboard"] = true, ["Legacy"] = true,
+}
+
+local function translate_bound_title(label, binding, color, reset)
+    if not binding_titles[label] or binding:find("[\r\n]") then return nil end
+    local translated = social_label(label)
+    return translated and (translated .. " " .. (color or "") .. binding
+        .. (reset or "")) or nil
+end
+
 local function translate_social_time(value)
     if value == "< a minute" then return "менше хвилини" end
     local valid, count = true, 0
@@ -1127,8 +1147,15 @@ addonTable.forever_ui_patterns = {
     {
         pattern = '^Abandon "(.*)", destroying (.+)%?$',
         replace = function (name, items)
+            local item_db = addonTable.use("item_client_db")
+            local translated_items = item_db.get_name_by_english(items)
+            if not translated_items then
+                translated_items = items:gsub("([^,]+)(,?%s*)", function (item, separator)
+                    return (item_db.get_name_by_english(item) or item) .. separator
+                end)
+            end
             return string.format(addonTable.forever_surface_ui.quest
-                .ABANDON_QUEST_CONFIRM_WITH_ITEMS, name, items)
+                .ABANDON_QUEST_CONFIRM_WITH_ITEMS, name, translated_items)
         end,
     },
     {
@@ -1495,7 +1522,9 @@ addonTable.forever_ui_patterns = {
         -- string "Level %d %s" can never match the visible value.
         pattern = "^Level (%d+) (.+)$",
         replace = function (level, class)
-            local translated_class = ui[class] or class
+            -- A sentence, building or character-boost title is not a unit type.
+            local translated_class = ui[class]
+            if not translated_class then return nil end
             return "Рівень " .. level .. ": " .. translated_class
         end,
     },
@@ -1679,11 +1708,20 @@ addonTable.forever_ui_patterns = {
         -- while ClassicUA stores the untranslated base label (for example,
         -- CHARACTER_INFO = "Character Info"). Translate the base and preserve
         -- whichever binding the player currently uses.
-        pattern = "^(.-) %((.-)%)$",
-        replace = function (label, binding)
-            local translated = social_label(label)
-            if translated then return translated .. " (" .. binding .. ")" end
+        pattern = "^(.-) (|c%x%x%x%x%x%x%x%x)(%b())(|r)$",
+        replace = function (label, color, binding, reset)
+            return translate_bound_title(label, binding, color, reset)
         end,
+    },
+    {
+        pattern = "^(.-) (|cn[%w_]+:)(%b())(|r)$",
+        replace = function (label, color, binding, reset)
+            return translate_bound_title(label, binding, color, reset)
+        end,
+    },
+    {
+        pattern = "^(.-) (%b())$",
+        replace = translate_bound_title,
     },
     {
         pattern = "^Equip: Your spells pierce ([%d,]+) Magical Resistance%.$",
@@ -1898,21 +1936,70 @@ addonTable.forever_ui_context[#addonTable.forever_ui_context + 1] = {
 }
 
 addonTable.forever_ui_patterns = addonTable.forever_ui_patterns or {}
+
+-- SkillsFrame formats every percentage before writing these complete blocks.
+-- Reuse the canonical translation and handle both native newline forms.
+local function weapon_chance_rule(source, visible_newlines, normalized)
+    local template = source
+    if visible_newlines then template = template:gsub("\\n", "\n") end
+    if normalized then
+        template = template:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+            :gsub("%s+", " "):match("^%s*(.-)%s*$")
+    end
+    local parts, cursor, slots = {}, 1, 0
+    local function literal(value)
+        return value:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    end
+    while true do
+        local first, last = template:find("%s", cursor, true)
+        parts[#parts + 1] = literal(template:sub(cursor, first and first - 1 or -1))
+        if not first then break end
+        parts[#parts + 1] = "([%+%-]?[%d%.,]+%%)"
+        slots, cursor = slots + 1, last + 1
+    end
+    return {
+        pattern = "^" .. table.concat(parts) .. "$",
+        replace = function (...)
+            local values = { ... }
+            local target = addonTable.forever_ui[source]
+            if not target or #values ~= slots then return nil end
+            local index = 0
+            target = target:gsub("%%s", function ()
+                index = index + 1
+                return values[index]
+            end)
+            if index ~= slots then return nil end
+            if visible_newlines then target = target:gsub("\\n", "\n") end
+            return target
+        end,
+    }
+end
+
+local weapon_chance_same_level = "Chance to |cFFFFFFFFHit|r, and to avoid being |cFFFFFFFFDodged|r or |cFFFFFFFFParried|r: %s\\n\\nChance to |cFFFFFFFFCritically Hit|r: %s"
+local weapon_chance_boss = weapon_chance_same_level .. "\\n\\n|cFFFFFFFFGlancing Blows|r occur %s of the time and deal %s less damage"
 local patterns = {
+    weapon_chance_rule(weapon_chance_same_level, false),
+    weapon_chance_rule(weapon_chance_same_level, true),
+    weapon_chance_rule(weapon_chance_same_level, false, true),
+    weapon_chance_rule(weapon_chance_same_level, true, true),
+    weapon_chance_rule(weapon_chance_boss, false),
+    weapon_chance_rule(weapon_chance_boss, true),
+    weapon_chance_rule(weapon_chance_boss, false, true),
+    weapon_chance_rule(weapon_chance_boss, true, true),
     {
-        pattern = "^Chance to Hit, and to avoid being Dodged or Parried:%s*(.+)$",
+        pattern = "^Chance to Hit, and to avoid being Dodged or Parried:%s*([%+%-]?[%d%.,]+%%)$",
         replace = function (value)
             return "Ймовірність влучити й уникнути ухилення або парирування: " .. value
         end,
     },
     {
-        pattern = "^Chance to Critically Hit:%s*(.+)$",
+        pattern = "^Chance to Critically Hit:%s*([%+%-]?[%d%.,]+%%)$",
         replace = function (value)
             return "Ймовірність критичного удару: " .. value
         end,
     },
     {
-        pattern = "^Glancing Blows occur (.+) of the time and deal (.+) less damage$",
+        pattern = "^Glancing Blows occur ([%d%.,]+%%) of the time and deal ([%d%.,]+%%) less damage$",
         replace = function (frequency, damage)
             return "Ковзні удари трапляються у " .. frequency
                 .. " випадків і завдають на " .. damage .. " менше шкоди"
@@ -1921,8 +2008,10 @@ local patterns = {
     {
         pattern = "^Language:%s*(.+)$",
         replace = function (language)
-            local translated = skills[language] or language
-            return "Мова: " .. translated
+            local exact = addonTable.forever_ui["Language: " .. language]
+            if exact then return exact end
+            local translated = addonTable.language and addonTable.language[language]
+            return translated and ("Мова: " .. translated) or nil
         end,
     },
 }
