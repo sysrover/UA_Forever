@@ -4,6 +4,19 @@ local _, addonTable = ...
 -- Context-dependent Blizzard surface output that is not an exact source-key
 -- lookup. Surface adapters provide captures; this module owns localized text.
 addonTable.forever_surface_ui = {
+    inspect = {
+        detail = function (source, lookup)
+            local count = source:match("^Lifetime: (.+)$")
+            if count then return "За весь час: " .. count end
+            count = source:match("^Today: (.+)$")
+            if count then return "Сьогодні: " .. count end
+            count = source:match("^(%d+) Guild Members$")
+            if count then return "Учасників гільдії: " .. count end
+            local faction = source:match("^(Alliance) Guild$")
+                or source:match("^(Horde) Guild$")
+            if faction then return "Гільдія: " .. (lookup(faction) or faction) end
+        end,
+    },
     mail = {
         -- Observed delivery headers; reuse the approved item-name catalog.
         item_deliveries = {

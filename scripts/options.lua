@@ -202,6 +202,8 @@ local frame_sections = {
     { "PVP", "pvp" }, { "Honor", "pvp" },
     { "AchievementAlert", "achievement_alerts" }, { "Achievement", "achievements" },
     { "LegacySystemFrame", "achievements" },
+    { "InspectPVP", "pvp" }, { "InspectGuild", "social_ui" },
+    { "Inspect", "character_ui" },
     { "Character", "character_ui" }, { "PaperDoll", "character_ui" },
     { "Token", "character_ui" }, { "Statistics", "character_ui" },
     { "GearManager", "character_ui" }, { "Friends", "social_ui" },
@@ -219,6 +221,7 @@ local frame_sections = {
 local surface_sections = {
     ["game-menu"] = "game_menu", settings = "game_settings", ["edit-mode"] = "edit_mode",
     ["level-up"] = "level_up", mail = "mail", lfg = "lfg", character = "character_ui",
+    ["inspect-ui"] = "character_ui",
     skills = "spell_ui", professions = "profession_ui", trainer = "trainer",
     social = "social_ui", ["raid-ui"] = "raid_ui", ["achievement-ui"] = "achievements",
     ["achievement-alert"] = "achievement_alerts", ["chat-tabs"] = "chat_ui",
