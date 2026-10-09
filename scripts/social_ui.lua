@@ -76,10 +76,12 @@ local function prepare_social_scroll_box(scroll_box, callback)
         or type(scroll_box.RegisterCallback) ~= "function" then return end
     if not social_scroll_boxes[scroll_box] then
         scroll_box:RegisterCallback(event,
-            function (_, row) callback(row) end, social_scroll_boxes)
+            function (_, row, element_data) callback(row, element_data) end,
+            social_scroll_boxes)
         social_scroll_boxes[scroll_box] = true
     end
-    if type(scroll_box.ForEachFrame) == "function" then
+    if type(scroll_box.ForEachFrame) == "function"
+        and (type(scroll_box.HasView) ~= "function" or scroll_box:HasView()) then
         scroll_box:ForEachFrame(callback)
     end
 end
@@ -87,7 +89,18 @@ end
 local function refresh_social() registry.refresh("social") end
 
 local function translate_community_action(row)
-    translate_social_region(row and row.Name)
+    local region = row and row.Name
+    if not region or runtime.is_applying(region) then return end
+    local claim = runtime.get(region)
+    if claim and type(region.GetText) == "function" then
+        local ok, text = pcall(region.GetText, region)
+        if not ok or runtime.is_secret_value(text) then return end
+        if text == claim.translated then return end
+        -- Native Init can restore the same source in the same generation.
+        -- Release its cached claim so the display write is applied again.
+        if text == claim.source then runtime.invalidate(region) end
+    end
+    translate_social_region(region)
 end
 
 local function prepare_community_row(row, element_data)
@@ -99,12 +112,19 @@ local function prepare_community_row(row, element_data)
     -- Init rewrites pooled rows as either club names or navigation actions.
     -- Translate only the actions identified by native data, even when a club
     -- happens to have the same name as one of those labels.
-    runtime.invalidate(row.Name)
-    if type(element_data) == "table" and not element_data.clubInfo
+    if not runtime.is_secret_value(element_data)
+        and type(element_data) == "table" and not element_data.clubInfo
         and (element_data.setGuildFinder or element_data.setFindCommunity
             or element_data.setJoinCommunity) then
         translate_community_action(row)
+    else
+        runtime.invalidate(row.Name)
     end
+    -- Name is normally excluded from the generic social scan. Watch this
+    -- region only while its current element is a native navigation action.
+    hooks.region(row.Name, "SetText", function ()
+        if not runtime.is_applying(row.Name) then prepare_community_row(row) end
+    end)
     hooks.region(row, "Init", prepare_community_row)
     for _, method in ipairs({ "SetGuildFinder", "SetFindCommunity", "SetAddCommunity" }) do
         hooks.region(row, method, translate_community_action)
@@ -115,6 +135,9 @@ end
 local function prepare_community_rows()
     local root = _G.CommunitiesFrame
     local list = root and root.CommunitiesList
+    hooks.region_script(root, "OnShow", prepare_community_rows, "community-actions")
+    hooks.region(list, "Update", prepare_community_rows)
+    hooks.region(list, "UpdateCommunitiesList", prepare_community_rows)
     prepare_social_scroll_box(list and list.ScrollBox, prepare_community_row)
 end
 
@@ -251,4 +274,5 @@ end
 
 social_ui.prepare = function ()
     declare_social_hooks()
+    prepare_community_rows()
 end

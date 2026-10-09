@@ -13,6 +13,8 @@ local RENDERED_CACHE_LIMIT = 512
 local MAX_CAPTURES = 30
 local MAX_MATCH_STEPS = 100000
 local MAX_MATCH_RESULTS = 64
+local render_referenced_tooltip
+local referenced_tooltip_depth = 0
 local tooltip_catalog = addon_table.forever_tooltip_ui or {}
 local dynamic_value_words = tooltip_catalog.dynamic_value_words or {}
 
@@ -177,6 +179,18 @@ local function parse_template(text)
                         kind = "conditional", key = key,
                         identity = selector, branches = branches,
                     }
+                elseif text:sub(position, position + 11) == "$@expandkey[" then
+                    -- Match the block that the client actually displayed. Its
+                    -- expansion key/state need not be read or reproduced here.
+                    local first, after_first, closed = parse_sequence(position + 12, "]")
+                    if not first or not closed then return nil end
+                    local identity = "$@expandkey"
+                    local key = make_key("conditional", identity)
+                    nodes[#nodes + 1] = {
+                        kind = "conditional", key = key, identity = identity,
+                        branches = { first, {} },
+                    }
+                    position = after_first
                 elseif prefix == "$l" or prefix == "$L"
                     or prefix == "$g" or prefix == "$G" then
                     local close = text:find(";", position + 2, true)
@@ -203,14 +217,18 @@ local function parse_template(text)
                         -- instead of disabling the surrounding translation.
                         or text:sub(position):match("^%$@spelldesc%d+")
                         or text:sub(position):match("^%$@spellaura%d+")
+                        or text:sub(position):match("^%$@spelltooltip%d+")
                     local identity, spell_id = text:sub(position):match(
                         "^(%$@spellname(%d+))")
                     spell_id = tonumber(spell_id)
                     if raw_identity then
+                        local tooltip_spell_id = tonumber(
+                            raw_identity:match("^%$@spelltooltip(%d+)$"))
                         local _, occurrence = make_key("token", raw_identity)
                         nodes[#nodes + 1] = {
                             kind = "token", identity = raw_identity,
                             occurrence = occurrence, raw = true,
+                            tooltip_spell_id = tooltip_spell_id,
                         }
                         position = position + #raw_identity
                     elseif identity and spell_id then
@@ -278,6 +296,7 @@ local function compile_match_program(nodes)
                     kind = "token",
                     identity = node.identity,
                     occurrence = node.occurrence,
+                    multiline = node.tooltip_spell_id ~= nil,
                     next = pc,
                 })
             elseif node.kind == "grammar" then
@@ -339,6 +358,9 @@ local function render_nodes(nodes, decisions, values, decorations)
                 value = token_values[1]
             end
             if value == nil then return nil end
+            if node.tooltip_spell_id then
+                value = render_referenced_tooltip(node.tooltip_spell_id, value)
+            end
             output[#output + 1] = node.raw and value or localize_dynamic_value(value)
         elseif node.kind == "spell_name" then
             local value = client_db.get_name(node.spell_id)
@@ -560,7 +582,7 @@ local function match_program(matcher, native_text)
                 -- Dynamic values belong to one rendered tooltip line. Letting
                 -- a capture cross a newline makes repeated line terminators
                 -- ambiguous and can consume following optional aura rows.
-                if next_position > position then
+                if not instruction.multiline and next_position > position then
                     local previous = native_text:sub(
                         next_position - 1, next_position - 1)
                     if previous == "\r" or previous == "\n" then break end
@@ -610,6 +632,14 @@ end
 
 local function expand_description_references(text, getter, aura_getter, seen, depth)
     if type(text) ~= "string" or type(getter) ~= "function" then return text end
+    -- Build 70291 also uses bracketed IDs. Normalize only known reference
+    -- forms, leaving other client macros untouched for safe fallback.
+    text = text:gsub("%$@(spell%a+)<(%d+)>", function (kind, raw_id)
+        if kind == "spelldesc" or kind == "spellaura" or kind == "spelltooltip" then
+            return "$@" .. kind .. raw_id
+        end
+        return "$@" .. kind .. "<" .. raw_id .. ">"
+    end)
     if (depth or 0) >= 8 then return text end
     seen = seen or {}
     return (text:gsub("%$@(spell%a+)(%d+)", function (kind, raw_id)
@@ -730,6 +760,55 @@ renderer.render = function (
 
     cache_rendered(rendered_key, nil)
     return nil
+end
+
+render_referenced_tooltip = function (spell_id, native_text)
+    if referenced_tooltip_depth >= 8 then return native_text end
+    local english = client_db.get_english_description(spell_id)
+    local ukrainian = client_db.get_description(spell_id)
+    if type(english) ~= "string" or english == ""
+        or type(ukrainian) ~= "string" or ukrainian == "" then return native_text end
+
+    local english_name = client_db.get_english_name(spell_id)
+    local ukrainian_name = client_db.get_name(spell_id)
+    local name_end, decoration
+    if type(english_name) == "string" and type(ukrainian_name) == "string" then
+        name_end, decoration = match_spell_name_at(native_text, 1, english_name)
+        if name_end and name_end <= #native_text
+            and not native_text:sub(name_end, name_end):match("%s") then
+            name_end, decoration = nil, nil
+        end
+    end
+
+    -- A nested tooltip may include costs or other client-owned header rows.
+    -- Translate only a complete matching description suffix and its known
+    -- title; preserve all intervening rows. Ambiguous/missing matches stay native.
+    referenced_tooltip_depth = referenced_tooltip_depth + 1
+    local position = name_end or 1
+    local translated
+    for _ = 1, 64 do
+        local description = renderer.render(
+            spell_id, "spell", english, ukrainian, native_text:sub(position))
+        if description then
+            local prefix = native_text:sub(1, position - 1)
+            if name_end then
+                local name = ukrainian_name
+                if decoration then name = decoration.prefix .. name .. decoration.suffix end
+                prefix = name .. native_text:sub(name_end, position - 1)
+            end
+            local candidate = prefix .. description
+            if translated and translated ~= candidate then
+                referenced_tooltip_depth = referenced_tooltip_depth - 1
+                return native_text
+            end
+            translated = candidate
+        end
+        local newline = native_text:find("\n", position, true)
+        if not newline then break end
+        position = newline + 1
+    end
+    referenced_tooltip_depth = referenced_tooltip_depth - 1
+    return translated or native_text
 end
 
 renderer.clear_rendered_cache = function ()

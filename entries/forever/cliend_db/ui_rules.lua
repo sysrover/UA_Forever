@@ -934,6 +934,14 @@ local function popup_argument_rule(tag, translate_argument)
 end
 
 addonTable.forever_ui_patterns = {
+    {
+        -- AuctionHouseRefreshFrameMixin formats the currently available stock.
+        pattern = "^([%d,]+) Available$",
+        replace = function (quantity)
+            local template = addonTable.forever_ui["%s Available"]
+            return template and string.format(template, quantity) or nil
+        end,
+    },
     popup_argument_rule("CONFIRM_XP_LOSS", true),
     popup_argument_rule("CONFIRM_XP_LOSS_AGAIN", true),
     popup_argument_rule("TAKE_MONEY_FROM_STRANGER_WARNING", false),
