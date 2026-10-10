@@ -20,6 +20,10 @@ local dynamic_dialogs = {
     CONFIRM_SUMMON_STARTING_AREA = true, CONFIRM_SUMMON_SCENARIO = true,
 }
 
+local group_invite_dialogs = {
+    GROUP_INVITE_CONFIRMATION = true, PARTY_INVITE = true,
+}
+
 local menu_walks = {
     popup = { id = "rendered-static-popup", surface = "popup",
         owner = "menus", reason = "ANONYMOUS_POPUP_LAYOUT" },
@@ -99,7 +103,7 @@ local function translate_exit_countdown(dialog)
     if applied then resize_popup_for_text(dialog, surface_text.quit_countdown(count)) end
 end
 
-local function translate_popup_button(dialog, getter)
+local function popup_button(dialog, getter)
     if not dialog then return end
     local button
     if type(dialog[getter]) == "function" then
@@ -116,9 +120,49 @@ local function translate_popup_button(dialog, getter)
         button = dialog["button" .. number]
             or name and _G[name .. "Button" .. number]
     end
+    return button
+end
+
+local function translate_popup_button(dialog, getter)
+    local button = popup_button(dialog, getter)
     if not button or type(button.GetFontString) ~= "function" then return end
     local text_ok, region = pcall(button.GetFontString, button)
     if text_ok then strings.translate_region(region) end
+end
+
+local function prepare_group_invite_buttons(dialog)
+    if not dialog or not group_invite_dialogs[dialog.which] then return end
+    for _, getter in ipairs({ "GetButton1", "GetButton2" }) do
+        local button = popup_button(dialog, getter)
+        if button and type(button.GetFontString) == "function" then
+            local text_ok, region = pcall(button.GetFontString, button)
+            if text_ok and region then
+                local function refresh(written)
+                    -- The dialog and its buttons are pooled. A stored hook
+                    -- must only translate the current visible invitation.
+                    if not group_invite_dialogs[dialog.which]
+                        or popup_button(dialog, getter) ~= button then return end
+                    local shown_ok, shown = pcall(dialog.IsShown, dialog)
+                    if not shown_ok or runtime.is_secret_value(shown)
+                        or shown ~= true then return end
+                    local current_ok, current = pcall(button.GetFontString, button)
+                    if not current_ok or not current
+                        or (written and written ~= button and written ~= current)
+                        or runtime.is_applying(current) then return end
+                    -- Keep the shared runtime's protected/secret-value and
+                    -- combat guards; only the existing label is translated.
+                    strings.translate_region(current)
+                end
+                -- Native code can write through either the Button or its
+                -- FontString after the initial popup translation pass.
+                hooks.region(button, "SetText", refresh)
+                hooks.region(button, "SetFormattedText", refresh)
+                hooks.region(region, "SetText", refresh)
+                hooks.region(region, "SetFormattedText", refresh)
+                refresh()
+            end
+        end
+    end
 end
 
 local function translate_home_popup(dialog)
@@ -199,6 +243,7 @@ local function refresh_and_scan_popups(which, data)
     if type(find) == "function" and which then
         local ok, dialog = pcall(find, which, data)
         if ok and dialog then
+            prepare_group_invite_buttons(dialog)
             translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
             return
@@ -208,6 +253,7 @@ local function refresh_and_scan_popups(which, data)
         local dialog = _G["StaticPopup" .. index]
         local shown_ok, shown = dialog and pcall(dialog.IsShown, dialog)
         if shown_ok and shown then
+            prepare_group_invite_buttons(dialog)
             translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
         end
@@ -232,6 +278,7 @@ local function after_static_popup_show(which, _, _, data)
     dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
     if dynamic_dialogs[which] then
+        prepare_group_invite_buttons(dialog)
         translate_dynamic_popup(dialog)
         translate_popup_button(dialog, "GetButton1")
         translate_popup_button(dialog, "GetButton2")
@@ -294,9 +341,12 @@ popup_ui.prepare = function ()
     hooks.global("StaticPopup_Show", after_static_popup_show)
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
     for index = 1, 4 do
-        hooks.region_script(_G["StaticPopup" .. index], "OnShow", function()
+        local dialog = _G["StaticPopup" .. index]
+        hooks.region_script(dialog, "OnShow", function()
+            prepare_group_invite_buttons(dialog)
             scheduler.request("home-popup:on-show", nil, refresh_and_scan_popups)
         end)
+        prepare_group_invite_buttons(dialog)
     end
 
     -- This XML-owned confirmation bypasses StaticPopup_Show in build 70205.

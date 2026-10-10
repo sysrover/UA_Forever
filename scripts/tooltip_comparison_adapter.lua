@@ -1,6 +1,9 @@
 local _, addon_table = ...
 
 local comparison_adapter = addon_table.use("tooltip_comparison_adapter")
+local layout = addon_table.use("translation_layout")
+-- TooltipComparisonManager in build 70334 sizes the header with this padding.
+local COMPARE_HEADER_PADDING = 30
 
 comparison_adapter.install = function (api)
     local begin_tooltip = api.begin_tooltip
@@ -87,6 +90,26 @@ comparison_adapter.install = function (api)
     local comparison_bootstrap_keys = setmetatable({}, { __mode = "k" })
     local comparison_claim_regions = setmetatable({}, { __mode = "k" })
     local comparison_condition_translation
+
+    local function fit_comparison_header(tooltip, region)
+        local header = tooltip and tooltip.CompareHeader
+        if not header or header.Label ~= region then return end
+        if runtime.combat_locked() then
+            local claim = runtime.get(region)
+            runtime.defer_layout(tooltip, function ()
+                if claim and runtime.get(region) == claim then
+                    fit_comparison_header(tooltip, region)
+                end
+            end)
+            return
+        end
+        local width = layout.safe_dimension(region, "GetStringWidth")
+            or layout.safe_dimension(region, "GetWidth")
+        if width and type(header.SetWidth) == "function"
+            and runtime.can_write_text(header) then
+            pcall(header.SetWidth, header, width + COMPARE_HEADER_PADDING)
+        end
+    end
     
     local function remember_comparison_claim(tooltip, region)
         if not tooltip or not region then return end
@@ -132,6 +155,11 @@ comparison_adapter.install = function (api)
                 verify_after_apply = false,
                 reapply_cached = true,
             }
+            if slot == "comparison.header" then
+                spec.after_visibility = function (region)
+                    fit_comparison_header(tooltip, region)
+                end
+            end
             cached.runtime_spec = spec
         end
         local applied = runtime.apply(region, spec)
@@ -289,6 +317,35 @@ comparison_adapter.install = function (api)
         return installed == true
     end
 
+    local function translate_comparison_header(tooltip)
+        local header = tooltip and tooltip.CompareHeader
+        local label = header and header.Label
+        if not label or type(label.GetText) ~= "function"
+            or tooltip.uaForeverShowOriginal then return false end
+        local ok, source = pcall(label.GetText, label)
+        source = ok and safe_string(source) or nil
+        if not source then return false end
+        local claim = runtime.get(label)
+        if claim and claim.surface == tooltip and source == claim.translated then
+            return true
+        end
+        local cached = comparison_translation_cache[label]
+        if not cached or cached.source ~= source then
+            local translated, _, source_kind, _, _, _, provenance =
+                strings.find_ui_translation(source, label)
+            cached = { source = source, translated = translated or false,
+                source_kind = source_kind,
+                catalog_source = provenance and provenance.source }
+            comparison_translation_cache[label] = cached
+        end
+        if not cached.translated then return false end
+        local applied = apply_comparison_claim(tooltip, label, cached, source,
+            cached.translated, "comparison.header", nil, "generic",
+            cached.source_kind, nil, cached.catalog_source)
+        if applied then fit_comparison_header(tooltip, label) end
+        return applied
+    end
+
     local function install_comparison_text_guards(tooltip)
         if not tooltip then return false end
         if not comparison_guard_swept_tooltips[tooltip] then
@@ -333,7 +390,8 @@ comparison_adapter.install = function (api)
         local claim = region and runtime.get(region)
         local source = claim and claim.owner == "item-tooltip" and claim.source or visible
         source = safe_string(source)
-        if source then
+        if source and not (claim and claim.owner == "item-tooltip"
+            and visible == claim.translated) then
             local translated = comparison_name_translation(tooltip, source)
             if translated and visible ~= translated then
                 set_tooltip_translation(tooltip, region, source, translated,
@@ -342,21 +400,7 @@ comparison_adapter.install = function (api)
             end
         end
     
-        local header = tooltip.CompareHeader
-        local label = header and header.Label
-        if label and type(label.GetText) == "function" then
-            local ok, current = pcall(label.GetText, label)
-            current = ok and safe_string(current) or nil
-            if current then
-                local translated, _, source_kind, _, _, _, provenance =
-                    strings.find_ui_translation(current, label)
-                if translated and translated ~= current then
-                    set_tooltip_translation(tooltip, label, current, translated,
-                        "comparison.header", nil, "generic", source_kind, false,
-                        false, nil, nil, provenance and provenance.source)
-                end
-            end
-        end
+        translate_comparison_header(tooltip)
     
         translate_comparison_conditions(tooltip, snapshot)
         if snapshot.count > 1 then
@@ -485,6 +529,10 @@ comparison_adapter.install = function (api)
                 if item_id then tooltip.uaForeverItemID = item_id end
             end
         end
+        -- ClearLines rewrites the header before the item post-call. The title
+        -- writer can already have restored its claim, so the fast path must
+        -- still refresh the independently pooled header.
+        translate_comparison_header(tooltip)
         if key and comparison_bootstrap_keys[tooltip] == key then
             if comparison_title_claim_is_visible(tooltip) then return false end
             if reapply_comparison_claims(tooltip) then return false end

@@ -1816,6 +1816,8 @@ end
 do
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    -- Device selectors use this value inside the native 220px dropdown.
+    { text = "System Default", frame = "SettingsPanel", translation = "Типовий пристрій системи" },
     { text = "Unit", frame = "CompactRaidFrameManager", translation = "Цілі" },
     { text = "Ground", frame = "CompactRaidFrameManager", translation = "Земля" },
     { text = "Restrict Pings To:", frame = "CompactRaidFrameManager", translation = "Дозволити позначки:" },

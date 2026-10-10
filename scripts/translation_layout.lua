@@ -314,7 +314,7 @@ end
 
 -- Direct tooltip writers bypass tooltips.set_translation. Give them the same
 -- text/font-to-layout lifecycle, with incremental, repeat-safe height changes.
-layout.tooltip_after_text = function (tooltip, region, source)
+layout.tooltip_after_text = function (tooltip, region, source, wrap_to_tooltip)
     if not is_tooltip(tooltip) or not region then return nil end
     local previous_height = safe_dimension(region, "GetHeight")
         or safe_dimension(region, "GetStringHeight")
@@ -341,6 +341,14 @@ layout.tooltip_after_text = function (tooltip, region, source)
         pending_tooltip_layout[region] = nil
         local tooltip_height = safe_dimension(tooltip, "GetHeight")
         fit_tooltip_width_to_region(tooltip, region, source)
+        if wrap_to_tooltip then
+            local width = safe_dimension(tooltip, "GetWidth")
+            if not width or width <= TOOLTIP_TEXT_PADDING
+                or type(region.SetWidth) ~= "function" then return false end
+            if not pcall(region.SetWidth, region, width - TOOLTIP_TEXT_PADDING) then
+                return false
+            end
+        end
         -- Release any native line/height caps before measuring, otherwise the
         -- measurement can describe the clipped text rather than its full body.
         if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
@@ -362,6 +370,110 @@ layout.tooltip_after_text = function (tooltip, region, source)
         return true
     end
     return fit
+end
+
+-- Fit completed tooltips, including both columns and late native writes.
+-- Per-write height deltas are unreliable while Blizzard is building rows.
+local function fit_complete_tooltip(tooltip, maximum_width)
+    if not is_tooltip(tooltip) or tooltip.uaForeverShowOriginal
+        or not is_shown(tooltip) then return false end
+    local generation = tooltip.uaForeverGeneration
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or is_secret(owner) then return false end
+    if runtime.combat_locked() then
+        pending_tooltip_layout[tooltip] = function ()
+            pending_tooltip_layout[tooltip] = nil
+            local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
+            if ok and not is_secret(current_owner) and current_owner == owner
+                and tooltip.uaForeverGeneration == generation then
+                fit_complete_tooltip(tooltip, maximum_width)
+            end
+        end
+        return false
+    end
+    pending_tooltip_layout[tooltip] = nil
+    if not runtime.can_write_text(tooltip) then return false end
+    local name = object_name(tooltip)
+    local count = safe_dimension(tooltip, "NumLines")
+    local width = safe_dimension(tooltip, "GetWidth")
+    if not name or not count or not width then return false end
+    local rows, required_width = {}, width
+    for index = 1, count do
+        local row = {}
+        for _, side in ipairs({ "Left", "Right" }) do
+            local region = _G[name .. "Text" .. side .. index]
+            if region and is_shown(region) then
+                local ok, text = pcall(region.GetText, region)
+                text = ok and runtime.safe_string_or_nil(text) or nil
+                if not text or not runtime.can_write_text(region) then return false end
+                row[side] = region
+                row[side .. "Width"] = unbounded_text_width(region) or 0
+            end
+        end
+        required_width = math.max(required_width,
+            (row.LeftWidth or 0) + (row.RightWidth or 0)
+                + TOOLTIP_TEXT_PADDING + (row.Right and 12 or 0))
+        rows[#rows + 1] = row
+    end
+    local screen_width = safe_dimension(_G.UIParent, "GetWidth")
+    local maximum = screen_width and math.min(maximum_width, screen_width - 32)
+        or maximum_width
+    width = math.min(maximum, math.max(width, required_width))
+    if width <= TOOLTIP_TEXT_PADDING
+        or type(tooltip.SetWidth) ~= "function"
+        or not pcall(tooltip.SetWidth, tooltip, width) then return false end
+    local available = width - TOOLTIP_TEXT_PADDING
+    for _, row in ipairs(rows) do
+        local right_width = row.Right and math.min(row.RightWidth, available * 0.45) or 0
+        for _, side in ipairs({ "Left", "Right" }) do
+            local region = row[side]
+            if region then
+                local text_width = side == "Right" and right_width
+                    or available - right_width - (row.Right and 12 or 0)
+                local previous_height = safe_dimension(region, "GetHeight")
+                if type(region.SetWidth) == "function" then
+                    pcall(region.SetWidth, region, math.max(1, text_width))
+                end
+                if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
+                if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
+                if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, true) end
+                if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+                local height = safe_dimension(region, "GetStringHeight")
+                if not height or height <= 0 then
+                    if previous_height and type(region.SetHeight) == "function" then
+                        pcall(region.SetHeight, region, previous_height)
+                    end
+                    return false
+                end
+                if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, height) end
+                row[side .. "Height"] = height
+            end
+        end
+    end
+    local top = safe_dimension(tooltip, "GetTop")
+    if not top then return false end
+    local height = 0
+    for _, row in ipairs(rows) do
+        for _, side in ipairs({ "Left", "Right" }) do
+            if row[side] then
+                local row_top = safe_dimension(row[side], "GetTop")
+                if not row_top then return false end
+                height = math.max(height, top - row_top + row[side .. "Height"])
+            end
+        end
+    end
+    if height <= 0 or type(tooltip.SetHeight) ~= "function" then return false end
+    return pcall(tooltip.SetHeight, tooltip, math.ceil(height + TOOLTIP_TEXT_PADDING / 2))
+end
+
+layout.fit_talent_tooltip = function (tooltip)
+    if not tooltip or tooltip.uaForeverKind ~= "talent" then return false end
+    return fit_complete_tooltip(tooltip, 360)
+end
+
+layout.fit_settings_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.SettingsTooltip then return false end
+    return fit_complete_tooltip(tooltip, 420)
 end
 
 layout.retry_tooltip_layout = function ()

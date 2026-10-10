@@ -1,5 +1,5 @@
 local addon_name, addon_table = ...
-local addon_version = "0.19.5"
+local addon_version = "0.20.0"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
@@ -53,6 +53,7 @@ local skills = addon_table.use("skills")
 local strings = addon_table.use("strings")
 local talent_frame_adapter = addon_table.use("talent_frame_adapter")
 local tooltips = addon_table.use("tooltips")
+local tooltip_feedback_adapter = addon_table.use("tooltip_feedback_adapter")
 local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
 local target_frame = addon_table.use("target_frame")
 local translation = addon_table.use("translation")
@@ -1077,6 +1078,9 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
     if scope and options.work_enabled and not options.work_enabled(scope) then return end
     if event == "ADDON_LOADED" then
         local loaded_addon = ...
+        if loaded_addon == "Blizzard_PTRFeedback" and self.uaForeverLoginReady then
+            tooltip_feedback_adapter.prepare()
+        end
         if loaded_addon == "ForeverVO" then
             quest_switcher.prepare()
             forever_vo_ui.prepare()
@@ -1143,6 +1147,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         registry.register_defaults(strings.translate_frame)
         registry.prepare_root_hooks()
         tooltips.prepare()
+        tooltip_feedback_adapter.prepare()
         chats.prepare()
         chat_links.prepare()
         addon_table.use("combat_log").prepare()

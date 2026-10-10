@@ -15,6 +15,7 @@ local trait_overrides = addon_table.client_trait_definition_overrides_en
 local talent_ui = assert(addon_table.talent_ui,
     "UA Forever talent UI catalog is not loaded")
 local runtime = addon_table.use("translation_runtime")
+local layout = addon_table.use("translation_layout")
 local hooks = addon_table.use("translation_hooks").bind("talent-frame")
 local tooltip_contexts = setmetatable({}, { __mode = "k" })
 
@@ -438,7 +439,15 @@ adapter.translate = function (_, button, tooltip)
         generation = tooltip.uaForeverGeneration }
     -- Issue-submission tools can append another instruction after TooltipCreated.
     -- Translate those writes immediately, including newly allocated rows.
-    local function appended() prepare_tooltip_rows(tooltip) end
+    local function fit()
+        if current_context(tooltip) then layout.fit_talent_tooltip(tooltip) end
+    end
+    local function appended()
+        prepare_tooltip_rows(tooltip)
+        fit()
+    end
+    -- Fit after the native Show has finished assigning the final row geometry.
+    hooks.region(tooltip, "Show", fit)
     hooks.region(tooltip, "AddLine", appended)
     hooks.region(tooltip, "AddDoubleLine", appended)
     hooks.region(tooltip, "ClearLines", function () tooltip_contexts[tooltip] = nil end)
@@ -451,4 +460,5 @@ adapter.translate = function (_, button, tooltip)
     end
 
     prepare_tooltip_rows(tooltip)
+    fit()
 end

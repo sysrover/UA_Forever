@@ -10,6 +10,7 @@ local translation = addon_table.use("translation")
 local runtime = addon_table.use("translation_runtime")
 local scheduler = addon_table.use("translation_scheduler")
 local tooltip_session = addon_table.use("tooltip_session")
+local feedback_adapter = addon_table.use("tooltip_feedback_adapter")
 local item_adapter = addon_table.use("tooltip_item_adapter")
 local item_client_db = addon_table.use("item_client_db")
 local comparison_adapter = addon_table.use("tooltip_comparison_adapter")
@@ -41,8 +42,6 @@ local tooltip_events = setmetatable({}, { __mode = "k" })
 local native_tooltip_data = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
-local ptr_feedback_hooked = false
-local ptr_feedback_cache = {}
 
 local function arm_tooltip_updates(tooltip, budget)
     if not tooltip then return end
@@ -112,7 +111,8 @@ local function sync_tooltip_original_state(tooltip)
             if not options.can_translate(option) then disabled = true end
         end
         runtime.show_original(region,
-            show or disabled or options.is_bilingual_tooltip())
+            show or disabled or (options.is_bilingual_tooltip()
+                and claim.owner ~= "ptr-feedback"))
     end)
     return true
 end
@@ -124,15 +124,6 @@ local function safe_number(value)
     if is_secret(value) or value == nil then return nil end
     local ok, result = pcall(tonumber, value)
     if ok then return result end
-end
-
-local function is_ptr_feedback_instruction(source)
-    if not source then return false end
-    local reporter = _G.PTR_IssueReporter
-    if type(reporter) ~= "table" and type(reporter) ~= "userdata" then return false end
-    local partial = safe_string(reporter.BugTooltipPartialString)
-    return partial and source:find(partial, 1, true) ~= nil
-        or source == safe_string(reporter.MissingBindTooltipString)
 end
 
 local function first_template_part(text)
@@ -185,9 +176,9 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
     if not tooltip or not translated then return false end
     if source and translated == source then return false end
     if not options.can_translate() then return false end
-    -- PTR's native duplicate scan needs this exact English row. Its post-hook
-    -- adds a separate translated line without replacing the native function.
-    if region and is_ptr_feedback_instruction(source) then return false end
+    -- The optional beta adapter owns the native feedback writer and its
+    -- duplicate detection. Generic/domain passes must not take its row first.
+    if region and feedback_adapter.is_instruction(source) then return false end
     slot = slot or "generic.text"
     local name_enabled = not category or not slot:match("%.name$")
         or (options.name_enabled and options.name_enabled({
@@ -274,7 +265,22 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
             end
         end
         local after_apply
-        if adjust_layout ~= false and not combat_tooltip_text then
+        -- Forever Voiceover adds this instruction as an unwrapped AddLine.
+        -- Keep its full translation within the current tooltip and grow the
+        -- height after wrapping; the shared helper guards reuse and combat.
+        local wrapped_layout = adjust_layout ~= false
+            and source == "Left-click: options. Right-click: playback menu."
+            and layout.tooltip_after_text(tooltip, region, source, true)
+        if wrapped_layout then
+            after_apply = wrapped_layout
+            local previous_visibility_callback = visibility_callback
+            visibility_callback = function (visible_region)
+                wrapped_layout()
+                if previous_visibility_callback then
+                    pcall(previous_visibility_callback, visible_region)
+                end
+            end
+        elseif adjust_layout ~= false and not combat_tooltip_text then
             after_apply = function (applied)
                 layout.fit_tooltip_width_to_region(tooltip, applied, source)
                 layout.fit_tooltip_height_to_region(tooltip, applied,
@@ -1320,6 +1326,11 @@ tooltips.inspect = function (tooltip, limit)
     return result
 end
 
+feedback_adapter.configure({
+    begin_tooltip = begin_tooltip,
+    tooltip_line = tooltip_line,
+})
+
 local comparison = comparison_adapter.install({
     begin_tooltip = begin_tooltip,
     hooks = hooks,
@@ -1570,6 +1581,7 @@ local function translate_generic_tooltip(tooltip)
     -- data. Resolve every rendered line directly through the UI dictionary.
     if tooltip == _G.SettingsTooltip then
         rewrite_generic_lines(tooltip)
+        layout.fit_settings_tooltip(tooltip)
         return
     end
 
@@ -2036,6 +2048,18 @@ local function prepare_tooltip_frames()
     end)
     for _, tooltip in ipairs(tooltip_frames) do
         if tooltip then
+            if tooltip == _G.SettingsTooltip then
+                -- Show finishes the native layout even when this frame was
+                -- already visible. Its OnShow script alone misses those writes.
+                hooks.region(tooltip, "Show", function (self)
+                    translate_generic_tooltip(self)
+                end)
+                for _, method in ipairs({ "AddLine", "AddDoubleLine" }) do
+                    hooks.region(tooltip, method, function (self)
+                        schedule_tooltip_finalize(self)
+                    end)
+                end
+            end
             if tooltip == _G.GameTooltip then
                 hooks.region(tooltip, "SetUnit", function (self, unit)
                     note_tooltip_event(self, "unitMethod")
@@ -2124,6 +2148,9 @@ local function prepare_tooltip_frames()
                 end
             end)
             hooks.region_script(tooltip, "OnTooltipCleared", function (self)
+                    if is_shopping_tooltip(self) then
+                        self.uaForeverComparisonWriteReady = false
+                    end
                     if self.uaForeverQuestPinOwner then
                         local ok, owner = pcall(self.GetOwner, self)
                         if ok and not is_secret(owner) and owner == self.uaForeverQuestPinOwner then
@@ -2297,57 +2324,6 @@ local function after_game_tooltip_update(tooltip)
     end
 end
 
-local function prepare_ptr_feedback_hook()
-    if ptr_feedback_hooked then return true end
-    local reporter = _G.PTR_IssueReporter
-    if not reporter or type(reporter.HookIntoTooltip) ~= "function" then
-        return false
-    end
-    ptr_feedback_hooked = hooks.region(reporter, "HookIntoTooltip",
-        function (tooltip)
-            if not tooltip or tooltip.uaForeverShowOriginal
-                or not options.can_translate() then return end
-            local count_ok, count = pcall(tooltip.NumLines, tooltip)
-            count = count_ok and safe_number(count) or nil
-            if not count or count < 1 then return end
-            local source, region = tooltip_line(tooltip, "Left", count, true)
-            source = safe_string(source)
-            if not source or not region or not is_ptr_feedback_instruction(source) then
-                return
-            end
-            local cached = ptr_feedback_cache[source]
-            local translated, source_kind, catalog_source
-            if cached then
-                translated = cached.translated
-                source_kind = cached.source_kind
-                catalog_source = cached.catalog_source
-            else
-                local provenance
-                translated, _, source_kind, _, _, _, provenance =
-                    strings.find_ui_translation(source, region)
-                catalog_source = provenance and provenance.source
-                ptr_feedback_cache[source] = {
-                    translated = translated,
-                    source_kind = source_kind,
-                    catalog_source = catalog_source,
-                }
-            end
-            if not translated or translated == source then return end
-            if not tooltip.uaForeverSessionKey then
-                begin_tooltip(tooltip, "ptr-feedback:" .. tostring(tooltip))
-            end
-            -- Preserve native text for duplicate detection, also on talents.
-            local applied = set_tooltip_translation(tooltip, nil, source, translated,
-                "ptr-feedback", nil, "generic", source_kind,
-                true, true, nil, nil, catalog_source)
-            if applied and not runtime.combat_locked()
-                and type(tooltip.Show) == "function" then
-                pcall(tooltip.Show, tooltip)
-            end
-        end) == true
-    return ptr_feedback_hooked
-end
-
 local function translate_appended_bag_tooltip_lines()
     local tooltip = _G.GameTooltip
     if not tooltip or tooltip.uaForeverKind ~= "item" then return end
@@ -2411,7 +2387,6 @@ tooltips.prepare = function ()
         after_aura_tooltip_rendered(self)
     end, "player-aura")
     prepare_comparison_manager()
-    prepare_ptr_feedback_hook()
     prepare_bag_tooltip_hooks()
     hooks.region_script(_G.GameTooltip, "OnUpdate", after_game_tooltip_update,
         "quest-reward")
@@ -2668,7 +2643,8 @@ tooltips.refresh_active = function ()
                 if not options.can_translate(option) then disabled = true end
             end
             runtime.show_original(region,
-                show or disabled or options.is_bilingual_tooltip())
+                show or disabled or (options.is_bilingual_tooltip()
+                    and claim.owner ~= "ptr-feedback"))
         end)
         tooltip_font_strings[tooltip] = nil
         local used = {}
@@ -2754,7 +2730,8 @@ tooltips.refresh_active = function ()
                 if not options.can_translate(option) then disabled = true end
             end
             runtime.show_original(region,
-                show or disabled or options.is_bilingual_tooltip())
+                show or disabled or (options.is_bilingual_tooltip()
+                    and claim.owner ~= "ptr-feedback"))
         end)
         if not show and not reapply_comparison_claims(tooltip) then
             translate_shopping_tooltip(tooltip)

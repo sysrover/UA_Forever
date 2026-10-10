@@ -31,15 +31,10 @@ local ITEM_SPELL_EQUIP = 45
 local ITEM_SPELL_PROC = 46
 local UNTYPED_LINE = 0
 
-local function migrated_line(spell_id, source, kind, tooltip)
-    if type(client_db.get_details) ~= "function" then return nil end
-    local detail = client_db.get_details(spell_id)
-    if not detail or type(source) ~= "string" then return nil end
-    local exact = kind == "aura" and detail.aura_lines or detail.tooltip_lines
+local function migrated_fragment(source, exact, patterns)
     if type(exact) == "table" and type(exact[source]) == "string" then
         return exact[source]
     end
-    local patterns = kind == "aura" and detail.aura_patterns or nil
     for _, rule in ipairs(patterns or {}) do
         if type(rule) == "table" and type(rule[1]) == "string"
             and type(rule[2]) == "string" then
@@ -49,6 +44,32 @@ local function migrated_line(spell_id, source, kind, tooltip)
                 if ok then return translated end
             end
         end
+    end
+end
+
+local function migrated_line(spell_id, source, kind, tooltip)
+    if type(client_db.get_details) ~= "function" then return nil end
+    local detail = client_db.get_details(spell_id)
+    if not detail or type(source) ~= "string" then return nil end
+    local exact = kind == "aura" and detail.aura_lines or detail.tooltip_lines
+    local patterns = kind == "aura" and detail.aura_patterns or nil
+    local translated = migrated_fragment(source, exact, patterns)
+    if translated then return translated end
+    if kind == "aura" and (source:find("[\r\n]") or source:find("|n", 1, true)) then
+        local changed = false
+        -- One native FontString can contain several independent benefits.
+        -- Keep unknown fragments and every original line separator intact.
+        local result = (source .. "|n"):gsub("(.-)|n", function (block)
+            return block:gsub("[^\r\n]+", function (line)
+                local fragment = migrated_fragment(line, exact, patterns)
+                if fragment and fragment ~= line then
+                    changed = true
+                    return fragment
+                end
+                return line
+            end) .. "|n"
+        end):sub(1, -3)
+        if changed then return result end
     end
     -- $ token rows and legacy # capture templates are different schemas.
     -- A canonical translated description always takes precedence.

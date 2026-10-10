@@ -562,6 +562,18 @@ local function initializer_name(frame, supplied)
     return safe_method(frame_initializer(frame, supplied), "GetName")
 end
 
+local function fit_row_label(frame)
+    local region = frame and frame.Text
+    local claim = region and runtime.get(region)
+    if not claim or claim.visible_original or runtime.combat_locked()
+        or not runtime.can_write_text(region) then return end
+    -- Only change the display FontString. The native Settings view, extent
+    -- calculator and pooled control geometry must remain Blizzard-owned.
+    if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
+    if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
+    if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+end
+
 local function translate_source_region(region, source, slot, instance, override)
     if not region then return false end
     source = safe_source(source)
@@ -653,6 +665,7 @@ local function translate_row(frame, supplied_initializer)
     local initializer = frame_initializer(frame, supplied_initializer)
     translate_source_region(frame.Text,
         initializer_name(frame, initializer), "ui.label", frame)
+    fit_row_label(frame)
     translate_region(frame.Title, "ui.title", frame)
     translate_region(frame.Label, "ui.label", frame)
     translate_region(frame.text, "ui.text", frame)
@@ -692,6 +705,19 @@ local function translate_row(frame, supplied_initializer)
     translate_region(frame.PreviewFontString, "ui.label", frame)
     translate_region(frame.PreviewFrame and frame.PreviewFrame.PreviewFontString,
         "ui.label", frame)
+    local binding_button = frame.PushToTalkKeybindButton
+    local binding_text = safe_method(binding_button, "GetFontString")
+    translate_region(binding_text, "ui.keybinding", frame)
+    hook_native_region(binding_text, "ui.keybinding", frame)
+    if binding_button then
+        hooks.region(binding_button, "SetText", function (self, source)
+            translate_source_region(safe_method(self, "GetFontString"),
+                source, "ui.keybinding", frame)
+        end)
+    end
+    local new_feature = frame.NewFeature
+    translate_region(new_feature and new_feature.Label, "ui.label", frame)
+    translate_region(new_feature and new_feature.BGLabel, "ui.label", frame)
     for _, color_frame in ipairs(frame.colorOverrideFrames or {}) do
         translate_region(color_frame and color_frame.Text, "ui.label", color_frame)
     end
@@ -738,6 +764,7 @@ local function translate_list_element(frame, supplied_initializer)
     if not frame then return end
     translate_source_region(frame.Text,
         initializer_name(frame, supplied_initializer), "ui.label", frame)
+    fit_row_label(frame)
 end
 
 local function translate_expandable_section(frame, supplied_initializer)
@@ -948,6 +975,7 @@ local function declare_settings_hooks()
             translate_keybinding },
         { "keybinding.preface", "SettingsKeybindingPrefaceMixin",
             translate_keybinding_preface },
+        { "voice.keybinding", "VoicePushToTalkMixin", translate_row },
     }
     for _, definition in ipairs(init_hooks) do
         declare_settings_hook(definition[1] .. ".init", "mixin",
@@ -963,6 +991,8 @@ local function declare_settings_hooks()
         translate_category_button)
     declare_settings_hook("checkbox.button.state", "mixin",
         "SettingsCheckboxWithButtonControlMixin", "EvaluateState", translate_row)
+    declare_settings_hook("voice.keybinding.state", "mixin",
+        "VoicePushToTalkMixin", "EvaluateState", translate_row)
     declare_settings_hook("auto-loot.label", "mixin",
         "AutoLootDropdownControlMixin", "UpdateLabel", translate_row)
     declare_settings_hook("list.display", "mixin", "SettingsListMixin",

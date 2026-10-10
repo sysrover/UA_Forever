@@ -133,6 +133,10 @@ local tooltip = {
 }
 
 tooltip.format = {
+    -- Optional Blizzard_PTRFeedback owns the report type and actual keybind.
+    ptr_feedback = function (shortcut)
+        return shortcut .. ": повідомити про помилку"
+    end,
     item_set_name = function (name, equipped, total)
         return name .. " (" .. equipped .. "/" .. total .. ")"
     end,

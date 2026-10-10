@@ -188,8 +188,8 @@ local function dialog_field(region, id, field, getter, result_index)
     if applied then apply_dialog_language(region) end
 end
 
-local function dialog_quest_id()
-    if _G.QuestInfoFrame and _G.QuestInfoFrame.questLog
+local function dialog_quest_id(live_dialog)
+    if not live_dialog and _G.QuestInfoFrame and _G.QuestInfoFrame.questLog
         and _G.C_QuestLog and type(_G.C_QuestLog.GetSelectedQuest) == "function" then
         local selected_ok, selected = pcall(_G.C_QuestLog.GetSelectedQuest)
         if selected_ok and type(selected) == "number" and selected > 0 then
@@ -198,6 +198,14 @@ local function dialog_quest_id()
     end
     local ok, id = pcall(translation.get_current_quest_id)
     if ok and type(id) == "number" then return id end
+end
+
+local function translate_progress_dialog()
+    -- The progress panel is an NPC dialog, even when QuestInfoFrame still
+    -- retains the previous quest-log template's flag and selected quest.
+    local id = dialog_quest_id(true)
+    dialog_field(_G.QuestProgressTitleText, id, 1, "GetTitleText")
+    dialog_field(_G.QuestProgressText, id, 4, "GetProgressText")
 end
 
 local function quest_info_field(region, field, live_getter, log_getter, log_result)
@@ -680,11 +688,17 @@ local function prepare_dialog_hooks()
     prepare_dialog_hook("QuestInfo_ShowRewardText", function ()
         dialog_field(_G.QuestInfoRewardText, dialog_quest_id(), 5, "GetRewardText")
     end)
-    prepare_dialog_hook("QuestFrameProgressPanel_OnShow", function ()
-        local id = dialog_quest_id()
-        dialog_field(_G.QuestProgressTitleText, id, 1, "GetTitleText")
-        dialog_field(_G.QuestProgressText, id, 4, "GetProgressText")
-    end)
+    prepare_dialog_hook("QuestFrameProgressPanel_OnShow", translate_progress_dialog)
+    hooks.region_script(_G.QuestFrameProgressPanel, "OnShow", translate_progress_dialog)
+    -- XML can retain the original OnShow function. Observe the actual region
+    -- writes too, including text populated after the initial panel callback.
+    for _, region in pairs({ _G.QuestProgressTitleText, _G.QuestProgressText }) do
+        local function written(self)
+            if not runtime.is_applying(self) then translate_progress_dialog() end
+        end
+        hooks.region(region, "SetText", written)
+        hooks.region(region, "SetFormattedText", written)
+    end
     prepare_dialog_hook("QuestFrameGreetingPanel_OnShow", translate_quest_greeting)
     prepare_dialog_hook("QuestInfo_ShowObjectives", translate_info_objectives)
     -- QuestInfo templates store the original writer functions in their
@@ -969,8 +983,7 @@ quest_ui.refresh_current_dialog = function ()
         "GetQuestText", "GetQuestLogQuestText", 1)
     quest_info_field(_G.QuestInfoObjectivesText, 3,
         "GetObjectiveText", "GetQuestLogQuestText", 2)
-    dialog_field(_G.QuestProgressTitleText, dialog_quest_id(), 1, "GetTitleText")
-    dialog_field(_G.QuestProgressText, dialog_quest_id(), 4, "GetProgressText")
+    translate_progress_dialog()
     dialog_field(_G.QuestInfoRewardText, dialog_quest_id(), 5, "GetRewardText")
     translate_info_objectives()
 end
