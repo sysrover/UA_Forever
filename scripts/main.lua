@@ -1,5 +1,5 @@
 local addon_name, addon_table = ...
-local addon_version = "0.20.0"
+local addon_version = "0.20.5"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")

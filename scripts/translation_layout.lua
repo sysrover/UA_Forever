@@ -357,13 +357,12 @@ layout.tooltip_after_text = function (tooltip, region, source, wrap_to_tooltip)
         if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
         local height = safe_dimension(region, "GetStringHeight")
         if not height or height <= 0 then
-            if previous_height and type(region.SetHeight) == "function" then
-                pcall(region.SetHeight, region, previous_height)
-            end
             return false
         end
         if height and previous_height and tooltip_height then
-            if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, height) end
+            -- Keep the FontString automatically sized. Tooltip rows are pooled:
+            -- pinning this measured height leaves gaps when a shorter item line
+            -- later reuses the same region after OnTooltipCleared.
             fit_tooltip_height_to_region(tooltip, region, previous_height, tooltip_height)
             previous_height = height
         end
@@ -430,7 +429,6 @@ local function fit_complete_tooltip(tooltip, maximum_width)
             if region then
                 local text_width = side == "Right" and right_width
                     or available - right_width - (row.Right and 12 or 0)
-                local previous_height = safe_dimension(region, "GetHeight")
                 if type(region.SetWidth) == "function" then
                     pcall(region.SetWidth, region, math.max(1, text_width))
                 end
@@ -440,12 +438,10 @@ local function fit_complete_tooltip(tooltip, maximum_width)
                 if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
                 local height = safe_dimension(region, "GetStringHeight")
                 if not height or height <= 0 then
-                    if previous_height and type(region.SetHeight) == "function" then
-                        pcall(region.SetHeight, region, previous_height)
-                    end
                     return false
                 end
-                if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, height) end
+                -- Leave shared GameTooltip rows at automatic height so later
+                -- item/quest tooltips cannot inherit this text's line count.
                 row[side .. "Height"] = height
             end
         end
