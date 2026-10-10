@@ -132,6 +132,15 @@ local function apply_dialog_language(region)
     end
 end
 
+local function quest_map_rewards_label()
+    local map = _G.QuestMapFrame
+    local details = map and (map.DetailsFrame
+        or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
+    local container = details and details.RewardsFrameContainer
+    local rewards = container and container.RewardsFrame
+    return rewards and rewards.Label
+end
+
 quest_ui.refresh_dialog_language = function ()
     for _, name in ipairs({
         "QuestInfoTitleHeader", "QuestInfoDescriptionText",
@@ -145,7 +154,8 @@ quest_ui.refresh_dialog_language = function ()
         apply_dialog_language(row)
     end
     for _, region in pairs({ _G.QuestInfoDescriptionHeader,
-        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header }) do
+        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header,
+        quest_map_rewards_label() }) do
         runtime.show_original(region, translation.get_quest_language() == "en")
     end
 end
@@ -616,7 +626,8 @@ local function translate_quest_map_labels()
         end
     end
     for _, region in pairs({ _G.QuestInfoDescriptionHeader,
-        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header }) do
+        _G.QuestInfoRewardsFrame and _G.QuestInfoRewardsFrame.Header,
+        quest_map_rewards_label() }) do
         if quest_map_labels[safe_text(region)] then
             strings.translate_region(region)
         end
