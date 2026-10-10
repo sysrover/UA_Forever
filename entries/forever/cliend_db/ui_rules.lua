@@ -953,7 +953,65 @@ local function popup_argument_rule(tag, translate_argument)
     }
 end
 
+-- Native cooldown/DPS menus format these strings before drawing FontStrings.
+local panel_class_names = { Warrior = true, Paladin = true, Hunter = true,
+    Rogue = true, Priest = true, Shaman = true, Mage = true, Warlock = true,
+    Druid = true, Monk = true, Evoker = true, ["Death Knight"] = true, ["Demon Hunter"] = true }
+local function panel_class_spec(class, spec)
+    if panel_class_names[class] then
+        return (social_label(class) or class) .. " - " .. (social_label(spec) or spec)
+    end
+end
+
+local function panel_format_rule(template, pattern, translate_arguments)
+    return { pattern = pattern, replace = function (...)
+        local args = { ... }
+        if translate_arguments then
+            local resolver = addonTable.use("translation_resolver")
+            for index, value in ipairs(args) do
+                args[index] = resolver.find_ui(value) or value
+            end
+        end
+        return string.format(addonTable.forever_ui[template], unpack(args))
+    end }
+end
+
 addonTable.forever_ui_patterns = {
+    panel_format_rule("Assign to %s", "^Assign to (.+)$", true),
+    panel_format_rule("Add Alert (%d/%d)", "^Add Alert %((%d+)/(%d+)%)$"),
+    panel_format_rule("Cannot change category: %s", "^Cannot change category: (.+)$", true),
+    panel_format_rule("Cannot change cooldown order: %s", "^Cannot change cooldown order: (.+)$", true),
+    panel_format_rule("Cannot add cooldown alert: %s", "^Cannot add cooldown alert: (.+)$", true),
+    panel_format_rule("[PH] Cannot create layout named [%s], pick a different name",
+        "^%[PH%] Cannot create layout named %[(.-)%], pick a different name$"),
+    panel_format_rule("Cooldown layout \"%s\" copied to clipboard.",
+        "^Cooldown layout \"(.-)\" copied to clipboard%.$"),
+    panel_format_rule("Are you sure you want to delete the layout|n%s?",
+        "^Are you sure you want to delete the layout|n(.-)%?$"),
+    panel_format_rule("Enter New Name for Layout %s", "^Enter New Name for Layout (.+)$"),
+    panel_format_rule("A max of %d character layouts and %d account layouts are allowed",
+        "^A max of (%d+) character layouts and (%d+) account layouts are allowed$"),
+    panel_format_rule("Only %d character specific layouts are allowed. Uncheck the box to save an account wide layout",
+        "^Only (%d+) character specific layouts are allowed%. Uncheck the box to save an account wide layout$"),
+    panel_format_rule("Only %d account wide layouts are allowed. Check the box to save a character specific layout",
+        "^Only (%d+) account wide layouts are allowed%. Check the box to save a character specific layout$"),
+    panel_format_rule("%s Specific", "^(.+) Specific$"),
+    { pattern = "^(.+) %- (.+)$", replace = panel_class_spec },
+    { pattern = "^(.+) is for (.+)$", replace = function (layout_name, who)
+        local class, spec = who:match("^(.+) %- (.+)$")
+        local translated = class and panel_class_spec(class, spec)
+            or addonTable.use("translation_resolver").find_ui(who)
+        return string.format(addonTable.forever_ui["%s is for %s"], layout_name, translated or who)
+    end },
+    panel_format_rule("No buff to track | Trinket Buff %d", "^No buff to track | Trinket Buff (%d+)$"),
+    panel_format_rule("Empty Trinket Slot %d | No buff to track", "^Empty Trinket Slot (%d+) | No buff to track$"),
+    panel_format_rule("Combat %d", "^Combat (%d+)$"),
+    {
+        pattern = "^Combat (%d+)( %[[%d:]+%])$",
+        replace = function (number, duration)
+            return string.format(addonTable.forever_ui["Combat %d"], number) .. duration
+        end,
+    },
     {
         pattern = "^Version ([%d%.]+)$",
         replace = function (version)
@@ -1816,6 +1874,8 @@ end
 do
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    { text = "C", frame = "DamageMeter", translation = "П" },
+    { text = "O", frame = "DamageMeter", translation = "З" },
     -- Device selectors use this value inside the native 220px dropdown.
     { text = "System Default", frame = "SettingsPanel", translation = "Типовий пристрій системи" },
     { text = "Unit", frame = "CompactRaidFrameManager", translation = "Цілі" },
@@ -1842,6 +1902,7 @@ addonTable.forever_ui_context = {
     { text = "Send Mail", frame = "MailFrameTab2.Text", translation = "Надіслати листа" },
     { text = "Custom", frame = "LFGListingFrameCategoryView", translation = "Користувацькі групи" },
     { text = "Back", frame = "Quest", translation = "Назад" },
+    { text = "Play", frame = "QuestMapFrame", translation = "Програти" },
     { text = "Common", frame = "LootFrame", translation = "Звичайний" },
     { text = "Common", frame = "LootButton", translation = "Звичайний" },
     { text = "General", frame = "ChatFrame", translation = "Генерал" },

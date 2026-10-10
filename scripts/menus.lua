@@ -156,6 +156,7 @@ local function translate_open_menu()
             and manager:GetOpenMenu() or nil
         if menu then
             local section = "game_menu"
+            local cooldown_layout_menu = false
             if is_edit_mode_layout_menu(menu) then
                 section = "edit_mode"
             elseif type(menu.ToDebugString) == "function" then
@@ -163,11 +164,19 @@ local function translate_open_menu()
                 if ok and type(tag) == "string"
                     and (tag:match("^MENU_UNIT_") or tag:match("^MENU_SOCIAL_UI_")) then
                     section = "social_ui"
+                elseif ok and type(tag) == "string" and
+                    (tag:match("^MENU_COOLDOWN_SETTINGS_") or tag:match("^COOLDOWN_VIEWER_")
+                    or tag:match("^GROUP_BUFF_FILTER_") or tag:match("^MENU_GROUP_BUFF_FILTER_")
+                    or tag:match("^MENU_DAMAGE_METER_")) then
+                    section = "game_settings"
+                    cooldown_layout_menu = tag == "MENU_COOLDOWN_SETTINGS_LAYOUTS"
                 end
             end
             if options.can_lookup_section and not options.can_lookup_section(section) then return end
-            if is_edit_mode_layout_menu(menu) then
-                local user_layout_names = edit_mode_user_layout_names()
+            if is_edit_mode_layout_menu(menu) or cooldown_layout_menu then
+                local user_layout_names = cooldown_layout_menu
+                    and addon_table.use("cooldown_viewer_ui").user_layout_names()
+                    or edit_mode_user_layout_names()
                 local walk = {
                     id = menu_walks.modern.id,
                     surface = menu_walks.modern.surface,
@@ -179,8 +188,8 @@ local function translate_open_menu()
                             return false
                         end
                         local ok, value = pcall(region.GetText, region)
-                        return ok and type(value) == "string"
-                            and user_layout_names[value] == true
+                        value = ok and runtime.safe_string_or_nil(value) or nil
+                        return value and user_layout_names[value:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")] == true
                     end,
                 }
                 strings.translate_frame(menu, nil, walk)

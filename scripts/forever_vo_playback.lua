@@ -114,6 +114,20 @@ local function ui_region(region)
     runtime.ensure_font(region)
 end
 
+local function update_quest_button(button)
+    local region = button and button:GetFontString()
+    if not region or runtime.is_applying(region) then return end
+    strings.translate_region(region, nil, "forever-vo.quest-play", nil, nil, nil, "game_settings")
+end
+
+local function prepare_quest_log(quest_log)
+    local button = quest_log and quest_log.detailsButton
+    if not button then return end
+    hooks.region(button, "SetText", update_quest_button)
+    hooks.region_script(button, "OnShow", update_quest_button)
+    update_quest_button(button)
+end
+
 local function update_control_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or tooltip:GetOwner() ~= button then return end
@@ -224,6 +238,12 @@ end
 playback.prepare = function ()
     local voiceover = _G.ForeverVO
     local ui = voiceover and voiceover.UI
+    local quest_log = ui and ui.QuestLog
+    -- ForeverVO creates the quest Play button lazily when details are opened.
+    hooks.region(quest_log, "UpdateDetailsButton", function ()
+        prepare_quest_log(quest_log)
+    end)
+    prepare_quest_log(quest_log)
     local head = ui and ui.TalkingHead
     if not head then return end
     -- Paginate a display-only proxy, then restore the actual queue identity.

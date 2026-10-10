@@ -14,7 +14,7 @@ adapter.configure = function (value)
     dependencies = value
 end
 
--- Build 70334 ships this owner with OnlyBetaAndPTR: 1. Do not create it,
+-- Build 70338 ships this owner with OnlyBetaAndPTR: 1. Do not create it,
 -- load its addon, or search ordinary tooltips when the beta feature is absent.
 adapter.is_instruction = function (source)
     source = runtime.safe_string_or_nil(source)
@@ -81,6 +81,12 @@ local function translate_instruction(tooltip, tooltip_type)
             if native:sub(-2) == "|r" and translated:sub(-2) ~= "|r" then
                 translated = translated .. "|r"
             end
+            -- The native duplicate scan searches raw text, including link data.
+            -- An empty link keeps its English token without displaying it or
+            -- tainting the reporter field read before secret tooltip titles.
+            local partial = runtime.safe_string_or_nil(reporter.BugTooltipPartialString)
+            if not partial then return end
+            translated = translated .. "|Hua_forever_ptr:" .. partial .. "|h|h"
             if not tooltip.uaForeverSessionKey then
                 dependencies.begin_tooltip(tooltip, "ptr-feedback:" .. tostring(tooltip))
             end
@@ -120,11 +126,8 @@ adapter.prepare = function ()
         end
         if not hooks.region(reporter, "HookIntoTooltip", translate_instruction,
             "tooltips") then return false end
-        -- Both native instructions in build 70334 use this owner-specific color
-        -- marker; no other extracted UI source uses it. Preserve it in translated
-        -- rows so the native duplicate scan no longer depends on English wording.
-        -- Keep HookIntoTooltip itself secure: it also reads secret native titles.
-        reporter.BugTooltipPartialString = marker
+        -- Keep both the native function and its data secure. Writing even the
+        -- duplicate token taints string.gmatch when its first argument is secret.
         return true
     end)
 end
