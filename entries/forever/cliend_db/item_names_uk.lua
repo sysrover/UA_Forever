@@ -1,11 +1,11 @@
 -- Consolidated Ukrainian item names for the exact client build.
 -- Sources: validated ClassicUA names plus completed UA_Forever worklists.
--- Client build: 1.60.1.70334; existing source rows verified unchanged from 70058.
+-- Client build: 1.60.1.70338; existing source rows verified unchanged from 70058.
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70334",
-    count = 23947,
+    sourceBuild = "1.60.1.70338",
+    count = 23951,
     rows = {
         [753] = "короткий меч Драконової Пащі",
         [756] = "тунельна кирка",
@@ -23954,6 +23954,10 @@ local database = {
         [286988] = "Поножі Фіолетового чародія",
         [286989] = "Обмотки Фіолетового чародія",
         [7718] = "Наплічник Герода",
+        [1677] = "жилет із драконячої луски",
+        [7721] = "Рука Праведності",
+        [7724] = "рукавиці божественності",
+        [19507] = "шаль інквізитора",
     },
 }
 

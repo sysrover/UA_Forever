@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70334",
+  "sourceBuild": "1.60.1.70338",
   "itemMetadata": 4000,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,9 +17,10 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "6d7f816cc69693e85f22d146e1614e1a104e41236af2a7ef70f513d8b9c1579e",
-  "inventory": "build/forever-client-inventory/70334/db2",
-  "itemMetadataInventory": "build/forever-client-inventory/70334/db2/itemsparse.json",
-  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70334/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
-  "cacheScope": "All available decoded ItemSparse rows and compact metadata compared with matching 70334 snapshot; other item sources unchanged in exact-build base comparison. Historical addon rows retained."
+  "cacheSHA256": "1511f856c8454279a5f7faa1c1bcbc20df4678241242ae13db4ed12b01e7f5d3",
+  "inventory": "build/forever-client-inventory/70338/db2",
+  "itemMetadataInventory": "build/forever-client-inventory/70338/database-update/cache-refresh-final/decoded/itemsparse.json",
+  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70338/database-update/cache-refresh-final/snapshots/DBCache.bin",
+  "cacheScope": "All available decoded ItemSparse rows match the verified 70338 inventory and refreshed snapshot. Compact metadata is unchanged; other decoded item sources are unchanged in the exact-build base comparison. Historical addon rows retained.",
+  "cacheProvenance": "build/forever-client-inventory/70338/database-update/cache-refresh-final/provenance.json"
 }
