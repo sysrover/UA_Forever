@@ -25,6 +25,9 @@ local tooltip = {
         Poison = "Отрута",
         Bleed = "Кровотеча",
     },
+    dynamic_value_phrases = {
+        ["until canceled"] = "до скасування",
+    },
     dynamic_value_words = {
         sec = "с", secs = "с", second = "с", seconds = "с",
         min = "хв", mins = "хв", minute = "хв", minutes = "хв",

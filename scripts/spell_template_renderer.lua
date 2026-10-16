@@ -69,6 +69,9 @@ local function localize_dynamic_value(value)
     -- literal. Normalize that boundary so equivalent matches do not veto a
     -- translation as ambiguous; the translated template owns its spacing.
     value = value:match("^%s*(.-)%s*$")
+    local phrases = tooltip_catalog.dynamic_value_phrases
+    local translated = phrases and phrases[value:lower()]
+    if translated then return translated end
     local format = tooltip_catalog.format
     if format and type(format.dynamic_value_range) == "function" then
         value = format.dynamic_value_range(value)
