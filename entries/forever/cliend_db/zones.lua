@@ -3631,5 +3631,8 @@ addonTable.zone = {
     ["Dreambound Pinnacle"] = "Вершина Сновузлів’я",
     ["Twilight Hollow"] = "Сутінкова улоговина",
     ["The Cave"] = "Печера",
+    ["Dalaran Skycuter"] = "Повітряний катер Даларана",
+    ["Mulgore Skycuter"] = "Повітряний катер Мулґора",
+    ["tanarisruins"] = "руїни Танаріса",
 }
 

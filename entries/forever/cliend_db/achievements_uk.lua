@@ -2,10 +2,17 @@ local _, addon_table = ...
 
 -- Approved Ukrainian achievement translations, keyed by client IDs.
 local database = {
-    sourceBuild = "1.60.1.70374",
-    count = 436,
+    sourceBuild = "1.60.1.70425",
+    count = 441,
     criteria = {
         ["Played in the World of Warcraft: Forever Beta"] = "Участь у бета-тестуванні WoW: Forever",
+        ["Arathi Basin bases assaulted"] = "Захоплені бази в Низині Араті",
+        ["Arathi Basin bases defended"] = "Захищені бази в Низині Араті",
+        ["Darkspear Islands bases assaulted"] = "Захоплені бази на островах Темного Списа",
+        ["Darkspear Islands bases defended"] = "Захищені бази на островах Темного Списа",
+        ["Darkspear Islands flags captured"] = "Захоплені прапори на островах Темного Списа",
+        ["Rune Learned - Shared Acquisition - Leylines (50)"] = "Руну вивчено - Спільне здобуття - Лей-лінії (50)",
+        ["Read Leyline"] = "Читання лей-лінії",
     },
     rows = {
         [49] = { title = "Перемоги в Альтерацькій долині", description = "Перемоги в Альтерацькій долині", reward = "" },
@@ -444,6 +451,11 @@ local database = {
         [64208] = { title = "<Приховано> Завершено досвід нового гравця (обліковий запис)", description = "Після отримання цього досягнення гравець більше не вважається «новим» і під час створення нового персонажа може обирати між Початківським островом і расовою стартовою пригодою.", reward = "" },
         [64222] = { title = "Кількість відпочинків у таборі", description = "Кількість посиденьок біля багаття", reward = "" },
         [64283] = { title = "Участь у бета-тестуванні WoW: Forever", description = "Нагорода за участь у бета-тестуванні World of Warcraft: Forever. Дякуємо за допомогу в тестуванні!", reward = "Отримайте 16 очок спадщини." },
+        [64348] = { title = "Захоплені бази в Низині Араті", description = "Захоплені бази в Низині Араті", reward = "" },
+        [64349] = { title = "Захищені бази в Низині Араті", description = "Захищені бази в Низині Араті", reward = "" },
+        [64350] = { title = "Захоплені бази на островах Темного Списа", description = "Захоплені бази на островах Темного Списа", reward = "" },
+        [64351] = { title = "Захищені бази на островах Темного Списа", description = "Захищені бази на островах Темного Списа", reward = "" },
+        [64352] = { title = "Захоплені прапори на островах Темного Списа", description = "Захоплені прапори на островах Темного Списа", reward = "" },
     },
     categories = {
         [1] = "Статистика",

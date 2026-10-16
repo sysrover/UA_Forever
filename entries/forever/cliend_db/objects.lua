@@ -846,6 +846,8 @@ addonTable.object_ids = {
     [696786] = { [1] = "Соборна площа", ["en"] = "Cathedral Square" },
     [696787] = { [1] = "Соборна площа", ["en"] = "Cathedral Square" },
     [706187] = { [1] = "сльоза Тіллої", ["en"] = "Tear of Tilloa" },
+    [651953] = { [1] = "Набір першої допомоги", ["en"] = "First Aid Kit" },
+    [706992] = { [1] = "звичайне вогнище", ["en"] = "Basic Campfire" },
 }
 
 addonTable.object = {
@@ -4090,6 +4092,7 @@ addonTable.object = {
     ["Library"] = "Бібліотека",
     ["Doodad_UndeadCampFire25"] = "Багаття невмерлих",
     ["Gatehouse Shipment"] = "Вантаж до надбрамної вежі",
+    ["First Aid Kit"] = "Набір першої допомоги",
 }
 
 addonTable.translate_object_name = function (name)

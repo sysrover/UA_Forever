@@ -1,11 +1,11 @@
 {
-  "sourceBuild": "1.60.1.70374",
-  "itemMetadata": 4000,
+  "sourceBuild": "1.60.1.70425",
+  "itemMetadata": 4002,
   "itemClasses": 17,
   "itemSubclasses": 100,
   "itemSets": 536,
   "itemSetBonuses": 1477,
-  "itemEnchantments": 2216,
+  "itemEnchantments": 2217,
   "gemProperties": 0,
   "itemNameDescriptions": 92,
   "itemLimitCategories": 51,
@@ -17,10 +17,10 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "76ff1e5e25854ae623a5cc0cd615fc9898feba449e3461d7dd3896987b2d9d37",
-  "inventory": "build/forever-client-inventory/70374/db2",
-  "itemMetadataInventory": "build/forever-client-inventory/70374/database-update/cache-refresh/decoded/itemsparse.json",
-  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70374/database-update/cache-refresh/snapshots/DBCache.bin",
-  "cacheScope": "Verified build 70374 cache and exact-build extraction; 36 additional ItemSparse names. Compact metadata remains 4000 rows; all other decoded item rows are unchanged.",
-  "cacheProvenance": "build/forever-client-inventory/70374/database-update/cache-refresh/provenance.json"
+  "cacheSHA256": "dc43fc0b5cc24c503c28b9b86febf9f49783d3cf76232cd6a577e803f0bf19c5",
+  "inventory": "build/forever-client-inventory/70425/db2",
+  "itemMetadataInventory": "build/forever-client-inventory/70425/db2/itemsparse.json",
+  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70425/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
+  "cacheScope": "Exact-build 70425 snapshot. Compact metadata: 3994 current rows plus 8 historical compatibility rows = 4002. Unloaded ancillary counts describe extracted sources.",
+  "cacheProvenance": "build/forever-client-inventory/70425/cache_provenance.json"
 }
