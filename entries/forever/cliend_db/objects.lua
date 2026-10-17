@@ -848,6 +848,7 @@ addonTable.object_ids = {
     [706187] = { [1] = "сльоза Тіллої", ["en"] = "Tear of Tilloa" },
     [651953] = { [1] = "Набір першої допомоги", ["en"] = "First Aid Kit" },
     [706992] = { [1] = "звичайне вогнище", ["en"] = "Basic Campfire" },
+    [707346] = { [1] = "Дворфійська жаровня", ["en"] = "Doodad_DwarvenBrazier197" },
 }
 
 addonTable.object = {
@@ -4093,6 +4094,7 @@ addonTable.object = {
     ["Doodad_UndeadCampFire25"] = "Багаття невмерлих",
     ["Gatehouse Shipment"] = "Вантаж до надбрамної вежі",
     ["First Aid Kit"] = "Набір першої допомоги",
+    ["Doodad_DwarvenBrazier197"] = "Дворфійська жаровня",
 }
 
 addonTable.translate_object_name = function (name)

@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70425",
+  "sourceBuild": "1.60.1.70450",
   "itemMetadata": 4002,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,10 +17,10 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "cacheSHA256": "dc43fc0b5cc24c503c28b9b86febf9f49783d3cf76232cd6a577e803f0bf19c5",
-  "inventory": "build/forever-client-inventory/70425/db2",
-  "itemMetadataInventory": "build/forever-client-inventory/70425/db2/itemsparse.json",
-  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70425/cache-snapshot/Cache/ADB/enUS/DBCache.bin",
-  "cacheScope": "Exact-build 70425 snapshot. Compact metadata: 3994 current rows plus 8 historical compatibility rows = 4002. Unloaded ancillary counts describe extracted sources.",
-  "cacheProvenance": "build/forever-client-inventory/70425/cache_provenance.json"
+  "cacheSHA256": "bb51f1562e1db7fd71c7913c5577da685a675906c922f3630f43c705ec724e8b",
+  "inventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/db2",
+  "itemMetadataInventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/db2/itemsparse.json",
+  "itemMetadataCacheSnapshot": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache-snapshot/DBCache.bin",
+  "cacheScope": "Exact-build 70450 snapshot. Compact metadata: 3994 current rows plus 8 preserved historical compatibility rows = 4002. No metadata row changes; unloaded ancillary counts describe extracted sources.",
+  "cacheProvenance": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache_provenance.json"
 }
