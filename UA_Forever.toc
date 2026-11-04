@@ -1,7 +1,7 @@
 ## Interface: 16001
 ## AllowLoadGameType: camelot
 ## Title: |cff1177eeUA|r |cffffdd00Forever|r
-## Notes: Ukrainian localization for World of Warcraft: Forever Beta.
+## Notes: Ukrainian localization for World of Warcraft: Forever.
 ## Author: UA Forever contributors; based on ClassicUA
 ## Version: 0.22.0
 ## IconTexture: Interface\AddOns\UA_Forever\assets\icon.png

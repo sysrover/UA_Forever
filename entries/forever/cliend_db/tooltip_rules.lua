@@ -204,6 +204,15 @@ tooltip.pvp_rank_names = {
 tooltip.item_set_names = {
     ["Lieutenant Commander's Battlegear"] = "Бойове спорядження лейтенант-командира",
     ["Rotmender's Raiment"] = "Шати гнилоцілителя",
+    ["Arcanist Regalia"] = "Регалії чародія потаємних знань",
+    ["Felheart Raiment"] = "Вбрання скверносерця",
+    ["Vestments of Prophecy"] = "Шати пророцтва",
+    ["Nightslayer Armor"] = "Обладунок нічного вбивці",
+    ["Cenarion Raiment"] = "Кенарієве вбрання",
+    ["The Earthfury"] = "Лють землі",
+    ["Giantstalker Armor"] = "Обладунок велетнелова",
+    ["Lawbringer Armor"] = "Обладунок Законника",
+    ["Battlegear of Might"] = "Бойове спорядження могутності",
 }
 
 -- Observed inspect-tooltip names that differ from ItemSparse in 70170.
@@ -567,6 +576,7 @@ local item_modification_names = {
     Spark = "Іскра", Baleflame = "Зловісне полум'я",
     Balefrost = "Зловісна крига", Iceknife = "Крижаний ніж",
     Manablade = "Лезо мани",
+    ["Speed Increase"] = "Збільшення швидкості",
 }
 
 local item_modification_stats = {

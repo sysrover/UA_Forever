@@ -1,37 +1,37 @@
 {
-  "sourceBuild": "1.60.1.70450",
-  "factionSourceBuild": "1.60.1.70450",
+  "sourceBuild": "1.60.1.70790",
+  "factionSourceBuild": "1.60.1.70790",
   "factions": 253,
   "factionNamesUk": 253,
   "factionDescriptionsUk": 59,
-  "itemSourceBuild": "1.60.1.70450",
-  "skillLineSourceBuild": "1.60.1.70450",
-  "traitSourceBuild": "1.60.1.70450",
-  "spellIDs": 33221,
-  "names": 32945,
-  "descriptions": 17723,
-  "auraDescriptions": 7799,
+  "itemSourceBuild": "1.60.1.70790",
+  "skillLineSourceBuild": "1.60.1.70790",
+  "traitSourceBuild": "1.60.1.70790",
+  "spellIDs": 33155,
+  "names": 33075,
+  "descriptions": 17809,
+  "auraDescriptions": 7849,
   "skillLines": 154,
-  "spellsWithSkillLines": 7382,
-  "itemIDs": 24025,
-  "itemNames": 24025,
-  "itemDescriptions": 4855,
-  "itemsWithSpellEffects": 8985,
+  "spellsWithSkillLines": 7381,
+  "itemIDs": 24075,
+  "itemNames": 24075,
+  "itemDescriptions": 4893,
+  "itemsWithSpellEffects": 9000,
   "missingItemEffectLinks": 8,
-  "itemEffectLinks": 12630,
-  "resolvedItemSpellEffects": 12622,
-  "itemNamesUk": 24025,
+  "itemEffectLinks": 12647,
+  "resolvedItemSpellEffects": 12639,
+  "itemNamesUk": 24075,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
-  "itemDescriptionsUk": 4855,
+  "itemDescriptionsUk": 4893,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 32939,
-  "spellNamesNeedTranslation": 6,
+  "spellNamesUkV4": 33044,
+  "spellNamesNeedTranslation": 31,
   "itemNamesUkComplete": true,
-  "spellDescriptionsUk": 17724,
+  "spellDescriptionsUk": 17810,
   "spellDescriptionsNeedTranslation": 0,
   "spellNamesUkV4Complete": false,
-  "auraDescriptionsUk": 7799,
+  "auraDescriptionsUk": 7849,
   "auraDescriptionsNeedTranslation": 0,
   "auraDescriptionsUkComplete": true,
   "previousTranslationImport": {
@@ -2143,5 +2143,269 @@
       "count": 4002
     },
     "testedInGame": false
+  },
+  "buildUpdate70755": {
+    "sourceBuild": "1.60.1.70755",
+    "previousBuild": "1.60.1.70450",
+    "comparedBaseBuild": "1.60.1.70532",
+    "updatedAtUTC": "2026-11-03T19:19:45+00:00",
+    "inventory": "build/forever-client-inventory/70755",
+    "cacheProvenance": "build/forever-client-inventory/70755/cache_provenance.json",
+    "currentHotfixCachePresent": false,
+    "currentHotfixSHA256": null,
+    "retainedHotfixProvenance": {
+      "sourceBuild": "1.60.1.70450",
+      "previousBuild": "1.60.1.70425",
+      "updatedAtUTC": "2026-10-17T01:29:53+00:00",
+      "inventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d",
+      "baseInventory": "build/forever-client-inventory/70450",
+      "cacheSHA256": "bb51f1562e1db7fd71c7913c5577da685a675906c922f3630f43c705ec724e8b",
+      "cacheSnapshot": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache-snapshot/DBCache.bin",
+      "cacheProvenance": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache_provenance.json",
+      "cacheRecordInventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache_records.json",
+      "semanticComparison": "build/forever-client-inventory/70450/semantic_with_cache.json",
+      "backup": "build/forever-client-inventory/70450/database-update/backup",
+      "newItemTranslations": 7,
+      "newItemDescriptions": 1,
+      "spellSourceFieldsReviewed": 21,
+      "technicalSpellNamesNotTranslated": [
+        1327009
+      ],
+      "objectIDMappingsAdded": [
+        707346
+      ],
+      "uiFilesCompared": 4208,
+      "uiFilesChanged": 0,
+      "compactItemMetadata": {
+        "currentInventoryRows": 3994,
+        "historicalRowsRetained": 8,
+        "count": 4002
+      },
+      "testedInGame": false
+    },
+    "preservationPolicy": "Apply base changes by stable ID/field; retain earlier hotfix-only and approved compatibility rows. Do not delete source-absent names or achievements without current hotfix evidence.",
+    "spellIDCountScope": "Union of loaded English spell names/descriptions/aura IDs and retained compatibility detail IDs",
+    "sourceCounts": {
+      "items": {
+        "itemSourceBuild": "1.60.1.70755",
+        "itemIDs": 21670,
+        "itemNames": 19281,
+        "itemDescriptions": 4803,
+        "itemsWithSpellEffects": 8996,
+        "itemEffectLinks": 12643,
+        "resolvedItemSpellEffects": 12635,
+        "missingItemEffectLinks": 8
+      },
+      "metadata": {
+        "sourceBuild": "1.60.1.70755",
+        "itemMetadata": 3050,
+        "itemClasses": 17,
+        "itemSubclasses": 100,
+        "itemSets": 545,
+        "itemSetBonuses": 1505,
+        "itemEnchantments": 2218,
+        "gemProperties": 0,
+        "itemNameDescriptions": 92,
+        "itemLimitCategories": 51,
+        "itemBonuses": 1126,
+        "itemBonusLists": 367,
+        "itemBonusTrees": 115,
+        "itemBonusTreeNodes": 1936,
+        "unavailableTables": [
+          "ItemRandomProperties",
+          "ItemRandomSuffix"
+        ]
+      },
+      "spells": {
+        "sourceBuild": "1.60.1.70755",
+        "spellIDs": 33169,
+        "names": 32033,
+        "descriptions": 17829,
+        "auraDescriptions": 7882,
+        "skillLines": 154,
+        "spellsWithSkillLines": 7387
+      },
+      "traits": {
+        "sourceBuild": "1.60.1.70755",
+        "traitEntries": 662,
+        "traitDefinitionOverrides": 1
+      },
+      "professions": {
+        "sourceBuild": "1.60.1.70755",
+        "recipeRows": 2569,
+        "uniqueRecipes": 2567,
+        "categories": 216
+      },
+      "reagents": [
+        3154,
+        9516
+      ]
+    },
+    "unresolvedItemNames": "build/forever-client-inventory/70755/item_identity_gaps.json",
+    "newTechnicalSpellNamesSourceOnly": [
+      43945,
+      44305,
+      47912,
+      47913,
+      48050,
+      51241,
+      51242,
+      54059,
+      54145,
+      54147,
+      54162,
+      55720,
+      55721,
+      55722,
+      55723,
+      56543,
+      61473,
+      1327009,
+      1328389
+    ],
+    "luaCompatibility": "5.1",
+    "installed": false,
+    "testedInGame": false,
+    "userApprovedTerminologyCorrections": [
+      {
+        "source": "Righteous Fire",
+        "translation": "Праведний вогонь",
+        "ids": [
+          28881,
+          28882,
+          1228267,
+          1228268,
+          1231138,
+          48198
+        ],
+        "approval": "Explicit user approval in this conversation",
+        "approvedAtUTC": "2026-11-03T19:59:19+00:00"
+      }
+    ]
+  },
+  "buildUpdate70790": {
+    "sourceBuild": "1.60.1.70790",
+    "previousBuild": "1.60.1.70755",
+    "comparedBaseBuild": "1.60.1.70755",
+    "updatedAtUTC": "2026-11-04T20:14:11+00:00",
+    "inventory": "build/forever-client-inventory/70790",
+    "cacheProvenance": "build/forever-client-inventory/70790/cache_provenance.json",
+    "currentHotfixCachePresent": false,
+    "currentHotfixSHA256": null,
+    "retainedHotfixProvenance": {
+      "sourceBuild": "1.60.1.70450",
+      "previousBuild": "1.60.1.70425",
+      "updatedAtUTC": "2026-10-17T01:29:53+00:00",
+      "inventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d",
+      "baseInventory": "build/forever-client-inventory/70450",
+      "cacheSHA256": "bb51f1562e1db7fd71c7913c5577da685a675906c922f3630f43c705ec724e8b",
+      "cacheSnapshot": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache-snapshot/DBCache.bin",
+      "cacheProvenance": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache_provenance.json",
+      "cacheRecordInventory": "build/forever-client-inventory/70450/hotfix-20261017T012355Z-bb51f1562e1d/cache_records.json",
+      "semanticComparison": "build/forever-client-inventory/70450/semantic_with_cache.json",
+      "backup": "build/forever-client-inventory/70450/database-update/backup",
+      "newItemTranslations": 7,
+      "newItemDescriptions": 1,
+      "spellSourceFieldsReviewed": 21,
+      "technicalSpellNamesNotTranslated": [
+        1327009
+      ],
+      "objectIDMappingsAdded": [
+        707346
+      ],
+      "uiFilesCompared": 4208,
+      "uiFilesChanged": 0,
+      "compactItemMetadata": {
+        "currentInventoryRows": 3994,
+        "historicalRowsRetained": 8,
+        "count": 4002
+      },
+      "testedInGame": false
+    },
+    "preservationPolicy": "Apply base changes by stable ID/field; retain earlier hotfix-only and approved compatibility rows. Do not delete source-absent names or achievements without current hotfix evidence.",
+    "spellIDCountScope": "Union of loaded English spell names/descriptions/aura IDs and retained compatibility detail IDs",
+    "sourceCounts": {
+      "items": {
+        "itemSourceBuild": "1.60.1.70790",
+        "itemIDs": 21670,
+        "itemNames": 19281,
+        "itemDescriptions": 4803,
+        "itemsWithSpellEffects": 8996,
+        "itemEffectLinks": 12643,
+        "resolvedItemSpellEffects": 12635,
+        "missingItemEffectLinks": 8
+      },
+      "metadata": {
+        "sourceBuild": "1.60.1.70790",
+        "itemMetadata": 3050,
+        "itemClasses": 17,
+        "itemSubclasses": 100,
+        "itemSets": 545,
+        "itemSetBonuses": 1505,
+        "itemEnchantments": 2218,
+        "gemProperties": 0,
+        "itemNameDescriptions": 92,
+        "itemLimitCategories": 51,
+        "itemBonuses": 1126,
+        "itemBonusLists": 367,
+        "itemBonusTrees": 115,
+        "itemBonusTreeNodes": 1936,
+        "unavailableTables": [
+          "ItemRandomProperties",
+          "ItemRandomSuffix"
+        ]
+      },
+      "spells": {
+        "sourceBuild": "1.60.1.70790",
+        "spellIDs": 33190,
+        "names": 32050,
+        "descriptions": 17838,
+        "auraDescriptions": 7888,
+        "skillLines": 154,
+        "spellsWithSkillLines": 7381
+      },
+      "traits": {
+        "sourceBuild": "1.60.1.70790",
+        "traitEntries": 666,
+        "traitDefinitionOverrides": 1
+      },
+      "professions": {
+        "sourceBuild": "1.60.1.70790",
+        "recipeRows": 2569,
+        "uniqueRecipes": 2567,
+        "categories": 216
+      },
+      "reagents": [
+        3154,
+        9516
+      ]
+    },
+    "unresolvedItemNames": "build/forever-client-inventory/70790/previous_item_gaps_comparison.json",
+    "newTechnicalSpellNamesSourceOnly": [
+      1328664,
+      1328666,
+      1328668,
+      1328669,
+      1328670,
+      1328671,
+      1328676
+    ],
+    "luaCompatibility": "5.1",
+    "installed": false,
+    "testedInGame": false,
+    "consistencyCorrections": [
+      {
+        "source": "Lightning Mastery",
+        "translation": "Опанування блискавки",
+        "ids": [
+          16166,
+          16579,
+          16580,
+          16581,
+          16582
+        ],
+        "reason": "Consistent grammatical name for the renamed ability and existing same-name ranks; user requested correct consistent translations."
+      }
+    ]
   }
 }

@@ -3634,5 +3634,9 @@ addonTable.zone = {
     ["Dalaran Skycuter"] = "Повітряний катер Даларана",
     ["Mulgore Skycuter"] = "Повітряний катер Мулґора",
     ["tanarisruins"] = "руїни Танаріса",
+    ["Runeweaver Lounge"] = "Вітальня Руноплета",
+    ["Dalaran Visitor Center"] = "Центр відвідувачів Даларана",
+    ["The Wonder Works"] = "Майстерня див",
+    ["Dalaran Visitor's Center"] = "Центр відвідувачів Даларана",
 }
 
