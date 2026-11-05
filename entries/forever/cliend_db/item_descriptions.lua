@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70790",
-    count = 4893,
+    count = 4894,
     rows = {
         [728] = "Teaches you how to cook Westfall Stew.",
         [734] = "Upon this iron disk are stamped the words: \"Footman Malakai Stone\"",
@@ -4899,6 +4899,7 @@ local database = {
         [252819] = "Teaches you how to craft Wisdom's Leather Helm.",
         [289439] = "Many gathered. Many watched.",
         [289560] = "Teaches you how to permanently enchant boots to increase movement speed by 8%.",
+        [264501] = "An ornate 'L' is etched into the base of the blade.",
     },
 }
 

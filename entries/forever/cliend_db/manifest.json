@@ -7,31 +7,31 @@
   "itemSourceBuild": "1.60.1.70790",
   "skillLineSourceBuild": "1.60.1.70790",
   "traitSourceBuild": "1.60.1.70790",
-  "spellIDs": 33155,
-  "names": 33075,
-  "descriptions": 17809,
-  "auraDescriptions": 7849,
+  "spellIDs": 33401,
+  "names": 33126,
+  "descriptions": 17848,
+  "auraDescriptions": 7879,
   "skillLines": 154,
   "spellsWithSkillLines": 7381,
-  "itemIDs": 24075,
-  "itemNames": 24075,
-  "itemDescriptions": 4893,
-  "itemsWithSpellEffects": 9000,
+  "itemIDs": 26077,
+  "itemNames": 24096,
+  "itemDescriptions": 4894,
+  "itemsWithSpellEffects": 9016,
   "missingItemEffectLinks": 8,
-  "itemEffectLinks": 12647,
-  "resolvedItemSpellEffects": 12639,
-  "itemNamesUk": 24075,
+  "itemEffectLinks": 12665,
+  "resolvedItemSpellEffects": 12657,
+  "itemNamesUk": 24096,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
-  "itemDescriptionsUk": 4893,
+  "itemDescriptionsUk": 4894,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 33044,
-  "spellNamesNeedTranslation": 31,
+  "spellNamesUkV4": 33094,
+  "spellNamesNeedTranslation": 32,
   "itemNamesUkComplete": true,
-  "spellDescriptionsUk": 17810,
+  "spellDescriptionsUk": 17849,
   "spellDescriptionsNeedTranslation": 0,
   "spellNamesUkV4Complete": false,
-  "auraDescriptionsUk": 7849,
+  "auraDescriptionsUk": 7879,
   "auraDescriptionsNeedTranslation": 0,
   "auraDescriptionsUkComplete": true,
   "previousTranslationImport": {
@@ -117,16 +117,26 @@
     ]
   },
   "itemHotfixRefresh": {
-    "sourceBuild": "1.60.1.70170",
-    "cacheSHA256": "b0a68b6c48c2f4386af62f27019141afd6ed5733c8644621069cd68e78e735d6",
-    "inventory": "build/forever-client-inventory/70170/item-hotfix-refresh-20261002/db2",
-    "addedNames": 115,
-    "changedEnglishNames": 33,
-    "changedMetadataRows": 190,
-    "terminologyReviewIDs": [
-      273024,
-      284459
-    ]
+    "sourceBuild": "1.60.1.70790",
+    "cacheSHA256": "ca3ad1f0f2e8324f0ca2c1f9c95fbdb371ad719df6ff33316f181f5240ddb743",
+    "inventory": "automation/results/cache_results/current/decoded",
+    "cacheSnapshot": "automation/results/cache_results/current/snapshots/DBCache.bin",
+    "cacheProvenance": "automation/results/cache_results/current/provenance.json",
+    "addedNames": 21,
+    "changedEnglishNames": 0,
+    "changedMetadataRows": 0,
+    "retainedPreviousRefresh": {
+      "sourceBuild": "1.60.1.70170",
+      "cacheSHA256": "b0a68b6c48c2f4386af62f27019141afd6ed5733c8644621069cd68e78e735d6",
+      "inventory": "build/forever-client-inventory/70170/item-hotfix-refresh-20261002/db2",
+      "addedNames": 115,
+      "changedEnglishNames": 33,
+      "changedMetadataRows": 190,
+      "terminologyReviewIDs": [
+        273024,
+        284459
+      ]
+    }
   },
   "buildUpdate": {
     "sourceBuild": "1.60.1.70205",
@@ -1474,7 +1484,7 @@
     ],
     "inGameVerified": false
   },
-  "itemCacheTranslationSourceBuild": "1.60.1.70450",
+  "itemCacheTranslationSourceBuild": "1.60.1.70790",
   "metadataFinalization70291": {
     "sourceBuild": "1.60.1.70291",
     "previousBuild": "1.60.1.70245",
@@ -2407,5 +2417,29 @@
         "reason": "Consistent grammatical name for the renamed ability and existing same-name ranks; user requested correct consistent translations."
       }
     ]
+  },
+  "cacheUpdate70790": {
+    "sourceBuild": "1.60.1.70790",
+    "snapshotCreatedUTC": "20261105T013050Z",
+    "cacheSHA256": "ca3ad1f0f2e8324f0ca2c1f9c95fbdb371ad719df6ff33316f181f5240ddb743",
+    "cacheSnapshot": "automation/results/cache_results/current/snapshots/DBCache.bin",
+    "cacheProvenance": "automation/results/cache_results/current/provenance.json",
+    "decodedInventory": "automation/results/cache_results/current/decoded",
+    "reviewedTranslations": "automation/results/cache_results/current/update_plan.json",
+    "report": "automation/results/cache_results/current/update_report.json",
+    "unresolvedItemNames": "automation/results/cache_results/current/missing_item_names.json",
+    "spellIDCountBasis": "Union of retained spell name/description/aura IDs and exact-build decoded SpellName, Spell and SkillLineAbility spell IDs.",
+    "newItemNames": 21,
+    "newItemDescriptions": 1,
+    "newNPCNames": 5,
+    "newNPCSubtitles": 1,
+    "newSpellNames": 51,
+    "technicalSpellNamesSourceOnly": 1,
+    "spellTextFieldsUpdated": 72,
+    "newZoneNames": 9,
+    "newItemEffectLinks": 18,
+    "luaCompatibility": "5.1",
+    "installed": false,
+    "testedInGame": false
   }
 }

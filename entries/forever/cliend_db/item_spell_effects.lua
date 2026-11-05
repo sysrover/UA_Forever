@@ -4,8 +4,8 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70790",
-    count = 9000,
-    effectCount = 12647,
+    count = 9016,
+    effectCount = 12665,
     rows = {
         [117] = {
             { effectID = 98985, spellID = 433, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = 0, categoryCooldownMS = -1, spellCategoryID = 11, specializationID = 0, playerConditionID = 0 },
@@ -30654,6 +30654,22 @@ local database = {
         [288896] = {
             { effectID = 239388, spellID = 4042, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = 0, categoryCooldownMS = 120000, spellCategoryID = 4, specializationID = 0, playerConditionID = 0 },
         },
+        [289081] = { [1] = { ["categoryCooldownMS"] = 0, ["charges"] = -1, ["cooldownMS"] = 3000, ["effectID"] = 239510, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 16589, ["triggerType"] = 0 } },
+        [289082] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239511, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327736, ["triggerType"] = 0 } },
+        [289083] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239512, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327737, ["triggerType"] = 0 } },
+        [289084] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239513, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327738, ["triggerType"] = 0 } },
+        [289086] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239515, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327751, ["triggerType"] = 0 } },
+        [289087] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239516, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327753, ["triggerType"] = 0 } },
+        [289088] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239517, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1327754, ["triggerType"] = 0 } },
+        [289294] = { [1] = { ["categoryCooldownMS"] = -1, ["charges"] = 0, ["cooldownMS"] = -1, ["effectID"] = 239658, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 21992, ["triggerType"] = 2 } },
+        [289295] = { [1] = { ["categoryCooldownMS"] = -1, ["charges"] = 0, ["cooldownMS"] = -1, ["effectID"] = 239659, ["playerConditionID"] = 0, ["slotIndex"] = 1, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 21162, ["triggerType"] = 2 }, [2] = { ["categoryCooldownMS"] = -1, ["charges"] = 0, ["cooldownMS"] = -1, ["effectID"] = 239660, ["playerConditionID"] = 0, ["slotIndex"] = 2, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 21142, ["triggerType"] = 1 } },
+        [289296] = { [1] = { ["categoryCooldownMS"] = 60000, ["charges"] = 0, ["cooldownMS"] = 0, ["effectID"] = 239661, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 1160, ["spellID"] = 1327991, ["triggerType"] = 0 }, [2] = { ["categoryCooldownMS"] = -1, ["charges"] = 0, ["cooldownMS"] = -1, ["effectID"] = 239662, ["playerConditionID"] = 0, ["slotIndex"] = 1, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 23236, ["triggerType"] = 1 } },
+        [289297] = { [1] = { ["categoryCooldownMS"] = 60000, ["charges"] = 0, ["cooldownMS"] = 0, ["effectID"] = 239663, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 1160, ["spellID"] = 1327993, ["triggerType"] = 0 } },
+        [289302] = { [1] = { ["categoryCooldownMS"] = -1, ["charges"] = 0, ["cooldownMS"] = -1, ["effectID"] = 239668, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 0, ["spellID"] = 22850, ["triggerType"] = 2 } },
+        [289321] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239683, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1328032, ["triggerType"] = 0 } },
+        [289329] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239686, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1328118, ["triggerType"] = 0 } },
+        [289330] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239687, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1328119, ["triggerType"] = 0 } },
+        [289334] = { [1] = { ["categoryCooldownMS"] = 3000, ["charges"] = -1, ["cooldownMS"] = 0, ["effectID"] = 239689, ["playerConditionID"] = 0, ["slotIndex"] = 0, ["specializationID"] = 0, ["spellCategoryID"] = 2593, ["spellID"] = 1328127, ["triggerType"] = 0 } },
     },
 }
 

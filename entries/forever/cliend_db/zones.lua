@@ -3638,5 +3638,14 @@ addonTable.zone = {
     ["Dalaran Visitor Center"] = "Центр відвідувачів Даларана",
     ["The Wonder Works"] = "Майстерня див",
     ["Dalaran Visitor's Center"] = "Центр відвідувачів Даларана",
+    ["The Drowned City"] = "Затонуле місто",
+    ["Sunken Hollow"] = "Затоплена западина",
+    ["Flooded Shrine"] = "Затоплене святилище",
+    ["Deep Archives"] = "Глибинні архіви",
+    ["Altar of the Serpent"] = "Вівтар Змія",
+    ["Eternal Amphitheater"] = "Вічний амфітеатр",
+    ["Abyssal Dais"] = "Постамент Безодні",
+    ["The Unsinkable"] = "Непотоплюваний",
+    ["Ataal'Byzal"] = "Атаал'Бізал",
 }
 

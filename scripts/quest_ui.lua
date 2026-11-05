@@ -850,16 +850,29 @@ end
 
 -- Some client builds refresh the quest log before repainting a tracked line.
 -- Reconcile numeric progress from the live journal, then restore translations
--- on every used line. A native tracker rebuild in combat skips after_update,
--- so even unchanged objectives can still contain English after combat ends.
+-- on every used block. A native tracker rebuild in combat skips after_update,
+-- so headers and unchanged objectives can remain English after combat ends.
 quest_ui.refresh_tracker_progress = function ()
-    if options.can_lookup_section and not options.can_lookup_section("quest_text") then return end
     if runtime.combat_locked() then return end
+    local names_enabled = not options.can_lookup_section
+        or options.can_lookup_section("quest_names")
+    local text_enabled = not options.can_lookup_section
+        or options.can_lookup_section("quest_text")
+    if not names_enabled and not text_enabled then return end
     local module = _G.QuestObjectiveTracker
     local blocks = module and module.usedBlocks and module.usedBlocks[module.blockTemplate]
+    if type(blocks) ~= "table" then return end
+    -- Header recovery must also run with quest text disabled or journal
+    -- objective APIs unavailable. Resolve IDs from the current pool contents.
+    if names_enabled then
+        for id, block in pairs(blocks) do
+            if safe_number(id) and block then translate_header(block, id) end
+        end
+    end
+    if not text_enabled then return end
     local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
     local get_objective = _G.GetQuestLogLeaderBoard
-    if type(blocks) ~= "table" or type(get_index) ~= "function"
+    if type(get_index) ~= "function"
         or type(get_objective) ~= "function" then return end
     for id, block in pairs(blocks) do
         if type(id) == "number" and block

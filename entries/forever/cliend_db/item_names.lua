@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70790",
-    count = 24075,
+    count = 24096,
     rows = {
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
@@ -24081,6 +24081,27 @@ local database = {
         [289439] = "Pouch of Violet Dust",
         [289559] = "Enchant Boots - Speed",
         [289560] = "Formula: Enchant Boots - Speed",
+        [2291] = "Kang the Decapitator",
+        [264501] = "Ancient Skyborne Blade",
+        [282404] = "Narassin's Tome",
+        [282635] = "Ancient Switches Thrown",
+        [289081] = "Noggenfogger Elixir",
+        [289082] = "Elixir of Endless Intellect",
+        [289083] = "Elixir of Endless Power",
+        [289084] = "Elixir of Endless Healing",
+        [289086] = "Elixir of Endless Rapidity",
+        [289087] = "Elixir of Endless Opportunity",
+        [289088] = "Scroll of Endless Fortitude",
+        [289292] = "Hammer of Bestial Fury",
+        [289294] = "Thunderfury, Blessed Blade of the Windseeker",
+        [289295] = "Sulfuras, Hand of Ragnaros",
+        [289296] = "Benediction",
+        [289297] = "Anathema",
+        [289303] = "Rhok'delar, Longbow of the Ancient Keepers",
+        [289321] = "Elixir of Endless Mana",
+        [289329] = "Elixir of Endless Growth",
+        [289330] = "Scroll of Endless Speed",
+        [289334] = "Elixir of Endless Experience",
     },
 }
 

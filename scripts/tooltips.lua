@@ -1903,6 +1903,10 @@ local function schedule_tooltip_finalize(tooltip)
         local ok, shown = pcall(tooltip.IsShown, tooltip)
         if ok and shown then
             if tooltip.uaForeverKind == "spell" then
+                -- Spellbook action-bar hints are appended after SetSpellBookItem
+                -- has finished its structured post-call. Translate those late
+                -- UI rows through the existing guarded lookup and layout path.
+                translate_generic_tooltip(tooltip)
                 capture_generic_tooltip_ui(tooltip)
                 return
             end
