@@ -1372,6 +1372,46 @@ local prepare_comparison_manager = comparison.prepare_manager
 local reapply_comparison_claims = comparison.reapply
 local translate_shopping_tooltip = comparison.translate
 
+local function refresh_loot_item_tooltip(tooltip, slot)
+    slot = safe_number(slot)
+    if not slot or not tooltip_work_enabled("item")
+        or type(_G.GetLootSlotLink) ~= "function"
+        or type(tooltip.GetPrimaryTooltipData) ~= "function" then return end
+    local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
+    if not shown_ok or is_secret(shown) or not shown then return end
+    local link_ok, link = pcall(_G.GetLootSlotLink, slot)
+    link = link_ok and safe_string(link) or nil
+    local id = link and safe_number(utils.item_id_from_link(link))
+    if not id then return end
+    local data_ok, data = pcall(tooltip.GetPrimaryTooltipData, tooltip)
+    if not data_ok or is_secret(data) or type(data) ~= "table" then return end
+    local data_id = safe_number(data.id) or safe_number(data.itemID)
+    if data_id and data_id ~= id then return end
+    -- SetLootItem has finished all native writes. Resolve the full loot link
+    -- even when its Item post-call did not expose an ID, and retain the real
+    -- structured rows so a later Shift refresh never has to guess them.
+    local item_data = {}
+    for key, value in pairs(data) do item_data[key] = value end
+    item_data.id, item_data.hyperlink = id, link
+    sync_tooltip_original_state(tooltip)
+    -- This is a completed display, like the manual Shift refresh, rather than
+    -- another native post-call. Do not accept a partially populated row cache
+    -- as proof that every final item line has already been translated.
+    safe_process(tooltip, item_data, "item")
+    reapply_cached_surface(tooltip)
+    each_shopping_tooltip(function (shopping)
+        local ok, visible = pcall(shopping.IsShown, shopping)
+        if not ok or is_secret(visible) or not visible then return end
+        sync_tooltip_original_state(shopping)
+        -- Use the same completed-surface recovery as releasing Shift. Loot's
+        -- OnUpdate repeats SetLootItem while the mouse stays over the row.
+        if not shopping.uaForeverShowOriginal
+            and not reapply_comparison_claims(shopping) then
+            translate_shopping_tooltip(shopping)
+        end
+    end)
+end
+
 local function minimap_line_parts(line)
     local prefix, suffix = "", ""
     while true do
@@ -2089,6 +2129,14 @@ local function prepare_tooltip_frames()
                 hooks.region(tooltip, "Show", function (self)
                     layout.fit_translated_tooltip(self)
                 end)
+                hooks.region(tooltip, "SetLootItem", refresh_loot_item_tooltip)
+                for _, method in ipairs({ "AddLine", "AddDoubleLine" }) do
+                    hooks.region(tooltip, method, function (self)
+                        if self.uaForeverKind == "npc" then
+                            schedule_tooltip_finalize(self)
+                        end
+                    end)
+                end
                 hooks.region(tooltip, "SetToyByItemID", function (self, item_id)
                     item_id = safe_number(item_id)
                     if not item_id or not tooltip_work_enabled("item")
@@ -2268,6 +2316,7 @@ local function after_game_tooltip_update(tooltip)
             rewrite_generic_lines(tooltip, nil, tooltip.uaForeverReservedFirst or 2,
                 false, false)
             quest_adapter.translate_embedded(tooltip)
+            layout.fit_translated_tooltip(tooltip)
         end
     end
     if budget <= 0 then return end
@@ -2766,6 +2815,12 @@ tooltips.refresh_active = function ()
             if tooltip.uaForeverKind == "item" and tooltip.uaForeverBilingualLines
                 and type(tooltip.Show) == "function"
                 and runtime.can_write_text(tooltip) then
+                pcall(tooltip.Show, tooltip)
+            end
+        end
+        if tooltip.uaForeverKind == "npc" then
+            if show then layout.restore_tooltip_rows(tooltip) end
+            if type(tooltip.Show) == "function" and runtime.can_write_text(tooltip) then
                 pcall(tooltip.Show, tooltip)
             end
         end

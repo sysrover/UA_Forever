@@ -13,6 +13,7 @@ local quest_switcher = addon_table.use("quest_switcher")
 local walker = addon_table.use("translation_walker")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("quest")
+local layout = addon_table.use("translation_layout")
 
 
 local function safe_string(value)
@@ -797,6 +798,69 @@ local function translate_header(block, id)
     end
 end
 
+local function fit_tracker_text(region)
+    if not region or runtime.combat_locked() or not safe_text(region) then return end
+    -- SetStringText measures immediately after SetText. Release stale caps in
+    -- that same call, so Blizzard measures the final font and wrapped text.
+    if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
+    if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
+    if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, true) end
+    if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+    return layout.safe_dimension(region, "GetStringHeight")
+end
+
+local function fit_tracker_block(block)
+    if not block or not block.used or runtime.combat_locked()
+        or type(block.ForEachUsedLine) ~= "function" then return end
+    local top = layout.safe_dimension(block, "GetTop")
+    local height = layout.safe_dimension(block, "GetHeight")
+    if not top or not height then return end
+    local required = math.max(height, fit_tracker_text(block.HeaderText) or 0)
+    -- Late journal/combat recovery runs after native LayoutBlock. Resize the
+    -- rendered frames only; never taint block.height, contentsHeight or dirty
+    -- flags consumed later by the secure tracker/container layout.
+    pcall(block.ForEachUsedLine, block, function (line)
+        local text_height = line and fit_tracker_text(line.Text)
+        local old_height = line and layout.safe_dimension(line, "GetHeight")
+        if text_height and text_height > 0 and old_height
+            and math.abs(text_height - old_height) >= 0.5
+            and type(line.SetHeight) == "function" then
+            pcall(line.SetHeight, line, text_height)
+        end
+    end)
+    -- Lines are anchored to each other's bottoms, so measure only after all
+    -- line heights have been updated, independently of usedLines table order.
+    pcall(block.ForEachUsedLine, block, function (line)
+        local bottom = line and layout.safe_dimension(line, "GetBottom")
+        if bottom then required = math.max(required, top - bottom) end
+    end)
+    if required > height + 0.5 and type(block.SetHeight) == "function" then
+        pcall(block.SetHeight, block, math.ceil(required))
+    end
+end
+
+local function fit_tracker_blocks(module)
+    if module ~= _G.QuestObjectiveTracker or runtime.combat_locked() then return end
+    local blocks = module.usedBlocks and module.usedBlocks[module.blockTemplate]
+    if type(blocks) ~= "table" then return end
+    for _, block in pairs(blocks) do
+        if block and block.used then fit_tracker_block(block) end
+    end
+    local top = layout.safe_dimension(module, "GetTop")
+    local height = layout.safe_dimension(module, "GetHeight")
+    if not top or not height then return end
+    local required = height
+    for _, block in pairs(blocks) do
+        local bottom = block and block.used and layout.safe_dimension(block, "GetBottom")
+        if bottom then
+            required = math.max(required, top - bottom + (safe_number(module.bottomSpacing) or 0))
+        end
+    end
+    if required > height + 0.5 and type(module.SetHeight) == "function" then
+        pcall(module.SetHeight, module, math.ceil(required))
+    end
+end
+
 local function prepare_tracker_line(block, key)
     local line = block.usedLines and block.usedLines[key]
     local region = line and line.Text
@@ -811,6 +875,7 @@ local function prepare_tracker_line(block, key)
         objective_region(self,
             "quest:" .. id .. ":" .. tostring(line.objectiveKey) .. ".description",
             nil, id, "quest-tracker")
+        fit_tracker_text(self)
     end)
 end
 
@@ -821,6 +886,13 @@ local function prepare_tracker_block(module, id, template)
     local blocks = module.usedBlocks and module.usedBlocks[template or module.blockTemplate]
     local block = blocks and blocks[id]
     if not block then return end
+    hooks.region(block.HeaderText, "SetText", function (region)
+        if runtime.combat_locked() or runtime.is_applying(region) then return end
+        local current_id = safe_number(block.id)
+        if block.parentModule ~= _G.QuestObjectiveTracker or not current_id then return end
+        translate_header(block, current_id)
+        fit_tracker_text(region)
+    end)
     -- GetLine finishes before SetStringText writes and measures the text.
     -- Hook the actual pooled frames rather than their copied mixin methods.
     hooks.region(block, "GetLine", prepare_tracker_line)
@@ -831,8 +903,8 @@ local function prepare_tracker_block(module, id, template)
     end
 end
 
--- Leave line/block sizes and layout bookkeeping to Blizzard. Writes here can
--- taint a deferred tracker layout that accesses secret auras.
+-- Native builds measure the translated text through the synchronous hooks;
+-- recovery passes reconcile rendered heights without changing layout state.
 local function translate_objectives(block, id)
     if type(block.ForEachUsedLine) ~= "function" then return end
     pcall(block.ForEachUsedLine, block, function (line, key)
@@ -869,11 +941,11 @@ quest_ui.refresh_tracker_progress = function ()
             if safe_number(id) and block then translate_header(block, id) end
         end
     end
-    if not text_enabled then return end
+    if not text_enabled then fit_tracker_blocks(module); return end
     local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
     local get_objective = _G.GetQuestLogLeaderBoard
     if type(get_index) ~= "function"
-        or type(get_objective) ~= "function" then return end
+        or type(get_objective) ~= "function" then fit_tracker_blocks(module); return end
     for id, block in pairs(blocks) do
         if type(id) == "number" and block
             and type(block.ForEachUsedLine) == "function" then
@@ -907,6 +979,7 @@ quest_ui.refresh_tracker_progress = function ()
             translate_objectives(block, id)
         end
     end
+    fit_tracker_blocks(module)
 end
 
 local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
@@ -951,6 +1024,7 @@ local function after_update(self, quest)
     if not block_ok or not block then return end
     translate_header(block, id)
     translate_objectives(block, id)
+    fit_tracker_block(block)
     -- UpdateSingle can run once per changed quest in the same native batch.
     -- Static tracker labels are independent of the quest block, so coalesce
     -- their fallback discovery instead of walking the whole tree Q times.
@@ -1023,6 +1097,7 @@ quest_ui.prepare = function ()
         translate_tracker_labels, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "GetBlock", prepare_tracker_block)
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
+    hooks.region(_G.QuestObjectiveTracker, "UpdateHeight", fit_tracker_blocks)
     -- The XML-created frame copies mixin methods during construction in client
     -- build 70058, so hooking the mixin afterwards does not reach that frame.
     -- Prefer the live frame and keep the mixin as a late-load fallback.

@@ -556,6 +556,10 @@ layout.fit_translated_tooltip = function (tooltip)
     local kind = tooltip.uaForeverKind
     if kind and kind ~= "generic" and kind ~= "npc" and kind ~= "object" then return false end
     if has_current_translation(tooltip) then
+        -- Unit tooltips append wrapped quest/hint rows after their first Show.
+        -- Native anchors still contain the old line spacing: recompute every
+        -- row as well as the border so the last instruction stays inside it.
+        if kind == "npc" then return fit_complete_tooltip(tooltip, 420, true) end
         if tooltip_row_anchors[tooltip] then return fit_complete_tooltip(tooltip, 460, true) end
         return fit_complete_tooltip(tooltip, 420)
     end
