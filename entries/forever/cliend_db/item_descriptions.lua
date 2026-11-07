@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70840",
-    count = 4905,
+    count = 4906,
     rows = {
         [728] = "Teaches you how to cook Westfall Stew.",
         [734] = "Upon this iron disk are stamped the words: \"Footman Malakai Stone\"",
@@ -4911,6 +4911,7 @@ local database = {
         [282550] = "Serves as an Arclight Spanner.",
         [282699] = "The last remnant of the ancient elemental defender of a Highborne city.",
         [286650] = "What is pyromancy if not just arson?",
+        [647] = "To claim one's destiny requires the strength to reach out and grasp it.",
     },
 }
 

@@ -14,16 +14,16 @@
   "skillLines": 154,
   "spellsWithSkillLines": 7381,
   "itemIDs": 26197,
-  "itemNames": 24239,
-  "itemDescriptions": 4905,
+  "itemNames": 24259,
+  "itemDescriptions": 4906,
   "itemsWithSpellEffects": 9016,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12647,
   "resolvedItemSpellEffects": 12639,
-  "itemNamesUk": 24239,
+  "itemNamesUk": 24259,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
-  "itemDescriptionsUk": 4905,
+  "itemDescriptionsUk": 4906,
   "itemDescriptionsNeedTranslation": 0,
   "spellNamesUkV4": 33103,
   "spellNamesNeedTranslation": 32,
@@ -1484,7 +1484,7 @@
     ],
     "inGameVerified": false
   },
-  "itemCacheTranslationSourceBuild": "1.60.1.70840",
+  "itemCacheTranslationSourceBuild": "1.60.1.70862",
   "metadataFinalization70291": {
     "sourceBuild": "1.60.1.70291",
     "previousBuild": "1.60.1.70245",
@@ -2457,5 +2457,17 @@
     "objectNamesAdded": 5,
     "objectIDsMapped": 40,
     "globalStringsUpdated": 2
+  },
+  "cacheTranslation70862": {
+    "sourceBuild": "1.60.1.70862",
+    "inventory": "build/forever-client-inventory/70862/db2",
+    "cacheSHA256": "17cb1e242f325ee1701999ae86a6f6732890e29de16d13eef1897f40be08be01",
+    "cacheSnapshot": "build/forever-client-inventory/70862/cache/snapshots/DBCache.bin",
+    "cacheProvenance": "build/forever-client-inventory/70862/cache/provenance.json",
+    "itemNamesAdded": 20,
+    "itemDescriptionsAdded": 1,
+    "preservedHistoricalRows": true,
+    "installed": false,
+    "testedInGame": false
   }
 }

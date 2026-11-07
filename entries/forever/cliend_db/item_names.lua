@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70840",
-    count = 24239,
+    count = 24259,
     rows = {
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
@@ -24245,6 +24245,26 @@ local database = {
         [287072] = "Bladewhisper's Namesake",
         [287073] = "Orwin's Axe",
         [287074] = "Lard's Lunch Slicer",
+        [647] = "Destiny",
+        [1169] = "Blackskull Shield",
+        [2100] = "Precisely Calibrated Boomstick",
+        [2824] = "Hurricane",
+        [274997] = "Chain of Binding",
+        [275000] = "Zarmok's Plated Signet",
+        [275002] = "War Handler's Gaze",
+        [275004] = "Chain of the Corruptor",
+        [275005] = "Krol'dok Warplate Chest",
+        [275006] = "Krol'dok Warplate Helmet",
+        [275009] = "Emblem of Slamming",
+        [279904] = "Crystalline Pauldrons",
+        [279906] = "Potent Treads",
+        [284859] = "Silithid Sinew Crossbow",
+        [286430] = "Toofbreaker",
+        [287003] = "Corroded Handguards",
+        [287005] = "Sword of Dismemberment",
+        [287012] = "Krol'dok Warplate Gauntlets",
+        [287013] = "Krol'dok Warplate Legplates",
+        [287014] = "Krol'dok Warplate Pauldrons",
     },
 }
 
