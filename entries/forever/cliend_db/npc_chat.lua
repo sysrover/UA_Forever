@@ -574,7 +574,7 @@ local chat_rows = {
     [2501324654] = { ["english"] = { [1] = "Succumb to the endless dream, little ones. Let it consume you!" }, ["npcs"] = { [1] = "Merithra of the Dream" }, ["priority"] = 1, ["text"] = "Скоріться вічному сну, виродки. Нехай він поглине вас!" },
     [2501661725] = { ["english"] = { [1] = "DIE!" }, ["npcs"] = { [1] = "Defias Rioter" }, ["priority"] = 1, ["text"] = "ЗДОХНИ!" },
     [2501713200] = { ["english"] = { [1] = "Concentrate your attacks upon the healer!" }, ["npcs"] = { [1] = "Lord Victor Nefarius" }, ["priority"] = 1, ["text"] = "Зосередьте атаки на цілителі!" },
-    [2505577163] = { ["english"] = { [1] = "%s yawns." }, ["npcs"] = { [1] = "Doctor Weavil" }, ["priority"] = 1, ["text"] = "%s позіхає." },
+    [2505577163] = { ["english"] = { [1] = "%s yawns." }, ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ys" } }, ["npcs"] = { [1] = "Doctor Weavil", [2] = "Haggle" }, ["priority"] = 1, ["text"] = "%s позіхає." },
     [2507800932] = { ["english"] = { [1] = "Okay, okay! No need to get all violent. I'll talk. I'll talk!" }, ["npcs"] = { [1] = "Tapoke \"Slim\" Jahn" }, ["priority"] = 1, ["text"] = "Гаразд, гаразд! Досить цього насильства. Я все скажу!" },
     [2508488588] = { ["english"] = { [1] = "NO! What have they done to you!?" }, ["npcs"] = { [1] = "Captured Arko'narin" }, ["priority"] = 1, ["text"] = "НІ! Що вони з тобою зробили!?" },
     [2509099507] = { ["english"] = { [1] = "I hope your spirit finds solace." }, ["npcs"] = { [1] = "Baron Silverlaine" }, ["priority"] = 1, ["text"] = "Сподіваюсь, твоя душа знайде спокій." },
@@ -1809,6 +1809,12 @@ local chat_rows = {
     ["npcs"] = { [1] = "Yorus Barleybrew" },
     ["priority"] = 3,
 },
+    ["Kogan Forgestone:tswltewetohtupsoistefrdkwtdoyusyts"] = {
+        ["english"] = { [1] = "This will take a while to heat up, so its time for a drink! What do you say Tongus?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "tswltewetohtupsoistefrdkwtdoyusyts" } },
+        ["npcs"] = { [1] = "Kogan Forgestone" },
+        ["text"] = "Поки це нагріється, мине трохи часу, тож саме час випити! Що скажеш, Тонґусе?",
+    },
 }
 addonTable.chat_hashed = { ["version"] = 1 }
 addonTable.chat_hashed.rows = chat_rows
