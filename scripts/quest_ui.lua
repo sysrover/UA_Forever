@@ -15,6 +15,14 @@ local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("quest")
 local layout = addon_table.use("translation_layout")
 
+local tracker_refresh_pending = false
+
+local function defer_tracker_in_combat()
+    if not runtime.combat_locked() then return false end
+    tracker_refresh_pending = true
+    return true
+end
+
 
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
@@ -111,7 +119,7 @@ local function quest_name_region(region, id, owner)
         owner = owner, slot = "quest:" .. id .. ".name",
         source = source, translated = translated, category = "quest",
         option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
-    })
+    }), true
 end
 
 local function original_value(name, result_index, ...)
@@ -340,7 +348,7 @@ local function objective_region(region, slot, after_apply, quest_id, surface)
         surface = surface,
     })
     if applied then apply_dialog_language(region) end
-    return applied
+    return applied, true
 end
 
 local function grow_quest_log_row(button, delta)
@@ -788,18 +796,22 @@ local function translate_header(block, id)
     local source = safe_text(region)
     local claim = region and runtime.get(region)
     if claim and source == claim.translated then source = claim.source end
-    if quest_name_region(region, id, "quest-tracker") then return end
+    local applied, attempted = quest_name_region(region, id, "quest-tracker")
+    if applied then return true end
+    if attempted then return false end
     -- Tags also need localization when the quest has no translated name.
     local translated = translate_title_tag(source, region)
     if source and translated ~= source then
-        runtime.apply(region, { owner = "quest-tracker-tag", slot = "ui.quest_tag",
+        return runtime.apply(region, { owner = "quest-tracker-tag", slot = "ui.quest_tag",
             source = source, translated = translated, option = "translate_string",
             priority = runtime.PRIORITY.CONTEXT })
     end
+    return true
 end
 
 local function fit_tracker_text(region)
-    if not region or runtime.combat_locked() or not safe_text(region) then return end
+    if not region or runtime.combat_locked() or not safe_text(region)
+        or not runtime.can_write_text(region) then return end
     -- SetStringText measures immediately after SetText. Release stale caps in
     -- that same call, so Blizzard measures the final font and wrapped text.
     if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
@@ -866,7 +878,7 @@ local function prepare_tracker_line(block, key)
     local region = line and line.Text
     if not region then return end
     hooks.region(region, "SetText", function (self)
-        if runtime.combat_locked() or runtime.is_applying(self) then return end
+        if runtime.is_applying(self) or defer_tracker_in_combat() then return end
         -- Lines are pooled, so resolve their current owner on every write.
         local owner = line.parentBlock
         if not owner or owner.parentModule ~= _G.QuestObjectiveTracker then return end
@@ -887,7 +899,7 @@ local function prepare_tracker_block(module, id, template)
     local block = blocks and blocks[id]
     if not block then return end
     hooks.region(block.HeaderText, "SetText", function (region)
-        if runtime.combat_locked() or runtime.is_applying(region) then return end
+        if runtime.is_applying(region) or defer_tracker_in_combat() then return end
         local current_id = safe_number(block.id)
         if block.parentModule ~= _G.QuestObjectiveTracker or not current_id then return end
         translate_header(block, current_id)
@@ -906,18 +918,22 @@ end
 -- Native builds measure the translated text through the synchronous hooks;
 -- recovery passes reconcile rendered heights without changing layout state.
 local function translate_objectives(block, id)
-    if type(block.ForEachUsedLine) ~= "function" then return end
-    pcall(block.ForEachUsedLine, block, function (line, key)
+    if type(block.ForEachUsedLine) ~= "function" then return true end
+    local ready = true
+    local ok = pcall(block.ForEachUsedLine, block, function (line, key)
         local region = line and line.Text
         local source = safe_text(region)
-        if not source then return end
-        local applied = objective_region(region,
+        if not region then return end
+        if not source or not runtime.can_write_text(region) then ready = false; return end
+        local applied, attempted = objective_region(region,
             "quest:" .. id .. ":" .. tostring(key) .. ".description",
             nil, id, "quest-tracker")
+        if attempted and not applied then ready = false end
         if not applied and options.can_translate("translate_quest") then
             strings.translate_region(region)
         end
     end)
+    return ok and ready
 end
 
 -- Some client builds refresh the quest log before repainting a tracked line.
@@ -925,31 +941,37 @@ end
 -- on every used block. A native tracker rebuild in combat skips after_update,
 -- so headers and unchanged objectives can remain English after combat ends.
 quest_ui.refresh_tracker_progress = function ()
-    if runtime.combat_locked() then return end
+    if defer_tracker_in_combat() then return false end
     local names_enabled = not options.can_lookup_section
         or options.can_lookup_section("quest_names")
     local text_enabled = not options.can_lookup_section
         or options.can_lookup_section("quest_text")
-    if not names_enabled and not text_enabled then return end
+    if not names_enabled and not text_enabled then tracker_refresh_pending = false; return true end
     local module = _G.QuestObjectiveTracker
     local blocks = module and module.usedBlocks and module.usedBlocks[module.blockTemplate]
-    if type(blocks) ~= "table" then return end
+    if type(blocks) ~= "table" then tracker_refresh_pending = true; return false end
+    local ready = true
     -- Header recovery must also run with quest text disabled or journal
     -- objective APIs unavailable. Resolve IDs from the current pool contents.
     if names_enabled then
         for id, block in pairs(blocks) do
-            if safe_number(id) and block then translate_header(block, id) end
+            if safe_number(id) and block and block.HeaderText then
+                if safe_text(block.HeaderText) and runtime.can_write_text(block.HeaderText) then
+                    if not translate_header(block, id) then ready = false end
+                else
+                    ready = false
+                end
+            end
         end
     end
-    if not text_enabled then fit_tracker_blocks(module); return end
     local get_index = _G.C_QuestLog and _G.C_QuestLog.GetLogIndexForQuestID
     local get_objective = _G.GetQuestLogLeaderBoard
-    if type(get_index) ~= "function"
-        or type(get_objective) ~= "function" then fit_tracker_blocks(module); return end
+    local journal_available = type(get_index) == "function" and type(get_objective) == "function"
     for id, block in pairs(blocks) do
-        if type(id) == "number" and block
+        if text_enabled and safe_number(id) and block
             and type(block.ForEachUsedLine) == "function" then
-            local index_ok, index = pcall(get_index, id)
+            local index_ok, index
+            if journal_available then index_ok, index = pcall(get_index, id) end
             if index_ok and safe_number(index) and index > 0 then
                 pcall(block.ForEachUsedLine, block, function (line, key)
                     if type(key) ~= "number" or not line then return end
@@ -976,10 +998,35 @@ quest_ui.refresh_tracker_progress = function ()
                     end
                 end)
             end
-            translate_objectives(block, id)
+            -- The journal is only needed for numeric progress. Existing
+            -- rendered objectives can be translated even while it is loading.
+            if not translate_objectives(block, id) then ready = false end
         end
     end
     fit_tracker_blocks(module)
+    tracker_refresh_pending = not ready
+    return ready
+end
+
+quest_ui.schedule_tracker_refresh = function (delay)
+    tracker_refresh_pending = true
+    scheduler.request({ id = "quest-tracker-progress", work_scope = "quest",
+        delay = delay or 0.2, max_retries = 3, retry_delay = 0.1,
+        callback = function ()
+            if not tracker_refresh_pending then return true end
+            return quest_ui.refresh_tracker_progress()
+        end })
+end
+
+quest_ui.recover_tracker_after_combat = function ()
+    -- A coalesced journal timer may still have its old 0.2-second deadline.
+    -- Cancel it and recover synchronously on PLAYER_REGEN_ENABLED instead.
+    scheduler.cancel("quest-tracker-progress")
+    if quest_ui.refresh_tracker_progress() == false then
+        quest_ui.schedule_tracker_refresh(0.1)
+    end
+    -- Exhausting retries leaves pending set. The next combat-end, tracker
+    -- show or journal update retries against the current pool, not old rows.
 end
 
 local tracker_labels = { ["All Objectives"] = true, ["Quests"] = true }
@@ -1007,7 +1054,7 @@ local function schedule_tracker_labels()
 end
 
 local function after_update(self, quest)
-    if runtime.combat_locked() then return end
+    if defer_tracker_in_combat() then return end
     if not self or not quest then return end
     local method_ok, get_id = pcall(function () return quest.GetID end)
     if not method_ok or type(get_id) ~= "function" then return end
@@ -1094,7 +1141,10 @@ quest_ui.prepare = function ()
         or (map.QuestsFrame and map.QuestsFrame.DetailsFrame))
     hooks.region_script(details, "OnShow", translate_quest_map_labels)
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
-        translate_tracker_labels, "quest-labels")
+        function ()
+            translate_tracker_labels()
+            if tracker_refresh_pending then quest_ui.schedule_tracker_refresh(0) end
+        end, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "GetBlock", prepare_tracker_block)
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
     hooks.region(_G.QuestObjectiveTracker, "UpdateHeight", fit_tracker_blocks)

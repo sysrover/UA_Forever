@@ -1815,6 +1815,18 @@ local chat_rows = {
         ["npcs"] = { [1] = "Kogan Forgestone" },
         ["text"] = "Поки це нагріється, мине трохи часу, тож саме час випити! Що скажеш, Тонґусе?",
     },
+    ["Ozzie Togglevolt:terrissgupqenyjtfwastogo"] = {
+        ["english"] = { [1] = "The Recombobulator is shaping up quite nicely. Just a few adjustments to go!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "terrissgupqenyjtfwastogo" } },
+        ["npcs"] = { [1] = "Ozzie Togglevolt" },
+        ["text"] = "Рекомбобулятор виходить на славу. Залишилося лише дещо підлаштувати!",
+    },
+    ["Razzle Sprysprocket:py"] = {
+        ["english"] = { [1] = "Precisely." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "py" } },
+        ["npcs"] = { [1] = "Razzle Sprysprocket" },
+        ["text"] = "Саме так.",
+    },
 }
 addonTable.chat_hashed = { ["version"] = 1 }
 addonTable.chat_hashed.rows = chat_rows

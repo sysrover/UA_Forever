@@ -87,6 +87,10 @@
     <Script file="combat_log.lua"/>
     <Script file="chat_config_ui.lua"/>
     <Script file="channel_ui.lua"/>
+    <Script file="group_loot_ui.lua"/>
+    <Script file="battlefield_map_ui.lua"/>
+    <Script file="support_ui.lua"/>
+    <Script file="player_choice_ui.lua"/>
     <Script file="scanner.lua"/>
     <Script file="skills.lua"/>
     <Script file="main.lua"/>

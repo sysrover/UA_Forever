@@ -7065,6 +7065,13 @@ local rows = {
         ["roles"] = { ["greeting"] = true },
         ["text"] = "Хочеш порибалити? Тоді тобі знадобиться відповідне спорядження.",
     },
+    ["264936:erpeseyrfrstwhme"] = {
+        ["english"] = { [1] = "Earthseer, please share your far sight with me." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "erpeseyrfrstwhme" } },
+        ["npcs"] = { [1] = 264936 },
+        ["roles"] = { ["reply"] = true },
+        ["text"] = "Землепровидцю, будь ласка, поділіться зі мною своєю далекоглядністю.",
+    },
 }
 addonTable.gossip_hashed = { ["version"] = 1 }
 addonTable.gossip_hashed.rows = rows

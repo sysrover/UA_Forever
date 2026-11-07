@@ -52,7 +52,22 @@ local function roster_title(region)
     channel_label(region, row)
 end
 
+local function refresh_create_popup()
+    local frame = _G.CreateChannelPopup
+    if not frame or not runtime.can_write_text(frame) then return end
+    -- This is a UIParent child shown through StaticPopupSpecial, not a
+    -- ChannelFrame child. Translate labels without touching either input.
+    ui.watch(frame.Title)
+    ui.regions(frame.Header)
+    ui.watch(frame.Name and frame.Name.Label)
+    ui.watch(frame.Password and frame.Password.Label)
+    ui.watch(frame.UseVoiceChat and frame.UseVoiceChat.Text)
+    ui.button(frame.OKButton)
+    ui.button(frame.CancelButton)
+end
+
 local function refresh()
+    refresh_create_popup()
     local frame = _G.ChannelFrame
     if not frame then return end
     ui.watch(frame.TitleText or _G.ChannelFrameTitleText)
@@ -74,9 +89,11 @@ local function refresh()
 end
 
 adapter.prepare = function ()
-    ui.prepare({ "ChannelFrame" }, "Blizzard_Channels", {}, {
+    ui.verified_build = "1.60.1.70862"
+    ui.prepare({ "ChannelFrame", "CreateChannelPopup" }, "Blizzard_Channels", {}, {
         { "ChannelFrame", "Update" },
     }, refresh)
+    ui.hooks.region(_G.CreateChannelPopup, "SetupGamepad", refresh_create_popup)
     local frame = _G.ChannelFrame
     if frame then
         ui.hooks.region(frame.ChannelList, "Update", refresh)

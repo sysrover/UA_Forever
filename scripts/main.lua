@@ -77,6 +77,10 @@ local function prepare_menu_panels()
     addon_table.use("damage_meter_ui").prepare()
     social_ui.prepare()
     addon_table.use("channel_ui").prepare()
+    addon_table.use("group_loot_ui").prepare()
+    addon_table.use("battlefield_map_ui").prepare()
+    addon_table.use("support_ui").prepare()
+    addon_table.use("player_choice_ui").prepare()
     raid_ui.prepare()
     trade_ui.prepare()
     compact_raid_manager_ui.prepare()
@@ -1197,6 +1201,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         scheduler.request("world-font-retry", nil, refresh_after_login, 1)
 
     elseif event == "PLAYER_REGEN_ENABLED" then
+        quest_ui.recover_tracker_after_combat()
         -- Writes to protected regions are intentionally skipped in combat.
         -- Once combat ends, retry only the surfaces that are still visible.
         scheduler.request("post-combat-surfaces", nil, function ()
@@ -1207,10 +1212,6 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             if tooltips.refresh_active then tooltips.refresh_active() end
             if map_labels.refresh_active then map_labels.refresh_active() end
         end)
-        -- Combat tracker updates skip the domain post-hook entirely, so there
-        -- may be no deferred text claim for retry_deferred to restore.
-        scheduler.request("quest-tracker-progress", nil,
-            quest_ui.refresh_tracker_progress, 0.2)
     elseif event == "ITEM_TEXT_BEGIN" then
         scanner.begin_book(...)
     elseif event == "ITEM_TEXT_READY" then
@@ -1243,7 +1244,6 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             scheduler.request("quest-log-capture", nil,
                 scanner.capture_quest_log, 0.2)
         end
-        scheduler.request("quest-tracker-progress", nil,
-            quest_ui.refresh_tracker_progress, 0.2)
+        quest_ui.schedule_tracker_refresh()
     end
 end)
