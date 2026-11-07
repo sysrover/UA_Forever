@@ -912,6 +912,7 @@ tooltips.process_quest_pin = function (tooltip, data)
                 end
             end
         end
+        layout.fit_quest_pin_tooltip(tooltip)
         return applied
     end
     tooltip.uaForeverQuestPinOwner = owner
@@ -945,6 +946,7 @@ tooltips.process_quest_pin = function (tooltip, data)
     scheduler.cancel("tooltip:" .. tostring(tooltip))
     scheduler.cancel("tooltip-late:" .. tostring(tooltip))
     tooltip.uaForeverUpdateBudget = 0
+    layout.fit_quest_pin_tooltip(tooltip)
     return result == true
 end
 

@@ -1,6 +1,7 @@
 local _, addon_table = ...
 
 local entries = addon_table.use("entries")
+local layout = addon_table.use("translation_layout")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local translation = addon_table.use("translation")
@@ -401,6 +402,7 @@ local function after_blob_tooltip(pin)
     contract.cancel_finalize(tooltip)
     if adapter.translate_blob(tooltip, id, native_title) then
         tooltip.uaForeverKey = key
+        layout.fit_quest_pin_tooltip(tooltip)
     end
 end
 

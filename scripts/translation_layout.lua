@@ -535,6 +535,14 @@ local function has_current_translation(tooltip)
     return translated
 end
 
+layout.fit_quest_pin_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "quest"
+        or tooltip.uaForeverShowOriginal or not has_current_translation(tooltip) then return false end
+    -- Map pins rebuild native geometry while retaining their translated claims.
+    -- Measure all current rows instead of reusing the first build's line deltas.
+    return fit_complete_tooltip(tooltip, 460, true)
+end
+
 layout.fit_calendar_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal
         or not has_current_translation(tooltip) then return false end
@@ -554,6 +562,9 @@ end
 layout.fit_translated_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
     local kind = tooltip.uaForeverKind
+    if kind == "quest" and tooltip.uaForeverQuestPinOwner then
+        return layout.fit_quest_pin_tooltip(tooltip)
+    end
     if kind and kind ~= "generic" and kind ~= "npc" and kind ~= "object" then return false end
     if has_current_translation(tooltip) then
         -- Unit tooltips append wrapped quest/hint rows after their first Show.
