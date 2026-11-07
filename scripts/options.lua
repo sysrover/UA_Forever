@@ -97,7 +97,7 @@ local scope_sections = {
     ["item-tooltips"] = { "item_names", "item_details" },
     ["spell-tooltips"] = { "spell_names", "spell_details", "auras", "talents", "recipes" },
     ["npc-tooltips"] = { "npc_tooltips", "quest_names", "quest_text" },
-    ["object-tooltips"] = { "objects", "zone_names" },
+    ["object-tooltips"] = { "objects", "zone_names", "quest_names", "quest_text" },
     ["map-labels"] = { "zone_names", "map_ui", "map_images", "gossip", "quest_text", "popups" },
     ["map-tooltips"] = { "zone_names", "map_ui", "quest_names", "quest_text" },
     ["cast-bar"] = { "cast_bars" }, ["target-auras"] = { "auras" },

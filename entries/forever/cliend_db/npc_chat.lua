@@ -2110,7 +2110,7 @@ addonTable.chat = {
     ["Grawmug"] = { [1] = "Ґромаґ" },
     ["Greishan Ironstove"] = { [1] = "Ґрейшан Сталежар" },
     ["Grubbis"] = { [1] = "Бубонник" },
-    ["Grund Drokda"] = { ["gtsebdinyrby"] = "Закинь-но трохи хліба в черево." },
+    ["Grund Drokda"] = { ["gtsebdinyrby"] = "Закинь-но трохи хліба в черево.", ["aeyewlbefeoewegtyawm"] = "Та все з тобою буде гаразд, от тільки зігріємо тебе!" },
     ["Guard Lasiter"] = { [1] = "вартовий Ласітер" },
     ["Gunther Arcanus"] = { [1] = "Ґюнтер Арканус" },
     ["Gunther's Visage"] = { [1] = "образ Ґюнтера" },

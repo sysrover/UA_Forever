@@ -1,11 +1,11 @@
 -- Ukrainian aura descriptions with incomplete English rows separated.
 -- Preserve every spellID and WoW $ token when editing this file.
--- Client build: 1.60.1.70790; source: Spell.db2:AuraDescription_lang
+-- Client build: 1.60.1.70840; source: Spell.db2:AuraDescription_lang
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70790",
-    count = 7879,
+    sourceBuild = "1.60.1.70840",
+    count = 7882,
     rows = {
         [1299332] = "Кровотеча завдає $s1 шкоди кожні $t1 с.",
         [1310536] = "Кровотеча завдає $w1 шкоди кожні $t1 с.",
@@ -7886,6 +7886,9 @@ local database = {
         [1328118] = "Розміри значно збільшено.",
         [1328119] = "Збільшує бігу швидкість на $s1%",
         [1328127] = "Отриманий досвід збільшено на $s1%.",
+        [1324474] = "$?s8643[$@spelldesc8643][$@spelldesc408]",
+        [1324481] = "$?s11286[$@spelldesc11286]?s11285[$@spelldesc11285]?s8629[$@spelldesc8629]?s1777[$@spelldesc1777][$@spelldesc1776]",
+        [1328261] = "Вівця-втікачка йде за вами.",
     },
 }
 

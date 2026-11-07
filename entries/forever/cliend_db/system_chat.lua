@@ -1707,6 +1707,8 @@ local chat = {
         "MARKED_AFK",
         "MARKED_AFK_MESSAGE",
         "MARKED_DND",
+        "INVITATION",
+        "CHAR_CREATE_THROTTLE",
     },
     notice_types = {
         "SYSTEM", "CHANNEL_NOTICE", "CHANNEL_NOTICE_USER", "CHANNEL_JOIN",
@@ -1718,6 +1720,8 @@ local chat = {
         ERR_GUILD_PROMOTE_SS = 2, ERR_GUILD_DEMOTE_SS = 2,
     },
     template_text = {
+        ["%s invites you to a group.\\n\\n|TInterface\\\\DialogFrame\\\\UI-Dialog-Icon-AlertNew:0:0:0:-1|t Accepting this invitation may cause the world to refresh around you."] = "%s запрошує вас до групи.\\n\\n|TInterface\\\\DialogFrame\\\\UI-Dialog-Icon-AlertNew:0:0:0:-1|t Якщо ви приймете це запрошення, світ навколо вас може оновитися.",
+        ["Too many character creation attempts in a short period of time. Please close the client and try again in a few minutes."] = "Забагато спроб створення персонажа за короткий час. Закрийте клієнт і повторіть спробу за кілька хвилин.",
         ["You are now Away."] = "Ви тепер відсутні.",
         ["You are now Away: %s"] = "Ви тепер відсутні: %s",
         ["You are now Busy: %s"] = "Ви тепер зайняті: %s",
@@ -1745,6 +1749,13 @@ local chat = {
     loot_method = { ["Group Loot"] = "групова здобич" },
     reputation_standings = {
         Neutral = "нейтральне", Honored = "шанобливе",
+    },
+    level_stat_subjects = {
+        Strength = "Ваша сила зросла",
+        Agility = "Ваша спритність зросла",
+        Stamina = "Ваша витривалість зросла",
+        Intellect = "Ваш інтелект зріс",
+        Spirit = "Ваш дух зріс",
     },
     exact = {
         -- ChannelFrame writes these notices directly through AddMessage.
@@ -1872,6 +1883,16 @@ chat.format = {
     end,
     level_plain = function (level)
         return "Вітаємо! Ви досягли " .. level .. "-го рівня!"
+    end,
+    level_health = function (health)
+        return "Ви отримали " .. health .. " од. здоров'я."
+    end,
+    level_health_mana = function (health, mana)
+        return "Ви отримали " .. health .. " од. здоров'я і " .. mana .. " од. мани."
+    end,
+    level_stat = function (stat, amount)
+        local subject = chat.level_stat_subjects[stat]
+        if subject then return subject .. " на " .. amount .. "." end
     end,
     appearance = function (item)
         return item .. " додано до вашої колекції виглядів."

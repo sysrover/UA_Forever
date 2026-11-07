@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70790",
+  "sourceBuild": "1.60.1.70840",
   "itemMetadata": 4039,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,11 +17,11 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "inventory": "automation/results/cache_results/current/decoded",
-  "itemMetadataInventory": "automation/results/cache_results/current/decoded/itemsparse.json",
-  "cacheSHA256": "ca3ad1f0f2e8324f0ca2c1f9c95fbdb371ad719df6ff33316f181f5240ddb743",
-  "cacheProvenance": "automation/results/cache_results/current/provenance.json",
-  "cacheScope": "70790 exact-build base with verified server cache overlay; compact metadata unchanged; approved Ukrainian data and historical compatibility rows retained.",
+  "inventory": "build/forever-client-inventory/70840/db2",
+  "itemMetadataInventory": "build/forever-client-inventory/70840/db2/itemsparse.json",
+  "cacheSHA256": "9613a8d275c4914432519183964095b5aae0e1ac9be9b17e645a8481a9c8b966",
+  "cacheProvenance": "build/forever-client-inventory/70840/cache/provenance.json",
+  "cacheScope": "70840 exact-build base and verified hotfix cache; historical compatibility rows retained.",
   "retainedHotfixProvenance": {
     "sourceBuild": "1.60.1.70755",
     "itemMetadata": 4039,

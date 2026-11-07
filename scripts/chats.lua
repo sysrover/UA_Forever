@@ -500,6 +500,16 @@ local function translate_direct_chat_text(message)
     local level = message:match(
         "^Congratulations, you have reached [Ll]evel (%d+)!$")
     if level then return chat_format.level_plain(level) end
+    local health, mana = message:match(
+        "^You have gained (%d+) hit points and (%d+) mana%.$")
+    if health then return chat_format.level_health_mana(health, mana) end
+    health = message:match("^You have gained (%d+) hit points%.$")
+    if health then return chat_format.level_health(health) end
+    local stat, amount = message:match("^Your (.-) increases by (%d+)%.$")
+    if stat then
+        local translated = chat_format.level_stat(stat, amount)
+        if translated then return translated end
+    end
     local appearance = message:match(
         "^(.+) has been added to your appearance collection%.$")
     if appearance then

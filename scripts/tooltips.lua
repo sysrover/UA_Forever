@@ -718,7 +718,8 @@ local function process(tooltip, data, kind, native_rebuild)
         if kind == "object" then
             if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
             tooltip.uaForeverKind = "object"
-            return translate_object_tooltip_title(tooltip)
+            local translated = translate_object_tooltip_title(tooltip)
+            return quest_adapter.translate_embedded(tooltip) or translated
         end
         return
     end
@@ -777,6 +778,7 @@ local function process(tooltip, data, kind, native_rebuild)
     elseif kind == "object" then
         dev_log.record_id("objects", id, data.name, false)
         translated = translate_object_tooltip_title(tooltip)
+        translated = quest_adapter.translate_embedded(tooltip) or translated
     end
     if kind == "spell" then
         scheduler.cancel("tooltip:" .. tostring(tooltip))
@@ -1645,7 +1647,7 @@ local function translate_generic_tooltip(tooltip)
 
     translate_cursor_tooltip_title(tooltip, left_title)
     translate_object_tooltip_title(tooltip)
-    if minimap_tooltip_owner(tooltip) then
+    if tooltip.uaForeverKind == "object" or minimap_tooltip_owner(tooltip) then
         quest_adapter.translate_embedded(tooltip)
     end
     rewrite_generic_lines(tooltip, line_count, tooltip.uaForeverReservedFirst)
@@ -2291,7 +2293,7 @@ local function after_game_tooltip_update(tooltip)
         translate_object_tooltip_title(tooltip)
     end
     translate_minimap_tooltip(tooltip)
-    if minimap_tooltip_owner(tooltip) then
+    if tooltip.uaForeverKind == "object" or minimap_tooltip_owner(tooltip) then
         quest_adapter.translate_embedded(tooltip)
     end
     if owner_ok and owner and _G.Minimap then
