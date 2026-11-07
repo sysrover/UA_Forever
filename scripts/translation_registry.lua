@@ -362,9 +362,9 @@ registry.register_defaults = function (translate_frame)
         { "social", { "SocialUIFrame", "FriendsFrame", "FriendsTooltip", "FriendsFriendsFrame",
             "AddFriendFrame", "BattleNetInviteFrame", "GuildFrame",
             "CommunitiesFrame", "GuildInviteFrame" }, "none" },
-        { "collections", { "CollectionsJournal", "WardrobeCollectionFrame",
+        { "collections", { "WardrobeCollectionFrame",
             "EncounterJournal", "AchievementFrame" }, "none" },
-        { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "CalendarFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame", "TaxiFrame" }, "none" },
+        { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame", "TaxiFrame" }, "none" },
     }
     for _, group in ipairs(groups) do
         local roots = group[2]

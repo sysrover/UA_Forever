@@ -1,6 +1,69 @@
 -- Canonical translations, consolidated with the existing winning values.
 local _, addonTable = ...
 
+-- Dynamic lines produced by MainMenuBarPerformanceBarFrame_OnEnter in 70840.
+-- Format the existing UI translations from visible values, never API data.
+do
+    local rules = {
+        { "^Latency:\n([%d%.,]+) ms %(home%)\n([%d%.,]+) ms %(world%)$",
+            "Latency:\\n%.0f ms (home)\\n%.0f ms (world)", { true, true } },
+        { "^Internet Protocols:\nHome: ([^\n]+)\nWorld: (.+)$",
+            "Internet Protocols:\\nHome: %s\\nWorld: %s", {} },
+        { "^Communication Protocol:\nHome: ([^\n]+)\nWorld: (.+)$",
+            "Communication Protocol:\\nHome: %s\\nWorld: %s", {} },
+        { "^Framerate: ([%d%.,]+) fps$", "Framerate: %.0f fps", { true } },
+        { "^Bandwidth ([%d%.,]+) Mbps$", "Bandwidth %d Mbps", { true } },
+        { "^Download (%d+) %% complete$", "Download %d %% complete", { true } },
+        { "^AddOn Memory: ([%d%.,]+) KB$", "AddOn Memory: %.0f KB", { true } },
+        { "^AddOn Memory: ([%d%.,]+) MB$", "AddOn Memory: %.2f MB", { true } },
+        { "^%(([%d%.,]+) KB%) (.+)$", "(%.0f KB) %s", { true, false } },
+        { "^%(([%d%.,]+) MB%) (.+)$", "(%.2f MB) %s", { true, false } },
+    }
+    local unpack_values = unpack or table.unpack
+    addonTable.forever_performance_ui = function (source)
+        if type(source) ~= "string" then return end
+        source = source:gsub("\r\n", "\n"):gsub("\\+n", "\n")
+        for _, rule in ipairs(rules) do
+            local values = { source:match(rule[1]) }
+            local template = rule[2] and addonTable.forever_ui[rule[2]]
+            if #values > 0 and template then
+                for index, numeric in pairs(rule[3]) do
+                    if numeric then
+                        values[index] = tonumber((values[index]:gsub(",", ".")))
+                        if not values[index] then return end
+                    end
+                end
+                template = template:gsub("\\+n", "\n")
+                local ok, text = pcall(string.format, template, unpack_values(values))
+                if ok then return text end
+            end
+        end
+    end
+end
+
+-- Calendar display formatting; native date/event API values stay unchanged.
+addonTable.forever_calendar_ui = {
+    weekdays = {
+        addonTable.forever_ui["Sunday"], addonTable.forever_ui["Monday"],
+        addonTable.forever_ui["Tuesday"], addonTable.forever_ui["Wednesday"],
+        addonTable.forever_ui["Thursday"], addonTable.forever_ui["Friday"],
+        addonTable.forever_ui["Saturday"],
+    },
+    months_genitive = { "січня", "лютого", "березня", "квітня", "травня", "червня",
+        "липня", "серпня", "вересня", "жовтня", "листопада", "грудня" },
+    time_suffixes = { AM = "ДП", PM = addonTable.forever_ui["PM"] },
+}
+addonTable.forever_calendar_ui.date = function (weekday, month, day, year)
+    local data = addonTable.forever_calendar_ui
+    local name, month_name = data.weekdays[weekday], data.months_genitive[month]
+    if name and month_name then return string.format("%s, %d %s %d р.", name, day, month_name, year) end
+end
+addonTable.forever_calendar_ui.time = function (source)
+    local hours, minutes, suffix = source:match("^(%d%d?):(%d%d)%s*([AP]M)$")
+    local translated = suffix and addonTable.forever_calendar_ui.time_suffixes[suffix]
+    if translated then return hours .. ":" .. minutes .. " " .. translated end
+end
+
 do
 -- Forever/Camelot UI strings that are not present in the Classic Era table.
 -- These are display-only replacements; global Blizzard string constants are

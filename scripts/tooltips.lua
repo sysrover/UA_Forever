@@ -469,6 +469,13 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                     end
                 end
                 if not translated_left then
+                    if tooltip.uaForeverKind == "micro-button" and index > 1
+                        and addon_table.forever_performance_ui then
+                        translated_left = addon_table.forever_performance_ui(safe_string(left))
+                        if translated_left then left_kind = "pattern" end
+                    end
+                end
+                if not translated_left then
                     translated_left, _, left_kind, _, _, _, left_provenance =
                         strings.find_ui_translation(left, left_region)
                     if not translated_left and index == 1
@@ -476,7 +483,10 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                         local title = safe_string(left)
                         local base, suffix
                         if title then
-                            base, suffix = title:match("^(.-)(%s+%(.+%)%s*)$")
+                            -- MicroButtonTooltipText colors the binding suffix.
+                            -- Preserve its markup and translate only the label.
+                            base, suffix = title:match("^(.-)(%s+|c%x%x%x%x%x%x%x%x%(.+%)|r%s*)$")
+                            if not base then base, suffix = title:match("^(.-)(%s+%(.+%)%s*)$") end
                         end
                         if base then
                             translated_left, _, left_kind, _, _, _, left_provenance =
@@ -1181,6 +1191,7 @@ local function prepare_map_surface_hooks()
 end
 
 local function reset_tooltip(self)
+    layout.restore_tooltip_rows(self)
     quest_pin_cache[self] = nil
     native_tooltip_data[self] = nil
     tooltip_session.reset(self, function (region)
@@ -1541,15 +1552,18 @@ local function translate_trainer_tooltip(tooltip, data)
     return applied
 end
 
-local function translate_generic_tooltip(tooltip)
+local function translate_generic_tooltip_content(tooltip)
     if not tooltip then return end
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
     if tooltip.uaForeverShowOriginal then return end
+    local calendar = addon_table.use("calendar_ui")
+    if calendar.translate_tooltip and calendar.translate_tooltip(tooltip) then return end
     if tooltips.is_micro_button_tooltip
         and tooltips.is_micro_button_tooltip(tooltip) then
         tooltip.uaForeverKind = "micro-button"
         rewrite_generic_lines(tooltip, nil, 1)
+        layout.fit_micro_button_tooltip(tooltip)
         return
     end
     if tooltip.uaForeverKind == "character-currency" then
@@ -1652,6 +1666,11 @@ local function translate_generic_tooltip(tooltip)
     end
     rewrite_generic_lines(tooltip, line_count, tooltip.uaForeverReservedFirst)
     capture_world_tooltip(tooltip, line_count)
+end
+
+local function translate_generic_tooltip(tooltip)
+    translate_generic_tooltip_content(tooltip)
+    layout.fit_translated_tooltip(tooltip)
 end
 
 tooltips.finalize = translate_generic_tooltip
@@ -2067,6 +2086,24 @@ local function prepare_tooltip_frames()
                 end
             end
             if tooltip == _G.GameTooltip then
+                hooks.region(tooltip, "Show", function (self)
+                    layout.fit_translated_tooltip(self)
+                end)
+                hooks.region(tooltip, "SetToyByItemID", function (self, item_id)
+                    item_id = safe_number(item_id)
+                    if not item_id or not tooltip_work_enabled("item")
+                        or type(self.GetPrimaryTooltipData) ~= "function" then return end
+                    local ok, data = pcall(self.GetPrimaryTooltipData, self)
+                    if not ok or is_secret(data) or type(data) ~= "table"
+                        or safe_number(data.id) == item_id then return end
+                    -- TooltipUtil.GetDisplayedItem only accepts Item, so retain
+                    -- the setter's verified identity if Toy data omits its ID.
+                    -- Copy the wrapper; never mutate Blizzard's tooltip data.
+                    local item_data = {}
+                    for key, value in pairs(data) do item_data[key] = value end
+                    item_data.id = item_id
+                    safe_process(self, item_data, "item", true)
+                end)
                 hooks.region(tooltip, "SetUnit", function (self, unit)
                     note_tooltip_event(self, "unitMethod")
                     translate_player_unit_tooltip(self)
@@ -2518,6 +2555,15 @@ tooltips.prepare = function ()
                 safe_process(tooltip, data, "item", true)
             end
             translate_pending_sell_price(tooltip)
+        end)
+    end
+    -- SetToyByItemID produces Toy (19), not Item, in build 70840. Keep its
+    -- structured effect lines on the same item-rendering and layout route.
+    if types.Toy then
+        TooltipDataProcessor.AddTooltipPostCall(types.Toy, function (tooltip, data)
+            if not tooltip_work_enabled("item") then return end
+            sync_tooltip_original_state(tooltip)
+            safe_process(tooltip, data, "item", true)
         end)
     end
     local line_types = Enum.TooltipDataLineType

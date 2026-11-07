@@ -188,17 +188,25 @@ adapter.render_label = function (source, frame, region)
             label = renderer.render_format(label_format, "%s", visible_label)
         end
     end
-    local translated = replace(label)
-    if translated then return translated end
+    -- A field can be labelled Dodge while its tooltip starts with Dodge Chance.
+    -- Prefer the longest complete label instead of retaining English words as
+    -- though they were the numeric suffix of the shorter field name.
+    local translated, label_length
+    local function consider(candidate)
+        candidate = runtime.safe_string_or_nil(candidate)
+        if not candidate or label_length and #candidate <= label_length then return end
+        local value = replace(candidate)
+        if value then translated, label_length = value, #candidate end
+    end
+    consider(label)
     for _, name in ipairs(title_names) do
-        translated = replace(_G[name])
-        if translated then return translated end
+        consider(_G[name])
     end
     for index = 1, 7 do
-        translated = replace(_G["RESISTANCE_TYPE" .. index])
-            or replace(_G["DAMAGE_SCHOOL" .. index])
-        if translated then return translated end
+        consider(_G["RESISTANCE_TYPE" .. index])
+        consider(_G["DAMAGE_SCHOOL" .. index])
     end
+    if translated then return translated end
     local field_format = runtime.safe_string_or_nil(_G.STAT_FORMAT)
     if field_format then
         local field = renderer.render_format(field_format, field_format, visible,

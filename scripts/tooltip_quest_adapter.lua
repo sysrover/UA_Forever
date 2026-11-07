@@ -42,7 +42,8 @@ adapter.resolve_blob_id = function (tooltip)
     for index = 2, math.min(count, contract.max_lines) do
         local source = contract.tooltip_line(tooltip, "Left", index)
         source = contract.safe_string(source)
-        local task = source and source:match("^%s*%-?%s*%d+%s*/%s*%d+%s+(.+)$")
+        local task = source and (source:match("^%s*%-?%s*%d+%s*/%s*%d+%s+(.+)$")
+            or source:match("^%s*%-%s*(.+)$"))
         if task then
             local id = entries.lookup_quest_id_for_task(title, task)
             if id then return id, title end
@@ -121,11 +122,17 @@ adapter.translate_embedded = function (tooltip)
         local id
         if normalized and entries.get_quest_title_ids(normalized) then
             for next_index = index + 1, math.min(index + 4, count) do
-                local next_text = contract.tooltip_line(
+                local next_text, next_region = contract.tooltip_line(
                     tooltip, "Left", next_index)
+                local next_claim = next_region and runtime.get(next_region)
+                if next_claim and next_claim.owner == "quest-tooltip" and next_text == next_claim.translated then
+                    next_text = next_claim.source
+                end
                 local next_line = contract.normalized_text(next_text)
-                local next_task = next_line and next_line:match(
+                if next_line and entries.get_quest_title_ids(next_line) then break end
+                local next_task = next_line and (next_line:match(
                     "^%-?%s*%d+%s*/%s*%d+%s+(.+)$")
+                    or next_line:match("^%-%s*(.+)$"))
                 if next_task then
                     id = entries.lookup_quest_id_for_task(normalized, next_task)
                     if id then break end
@@ -143,8 +150,9 @@ adapter.translate_embedded = function (tooltip)
                     "quest-tooltip") or applied
             end
         elseif quest_id and contract.safe_string(source) and region then
-            local dash, objective = source:match(
-                "^(%s*%-%s*)(%d+%s*/%s*%d+%s+.+)$")
+            -- Some discovery objectives have a bullet but no N/N counter.
+            -- Resolve them only through this quest's verified task table.
+            local dash, objective = source:match("^(%s*%-%s*)(.+)$")
             if not objective then
                 dash, objective = source:match(
                     "^(%s*)(%d+%s*/%s*%d+%s+.+)$")

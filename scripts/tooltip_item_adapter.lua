@@ -22,6 +22,8 @@ end
 
 -- Enum.TooltipDataLineType values from the Forever client UI build.
 local ITEM_NAME = 22
+local TOY_EFFECT = 26
+local TOY_DESCRIPTION = 28
 local FLAVOR_TEXT = 37
 local ITEM_SPELL_LEARN = 38
 local USAGE_REQUIREMENT = 43
@@ -30,6 +32,7 @@ local ITEM_SPELL_EQUIP = 45
 local ITEM_SPELL_PROC = 46
 
 local EFFECT_TRIGGER_BY_LINE = {
+    [TOY_EFFECT] = { [0] = true, [5] = true },
     [ITEM_SPELL_LEARN] = { [6] = true },
     [ITEM_SPELL_USE] = { [0] = true, [5] = true },
     [ITEM_SPELL_EQUIP] = { [1] = true },
@@ -37,6 +40,7 @@ local EFFECT_TRIGGER_BY_LINE = {
 }
 
 local EFFECT_PREFIX_BY_LINE = {
+    [TOY_EFFECT] = catalog.item_effect_prefix.use,
     [ITEM_SPELL_LEARN] = catalog.item_effect_prefix.learn,
     [ITEM_SPELL_USE] = catalog.item_effect_prefix.use,
     [ITEM_SPELL_EQUIP] = catalog.item_effect_prefix.equip,
@@ -493,7 +497,7 @@ local function translate_structured(tooltip, data, state)
                     translated = name and catalog.restore_item_markup(
                         source, contract.capitalize(name)) or nil
                     slot = "item.transmog-name:" .. line_index
-                elseif line_type == FLAVOR_TEXT
+                elseif line_type == FLAVOR_TEXT or line_type == TOY_DESCRIPTION
                     or source and state.english_description
                         and source == state.english_description then
                     translated = state.translated_description

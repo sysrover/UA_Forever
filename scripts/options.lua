@@ -127,8 +127,12 @@ local scope_sections = {
     ["coin-pickup"] = { "popups" }, ["role-poll"] = { "raid_ui", "generic_tooltips" },
     tutorial = { "popups" },
     collections = { "character_ui", "lfg", "achievements" },
+    ["collections-ui"] = { "character_ui", "item_names", "spell_names" },
+    ["stable-ui"] = { "character_ui" },
+    ["calendar-ui"] = { "social_ui", "generic_tooltips" },
+    ["shop-ui"] = { "game_menu" },
     misc = { "game_settings", "game_menu", "auction", "social_ui", "character_ui", "books", "map_ui" },
-    menus_ui = { "game_menu", "game_settings", "edit_mode", "chat_ui", "raid_ui", "social_ui" },
+    menus_ui = { "game_menu", "game_settings", "edit_mode", "chat_ui", "raid_ui", "social_ui", "generic_tooltips" },
     settings = { "game_settings" }, ["game-menu"] = { "game_menu" },
     ["edit-mode"] = { "edit_mode" }, ["level-up"] = { "level_up" },
     ["achievement-ui"] = { "achievements" }, ["achievement-alert"] = { "achievement_alerts" },
@@ -150,6 +154,8 @@ end
 
 -- Hook callbacks read a cached boolean rather than walking all settings.
 options.work_enabled = function (scope)
+    local section = type(scope) == "string" and scope:match("^panel%-fallback%-(.+)$")
+    if section then return options.capture_enabled() or options.section_enabled(section) end
     local enabled = active_scopes[scope]
     if enabled ~= nil then return enabled end
     return work_active
@@ -253,8 +259,13 @@ local surface_sections = {
     ["guild-registrar"] = "social_ui", petition = "social_ui", tabard = "social_ui",
     ["coin-pickup"] = "popups", ["role-poll"] = "raid_ui", tutorial = "popups",
     ["channel-ui"] = "chat_ui",
+    ["collections-ui"] = "character_ui",
+    ["stable-ui"] = "character_ui",
+    ["calendar-ui"] = "social_ui",
+    ["shop-ui"] = "game_menu",
 }
 local owner_sections = {
+    ["calendar-ui"] = "social_ui",
     ["book-title"] = "books", ["book-page"] = "books", gossip = "gossip",
     ["gossip-map"] = "gossip", ["chat-bubble"] = "chat_bubbles",
     ["chat-tabs"] = "chat_ui", ["chat-config"] = "chat_ui",
@@ -345,7 +356,9 @@ options.section_for = function (spec, region)
     end
     if spec.option == "translate_gossip" then return "gossip" end
     if spec.option == "translate_book" then return "books" end
-    if slot:match("^npc%.") or category == "npc" then return "npc_tooltips" end
+    if slot:match("^npc%.") or category == "npc" then
+        return owner == "collections-ui" and "character_ui" or "npc_tooltips"
+    end
     if owner_sections[owner] then return owner_sections[owner] end
     if spec.tooltip then
         local kind = spec.tooltip.uaForeverKind

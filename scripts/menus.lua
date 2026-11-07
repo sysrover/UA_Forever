@@ -294,6 +294,9 @@ menus_ui.prepare = function ()
     -- executable frame-kind declaration therefore hooks the already-created
     -- GameMenuFrame instance; the mixin table is not a second owner.
     hooks.mixin("MainMenuBarMicroButtonMixin", "EvaluateTooltipVisibility", translate_micro_button_tooltip)
+    -- MainMenuMicroButton rebuilds the performance tooltip through this
+    -- function from OnUpdate, bypassing EvaluateTooltipVisibility entirely.
+    hooks.global("MainMenuBarPerformanceBarFrame_OnEnter", translate_micro_button_tooltip)
 
     -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
     -- public manager and translate only the completed menu returned as open.

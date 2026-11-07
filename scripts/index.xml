@@ -53,6 +53,11 @@
     <Script file="compact_raid_manager_ui.lua"/>
     <Script file="stack_split_ui.lua"/>
     <Script file="panel_ui_adapter.lua"/>
+    <Script file="collections_ui.lua"/>
+    <Script file="calendar_ui.lua"/>
+    <Script file="shop_ui.lua"/>
+    <Script file="stable_ui.lua"/>
+    <Script file="panel_fallback_ui.lua"/>
     <Script file="cooldown_viewer_ui.lua"/>
     <Script file="damage_meter_ui.lua"/>
     <Script file="legacy_ui.lua"/>

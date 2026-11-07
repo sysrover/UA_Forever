@@ -16,6 +16,7 @@ local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
+local tooltip_row_anchors = setmetatable({}, { __mode = "k" })
 local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
 local AUCTION_TAB_SOURCES = {
     Auctions = true, Bid = true, Bids = true, Browse = true, Buy = true,
@@ -373,7 +374,7 @@ end
 
 -- Fit completed tooltips, including both columns and late native writes.
 -- Per-write height deltas are unreliable while Blizzard is building rows.
-local function fit_complete_tooltip(tooltip, maximum_width)
+local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
     if not is_tooltip(tooltip) or tooltip.uaForeverShowOriginal
         or not is_shown(tooltip) then return false end
     local generation = tooltip.uaForeverGeneration
@@ -385,7 +386,7 @@ local function fit_complete_tooltip(tooltip, maximum_width)
             local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
             if ok and not is_secret(current_owner) and current_owner == owner
                 and tooltip.uaForeverGeneration == generation then
-                fit_complete_tooltip(tooltip, maximum_width)
+                fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
             end
         end
         return false
@@ -406,6 +407,7 @@ local function fit_complete_tooltip(tooltip, maximum_width)
                 text = ok and runtime.safe_string_or_nil(text) or nil
                 if not text or not runtime.can_write_text(region) then return false end
                 row[side] = region
+                row[side .. "Empty"] = text:match("^%s*$") ~= nil
                 row[side .. "Width"] = unbounded_text_width(region) or 0
             end
         end
@@ -426,7 +428,11 @@ local function fit_complete_tooltip(tooltip, maximum_width)
         local right_width = row.Right and math.min(row.RightWidth, available * 0.45) or 0
         for _, side in ipairs({ "Left", "Right" }) do
             local region = row[side]
-            if region then
+            if region and row[side .. "Empty"] then
+                -- Blank spacer rows have no string height. Preserve their
+                -- native height instead of aborting the completed layout.
+                row[side .. "Height"] = safe_dimension(region, "GetHeight") or 0
+            elseif region then
                 local text_width = side == "Right" and right_width
                     or available - right_width - (row.Right and 12 or 0)
                 if type(region.SetWidth) == "function" then
@@ -445,6 +451,37 @@ local function fit_complete_tooltip(tooltip, maximum_width)
                 row[side .. "Height"] = height
             end
         end
+    end
+    if arrange_rows then
+        local originals = tooltip_row_anchors[tooltip]
+        if not originals then originals = {}; tooltip_row_anchors[tooltip] = originals end
+        local offset = TOOLTIP_TEXT_PADDING / 2
+        for _, row in ipairs(rows) do
+            local row_height = math.max(row.LeftHeight or 0, row.RightHeight or 0)
+            for _, side in ipairs({ "Left", "Right" }) do
+                local region = row[side]
+                if region then
+                    if not originals[region] then
+                        local points = {}
+                        local count = safe_dimension(region, "GetNumPoints")
+                        if not count then return false end
+                        for index = 1, count do
+                            local ok, point, relative, relative_point, x, y = pcall(region.GetPoint, region, index)
+                            if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
+                                or is_secret(x) or is_secret(y) then return false end
+                            points[#points + 1] = { point, relative, relative_point, x, y }
+                        end
+                        originals[region] = points
+                    end
+                    if not pcall(region.ClearAllPoints, region) then return false end
+                    local point = side == "Right" and "TOPRIGHT" or "TOPLEFT"
+                    local x = side == "Right" and -TOOLTIP_TEXT_PADDING / 2 or TOOLTIP_TEXT_PADDING / 2
+                    if not pcall(region.SetPoint, region, point, tooltip, point, x, -offset) then return false end
+                end
+            end
+            offset = offset + row_height + 2
+        end
+        return pcall(tooltip.SetHeight, tooltip, math.ceil(offset + TOOLTIP_TEXT_PADDING / 2))
     end
     local top = safe_dimension(tooltip, "GetTop")
     if not top then return false end
@@ -470,6 +507,59 @@ end
 layout.fit_settings_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.SettingsTooltip then return false end
     return fit_complete_tooltip(tooltip, 420)
+end
+
+layout.restore_tooltip_rows = function (tooltip)
+    local originals = tooltip_row_anchors[tooltip]
+    tooltip_row_anchors[tooltip] = nil
+    if not originals or runtime.combat_locked() then return end
+    for region, points in pairs(originals) do
+        if runtime.can_write_text(region) then
+            pcall(region.ClearAllPoints, region)
+            for _, point in ipairs(points) do
+                pcall(region.SetPoint, region, point[1], point[2], point[3], point[4], point[5])
+            end
+        end
+    end
+end
+
+local function has_current_translation(tooltip)
+    local translated = false
+    runtime.for_each_claim(tooltip, function (region, claim)
+        if claim.generation == tooltip.uaForeverGeneration and is_shown(region) then
+            local ok, text = pcall(region.GetText, region)
+            text = ok and runtime.safe_string_or_nil(text)
+            if text and text ~= "" and text == claim.translated and text ~= claim.source then translated = true end
+        end
+    end)
+    return translated
+end
+
+layout.fit_calendar_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal
+        or not has_current_translation(tooltip) then return false end
+    return fit_complete_tooltip(tooltip, 460, true)
+end
+
+layout.fit_micro_button_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "micro-button"
+        or tooltip.uaForeverShowOriginal or not has_current_translation(tooltip) then return false end
+    return fit_complete_tooltip(tooltip, 420, true)
+end
+
+-- Ordinary SetText/Unit tooltips can be resized by native Show after our
+-- per-line writes. Fit the completed display only when it still contains a
+-- translation from this exact session. Item/spell/comparison owners keep their
+-- existing layouts.
+layout.fit_translated_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
+    local kind = tooltip.uaForeverKind
+    if kind and kind ~= "generic" and kind ~= "npc" and kind ~= "object" then return false end
+    if has_current_translation(tooltip) then
+        if tooltip_row_anchors[tooltip] then return fit_complete_tooltip(tooltip, 460, true) end
+        return fit_complete_tooltip(tooltip, 420)
+    end
+    return false
 end
 
 layout.retry_tooltip_layout = function ()
