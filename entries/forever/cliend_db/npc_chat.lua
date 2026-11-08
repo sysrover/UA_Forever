@@ -2156,6 +2156,9 @@ addonTable.chat = {
     ["Magus Rimtori"] = { [1] = "чаклунка Рімторі" },
     ["Majordomo Executus"] = { [1] = "мажордом Екзекутус" },
     ["Mekgineer Thermaplugg"] = { [1] = "мекженер Термоштепсель" },
+    ["Melnan Darkstone"] = {
+        ["tednfeiscgtotndtmsit"] = "Ярмарок Темного Місяця скоро прибуде до міста! Не пропусти!",
+    },
     ["Merithra of the Dream"] = { [1] = "Мерітра зі Сну" },
     ["Mikhail"] = { [1] = "Михайль" },
     ["Miner Grumnal"] = { [1] = "шахтар Ґрумнал" },
@@ -2228,6 +2231,10 @@ addonTable.chat = {
     ["William"] = { [1] = "Вільям" },
     ["Witch Doctor Zum'rah"] = { [1] = "знахар Зум'ра" },
     ["Wolf Master Nandos"] = { [1] = "повелитель вовків Нандос" },
+    ["Yarlyn Amberstill"] = {
+        ["cnfyjtwttogeyubh"] = "Ну ж бо, Флафі! Я лише хочу тебе викупати!",
+        ["fyfysprg"] = "Флафі! Флафі, перестань тікати!",
+    },
     ["Yeh'kinya"] = { [1] = "Є'кінья" },
     ["Zaetar's Spirit"] = { [1] = "дух Заєтара" },
     ["Zamek"] = { [1] = "Замек" },

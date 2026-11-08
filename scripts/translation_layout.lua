@@ -523,16 +523,25 @@ layout.restore_tooltip_rows = function (tooltip)
     end
 end
 
-local function has_current_translation(tooltip)
+local function has_current_translation(tooltip, slot_prefix)
     local translated = false
     runtime.for_each_claim(tooltip, function (region, claim)
-        if claim.generation == tooltip.uaForeverGeneration and is_shown(region) then
+        if claim.generation == tooltip.uaForeverGeneration and is_shown(region)
+            and (not slot_prefix or type(claim.slot) == "string"
+                and claim.slot:sub(1, #slot_prefix) == slot_prefix) then
             local ok, text = pcall(region.GetText, region)
             text = ok and runtime.safe_string_or_nil(text)
             if text and text ~= "" and text == claim.translated and text ~= claim.source then translated = true end
         end
     end)
     return translated
+end
+
+layout.fit_crafted_item_tooltip = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "spell"
+        or tooltip.uaForeverShowOriginal
+        or not has_current_translation(tooltip, "item.crafted-effect:") then return false end
+    return fit_complete_tooltip(tooltip, 420, true)
 end
 
 layout.fit_quest_pin_tooltip = function (tooltip)
@@ -557,14 +566,15 @@ end
 
 -- Ordinary SetText/Unit tooltips can be resized by native Show after our
 -- per-line writes. Fit the completed display only when it still contains a
--- translation from this exact session. Item/spell/comparison owners keep their
--- existing layouts.
+-- translation from this exact session. Item/comparison owners and spells
+-- without translated crafted-item effects keep their existing layouts.
 layout.fit_translated_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
     local kind = tooltip.uaForeverKind
     if kind == "quest" and tooltip.uaForeverQuestPinOwner then
         return layout.fit_quest_pin_tooltip(tooltip)
     end
+    if kind == "spell" then return layout.fit_crafted_item_tooltip(tooltip) end
     if kind and kind ~= "generic" and kind ~= "npc" and kind ~= "object" then return false end
     if has_current_translation(tooltip) then
         -- Unit tooltips append wrapped quest/hint rows after their first Show.

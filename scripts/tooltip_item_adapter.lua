@@ -593,6 +593,19 @@ adapter.translate_line = function (source)
     return catalog.translate_item_line(source)
 end
 
+-- Crafting spells can embed a result item's effect without an Item post-call.
+-- Reuse its exact effect records and renderer, including dynamic values and
+-- cooldowns, rather than treating the effect body as a generic UI label.
+adapter.translate_crafted_effect = function (item_id, source)
+    if type(item_id) ~= "number" or type(source) ~= "string"
+        or not options.can_translate("translate_item")
+        or options.section_enabled and not options.section_enabled("item_details") then return nil end
+    local key = "id:" .. tostring(item_id)
+    local state = item_cache[key] or make_item_state(item_id, key)
+    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return catalog.restore_item_markup(source, translate_visible_effect(state, clean))
+end
+
 -- Blizzard can append build-owned bag metadata after SetInventoryItem() has
 -- completed and the Item TooltipData post-call has already run. Translate
 -- only those newly appended rows when their owning OnEnter method finishes.
@@ -712,12 +725,24 @@ adapter.replace_known_name = function (item_id, source)
     local english = client_db.get_english_name(item_id)
     local translated = client_db.get_name(item_id)
     if type(english) ~= "string" or english == ""
-        or type(translated) ~= "string" or translated == ""
-        or not source:find(english, 1, true) then return nil end
-    translated = deps().capitalize(translated)
-    return (source:gsub(escape_pattern(english), function ()
-        return translated
-    end, 1))
+        or type(translated) ~= "string" or translated == "" then return nil end
+    local first, last = source:find(english, 1, true)
+    if not first then return nil end
+    -- Comparison conditions embed the full instance name. Include the longest
+    -- known suffix and use the same translation as the item's title; preserve
+    -- unknown suffixes and all surrounding text/markup.
+    local name_end = last
+    for suffix in pairs(catalog.item_name_suffixes or {}) do
+        local candidate_end = last + 1 + #suffix
+        if candidate_end > name_end
+            and source:sub(last + 1, candidate_end) == " " .. suffix
+            and not source:sub(candidate_end + 1, candidate_end + 1):match("[%w_]") then
+            name_end = candidate_end
+        end
+    end
+    translated = translated_item_name({ english_name = english,
+        translated_name = translated }, source:sub(first, name_end))
+    return source:sub(1, first - 1) .. translated .. source:sub(name_end + 1)
 end
 
 adapter.has_translation = client_db.has_translation

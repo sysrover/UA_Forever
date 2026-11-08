@@ -7072,6 +7072,20 @@ local rows = {
         ["roles"] = { ["reply"] = true },
         ["text"] = "Землепровидцю, будь ласка, поділіться зі мною своєю далекоглядністю.",
     },
+    ["1254:wtdoyhwt"] = {
+        ["english"] = { [1] = "What do yeh' want?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wtdoyhwt" } },
+        ["npcs"] = { [1] = 1254 },
+        ["roles"] = { ["greeting"] = true },
+        ["text"] = "Чого тобі треба?",
+    },
+    ["1265:wetotealclifyeidinpgmtmyhdvnwlbemetnhytohpyucejttertbtifyelgfraewlwesecduesehpadhe"] = {
+        ["english"] = { [1] = "Welcome to the Amberstill Corral.  If you're interested in purchasing a mount, my husband Veron will be more than happy to help you choose just the right beast.  If you're looking for adventure, well we sure could use some help around here. . ." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wetotealclifyeidinpgmtmyhdvnwlbemetnhytohpyucejttertbtifyelgfraewlwesecduesehpadhe" } },
+        ["npcs"] = { [1] = 1265 },
+        ["roles"] = { ["greeting"] = true },
+        ["text"] = "Ласкаво просимо до загону Бурштинників. Якщо хочете придбати верхову тварину, мій чоловік Верон залюбки допоможе вам вибрати саме ту, що вам підійде. А якщо шукаєте пригод, то нам тут точно не завадить допомога…",
+    },
 }
 addonTable.gossip_hashed = { ["version"] = 1 }
 addonTable.gossip_hashed.rows = rows

@@ -686,6 +686,15 @@ local function translate_system_text(event, message)
     end
 
     if event == "CHAT_MSG_SYSTEM" then
+        local home = message:match("^(.+) is now your home%.$")
+        if home then
+            local name = home
+            if options.can_translate("translate_zone") then
+                name = addon_table.zone and addon_table.zone[home]
+                    or entries.get_glossary_text(home, home, "zone")
+            end
+            return chat_format.home_bound(name)
+        end
         local away = message:match("^You are now Away: (.+)$")
         if away then return chat_format.away(away) end
         local sharer, shared_quest = message:match(

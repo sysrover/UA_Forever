@@ -4,6 +4,8 @@ local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
 local client_db = addon_table.use("spell_client_db")
 local item_db = addon_table.use("item_client_db")
+local item_adapter = addon_table.use("tooltip_item_adapter")
+local layout = addon_table.use("translation_layout")
 local utils = addon_table.use("utils")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
@@ -228,6 +230,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     local ukrainian_raw = (details_enabled or capture) and client_db.get_description(spell_id) or nil
     local native_name
     local crafted_item = false
+    local crafted_item_id
     local applied = false
     local service_indexes = {}
     local max_line_index = 0
@@ -271,9 +274,13 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                     end
                 elseif line_type == ITEM_NAME then
                     crafted_item = true
+                    crafted_item_id = nil
                     if region and source and options.can_translate("translate_item") then
                         local prefix, name, suffix = source:match("^(%s*)(.-)(%s*)$")
-                        local translated = name and item_db.get_name_by_english(name)
+                        local translated
+                        if name then
+                            translated, crafted_item_id = item_db.get_name_by_english(name)
+                        end
                         if translated then
                             applied = contract.set_translation(
                                 tooltip, region, source,
@@ -295,7 +302,9 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         -- unresolved plural tokens in the cooldown suffix.
                         local visible = contract.tooltip_line(tooltip, "Left", line_index)
                         local native = contract.safe_string(visible) or source
-                        local translated = native and catalog.translate_item_line(native)
+                        local translated = native and crafted_item_id
+                            and item_adapter.translate_crafted_effect(crafted_item_id, native)
+                        translated = translated or native and catalog.translate_item_line(native)
                         if translated then
                             applied = contract.set_translation(
                                 tooltip, region, native, translated,
@@ -345,6 +354,9 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
         applied = contract.rewrite_generic(
             tooltip, max_line_index, 1, nil, nil, nil, service_indexes
         ) > 0 or applied
+    end
+    if crafted_item and type(layout.fit_crafted_item_tooltip) == "function" then
+        layout.fit_crafted_item_tooltip(tooltip)
     end
     return applied
 end

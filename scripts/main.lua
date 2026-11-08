@@ -1,5 +1,5 @@
 local addon_name, addon_table = ...
-local addon_version = "0.24.0"
+local addon_version = "0.24.1"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
@@ -634,7 +634,7 @@ local function show_status()
     local status = string.format(
         message_text.status,
         addon_version,
-        tostring(utils.build_version),
+        tostring(utils.build_version) .. "." .. tostring(utils.build_number),
         tostring(utils.interface_version),
         options.account.enabled and message_text.enabled or message_text.disabled,
         options.account.auto_scan_content and message_text.enabled or message_text.disabled,

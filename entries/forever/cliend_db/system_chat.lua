@@ -1970,6 +1970,7 @@ chat.format = {
     quest_completed = function (quest) return "Завдання виконано: " .. quest .. "." end,
     received = function (value) return "Отримано " .. value .. "." end,
     discovered = function (zone) return "Відкрито нову територію: " .. zone end,
+    home_bound = function (zone) return zone .. " — тепер ваша домівка." end,
     kill_xp_group = function (name, xp, bonus)
         return name .. " гине. Ви отримуєте " .. xp
             .. " досвіду. (Бонус групи: +" .. bonus .. ")"

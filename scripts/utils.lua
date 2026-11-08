@@ -18,7 +18,7 @@ local GetQuestLogSelectedID = _G.GetQuestLogSelectedID
 local UnitGUID              = _G.UnitGUID
 
 utils.prepare = function ()
-    local build_version, _, _, interface_version = GetBuildInfo()
+    local build_version, build_number, _, interface_version = GetBuildInfo()
 
     -- Forever uses a 1.60.x version number but the modern Mainline UI/API.
     -- Never infer Classic compatibility from the first version digit here.
@@ -31,6 +31,7 @@ utils.prepare = function ()
     utils.is_mists = false
     utils.expansion_key = utils.is_forever and "forever" or "unsupported"
     utils.build_version = build_version
+    utils.build_number = build_number
     utils.interface_version = interface_version
 end
 

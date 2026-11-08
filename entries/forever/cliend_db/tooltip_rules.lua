@@ -51,6 +51,7 @@ local tooltip = {
         hit = "При влучанні:",
     },
     item_name_suffixes = {
+        ["of the Bear"] = "ведмедя",
         ["of Eluding"] = "ухилення",
     },
     translated_cast_markers = {
