@@ -2,6 +2,7 @@
 local _, addonTable = ...
 
 local ui = {
+    ["Accepting this invitation may cause the world to refresh around you."] = "Якщо ви приймете це запрошення, світ навколо вас може оновитися.",
     ["Hallow's End"] = "Повечір'я святих",
     ["Current Pet"] = "Поточний улюбленець",
     ["Stabled Pets"] = "Улюбленці у стайні",
@@ -23405,5 +23406,7 @@ local ui = {
     ["Increases the healing of your |cFFFFFFFFSpells|r by up to %d\n\nIncreased by |cFFFFFFFFSpell Healing|r and |cFFFFFFFFSpell Power|r\n\n|cffBCBCBCLonger cast times typically benefit more from Spell Healing\n\nSpell ranks far below your current level benefit less from Spell Healing|r"] = "Збільшує зцілення ваших |cFFFFFFFFзаклять|r до %d.\n\nЗбільшується від |cFFFFFFFFзцілення закляттями|r і |cFFFFFFFFсили заклять|r.\n\n|cffBCBCBCЗакляття з довшим часом вимовляння зазвичай отримують більшу користь від зцілення закляттями.\n\nРанги заклять, значно нижчі за ваш поточний рівень, отримують меншу користь від зцілення закляттями|r",
     ["%s invites you to a group.\\n\\n|TInterface\\\\DialogFrame\\\\UI-Dialog-Icon-AlertNew:0:0:0:-1|t Accepting this invitation may cause the world to refresh around you."] = "%s запрошує вас до групи.\\n\\n|TInterface\\\\DialogFrame\\\\UI-Dialog-Icon-AlertNew:0:0:0:-1|t Якщо ви приймете це запрошення, світ навколо вас може оновитися.",
     ["Too many character creation attempts in a short period of time. Please close the client and try again in a few minutes."] = "Забагато спроб створення персонажа за короткий час. Закрийте клієнт і повторіть спробу за кілька хвилин.",
+    ["Merchant's Favor"] = "Прихильність торговця",
+    ["Worth a considerable amount of gold and thus used as an interim currency among high-traffic merchant organizations. Members of the Durotar Supply and Logistics or Azeroth Commerce Authority would be willing to trade for this."] = "Коштує чимало золота, тому використовується як проміжна валюта серед торговельних організацій із великим товарообігом. Представники «Постачання й логістики Дуротару» або Управління торгівлі Азероту охоче приймуть її в обмін на товари.",
 }
 addonTable.forever_ui = ui

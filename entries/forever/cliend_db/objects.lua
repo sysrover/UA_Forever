@@ -3387,6 +3387,7 @@ addonTable.object = {
     ["Smoldering Brazier"] = "Тліюча жаровня",
     ["Smoldering Coals"] = "Тліюче вугілля",
     ["Smoldering Fire"] = "Тліючий вогонь",
+    ["Snow"] = "Сніг",
     ["Snowfall Banner"] = "стяг Снігопаду",
     ["Snufflenose Command Sticks"] = "палиці для керування шморгоносом",
     ["Snufflenose Owner's Manual"] = "посібник власника шморгоноса",

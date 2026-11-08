@@ -8926,6 +8926,7 @@ local npc = {
     [272330] = { [1] = "дитинча панди", ["en"] = "Panda Cub" },
     [260300] = { [1] = "позначка вогнища", ["en"] = "Campfire Marker" },
     [278166] = { [1] = "горянин Корнелій", ["en"] = "Mountaineer Cornelius" },
+    [276111] = { [1] = "Примарне Ікло", ["en"] = "Ghostfang" },
 }
 addonTable.npc = npc
 

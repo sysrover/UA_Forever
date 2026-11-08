@@ -1332,6 +1332,16 @@ addonTable.forever_ui_patterns = {
         end,
     },
     {
+        -- Build 70862 appends a texture-marked warning to INVITATION.
+        -- Preserve the rendered name, paragraph spacing and alert texture.
+        pattern = "^(.+) invites you to a group%.(%s+)(|T[^|]+|t)%s+Accepting this invitation may cause the world to refresh around you%.$",
+        replace = function (name, spacing, alert)
+            return string.format(addonTable.forever_ui["%s invites you to a group."], name)
+                .. spacing .. alert .. " " .. addonTable.forever_ui[
+                    "Accepting this invitation may cause the world to refresh around you."]
+        end,
+    },
+    {
         pattern = "^(.+) invites you to a group%.$",
         replace = function (name)
             return name .. " запрошує вас до групи."

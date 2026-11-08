@@ -1827,6 +1827,36 @@ local chat_rows = {
         ["npcs"] = { [1] = "Razzle Sprysprocket" },
         ["text"] = "Саме так.",
     },
+    ["Greishan Ironstove:fhbdgtyronfhbdhe"] = {
+        ["english"] = { [1] = "Fresh Bread! Get your oven fresh bread here!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "fhbdgtyronfhbdhe" } },
+        ["npcs"] = { [1] = "Greishan Ironstove" },
+        ["text"] = "Свіжий хліб! Купуйте хліб щойно з печі!",
+    },
+    ["Haggle:sesece"] = {
+        ["english"] = { [1] = "Spare some change?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "sesece" } },
+        ["npcs"] = { [1] = "Haggle" },
+        ["text"] = "Підкинете трохи дріб’язку?",
+    },
+    ["Mangeclaw:rscetone"] = {
+        ["english"] = { [1] = "%s roars a challenge to <name>!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "rscetone" } },
+        ["npcs"] = { [1] = "Mangeclaw" },
+        ["text"] = "%s реве, кидаючи виклик {ім'я:д}!",
+    },
+    ["Rifleman Wheeler:qysstemettddcr"] = {
+        ["english"] = { [1] = "%s quickly shoots the middle target dead center..." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "qysstemettddcr" } },
+        ["npcs"] = { [1] = "Rifleman Wheeler" },
+        ["text"] = "%s швидко стріляє просто в центр середньої мішені...",
+    },
+    ["Tunnel Rat Kobold:lsseifcnhtttbetste"] = {
+        ["english"] = { [1] = "Let's see if I can hit that bullseye this time." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "lsseifcnhtttbetste" } },
+        ["npcs"] = { [1] = "Tunnel Rat Kobold" },
+        ["text"] = "Погляньмо, чи вдасться цього разу влучити в яблучко.",
+    },
 }
 addonTable.chat_hashed = { ["version"] = 1 }
 addonTable.chat_hashed.rows = chat_rows
