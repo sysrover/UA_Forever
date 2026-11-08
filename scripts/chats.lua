@@ -541,14 +541,27 @@ local function translate_direct_chat_text(message)
     if created then return chat_format.create_name(translate_item_name(created)) end
     local recipe = message:match("^You have learned how to create a new item: (.+)%.$")
     if recipe then
-        local name = recipe:find("|Hitem:", 1, true) and translate_item_links(recipe)
-            or translate_item_name(recipe)
+        local name
+        if recipe:find("|Hitem:", 1, true) then
+            name = translate_item_links(recipe)
+        elseif recipe:find("|Hspell:", 1, true) or recipe:find("|Henchant:", 1, true) then
+            name = translate_domain_links(recipe)
+        else
+            name = options.can_translate("translate_spell") and options.translate_name("spell")
+                and entries.lookup_name("spell", recipe) or translate_item_name(recipe)
+        end
         return chat_format.learned_recipe(name)
     end
-    local auction_item = message:match("^You won an auction for (.+)%.$")
-        or message:match("^You won an auction for (.+)$")
+    -- Commodity notices append the stack count outside the item name.
+    local auction_item, quantity = message:match("^You won an auction for (.+)( %(x%d+%))%.?$")
+    if not auction_item then
+        auction_item = message:match("^You won an auction for (.+)%.$")
+            or message:match("^You won an auction for (.+)$")
+    end
     if auction_item then
-        return chat_format.auction_won(translate_item_name(auction_item))
+        local name = auction_item:find("|Hitem:", 1, true) and translate_item_links(auction_item)
+            or translate_item_name(auction_item)
+        return chat_format.auction_won(name .. (quantity or ""))
     end
 end
 

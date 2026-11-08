@@ -416,8 +416,8 @@ local item_modification_names = {
     ["Melt"] = "Розплавлення",
     ["Mercy of the Claw"] = "Милість пазура",
     ["Mind Breaker"] = "Руйнівник розуму",
-    ["Minor Mount Speed Increase"] = "Незначне збільшення швидкості їзди",
-    ["Minor Speed Increase"] = "Незначне збільшення швидкості",
+    ["Minor Mount Speed Increase"] = "Слабке збільшення швидкості їзди",
+    ["Minor Speed Increase"] = "Слабке збільшення швидкості",
     ["Misdirection"] = "Перенаправлення",
     ["Misleader"] = "Обманщик",
     ["Night"] = "Ніч",
@@ -556,11 +556,11 @@ local item_modification_names = {
     ["Venomhide Poison"] = "Отрута отрутошкіра",
     ["Shadow Oil"] = "Тіньова олія", ["Frost Oil"] = "Крижана олія",
     ["Wizard Oil"] = "Чарівна олія",
-    ["Minor Wizard Oil"] = "Слабка чарівна олія",
-    ["Lesser Wizard Oil"] = "Проста чарівна олія",
+    ["Minor Wizard Oil"] = "Слабке чарівницьке мастило",
+    ["Lesser Wizard Oil"] = "Мале чарівницьке мастило",
     ["Brilliant Wizard Oil"] = "Блискуча чарівна олія",
-    ["Minor Mana Oil"] = "Слабка олія мани",
-    ["Lesser Mana Oil"] = "Проста олія мани",
+    ["Minor Mana Oil"] = "Слабке мастило мани",
+    ["Lesser Mana Oil"] = "Мале мастило мани",
     ["Brilliant Mana Oil"] = "Блискуча олія мани",
     ["Blackfathom Mana Oil"] = "Олія мани Чорноводдя",
     ["Conductive Shield Coating"] = "Провідне покриття щита",
@@ -571,7 +571,7 @@ local item_modification_names = {
     Accuracy = "Влучність", Precision = "Точність",
     Quickening = "Прискорення", Striking = "Удар",
     Sundered = "Розколювання", Cleaned = "Очищення",
-    Flame = "Полум'я", ["Lesser Flame"] = "Слабке полум'я",
+    Flame = "Полум'я", ["Lesser Flame"] = "Мале полум'я",
     ["Greater Flame"] = "Велике полум'я",
     Frost = "Крига", ["Greater Frost"] = "Велика крига",
     Spark = "Іскра", Baleflame = "Зловісне полум'я",
@@ -1129,6 +1129,7 @@ end
 -- Exact GlobalStrings formats from 1.60.1.70170. Ukrainian wording is resolved
 -- from the existing UI catalogs; rendered numbers are never dictionary keys.
 local item_client_formats = {
+    { "EQUIPMENT_SETS", "Equipment Sets: |cFFFFFFFF%s|r" },
     { "ITEM_CLASSES_ALLOWED", "Classes: %s" },
     { "ITEM_COOLDOWN_TIME_MIN", "Cooldown remaining: %d min" },
     { "ITEM_LEVEL", "Item Level %d" },
@@ -1539,8 +1540,16 @@ local function translate_client_item_format(source)
             if ukrainian then
                 local preserve = format[1] == "ITEM_CREATED_BY"
                     or format[1] == "ITEM_WRAPPED_BY" or format[1] == "ITEM_WRITTEN_BY"
+                    or format[1] == "EQUIPMENT_SETS"
                 local candidate = renderer.render_format(format[2], ukrainian, source,
                     not preserve and translate_format_capture or nil)
+                if not candidate and format[1] == "EQUIPMENT_SETS" then
+                    -- Only the label is localized; saved set names and their
+                    -- markup remain intact even when the client omits color.
+                    local plain_english = format[2]:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                    local plain_ukrainian = ukrainian:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                    candidate = renderer.render_format(plain_english, plain_ukrainian, source)
+                end
                 if candidate and candidate ~= source then translated = candidate; break end
             end
         end
