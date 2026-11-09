@@ -65,7 +65,7 @@ local tooltip = {
         ["Critical Strike Chance"] = "ймовірність критичного удару",
         Cloth = "Тканина", Leather = "Шкіряний", Mail = "Кольчуга",
         Plate = "Лати", Head = "Голова", Neck = "Шия",
-        Shoulder = "Плечі", Shoulders = "Плечі", Back = "Назад",
+        Shoulder = "Плечі", Shoulders = "Плечі", Back = "Спина",
         Chest = "скриня", Wrist = "Зап'ястя", Hands = "Кисті",
         Waist = "Пояс", Legs = "Ноги", Feet = "Ступні",
         Finger = "Палець", Trinket = "Аксесуар",
