@@ -1,5 +1,5 @@
 local addon_name, addon_table = ...
-local addon_version = "0.24.1"
+local addon_version = "0.24.2"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
@@ -65,6 +65,7 @@ local hooks = addon_table.use("translation_hooks").bind("main")
 local utils = addon_table.use("utils")
 
 local function prepare_menu_panels()
+    addon_table.use("fojji").prepare()
     addon_table.use("collections_ui").prepare()
     addon_table.use("calendar_ui").prepare()
     addon_table.use("shop_ui").prepare()
@@ -1089,6 +1090,9 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
     if scope and options.work_enabled and not options.work_enabled(scope) then return end
     if event == "ADDON_LOADED" then
         local loaded_addon = ...
+        if type(loaded_addon) == "string" and loaded_addon:find("^FojjiCore") then
+            addon_table.use("fojji").prepare(true)
+        end
         if loaded_addon == "Blizzard_PTRFeedback" and self.uaForeverLoginReady then
             tooltip_feedback_adapter.prepare()
         end
@@ -1135,6 +1139,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
         utils.prepare()
         options.prepare()
+        addon_table.use("fojji").prepare()
         dev_log.prepare()
         fonts.prepare()
         strings.prepare()
@@ -1153,6 +1158,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             return
         end
 
+        addon_table.use("fojji").prepare(true)
         translation.prepare()
         resolver.prepare()
         registry.register_defaults(strings.translate_frame)
@@ -1201,6 +1207,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         scheduler.request("world-font-retry", nil, refresh_after_login, 1)
 
     elseif event == "PLAYER_REGEN_ENABLED" then
+        addon_table.use("fojji").recover()
         quest_ui.recover_tracker_after_combat()
         -- Writes to protected regions are intentionally skipped in combat.
         -- Once combat ends, retry only the surfaces that are still visible.

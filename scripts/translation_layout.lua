@@ -504,6 +504,11 @@ layout.fit_talent_tooltip = function (tooltip)
     return fit_complete_tooltip(tooltip, 360)
 end
 
+-- Call only after an integration has established ownership of this tooltip.
+layout.fit_addon_tooltip = function (tooltip)
+    return fit_complete_tooltip(tooltip, 460, true)
+end
+
 layout.fit_settings_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.SettingsTooltip then return false end
     return fit_complete_tooltip(tooltip, 420)

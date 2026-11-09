@@ -21,6 +21,7 @@
     <Script file="translation_resolver.lua"/>
     <Script file="translation_walker.lua"/>
     <Script file="translation_layout.lua"/>
+    <Include file="..\integrations\fojji\index.xml"/>
     <Script file="tooltip_session.lua"/>
     <Script file="tooltip_feedback_adapter.lua"/>
     <Script file="tooltip_item_adapter.lua"/>

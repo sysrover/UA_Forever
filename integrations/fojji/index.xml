@@ -1,0 +1,4 @@
+<Ui xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\..\FrameXML\UI.xsd">
+    <Script file="locale_uk.lua"/>
+    <Script file="runtime.lua"/>
+</Ui>

@@ -485,6 +485,7 @@ local function register_addon_settings()
 
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
+    addon_table.use("fojji").add_settings(page, form_button)
 
     local ok, category = pcall(Settings.RegisterCanvasLayoutCategory, page, "UA Forever")
     if not ok or not category then return end
