@@ -259,6 +259,12 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                         ) or applied
                     end
                 elseif line_type == SPELL_DESCRIPTION then
+                    -- Use the rendered duration, as in the aura path below.
+                    -- TooltipData can retain plural tokens that SetText resolves,
+                    -- making a successful write look failed and append a duplicate.
+                    local visible_source = contract.tooltip_line(
+                        tooltip, "Left", line_index, true)
+                    source = contract.safe_string(visible_source) or source
                     if details_enabled and region and source
                         and options.can_translate("translate_spell") then
                         local translated = english_raw and ukrainian_raw and renderer.render(
