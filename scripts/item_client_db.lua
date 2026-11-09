@@ -158,6 +158,37 @@ lookup.get_item_set = function (set_id)
     return row(database, set_id)
 end
 
+local item_set_id_by_item
+lookup.get_item_set_for_item = function (item_id)
+    if type(item_id) ~= "number" then return nil end
+    local metadata = lookup.get_metadata(item_id)
+    local set_id = metadata and tonumber(metadata.ItemSet) or 0
+    if set_id and set_id > 0 then
+        return lookup.get_item_set(set_id), set_id
+    end
+    local database = databases.item_sets
+    if not lookup.ready or type(database) ~= "table"
+        or database.sourceBuild ~= source_build
+        or type(database.rows) ~= "table" then return nil end
+    -- New set members can precede their sparse metadata. Use the explicit
+    -- ItemSet membership; conflicting memberships must stay unresolved.
+    if not item_set_id_by_item then
+        item_set_id_by_item = {}
+        for candidate_id, set in pairs(database.rows) do
+            for _, member_id in ipairs(set.itemIDs or {}) do
+                local previous = item_set_id_by_item[member_id]
+                if previous == nil then
+                    item_set_id_by_item[member_id] = candidate_id
+                elseif previous ~= candidate_id then
+                    item_set_id_by_item[member_id] = false
+                end
+            end
+        end
+    end
+    set_id = item_set_id_by_item[item_id]
+    if set_id then return lookup.get_item_set(set_id), set_id end
+end
+
 lookup.get_item_class = function (class_id)
     return row(databases.item_classes, class_id)
 end

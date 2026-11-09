@@ -52,6 +52,9 @@ local tooltip = {
     },
     item_name_suffixes = {
         ["of the Bear"] = "ведмедя",
+        ["of the Beast"] = "звіра",
+        ["of Agility"] = "спритності",
+        ["of Strength"] = "сили",
         ["of Eluding"] = "ухилення",
     },
     translated_cast_markers = {
@@ -203,6 +206,7 @@ tooltip.pvp_rank_names = {
 }
 
 tooltip.item_set_names = {
+    ["Krol'dok Battlegear"] = "Бойове спорядження Крол’дока",
     ["Lieutenant Commander's Battlegear"] = "Бойове спорядження лейтенант-командира",
     ["Rotmender's Raiment"] = "Шати гнилоцілителя",
     ["Arcanist Regalia"] = "Регалії чародія потаємних знань",
@@ -953,6 +957,9 @@ local container_names = {
 }
 
 tooltip.item_line_patterns = {
+    { "^([%+%-]?[%d%.,]+)%% Chance to Parry$", function (value)
+        return value .. "% до ймовірності парирування"
+    end },
     { "^DURA (%d+)$", function (amount) return "МІЦН " .. amount end },
     { "^(%d+) Ranks:$", function (amount)
         local n = tonumber(amount)

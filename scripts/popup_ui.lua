@@ -11,6 +11,7 @@ local resolver = addon_table.use("translation_resolver")
 local hooks = addon_table.use("translation_hooks").bind("popup_ui")
 
 local dynamic_dialogs = {
+    CONFIRM_SAVE_EQUIPMENT_SET = true,
     DEATH = true,
     XP_LOSS = true, VOICE_CHAT_JOIN_GROUP = true,
     GROUP_INVITE_CONFIRMATION = true, PARTY_INVITE = true,

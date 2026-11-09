@@ -6,6 +6,7 @@ local client_db = addon_table.use("item_client_db")
 local spell_db = addon_table.use("spell_client_db")
 local renderer = addon_table.use("spell_template_renderer")
 local strings = addon_table.use("strings")
+local layout = addon_table.use("translation_layout")
 local adapter = addon_table.use("tooltip_item_adapter")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
@@ -174,6 +175,7 @@ local function make_item_state(item_id, key)
             end
         end
     end
+    local item_set, item_set_id = client_db.get_item_set_for_item(item_id)
     return cache_item(key, {
         item_id = item_id,
         english_name = client_db.get_english_name(item_id),
@@ -181,7 +183,8 @@ local function make_item_state(item_id, key)
         english_description = client_db.get_english_description(item_id),
         translated_description = client_db.get_description(item_id),
         metadata = metadata,
-        item_set = client_db.get_item_set(tonumber(metadata.ItemSet) or 0),
+        item_set = item_set,
+        item_set_id = item_set_id,
         required_skill = tonumber(metadata.RequiredSkill) or 0,
         required_skill_rank = tonumber(metadata.RequiredSkillRank) or 0,
         effects = buckets,
@@ -367,7 +370,7 @@ local function translate_set_line(state, source, region)
     end
     local indent, member = source:match("^(%s*)(.-)%s*$")
     local aliases = catalog.item_set_member_aliases
-        and catalog.item_set_member_aliases[tonumber(state.metadata.ItemSet)]
+        and catalog.item_set_member_aliases[state.item_set_id]
     local alias_id = aliases and aliases[member]
     for _, item_id in ipairs(set.itemIDs or {}) do
         if member == client_db.get_english_name(item_id) or item_id == alias_id then
@@ -416,6 +419,13 @@ local function translate_shared_line(state, source, region, recipe_result)
     -- printf/UI fallbacks claim this row with its English body intact.
     if clean:match("^%(%d+%) Set: ") then
         return catalog.restore_item_markup(source, translated)
+    end
+    -- Recipe use lines can repeat ItemSparse.Description instead of the
+    -- generic ItemEffect spell. Reuse that item's approved description.
+    local use_description = clean:match("^Use:%s*(.+)$")
+    if use_description and use_description == state.english_description
+        and state.translated_description then
+        translated = catalog.item_effect_prefix.use .. " " .. state.translated_description
     end
     translated = translated
         or translate_visible_effect(state, clean)
@@ -705,6 +715,7 @@ adapter.add = function (tooltip, data, fallback_id)
     tooltip.uaForeverItemIdentity = key
     local applied, line_count = translate_structured(tooltip, data, state)
     if line_count == 0 then applied = translate_title_fallback(tooltip, state) end
+    if applied then layout.fit_item_tooltip(tooltip) end
     local result = {
         status = applied and "complete" or "unchanged",
         applied = applied,

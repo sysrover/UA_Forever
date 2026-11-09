@@ -163,7 +163,10 @@ comparison_adapter.install = function (api)
             cached.runtime_spec = spec
         end
         local applied = runtime.apply(region, spec)
-        if applied then remember_comparison_claim(tooltip, region) end
+        if applied then
+            remember_comparison_claim(tooltip, region)
+            layout.fit_item_tooltip(tooltip)
+        end
         return applied
     end
     
@@ -421,6 +424,7 @@ comparison_adapter.install = function (api)
                 end
             end
         end
+        layout.fit_item_tooltip(tooltip)
         return true
     end
     

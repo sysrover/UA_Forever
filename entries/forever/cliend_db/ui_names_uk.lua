@@ -2,6 +2,7 @@
 local _, addonTable = ...
 
 local ui = {
+    ["Would you like to save the equipment set \"%s\"?"] = "Зберегти комплект спорядження «%s»?",
     ["Accepting this invitation may cause the world to refresh around you."] = "Якщо ви приймете це запрошення, світ навколо вас може оновитися.",
     ["Hallow's End"] = "Повечір'я святих",
     ["Current Pet"] = "Поточний улюбленець",

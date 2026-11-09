@@ -544,6 +544,13 @@ layout.fit_crafted_item_tooltip = function (tooltip)
     return fit_complete_tooltip(tooltip, 420, true)
 end
 
+layout.fit_item_tooltip = function (tooltip)
+    if not tooltip or tooltip.uaForeverKind ~= "item"
+        or tooltip.uaForeverShowOriginal
+        or not has_current_translation(tooltip) then return false end
+    return fit_complete_tooltip(tooltip, 420, true)
+end
+
 layout.fit_quest_pin_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "quest"
         or tooltip.uaForeverShowOriginal or not has_current_translation(tooltip) then return false end
@@ -571,6 +578,7 @@ end
 layout.fit_translated_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
     local kind = tooltip.uaForeverKind
+    if kind == "item" then return layout.fit_item_tooltip(tooltip) end
     if kind == "quest" and tooltip.uaForeverQuestPinOwner then
         return layout.fit_quest_pin_tooltip(tooltip)
     end

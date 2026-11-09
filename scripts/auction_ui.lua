@@ -5,8 +5,7 @@ local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
-local item_db = addon_table.use("item_client_db")
-local utils = addon_table.use("utils")
+local item_adapter = addon_table.use("tooltip_item_adapter")
 local hooks = addon_table.use("translation_hooks").bind("auction_ui")
 
 local function translate_auction_region(region, slot)
@@ -57,9 +56,13 @@ end
 
 local function translate_auction_table_header(header)
     local region = header and header.Text
-    if region then
-        strings.translate_region(region, nil, "ui.text", registry.get("misc"))
+    if not region and header and type(header.GetFontString) == "function" then
+        local ok, font_string = pcall(header.GetFontString, header)
+        if ok then region = font_string end
     end
+    -- Browse layout rewrites Name/Level after Init has already returned.
+    watch_auction_region(region)
+    hooks.region(header, "SetText", translate_auction_table_header)
 end
 
 local function declare_auction_hooks()
@@ -157,19 +160,12 @@ local function translate_auction_item_name(region, item_id)
     local ok, source = pcall(region.GetText, region)
     if not ok or runtime.is_secret_value(source) or type(source) ~= "string" then return end
     local claim = runtime.get(region)
-    if claim and source == claim.translated then source = claim.source end
-    local english = item_db.get_english_name(item_id)
-    local translated = item_db.get_name(item_id)
-    if type(english) ~= "string" or english == ""
-        or type(translated) ~= "string" or translated == "" then
-        runtime.invalidate(region)
-        return
+    if claim and claim.instance == item_id and source == claim.translated then
+        source = claim.source
     end
-    local first, last = source:find(english, 1, true)
-    if not first then runtime.invalidate(region); return end
-    -- Retain the native quality color, item decorations and quantity suffix.
-    translated = source:sub(1, first - 1) .. utils.cap(translated)
-        .. source:sub(last + 1)
+    -- Share title/suffix handling with item tooltips, retaining native markup.
+    local translated = item_adapter.replace_known_name(item_id, source)
+    if not translated then runtime.invalidate(region); return end
     runtime.apply(region, {
         owner = "auction_ui", slot = "item.name", category = "item",
         section = "auction", source = source, translated = translated,
@@ -178,6 +174,42 @@ local function translate_auction_item_name(region, item_id)
         surface = registry.get("misc"), instance = item_id,
         reapply_cached = true,
     })
+end
+
+local function translate_auction_item_cell(cell, item_key)
+    if not cell or runtime.is_secret_value(item_key)
+        or type(item_key) ~= "table" then return end
+    translate_auction_item_name(cell.Text, item_key.itemID)
+end
+
+local function prepare_auction_browse_row(row)
+    for _, cell in ipairs(row and row.cells or {}) do
+        if cell.Icon and cell.ExtraInfo and type(cell.UpdateDisplay) == "function" then
+            hooks.region(cell, "UpdateDisplay", translate_auction_item_cell)
+            local row_data = cell.rowData
+            translate_auction_item_cell(cell, row_data and row_data.itemKey)
+        end
+    end
+end
+
+local function prepare_auction_browse_list(list)
+    local builder = list and list.tableBuilder
+    if not builder then return end
+    -- Bind the actual pooled cells, including cells created after opening,
+    -- scrolling or rebuilding the browse table.
+    hooks.region(builder, "AddRow", function (_, row)
+        prepare_auction_browse_row(row)
+    end)
+    for _, row in ipairs(builder.rows or {}) do
+        prepare_auction_browse_row(row)
+    end
+    if type(builder.GetColumns) == "function" then
+        for _, column in ipairs(builder:GetColumns() or {}) do
+            local header = type(column.GetHeaderFrame) == "function"
+                and column:GetHeaderFrame() or nil
+            translate_auction_table_header(header)
+        end
+    end
 end
 
 local function prepare_auction_item_display(display)
@@ -245,6 +277,13 @@ end
 auction_ui.prepare = function ()
     declare_auction_hooks()
     local auction_house = _G.AuctionHouseFrame
+    local browse_list = auction_house and auction_house.BrowseResultsFrame
+        and auction_house.BrowseResultsFrame.ItemList
+    hooks.region(browse_list, "Init", prepare_auction_browse_list)
+    hooks.region(browse_list, "UpdateTableBuilderLayout", prepare_auction_browse_list)
+    hooks.region_script(browse_list, "OnShow", prepare_auction_browse_list,
+        "auction-browse-list")
+    prepare_auction_browse_list(browse_list)
     local auction_filter = auction_house and auction_house.SearchBar
         and auction_house.SearchBar.FilterButton
     hooks.region(auction_filter, "UpdateText",

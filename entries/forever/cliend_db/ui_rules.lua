@@ -1040,6 +1040,8 @@ local function panel_format_rule(template, pattern, translate_arguments)
 end
 
 addonTable.forever_ui_patterns = {
+    panel_format_rule('Would you like to save the equipment set "%s"?',
+        '^Would you like to save the equipment set "(.*)"%?$'),
     panel_format_rule("Assign to %s", "^Assign to (.+)$", true),
     panel_format_rule("Add Alert (%d/%d)", "^Add Alert %((%d+)/(%d+)%)$"),
     panel_format_rule("Cannot change category: %s", "^Cannot change category: (.+)$", true),
