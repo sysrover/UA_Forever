@@ -66,11 +66,11 @@ local tooltip = {
         Cloth = "Тканина", Leather = "Шкіряний", Mail = "Кольчуга",
         Plate = "Лати", Head = "Голова", Neck = "Шия",
         Shoulder = "Плечі", Shoulders = "Плечі", Back = "Спина",
-        Chest = "скриня", Wrist = "Зап'ястя", Hands = "Кисті",
+        Chest = "Груди", Wrist = "Зап'ястя", Hands = "Кисті",
         Waist = "Пояс", Legs = "Ноги", Feet = "Ступні",
         Finger = "Палець", Trinket = "Аксесуар",
         Shirt = "Сорочка", Tabard = "Гербова накидка",
-        Sword = "Меча", Dagger = "Кинджал", Staff = "Посох",
+        Sword = "Меч", Dagger = "Кинджал", Staff = "Посох",
         Polearm = "Древкова зброя", Gun = "Рушниця",
         Bow = "Лук", Crossbow = "Арбалет", Wand = "Жезл",
     },
@@ -657,12 +657,14 @@ local function translate_modification_part(source)
             "^([%+%-])([%d%.,%$A-Za-z]+)(%%?) ([A-Za-z '%-]+)$")
     end
     if name and (amount:match("^[%d%.,]+$") or amount:match("^%$%d*[A-Za-z]%d*$")) then
+        -- Numeric stat bonuses take precedence over identically named spells.
+        -- For example, Armor is also a spell translated as «Обладунок».
+        translated = modification_stat_name(name)
+        if translated then return sign .. amount .. percent .. " до " .. translated end
         translated = modification_name(name)
         if translated then
             return translated .. " " .. sign .. amount .. percent
         end
-        translated = modification_stat_name(name)
-        if translated then return sign .. amount .. percent .. " до " .. translated end
     end
     local rank
     name, rank = source:match("^([A-Za-z '%-]+) (%d+)$")
