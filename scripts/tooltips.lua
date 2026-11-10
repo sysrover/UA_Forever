@@ -2438,7 +2438,11 @@ local function prepare_bag_tooltip_hooks()
     -- Build 70205 appends bag filters through this helper after the Item
     -- post-call. Hook the actual write: existing buttons have already copied
     -- OnEnterInternal from their mixin, and portraits use a separate method.
-    local line_hooked = hooks.global("GameTooltip_AddNormalLine", function (tooltip)
+    local line_hooked = hooks.global("GameTooltip_AddNormalLine", function (tooltip, native)
+        if is_shopping_tooltip(tooltip) then
+            comparison.translate_native_line(tooltip, native)
+            return
+        end
         if tooltip ~= _G.GameTooltip then return end
         if tooltip.uaForeverKind ~= "item" then
             if type(tooltip.GetOwner) ~= "function" then return end
@@ -2860,6 +2864,7 @@ tooltips.refresh_active = function ()
         if not show and not reapply_comparison_claims(tooltip) then
             translate_shopping_tooltip(tooltip)
         end
+        if not show then comparison.translate_native_tail(tooltip) end
         layout.fit_item_tooltip(tooltip)
     end)
 end

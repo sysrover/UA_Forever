@@ -374,7 +374,7 @@ end
 
 -- Fit completed tooltips, including both columns and late native writes.
 -- Per-write height deltas are unreliable while Blizzard is building rows.
-local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
+local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width)
     if not is_tooltip(tooltip) or tooltip.uaForeverShowOriginal
         or not is_shown(tooltip) then return false end
     local generation = tooltip.uaForeverGeneration
@@ -386,7 +386,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
             local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
             if ok and not is_secret(current_owner) and current_owner == owner
                 and tooltip.uaForeverGeneration == generation then
-                fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
+                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width)
             end
         end
         return false
@@ -404,15 +404,26 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
             local region = _G[name .. "Text" .. side .. index]
             if region and is_shown(region) then
                 local ok, text = pcall(region.GetText, region)
-                text = ok and runtime.safe_string_or_nil(text) or nil
-                if not text or not runtime.can_write_text(region) then return false end
-                row[side] = region
-                row[side .. "Empty"] = text:match("^%s*$") ~= nil
-                row[side .. "Width"] = unbounded_text_width(region) or 0
+                if not ok or is_secret(text) then return false end
+                text = runtime.safe_string_or_nil(text)
+                -- Pooled right FontStrings may stay shown without text. They
+                -- must not turn a prose row into a two-column layout or abort it.
+                local empty_right = prose_width and side == "Right"
+                    and (not text or text:match("^%s*$") ~= nil)
+                if not empty_right then
+                    if not text or not runtime.can_write_text(region) then return false end
+                    row[side] = region
+                    row[side .. "Empty"] = text:match("^%s*$") ~= nil
+                    row[side .. "Width"] = unbounded_text_width(region) or 0
+                end
             end
         end
+        local left_width = row.LeftWidth or 0
+        if prose_width and index > 1 and not row.Right then
+            left_width = math.min(left_width, prose_width)
+        end
         required_width = math.max(required_width,
-            (row.LeftWidth or 0) + (row.RightWidth or 0)
+            left_width + (row.RightWidth or 0)
                 + TOOLTIP_TEXT_PADDING + (row.Right and 12 or 0))
         rows[#rows + 1] = row
     end
@@ -424,7 +435,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
         or type(tooltip.SetWidth) ~= "function"
         or not pcall(tooltip.SetWidth, tooltip, width) then return false end
     local available = width - TOOLTIP_TEXT_PADDING
-    for _, row in ipairs(rows) do
+    for index, row in ipairs(rows) do
         local right_width = row.Right and math.min(row.RightWidth, available * 0.45) or 0
         for _, side in ipairs({ "Left", "Right" }) do
             local region = row[side]
@@ -435,6 +446,9 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows)
             elseif region then
                 local text_width = side == "Right" and right_width
                     or available - right_width - (row.Right and 12 or 0)
+                if prose_width and index > 1 and side == "Left" and not row.Right then
+                    text_width = math.min(text_width, prose_width)
+                end
                 row[side .. "TargetWidth"] = math.max(1, text_width)
                 if type(region.SetWidth) == "function" then
                     pcall(region.SetWidth, region, math.max(1, text_width))
@@ -709,7 +723,7 @@ layout.fit_item_tooltip = function (tooltip)
     else
         tooltip.uaForeverItemLayout = nil
         local plan
-        ok, fitted, plan = pcall(fit_complete_tooltip, tooltip, 420, true)
+        ok, fitted, plan = pcall(fit_complete_tooltip, tooltip, 420, true, TOOLTIP_MAX_WIDTH)
         if ok and fitted and signature then
             tooltip.uaForeverItemLayout = { signature = signature, plan = plan }
         end

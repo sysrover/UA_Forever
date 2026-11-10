@@ -348,6 +348,53 @@ comparison_adapter.install = function (api)
         return applied
     end
 
+    local function translate_native_line(tooltip, native, index)
+        if not tooltip or tooltip.uaForeverShowOriginal
+            or not tooltip.uaForeverSessionKey or not is_shopping_tooltip(tooltip) then return false end
+        native = safe_string(native)
+        if not native then return false end
+        -- Late native comparison headers use both singular and plural forms.
+        -- An exact lookup avoids running the generic UI matcher over stat rows.
+        local plain = native:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+        local translated = tooltip_catalog.item_line_exact[plain]
+        if not translated then return false end
+        if not index then
+            local ok, count = pcall(tooltip.NumLines, tooltip)
+            index = ok and safe_number(count) or nil
+        end
+        if not index then return false end
+        local visible, region = tooltip_line(tooltip, "Left", index, true)
+        visible = safe_string(visible)
+        if not region or not visible or visible:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") ~= plain then
+            return false
+        end
+        translated = restore_comparison_markup(visible, translated)
+        local cached = comparison_translation_cache[region]
+        if not cached or cached.source ~= visible then
+            cached = { source = visible, translated = translated, owner = "item-tooltip" }
+            comparison_translation_cache[region] = cached
+        else
+            cached.translated = translated
+            cached.owner = "item-tooltip"
+        end
+        return apply_comparison_claim(tooltip, region, cached, visible, translated,
+            "comparison.appended:Left:" .. index, nil, "item-tooltip")
+    end
+
+    local function translate_native_tail(tooltip)
+        local first = safe_number(tooltip.uaForeverComparisonBaseLines)
+        if not first then return end
+        local ok, count = pcall(tooltip.NumLines, tooltip)
+        count = ok and safe_number(count) or nil
+        if not count then return end
+        -- Only rows appended after the base item's first Show; do not rescan
+        -- structured item rows or remeasure the tooltip for each appended line.
+        for index = first + 1, math.min(count, MAX_TOOLTIP_LINES) do
+            local source = tooltip_line(tooltip, "Left", index, true)
+            translate_native_line(tooltip, source, index)
+        end
+    end
+
     local function install_comparison_text_guards(tooltip)
         if not tooltip then return false end
         if not comparison_guard_swept_tooltips[tooltip] then
@@ -363,7 +410,17 @@ comparison_adapter.install = function (api)
         end
         hooks.region(tooltip, "ClearLines", function (self)
             self.uaForeverComparisonWriteReady = false
+            self.uaForeverComparisonBaseLines = nil
         end)
+        hooks.region(tooltip, "Show", function (self)
+            if self.uaForeverComparisonBaseLines == nil then
+                local ok, count = pcall(self.NumLines, self)
+                self.uaForeverComparisonBaseLines = ok and safe_number(count) or nil
+            end
+        end)
+        hooks.region_script(tooltip, "OnHide", function (self)
+            self.uaForeverComparisonBaseLines = nil
+        end, "comparison-base-lines")
         hooks.region(tooltip, "AddLine", function (self, native)
             if not self.uaForeverComparisonWriteReady then return end
             local count_ok, count = pcall(self.NumLines, self)
@@ -589,6 +646,7 @@ comparison_adapter.install = function (api)
             local ok, visible = pcall(tooltip.IsShown, tooltip)
             shown[index] = ok and not is_secret(visible) and visible == true
             if shown[index] then
+                translate_native_tail(tooltip)
                 local before = layout.safe_dimension(tooltip, "GetWidth")
                 layout.fit_item_tooltip(tooltip)
                 local after = layout.safe_dimension(tooltip, "GetWidth")
@@ -613,7 +671,10 @@ comparison_adapter.install = function (api)
             if is_secret(is_primary) then return end
             local comparisons = self.tooltip and self.tooltip.shoppingTooltips
             local tooltip = comparisons and comparisons[is_primary and 1 or 2]
-            if tooltip then layout.fit_item_tooltip(tooltip) end
+            if tooltip then
+                translate_native_tail(tooltip)
+                layout.fit_item_tooltip(tooltip)
+            end
         end)
         hooks.region(manager, "AnchorShoppingTooltips", finish_comparison_layout)
         -- Keep the actual bag/client entry points as fallbacks: manager hooks
@@ -635,5 +696,7 @@ comparison_adapter.install = function (api)
         prepare_manager = prepare_comparison_manager,
         reapply = reapply_comparison_claims,
         translate = translate_shopping_tooltip,
+        translate_native_line = translate_native_line,
+        translate_native_tail = translate_native_tail,
     }
 end
