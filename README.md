@@ -5,15 +5,17 @@ Beta, built for its modern Camelot interface. It translates quests, tooltips,
 menus, character and profession panels, chat, NPC names, and other visible text.
 Hold Shift to see the original tooltip; quest conversations have an EN/UA
 switch. Target client: World of Warcraft: Forever (Interface `16001`).
-Bundled client data: build `1.60.1.70840`.
+Bundled client data: build `1.60.1.70862`.
 
 UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever Beta, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
-Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.70840.
+Утримуйте Shift, щоб побачити оригінал підказки. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.70862.
 
-## Реліз 0.24.2
+## Реліз 0.25.0
 
-Git-тег: `0.24.2`. Зміни відносно 0.24.1:
+Git-тег: `0.25.0`. Зміни відносно 0.24.1:
 
+- Додано український переклад інтерфейсу, підказок і журналу підземель FojjiCore. Переклад можна вимкнути окремо в налаштуваннях UA Forever.
+- Оновлено вбудовані клієнтські дані до збірки 1.60.1.70862, додано нові записи предметів, NPC та ігрових об’єктів.
 - Уточнено переклади назв і описів предметів та заклять, імен NPC і текстів завдань. Додано відсутні діалоги та репліки NPC.
 - Поліпшено переклад назв предметів і заголовків у списку аукціону, зокрема після прокручування та оновлення списку.
 - Поліпшено переклад повідомлень чату про вивчення рецептів і виграні аукціони зі збереженням кількості предметів.
@@ -34,7 +36,7 @@ ClassicUA: [GitHub](https://github.com/greenya/ClassicUA) ·
 [CurseForge](https://www.curseforge.com/wow/addons/classicua).
 
 Classic translations can be outdated when Forever changes a spell or quest.
-The bundled client catalog declares `1.60.1.70840` in its manifest;
+The bundled client catalog declares `1.60.1.70862` in its manifest;
 `/uaf scan` reports a build mismatch when the running client differs.
 
 ## Commands
