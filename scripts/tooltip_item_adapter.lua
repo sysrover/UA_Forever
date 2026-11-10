@@ -342,7 +342,16 @@ end
 
 local function translate_classification(state, source)
     if type(source) ~= "string" then return nil end
-    local class_id, subclass_id = client_db.get_classification(state.item_id)
+    local class_id, subclass_id = state.class_id, state.subclass_id
+    if class_id == nil or subclass_id == nil then
+        class_id, subclass_id = client_db.get_classification(state.item_id)
+        -- Item class is shared by every row and does not depend on the shown
+        -- stat values. Keep valid public IDs in the bounded item-state cache;
+        -- an unavailable API result remains retryable on the next call.
+        if type(class_id) == "number" and type(subclass_id) == "number" then
+            state.class_id, state.subclass_id = class_id, subclass_id
+        end
+    end
     local class = class_id and client_db.get_item_class(class_id) or nil
     if type(class) == "table" and source == class.ClassName_lang then
         return catalog.item_class_names

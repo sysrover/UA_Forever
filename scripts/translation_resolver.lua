@@ -6,6 +6,8 @@ local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
 local unpack_values = unpack or table.unpack
 local compiled
+local context_by_text
+local context_rule_count
 local cache_generation = 0
 local positive_cache = { values = {}, queue = {}, first = 1, last = 0, size = 0,
     limit = 512 }
@@ -48,6 +50,7 @@ end
 
 resolver.invalidate_cache = function ()
     cache_generation = cache_generation + 1
+    context_by_text, context_rule_count = nil, nil
     clear_cache(positive_cache)
     clear_cache(negative_cache)
 end
@@ -179,6 +182,22 @@ resolver.normalize = function (text)
         :gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
+local function context_rules_for(text)
+    local rules = compiled.context
+    if not context_by_text or context_rule_count ~= #rules then
+        context_by_text = {}
+        for _, rule in ipairs(rules) do
+            if type(rule.text) == "string" then
+                local bucket = context_by_text[rule.text]
+                if not bucket then bucket = {}; context_by_text[rule.text] = bucket end
+                bucket[#bucket + 1] = rule
+            end
+        end
+        context_rule_count = #rules
+    end
+    return context_by_text[text]
+end
+
 resolver.find_ui = function (text, region, context)
     if type(text) ~= "string" or text == "" then return nil end
     if type(_G.issecretvalue) == "function" then
@@ -203,9 +222,14 @@ resolver.find_ui = function (text, region, context)
     if name then
         return name, normalized, "domain", category, slot, domain_option
     end
-    for _, rule in ipairs(compiled.context) do
-        if rule.text == normalized and frame_name:find(rule.frame, 1, true) then
-            return rule.translation, normalized, "context"
+    -- Context has precedence over exact/pattern results, but only rules for
+    -- this text can match. Preserve their original order within each bucket.
+    local context_rules = context_rules_for(normalized)
+    if context_rules then
+        for _, rule in ipairs(context_rules) do
+            if frame_name:find(rule.frame, 1, true) then
+                return rule.translation, normalized, "context"
+            end
         end
     end
     local translated

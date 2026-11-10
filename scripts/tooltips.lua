@@ -2500,7 +2500,7 @@ tooltips.prepare = function ()
     prepare_map_surface_hooks()
     prepare_tooltip_frames()
     hooks.region_script(_G.GameTooltip, "OnUpdate", function (self, elapsed)
-        if not tooltip_work_enabled("aura")
+        if self.uaForeverKind == "item" or not tooltip_work_enabled("aura")
             or aura_tooltip_context(self) ~= "player" then
             player_aura_elapsed[self] = nil
             return
