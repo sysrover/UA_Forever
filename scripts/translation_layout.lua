@@ -387,28 +387,13 @@ end
 
 -- Fit completed tooltips, including both columns and late native writes.
 -- Per-write height deltas are unreliable while Blizzard is building rows.
-local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right, original_item)
-    if not is_tooltip(tooltip)
-        or (tooltip.uaForeverShowOriginal == true) ~= (original_item == true)
-        or not is_shown(tooltip) then return false end
-    if original_item and (tooltip.uaForeverKind ~= "item" or not tooltip.uaForeverSessionKey) then return false end
+local fit_complete_tooltip
+local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
+    if not is_tooltip(tooltip) or not is_shown(tooltip) then return false end
+    local original = tooltip.uaForeverShowOriginal == true
+    if original and not tooltip.uaForeverSessionKey then return false end
     single_line_right = single_line_right or prose_width ~= nil
-    local generation = tooltip.uaForeverGeneration
-    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-    if not owner_ok or is_secret(owner) then return false end
-    if runtime.combat_locked() then
-        pending_tooltip_layout[tooltip] = function ()
-            pending_tooltip_layout[tooltip] = nil
-            local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
-            if ok and not is_secret(current_owner) and current_owner == owner
-                and tooltip.uaForeverGeneration == generation then
-                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right, original_item)
-            end
-        end
-        return false
-    end
-    pending_tooltip_layout[tooltip] = nil
-    if not runtime.can_write_text(tooltip) then return false end
+    if runtime.combat_locked() or not runtime.can_write_text(tooltip) then return false end
     local name = object_name(tooltip)
     local count = safe_dimension(tooltip, "NumLines")
     local width = safe_dimension(tooltip, "GetWidth")
@@ -421,9 +406,9 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
             if region and is_shown(region) then
                 local ok, text = pcall(region.GetText, region)
                 if not ok or is_secret(text) then return false end
-                local empty_original = original_item and (text == nil or text == "")
+                local empty_text = text == nil or text == ""
                 text = runtime.safe_string_or_nil(text)
-                if empty_original then text = "" end
+                if empty_text then text = "" end
                 -- Pooled right FontStrings may stay shown without text. They
                 -- must not turn a prose row into a two-column layout or abort it.
                 local empty_right = single_line_right and side == "Right"
@@ -574,12 +559,24 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
         end
     end
     if height <= 0 or type(tooltip.SetHeight) ~= "function" then return false end
-    return pcall(tooltip.SetHeight, tooltip, math.ceil(height + TOOLTIP_TEXT_PADDING / 2))
+    height = math.ceil(height + TOOLTIP_TEXT_PADDING / 2)
+    local ok = pcall(tooltip.SetHeight, tooltip, height)
+    if ok then
+        for _, row in ipairs(rows) do
+            for _, side in ipairs(TOOLTIP_SIDES) do
+                if row[side] then
+                    row[side .. "FittedHeight"] = safe_dimension(row[side], "GetHeight")
+                        or row[side .. "Height"]
+                end
+            end
+        end
+    end
+    return ok, { width = width, height = height, rows = rows, arrange_rows = false }
 end
 
 layout.fit_talent_tooltip = function (tooltip)
     if not tooltip or tooltip.uaForeverKind ~= "talent" then return false end
-    return fit_complete_tooltip(tooltip, 360)
+    return fit_complete_tooltip(tooltip, 360, true)
 end
 
 -- Call only after an integration has established ownership of this tooltip.
@@ -589,12 +586,15 @@ end
 
 layout.fit_settings_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.SettingsTooltip then return false end
-    return fit_complete_tooltip(tooltip, 420)
+    return fit_complete_tooltip(tooltip, 420, true)
 end
 
 layout.restore_tooltip_rows = function (tooltip)
     tooltip.uaForeverItemLayout = nil
     tooltip.uaForeverOriginalItemLayout = nil
+    tooltip.uaForeverTooltipLayout = nil
+    tooltip.uaForeverOriginalTooltipLayout = nil
+    tooltip.uaForeverTooltipLayoutPolicy = nil
     tooltip.uaForeverItemLayoutPass = nil
     tooltip.uaForeverItemBuildEpoch = nil
     pending_tooltip_layout[tooltip] = nil
@@ -630,8 +630,8 @@ end
 
 layout.fit_crafted_item_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "spell"
-        or tooltip.uaForeverShowOriginal
-        or not has_current_translation(tooltip, "item.crafted-effect:") then return false end
+        or not tooltip.uaForeverShowOriginal
+            and not has_current_translation(tooltip, "item.crafted-effect:") then return false end
     return fit_complete_tooltip(tooltip, 420, true)
 end
 
@@ -684,6 +684,7 @@ local function item_layout_snapshot(tooltip, previous)
     local cursor
     snapshot, cursor, compare = snapshot_value(snapshot, 1, tooltip.uaForeverGeneration, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverSessionKey, compare)
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverKind, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverShowOriginal == true, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, count, compare)
     for _, method in ipairs(TOOLTIP_FRAME_READS) do
@@ -721,8 +722,8 @@ local function item_layout_snapshot(tooltip, previous)
     return snapshot
 end
 
-local function item_layout_current(tooltip, generation, instance, owner, original)
-    if tooltip.uaForeverKind ~= "item" or (tooltip.uaForeverShowOriginal == true) ~= original
+local function tooltip_layout_current(tooltip, generation, instance, owner, original, kind)
+    if tooltip.uaForeverKind ~= kind or (tooltip.uaForeverShowOriginal == true) ~= original
         or tooltip.uaForeverGeneration ~= generation
         or tooltip.uaForeverSessionKey ~= instance or not is_shown(tooltip) then return false end
     local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
@@ -771,25 +772,27 @@ local function apply_item_layout(tooltip, plan)
                             or not pcall(region.SetHeight, region, 0) then return false, "region.height-write" end
                     end
                 end
-                local expected_point = side == "Right" and "TOPRIGHT" or "TOPLEFT"
-                local expected_x = side == "Right" and -TOOLTIP_TEXT_PADDING / 2 or TOOLTIP_TEXT_PADDING / 2
-                local count = safe_dimension(region, "GetNumPoints")
-                if not count then return false, "region.points-count" end
-                local matches = false
-                if count == 1 then
-                    local ok, point, relative, relative_point, x, y = pcall(region.GetPoint, region, 1)
-                    if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
-                        or is_secret(x) or is_secret(y) then return false, "region.point-read" end
-                    matches = point == expected_point and relative == tooltip
-                        and relative_point == expected_point
-                        and same_dimension(x, expected_x) and same_dimension(y, -row.Offset)
-                end
-                if not matches then
-                    if writable == nil then writable = runtime.can_write_text(region) end
-                    if not writable
-                        or not pcall(region.ClearAllPoints, region)
-                        or not pcall(region.SetPoint, region, expected_point, tooltip,
-                            expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
+                if plan.arrange_rows ~= false then
+                    local expected_point = side == "Right" and "TOPRIGHT" or "TOPLEFT"
+                    local expected_x = side == "Right" and -TOOLTIP_TEXT_PADDING / 2 or TOOLTIP_TEXT_PADDING / 2
+                    local count = safe_dimension(region, "GetNumPoints")
+                    if not count then return false, "region.points-count" end
+                    local matches = false
+                    if count == 1 then
+                        local ok, point, relative, relative_point, x, y = pcall(region.GetPoint, region, 1)
+                        if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
+                            or is_secret(x) or is_secret(y) then return false, "region.point-read" end
+                        matches = point == expected_point and relative == tooltip
+                            and relative_point == expected_point
+                            and same_dimension(x, expected_x) and same_dimension(y, -row.Offset)
+                    end
+                    if not matches then
+                        if writable == nil then writable = runtime.can_write_text(region) end
+                        if not writable
+                            or not pcall(region.ClearAllPoints, region)
+                            or not pcall(region.SetPoint, region, expected_point, tooltip,
+                                expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
+                    end
                 end
             end
         end
@@ -799,31 +802,47 @@ local function apply_item_layout(tooltip, plan)
     return true
 end
 
-layout.fit_item_tooltip = function (tooltip)
-    if not tooltip or tooltip.uaForeverKind ~= "item"
-        or tooltip.uaForeverItemLayoutApplying
+fit_complete_tooltip = function (tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
+    if not tooltip or tooltip.uaForeverItemLayoutApplying
         or not is_shown(tooltip) then return false end
     local original = tooltip.uaForeverShowOriginal == true
     if original and not tooltip.uaForeverSessionKey then return false end
+    -- Every short right-hand field grows left from its native right edge.
+    -- Original mode must never inherit a narrow translated column.
+    single_line_right = single_line_right ~= false
+    local generation, instance, kind = tooltip.uaForeverGeneration,
+        tooltip.uaForeverSessionKey, tooltip.uaForeverKind
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or is_secret(owner) then return false end
+    local policy = tooltip.uaForeverTooltipLayoutPolicy
+    if not policy or policy.generation ~= generation or policy.instance ~= instance
+        or policy.owner ~= owner or policy.kind ~= kind
+        or policy.maximum_width ~= maximum_width or policy.arrange_rows ~= arrange_rows
+        or policy.prose_width ~= prose_width or policy.single_line_right ~= single_line_right then
+        policy = { generation = generation, instance = instance, owner = owner, kind = kind,
+            maximum_width = maximum_width, arrange_rows = arrange_rows,
+            prose_width = prose_width, single_line_right = single_line_right }
+        tooltip.uaForeverTooltipLayoutPolicy = policy
+    end
     if runtime.combat_locked() then
-        local generation, instance = tooltip.uaForeverGeneration, tooltip.uaForeverSessionKey
-        local ok, owner = pcall(tooltip.GetOwner, tooltip)
-        if not ok or is_secret(owner) then return false end
         pending_tooltip_layout[tooltip] = function ()
             pending_tooltip_layout[tooltip] = nil
-            if item_layout_current(tooltip, generation, instance, owner, original) then
-                layout.fit_item_tooltip(tooltip)
+            if tooltip.uaForeverTooltipLayoutPolicy == policy
+                and tooltip_layout_current(tooltip, generation, instance, owner, original, kind) then
+                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
             end
         end
         return false
     end
     pending_tooltip_layout[tooltip] = nil
-    if not original and not has_current_translation(tooltip) then return false end
     local profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
-    local cache_key = original and "uaForeverOriginalItemLayout" or "uaForeverItemLayout"
+    local cache_key = kind == "item"
+        and (original and "uaForeverOriginalItemLayout" or "uaForeverItemLayout")
+        or (original and "uaForeverOriginalTooltipLayout" or "uaForeverTooltipLayout")
     local cached = tooltip[cache_key]
     local signature = item_layout_snapshot(tooltip, cached and cached.signature)
     local cache_valid = cached and signature ~= nil and signature == cached.signature
+        and cached.policy == policy
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
     tooltip.uaForeverItemLayoutApplying = true
     local ok, fitted, detail
@@ -833,9 +852,10 @@ layout.fit_item_tooltip = function (tooltip)
     else
         tooltip[cache_key] = nil
         local plan
-        ok, fitted, plan = pcall(fit_complete_tooltip, tooltip, 420, true, TOOLTIP_MAX_WIDTH, nil, original)
-        if ok and fitted and signature then
-            tooltip[cache_key] = { signature = signature, plan = plan }
+        ok, fitted, plan = pcall(measure_complete_tooltip, tooltip,
+            maximum_width, arrange_rows, prose_width, single_line_right)
+        if ok and fitted and signature and type(plan) == "table" then
+            tooltip[cache_key] = { signature = signature, plan = plan, policy = policy }
         end
     end
     if profile_started then
@@ -846,6 +866,13 @@ layout.fit_item_tooltip = function (tooltip)
     end
     tooltip.uaForeverItemLayoutApplying = nil
     return ok and fitted
+end
+
+layout.fit_item_tooltip = function (tooltip)
+    if not tooltip or tooltip.uaForeverKind ~= "item"
+        or tooltip.uaForeverItemLayoutApplying or not is_shown(tooltip) then return false end
+    if not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
+    return fit_complete_tooltip(tooltip, 420, true, TOOLTIP_MAX_WIDTH)
 end
 
 layout.begin_item_build = function (tooltip)
@@ -917,47 +944,52 @@ end
 
 layout.fit_quest_pin_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "quest"
-        or tooltip.uaForeverShowOriginal or not has_current_translation(tooltip) then return false end
+        or not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
     -- Map pins rebuild native geometry while retaining their translated claims.
     -- Measure all current rows instead of reusing the first build's line deltas.
     return fit_complete_tooltip(tooltip, 460, true)
 end
 
 layout.fit_calendar_tooltip = function (tooltip)
-    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal
-        or not has_current_translation(tooltip) then return false end
+    if not tooltip or tooltip ~= _G.GameTooltip
+        or not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
     return fit_complete_tooltip(tooltip, 460, true)
 end
 
 layout.fit_micro_button_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverKind ~= "micro-button"
-        or tooltip.uaForeverShowOriginal or not has_current_translation(tooltip) then return false end
+        or not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
     return fit_complete_tooltip(tooltip, 420, true)
 end
 
--- Ordinary SetText/Unit tooltips can be resized by native Show after our
--- per-line writes. Fit the completed display only when it still contains a
--- translation from this exact session. Owned item sessions fit their current
--- language in both modes; spells without crafted effects retain native layout.
-layout.fit_translated_tooltip = function (tooltip)
-    if not tooltip or tooltip ~= _G.GameTooltip then return false end
+-- Both native Show and a manual Shift refresh end at this same boundary.
+-- Text mode chooses a bounded measurement plan; it never disables geometry.
+layout.fit_current_tooltip = function (tooltip)
+    if not tooltip or not tooltip.uaForeverSessionKey then return false end
     local kind = tooltip.uaForeverKind
+    if tooltip.uaForeverAuraTooltip == true and kind ~= "aura" then return false end
     if kind == "item" then return layout.fit_item_tooltip(tooltip) end
-    if tooltip.uaForeverShowOriginal then return false end
+    if not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
+    local policy = tooltip.uaForeverTooltipLayoutPolicy
+    if policy and policy.generation == tooltip.uaForeverGeneration
+        and policy.instance == tooltip.uaForeverSessionKey and policy.kind == kind then
+        local ok, owner = pcall(tooltip.GetOwner, tooltip)
+        if not ok or is_secret(owner) then return false end
+        if owner == policy.owner then
+            return fit_complete_tooltip(tooltip, policy.maximum_width, policy.arrange_rows,
+                policy.prose_width, policy.single_line_right)
+        end
+    end
     if kind == "quest" and tooltip.uaForeverQuestPinOwner then
         return layout.fit_quest_pin_tooltip(tooltip)
     end
-    if kind == "spell" then return layout.fit_crafted_item_tooltip(tooltip) end
-    if kind and kind ~= "generic" and kind ~= "npc" and kind ~= "object" then return false end
-    if has_current_translation(tooltip) then
-        -- Unit tooltips append wrapped quest/hint rows after their first Show.
-        -- Native anchors still contain the old line spacing: recompute every
-        -- row as well as the border so the last instruction stays inside it.
-        if kind == "npc" then return fit_complete_tooltip(tooltip, 420, true) end
-        if tooltip_row_anchors[tooltip] then return fit_complete_tooltip(tooltip, 460, true) end
-        return fit_complete_tooltip(tooltip, 420)
-    end
-    return false
+    if kind == "talent" then return layout.fit_talent_tooltip(tooltip) end
+    return fit_complete_tooltip(tooltip, 420, true)
+end
+
+layout.fit_translated_tooltip = function (tooltip)
+    if tooltip ~= _G.GameTooltip then return false end
+    return layout.fit_current_tooltip(tooltip)
 end
 
 layout.retry_tooltip_layout = function ()

@@ -11,6 +11,7 @@ local entries = addon_table.use("entries")
 local item_db = addon_table.use("item_client_db")
 local spell_db = addon_table.use("spell_client_db")
 local layout = addon_table.use("translation_layout")
+local tooltip_session = addon_table.use("tooltip_session")
 local text = addon_table.fojji_locale_uk
 local settings_text = addon_table.fojji_settings_uk
 local installed
@@ -564,10 +565,20 @@ local function fit_tooltip()
             or not build.instance or build.instance ~= tooltip.uaForeverSessionKey
             or not build.generation or build.generation ~= tooltip.uaForeverGeneration
             or tooltip.uaForeverShowOriginal then return end
+    elseif not tooltip.uaForeverSessionKey then
+        local original = false
+        if options.account.shift_original_tooltip ~= false and type(_G.IsShiftKeyDown) == "function" then
+            local ok, shift = pcall(_G.IsShiftKeyDown)
+            if not ok or runtime.is_secret_value(shift) then return end
+            original = shift == true
+        end
+        tooltip_session.begin(tooltip, "fojji-tooltip:" .. tostring(owner), original)
+        tooltip.uaForeverKind = "generic"
     end
     if not mutable(tooltip) then
         pending_tooltip = { owner = owner, epoch = tooltip_epoch,
-            generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey }
+            generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey,
+            original = tooltip.uaForeverShowOriginal == true }
         return
     end
     pending_tooltip = nil
@@ -587,11 +598,22 @@ local function fit_tooltip()
                                 source, side, index, owner) or changed
                         end
                     else
+                        local claim = runtime.get(region)
+                        if claim and claim.surface == tooltip
+                            and claim.generation == tooltip.uaForeverGeneration
+                            and (source == claim.translated or source == claim.source) then
+                            source = claim.source
+                        end
                         local translated = translate(source)
                         if translated ~= source then
-                            region:SetText(translated)
-                            runtime.ensure_font(region)
-                            changed = true
+                            changed = runtime.apply(region, {
+                                owner = "fojji-tooltip", slot = "fojji:" .. side .. ":" .. index,
+                                option = "translate_fojji", source = source, translated = translated,
+                                priority = runtime.PRIORITY.DOMAIN, surface = tooltip, tooltip = tooltip,
+                                generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey,
+                                allow_unknown_source = true, record_runtime = false,
+                                verify_after_apply = false, reapply_cached = true,
+                            }) == true or changed
                         else
                             runtime.ensure_font(region)
                         end
@@ -604,9 +626,20 @@ local function fit_tooltip()
         -- The shared Show hook owns item geometry and its measurement cache.
         -- A second fit is needed only when this pass actually changed a row.
         if changed then layout.fit_item_tooltip(tooltip) end
-    elseif layout.fit_addon_tooltip(tooltip) then
-        tooltip_layout_owned = true
+    else
+        local fitted = layout.fit_addon_tooltip(tooltip)
+        if fitted then tooltip_layout_owned = true end
+        return fitted
     end
+end
+
+-- Manual Shift refresh does not call Show, so it must reach the same owned
+-- non-item writer. Item claims and geometry are finalized by the shared path.
+integration.refresh_tooltip = function (tooltip)
+    if tooltip == _G.GameTooltip and tooltip.uaForeverKind ~= "item" then
+        return fit_tooltip()
+    end
+    return false
 end
 
 integration.prepare = function (rescan)
@@ -671,7 +704,8 @@ integration.recover = function ()
     if pending and pending.epoch == tooltip_epoch and GameTooltip
         and GameTooltip:GetOwner() == pending.owner
         and GameTooltip.uaForeverGeneration == pending.generation
-        and GameTooltip.uaForeverSessionKey == pending.instance then fit_tooltip() end
+        and GameTooltip.uaForeverSessionKey == pending.instance
+        and (GameTooltip.uaForeverShowOriginal == true) == pending.original then fit_tooltip() end
 end
 
 integration.add_settings = function (page, anchor)

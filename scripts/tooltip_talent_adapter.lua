@@ -195,8 +195,7 @@ local function embed_translation(visible, native_core, translated_core)
         .. visible:sub(ending + 1)
 end
 
-adapter.translate_structured_line = function (tooltip, line_data)
-    local context = processing_trait_context(tooltip)
+local function translate_trait_line(tooltip, line_data, context)
     if not context then return false, false end
     if options.can_lookup_section and not options.can_lookup_section("talents") then return true, false end
     ensure_trait_session(tooltip)
@@ -219,8 +218,17 @@ adapter.translate_structured_line = function (tooltip, line_data)
     local line_key = tostring(context.entryID) .. ":"
         .. tostring(context.rank or 0) .. ":" .. tostring(line_index)
     if tooltip.uaForeverTalentLines[line_key] then return true, false end
-    tooltip.uaForeverTalentLines[line_key] = true
-    tooltip.uaForeverTalentEntries[line_key] = context
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or runtime.is_secret_value(owner) then return true, false end
+    tooltip.uaForeverTalentEntries[line_key] = {
+        entryID = context.entryID, rank = context.rank, spellID = context.spellID,
+        generation = tooltip.uaForeverGeneration, owner = owner,
+        line = { type = line_type, lineIndex = line_index, leftText = source },
+    }
+    -- Keep the structured source when Shift is already held on first hover.
+    -- There is no translated claim yet, so release must use this exact rank
+    -- and line rather than reclassifying the surface as a generic spell.
+    if tooltip.uaForeverShowOriginal then return true, false end
 
     local translated
     if line_type == SPELL_DESCRIPTION then
@@ -246,8 +254,14 @@ adapter.translate_structured_line = function (tooltip, line_data)
     local slot = "talent.entry:" .. tostring(context.entryID)
         .. ":rank:" .. tostring(context.rank or 0)
         .. ":line:" .. tostring(line_index)
-    return true, deps().set_translation(tooltip, region, source, translated,
+    local applied = deps().set_translation(tooltip, region, source, translated,
         slot, nil, "talent-tooltip") == true
+    tooltip.uaForeverTalentLines[line_key] = applied or nil
+    return true, applied
+end
+
+adapter.translate_structured_line = function (tooltip, line_data)
+    return translate_trait_line(tooltip, line_data, processing_trait_context(tooltip))
 end
 
 adapter.translate_structured_data = function (tooltip, data)
@@ -401,6 +415,34 @@ local function prepare_tooltip_rows(tooltip)
                 end
             end
         end
+    end
+end
+
+adapter.refresh = function (tooltip)
+    if not tooltip or tooltip.uaForeverKind ~= "talent"
+        or tooltip.uaForeverSessionKey ~= "talent:structured"
+        or tooltip.uaForeverShowOriginal then return end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or runtime.is_secret_value(owner) then return end
+    for _, entry in pairs(tooltip.uaForeverTalentEntries or {}) do
+        if entry.generation == tooltip.uaForeverGeneration and entry.owner == owner then
+            local visible, region = deps().tooltip_line(tooltip, "Left", entry.line.lineIndex)
+            local claim = region and runtime.get(region)
+            if visible == entry.line.leftText or claim and claim.surface == tooltip
+                and (visible == claim.translated or visible == claim.source) then
+                translate_trait_line(tooltip, entry.line, entry)
+            end
+        end
+    end
+    local context = current_context(tooltip)
+    if context then
+        local source, region = deps().tooltip_line(tooltip, "Left", 1)
+        local translated = client_db.get_name(context.id)
+        if region and translated then
+            deps().set_translation(tooltip, region, source, translated,
+                "talent.name", "spell", "talent-tooltip")
+        end
+        prepare_tooltip_rows(tooltip)
     end
 end
 

@@ -2237,9 +2237,10 @@ local function prepare_tooltip_frames()
                     translate_object_tooltip_title(self)
                 end)
             end
-            if tooltip == _G.ItemRefTooltip or tooltip == _G.EmbeddedItemTooltip then
+            if tooltip ~= _G.GameTooltip and tooltip ~= _G.SettingsTooltip
+                and not is_shopping_tooltip(tooltip) then
                 hooks.region(tooltip, "Show", function (self)
-                    layout.fit_item_tooltip(self)
+                    layout.fit_current_tooltip(self)
                 end)
             end
             hooks.region_script(tooltip, "OnShow", function (self)
@@ -2873,6 +2874,8 @@ tooltips.refresh_active = function ()
                         tooltip.uaForeverGeneration
                 end
                 comparison.translate_native_tail(tooltip)
+            elseif tooltip.uaForeverKind == "talent" then
+                talent_adapter.refresh(tooltip)
             elseif tooltip.uaForeverKind == "character-stat" then
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
                 if owner_ok and owner then tooltips.translate_character_stat(owner) end
@@ -2880,8 +2883,9 @@ tooltips.refresh_active = function ()
                 and native.kind == tooltip.uaForeverKind
                 and native.id == tooltip.uaForeverID then
                 safe_process(tooltip, native.data, native.kind)
-            elseif tooltip.uaForeverKind and tooltip.uaForeverID
-                and tooltip.uaForeverKind ~= "item" then
+            elseif tooltip.uaForeverID and (tooltip.uaForeverKind == "spell"
+                or tooltip.uaForeverKind == "aura" or tooltip.uaForeverKind == "npc"
+                or tooltip.uaForeverKind == "quest" or tooltip.uaForeverKind == "object") then
                 -- Item claims already contain both native and translated text;
                 -- rebuilding from only itemID would discard the full-link cache.
                 safe_process(tooltip, { uaForeverID = tooltip.uaForeverID,
@@ -2899,14 +2903,8 @@ tooltips.refresh_active = function ()
                 pcall(tooltip.Show, tooltip)
             end
         end
-        if tooltip.uaForeverKind == "npc" then
-            if show then layout.restore_tooltip_rows(tooltip) end
-            if type(tooltip.Show) == "function" and runtime.can_write_text(tooltip) then
-                pcall(tooltip.Show, tooltip)
-            end
-        elseif tooltip.uaForeverKind == "item" then
-            layout.fit_item_tooltip(tooltip)
-        end
+        local fitted = fojji.refresh_tooltip and fojji.refresh_tooltip(tooltip)
+        if not fitted then layout.fit_current_tooltip(tooltip) end
     end
     -- A primary Show can rebuild its comparisons. Process it first, then each
     -- remaining surface once, including comparisons missing from active_tooltips.
