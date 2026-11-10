@@ -2684,6 +2684,9 @@ tooltips.prepare = function ()
             if not tooltip_work_enabled("item") then return end
             sync_tooltip_original_state(tooltip)
             safe_process(tooltip, data, "item", true)
+            if type(fojji.finish_item_lines) == "function" then
+                fojji.finish_item_lines(tooltip)
+            end
         end)
     end
     local line_types = Enum.TooltipDataLineType
@@ -2806,7 +2809,13 @@ end
 
 tooltips.refresh_active = function ()
     local show = shift_held() or not options.can_translate()
-    for tooltip in pairs(active_tooltips) do
+    local refreshed, previous_widths = {}, {}
+    local function refresh_tooltip(tooltip)
+        if not tooltip or refreshed[tooltip] then return end
+        refreshed[tooltip] = true
+        if tooltip.uaForeverKind == "item" then
+            previous_widths[tooltip] = layout.safe_dimension(tooltip, "GetWidth")
+        end
         tooltip.uaForeverShowOriginal = show
         runtime.for_each_claim(tooltip, function (region, claim)
             local disabled = claim and claim.option
@@ -2863,6 +2872,7 @@ tooltips.refresh_active = function ()
                     tooltip.uaForeverComparisonFallbackGeneration =
                         tooltip.uaForeverGeneration
                 end
+                comparison.translate_native_tail(tooltip)
             elseif tooltip.uaForeverKind == "character-stat" then
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
                 if owner_ok and owner then tooltips.translate_character_stat(owner) end
@@ -2898,25 +2908,10 @@ tooltips.refresh_active = function ()
             layout.fit_item_tooltip(tooltip)
         end
     end
-    -- Comparison tooltips can be cleared and rebuilt without a matching hide.
-    -- Refresh them explicitly so Shift always affects the complete tooltip set,
-    -- even when Blizzard temporarily dropped one from the active registry.
-    each_shopping_tooltip(function (tooltip)
-        tooltip.uaForeverShowOriginal = show
-        runtime.for_each_claim(tooltip, function (region, claim)
-            local disabled = claim and claim.option
-                and not options.can_translate(claim.option)
-            for _, option in ipairs(claim and claim.options or {}) do
-                if not options.can_translate(option) then disabled = true end
-            end
-            runtime.show_original(region,
-                show or disabled or (options.is_bilingual_tooltip()
-                    and claim.owner ~= "ptr-feedback"))
-        end)
-        if not show and not reapply_comparison_claims(tooltip) then
-            translate_shopping_tooltip(tooltip)
-        end
-        if not show then comparison.translate_native_tail(tooltip) end
-        layout.fit_item_tooltip(tooltip)
-    end)
+    -- A primary Show can rebuild its comparisons. Process it first, then each
+    -- remaining surface once, including comparisons missing from active_tooltips.
+    if active_tooltips[_G.GameTooltip] then refresh_tooltip(_G.GameTooltip) end
+    for tooltip in pairs(active_tooltips) do refresh_tooltip(tooltip) end
+    each_shopping_tooltip(refresh_tooltip)
+    comparison.reanchor_if_changed(previous_widths)
 end

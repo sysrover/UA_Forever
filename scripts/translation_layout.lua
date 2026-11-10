@@ -387,9 +387,11 @@ end
 
 -- Fit completed tooltips, including both columns and late native writes.
 -- Per-write height deltas are unreliable while Blizzard is building rows.
-local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
-    if not is_tooltip(tooltip) or tooltip.uaForeverShowOriginal
+local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right, original_item)
+    if not is_tooltip(tooltip)
+        or (tooltip.uaForeverShowOriginal == true) ~= (original_item == true)
         or not is_shown(tooltip) then return false end
+    if original_item and (tooltip.uaForeverKind ~= "item" or not tooltip.uaForeverSessionKey) then return false end
     single_line_right = single_line_right or prose_width ~= nil
     local generation = tooltip.uaForeverGeneration
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
@@ -400,7 +402,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
             local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
             if ok and not is_secret(current_owner) and current_owner == owner
                 and tooltip.uaForeverGeneration == generation then
-                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
+                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right, original_item)
             end
         end
         return false
@@ -590,6 +592,7 @@ end
 
 layout.restore_tooltip_rows = function (tooltip)
     tooltip.uaForeverItemLayout = nil
+    tooltip.uaForeverOriginalItemLayout = nil
     tooltip.uaForeverItemLayoutPass = nil
     tooltip.uaForeverItemBuildEpoch = nil
     pending_tooltip_layout[tooltip] = nil
@@ -679,6 +682,7 @@ local function item_layout_snapshot(tooltip, previous)
     local cursor
     snapshot, cursor, compare = snapshot_value(snapshot, 1, tooltip.uaForeverGeneration, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverSessionKey, compare)
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverShowOriginal == true, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, count, compare)
     for _, method in ipairs(TOOLTIP_FRAME_READS) do
         snapshot, cursor, compare = snapshot_values(snapshot, cursor, tooltip, method, 1, false, compare)
@@ -715,8 +719,8 @@ local function item_layout_snapshot(tooltip, previous)
     return snapshot
 end
 
-local function item_layout_current(tooltip, generation, instance, owner)
-    if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
+local function item_layout_current(tooltip, generation, instance, owner, original)
+    if tooltip.uaForeverKind ~= "item" or (tooltip.uaForeverShowOriginal == true) ~= original
         or tooltip.uaForeverGeneration ~= generation
         or tooltip.uaForeverSessionKey ~= instance or not is_shown(tooltip) then return false end
     local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
@@ -795,24 +799,27 @@ end
 
 layout.fit_item_tooltip = function (tooltip)
     if not tooltip or tooltip.uaForeverKind ~= "item"
-        or tooltip.uaForeverShowOriginal or tooltip.uaForeverItemLayoutApplying
+        or tooltip.uaForeverItemLayoutApplying
         or not is_shown(tooltip) then return false end
+    local original = tooltip.uaForeverShowOriginal == true
+    if original and not tooltip.uaForeverSessionKey then return false end
     if runtime.combat_locked() then
         local generation, instance = tooltip.uaForeverGeneration, tooltip.uaForeverSessionKey
         local ok, owner = pcall(tooltip.GetOwner, tooltip)
         if not ok or is_secret(owner) then return false end
         pending_tooltip_layout[tooltip] = function ()
             pending_tooltip_layout[tooltip] = nil
-            if item_layout_current(tooltip, generation, instance, owner) then
+            if item_layout_current(tooltip, generation, instance, owner, original) then
                 layout.fit_item_tooltip(tooltip)
             end
         end
         return false
     end
     pending_tooltip_layout[tooltip] = nil
-    if not has_current_translation(tooltip) then return false end
+    if not original and not has_current_translation(tooltip) then return false end
     local profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
-    local cached = tooltip.uaForeverItemLayout
+    local cache_key = original and "uaForeverOriginalItemLayout" or "uaForeverItemLayout"
+    local cached = tooltip[cache_key]
     local signature = item_layout_snapshot(tooltip, cached and cached.signature)
     local cache_valid = cached and signature ~= nil and signature == cached.signature
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
@@ -822,11 +829,11 @@ layout.fit_item_tooltip = function (tooltip)
     if cache_valid then
         ok, fitted, detail = pcall(apply_item_layout, tooltip, cached.plan)
     else
-        tooltip.uaForeverItemLayout = nil
+        tooltip[cache_key] = nil
         local plan
-        ok, fitted, plan = pcall(fit_complete_tooltip, tooltip, 420, true, TOOLTIP_MAX_WIDTH)
+        ok, fitted, plan = pcall(fit_complete_tooltip, tooltip, 420, true, TOOLTIP_MAX_WIDTH, nil, original)
         if ok and fitted and signature then
-            tooltip.uaForeverItemLayout = { signature = signature, plan = plan }
+            tooltip[cache_key] = { signature = signature, plan = plan }
         end
     end
     if profile_started then
@@ -851,8 +858,10 @@ end
 -- Native setters, comparison anchoring and outer entry points can all report
 -- the same completed build. Only the first needs content/font/row processing.
 layout.fit_item_tooltip_once = function (tooltip, before_fit)
-    if not tooltip or tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
+    if not tooltip or tooltip.uaForeverKind ~= "item"
         or not is_shown(tooltip) then return false end
+    local original = tooltip.uaForeverShowOriginal == true
+    if original and not tooltip.uaForeverSessionKey then return false end
     local count = safe_dimension(tooltip, "NumLines")
     local width = safe_dimension(tooltip, "GetWidth")
     local height = safe_dimension(tooltip, "GetHeight")
@@ -864,6 +873,7 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
     if previous and count and width and height and scale and previous.epoch == epoch
         and previous.generation == tooltip.uaForeverGeneration
         and previous.instance == tooltip.uaForeverSessionKey and previous.owner == owner
+        and previous.original == original
         and previous.count == count and same_dimension(previous.width, width)
         and same_dimension(previous.height, height) and previous.scale == scale then return true end
     if runtime.tooltip_profile_active then
@@ -872,6 +882,7 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
             or previous.generation ~= tooltip.uaForeverGeneration and "generation"
             or previous.instance ~= tooltip.uaForeverSessionKey and "session"
             or previous.owner ~= owner and "owner"
+            or previous.original ~= original and "language"
             or previous.count ~= count and "lines"
             or not same_dimension(previous.width, width) and "width"
             or not same_dimension(previous.height, height) and "height"
@@ -885,7 +896,7 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
                 previousLines = previous and previous.count,
             })
     end
-    if before_fit then before_fit(tooltip) end
+    if before_fit and not original then before_fit(tooltip) end
     local fitted = layout.fit_item_tooltip(tooltip)
     if fitted and count and width and height and scale then
         width = safe_dimension(tooltip, "GetWidth")
@@ -894,6 +905,7 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
             tooltip.uaForeverItemLayoutPass = {
                 epoch = epoch, generation = tooltip.uaForeverGeneration,
                 instance = tooltip.uaForeverSessionKey, owner = owner, count = count,
+                original = original,
                 width = width, height = height, scale = scale,
             }
         end

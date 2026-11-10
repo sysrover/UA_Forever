@@ -137,6 +137,14 @@ local function apply_item_addition(tooltip, row)
 end
 
 integration.finish_item_lines = function (tooltip)
+    local build = tooltip and item_tooltip_hooks[tooltip]
+    if build then
+        -- Called by the shared Item post-call, after its session and claims
+        -- exist. ClearLines invalidates this even when the same item/session
+        -- is retained for another native rebuild.
+        build.generation = tooltip.uaForeverGeneration
+        build.instance = tooltip.uaForeverSessionKey
+    end
     local rows = tooltip and tooltip.uaForeverFojjiRows
     if not rows or not enabled() then return end
     -- A Fojji post-call may precede ours. Adopt only its recorded rows after
@@ -201,6 +209,8 @@ local function prepare_item_tooltips()
     for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
         local tooltip = _G[name]
         if tooltip and not item_tooltip_hooks[tooltip] then
+            local build = {}
+            item_tooltip_hooks[tooltip] = build
             hooksecurefunc(tooltip, "AddLine", profile_callback("fojji.item.AddLine", function (self, source)
                 item_line_added(self, source)
             end))
@@ -208,13 +218,13 @@ local function prepare_item_tooltips()
                 item_line_added(self, source, true)
             end))
             local function clear(self)
+                build.generation, build.instance = nil, nil
                 self.uaForeverFojjiRows = nil
                 self.uaForeverFojjiDropSources = nil
                 native_effect_rows[self] = nil
             end
             tooltip:HookScript("OnTooltipCleared", profile_callback("fojji.item.clear", clear))
             tooltip:HookScript("OnHide", profile_callback("fojji.item.hide", clear))
-            item_tooltip_hooks[tooltip] = true
         end
     end
 end
@@ -517,19 +527,48 @@ local function translate_native_item_line(tooltip, region, source, side, index, 
     }) == true
 end
 
+local function native_tooltip_kind(tooltip)
+    local ok, kind = pcall(function ()
+        local getter = tooltip.GetPrimaryTooltipData
+        if runtime.is_secret_value(getter) then return false end
+        if type(getter) ~= "function" then return nil end
+        local data = getter(tooltip)
+        if runtime.is_secret_value(data) then return false end
+        if type(data) ~= "table" then return nil end
+        local value = data.type
+        if runtime.is_secret_value(value) then return false end
+        return value
+    end)
+    if not ok then return false end
+    return kind
+end
+
 local function fit_tooltip()
     local tooltip = _G.GameTooltip
     if not enabled() or not tooltip or not tooltip:IsShown() then return end
     local owner = tooltip:GetOwner()
     if not owned(owner) then return end
+    local native_kind = native_tooltip_kind(tooltip)
+    if native_kind == false then return end
+    local types = Enum and Enum.TooltipDataType
+    local item = tooltip.uaForeverKind == "item" or types
+        and (native_kind == types.Item or types.Toy and native_kind == types.Toy)
+    if item then
+        local build = item_tooltip_hooks[tooltip]
+        -- Fojji's transmog post-call calls Show before our Item post-call.
+        -- Never treat those still-native item rows as generic Fojji UI: a
+        -- direct SetText here would lose the English source needed by Shift.
+        if tooltip.uaForeverKind ~= "item" or not build
+            or not build.instance or build.instance ~= tooltip.uaForeverSessionKey
+            or not build.generation or build.generation ~= tooltip.uaForeverGeneration
+            or tooltip.uaForeverShowOriginal then return end
+    end
     if not mutable(tooltip) then
         pending_tooltip = { owner = owner, epoch = tooltip_epoch,
             generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey }
         return
     end
     pending_tooltip = nil
-    local item = tooltip.uaForeverKind == "item"
-    if item and tooltip.uaForeverShowOriginal then return end
     local changed = false
     for index = 1, tooltip:NumLines() do
         for _, side in ipairs({ "Left", "Right" }) do
@@ -537,20 +576,21 @@ local function fit_tooltip()
             if region and mutable(region) and region:IsShown() then
                 local source = region:GetText()
                 if safe_string(source) then
-                    local item_line
-                    if item and index > 1 then
-                        item_line = translate_native_item_line(tooltip, region, source,
-                            side, index, owner)
-                    end
-                    if item_line ~= nil then
-                        changed = item_line or changed
+                    if item then
+                        -- The shared item adapter owns native item names and
+                        -- descriptions. Recover only supported item rows with
+                        -- item claims; generic name lookup has no item context.
+                        if index > 1 then
+                            changed = translate_native_item_line(tooltip, region,
+                                source, side, index, owner) or changed
+                        end
                     else
                         local translated = translate(source)
                         if translated ~= source then
                             region:SetText(translated)
                             runtime.ensure_font(region)
                             changed = true
-                        elseif not item then
+                        else
                             runtime.ensure_font(region)
                         end
                     end

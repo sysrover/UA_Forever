@@ -654,6 +654,32 @@ comparison_adapter.install = function (api)
         end
     end
 
+    local function reanchor_if_changed(previous_widths)
+        if runtime.combat_locked() then return false end
+        local manager = _G.TooltipComparisonManager
+        local primary = manager and manager.tooltip
+        local comparisons = primary and primary.shoppingTooltips
+        if type(comparisons) ~= "table" or type(manager.AnchorShoppingTooltips) ~= "function"
+            or not runtime.can_write_text(primary) then return false end
+        local changed, shown = false, {}
+        local function changed_width(tooltip)
+            local before = previous_widths[tooltip]
+            local after = before and layout.safe_dimension(tooltip, "GetWidth")
+            return before ~= nil and after ~= nil and not layout.dimensions_match(before, after)
+        end
+        changed = changed_width(primary)
+        for index, tooltip in ipairs(comparisons) do
+            local ok, visible = pcall(tooltip.IsShown, tooltip)
+            shown[index] = ok and not is_secret(visible) and visible == true
+            if shown[index] then
+                if not runtime.can_write_text(tooltip) then return false end
+                changed = changed_width(tooltip) or changed
+            end
+        end
+        if not changed or not (shown[1] or shown[2]) then return false end
+        return pcall(manager.AnchorShoppingTooltips, manager, shown[1], shown[2])
+    end
+
     local finishing_comparison_layout = false
     local function finish_comparison_layout()
         if finishing_comparison_layout then return end
@@ -711,6 +737,7 @@ comparison_adapter.install = function (api)
         mark_managed = mark_managed_item,
         prepare_manager = prepare_comparison_manager,
         reapply = reapply_comparison_claims,
+        reanchor_if_changed = reanchor_if_changed,
         translate = translate_shopping_tooltip,
         translate_native_line = translate_native_line,
         translate_native_tail = translate_native_tail,
