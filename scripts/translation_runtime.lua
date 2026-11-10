@@ -770,6 +770,9 @@ runtime.allowed = function (spec)
 end
 
 runtime.ensure_font = function (region)
+    if fonts.is_applied_to_font_string and fonts.is_applied_to_font_string(region) then
+        return true
+    end
     local allowed = runtime.can_write_text(region)
     if not allowed then return false end
     return fonts.apply_to_font_string(region)
@@ -940,7 +943,10 @@ local function apply_translation(region, spec)
         or spec.combat_text_only == true
     if options.can_translate("override_system_fonts")
         and spec.combat_text_only ~= true then
-        local font_ok = runtime.ensure_font(region)
+        -- can_write_text above has already checked this region and its parents;
+        -- no native mutations have occurred since that check. Do not repeat the
+        -- same protection walk for the font within this synchronous write.
+        local font_ok = fonts.apply_to_font_string(region)
         if not font_ok and display:find("[\208\209]") then
             record_runtime_result(region, spec, source, translated, "шрифт не застосувався")
             return false

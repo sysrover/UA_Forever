@@ -187,9 +187,9 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     -- pass. OnShow and the post-login refresh must be able to repair the font
     -- even though there is no longer an English string to translate.
     if contains_cyrillic(text) then
-        if text_only then return true end
-        if not options.can_translate("override_system_fonts") then return false end
-        return runtime.ensure_font(region)
+        if text_only then return true, true end
+        if not options.can_translate("override_system_fonts") then return false, true end
+        return runtime.ensure_font(region), true
     end
 
     local explicit_category = category
@@ -246,10 +246,13 @@ local function translate_font_string(region, category, slot, surface, phase, ins
             end
         end,
     })
-    return set_ok
+    return set_ok, set_ok == true
 end
 
-strings.translate_region = translate_font_string
+strings.translate_region = function (...)
+    local translated = translate_font_string(...)
+    return translated
+end
 
 strings.set_region_text = function (region, text, tooltip, source, category, slot)
     if not region or type(text) ~= "string" or is_secret(text) then
@@ -424,12 +427,13 @@ local function scan_frame(frame, seen, stats, allow_protected, surface, walk_met
         if type(skip) == "function" then
             skip_ok, skipped = pcall(skip, region)
         end
-        if skip_ok and not skipped
-            and translate_font_string(region, nil, nil, surface, nil, nil,
-                walk_metadata and walk_metadata.section) then
-            stats.translated = stats.translated + 1
+        local translated, font_handled
+        if skip_ok and not skipped then
+            translated, font_handled = translate_font_string(region, nil, nil, surface, nil, nil,
+                walk_metadata and walk_metadata.section)
+            if translated then stats.translated = stats.translated + 1 end
         end
-        apply_ukrainian_font(region)
+        if not font_handled then apply_ukrainian_font(region) end
     end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 
@@ -665,7 +669,7 @@ local function translation_walk_metadata(surface, fallback)
     if type(fallback) == "table" then return fallback end
 end
 
-strings.translate_frame = function (frame, surface, fallback)
+strings.translate_frame = function (frame, surface, fallback, seen)
     local stats = { frames = 0, translated = 0 }
     if not options.can_translate("translate_string") or not frame then return stats end
     local walk_metadata = translation_walk_metadata(surface, fallback)
@@ -673,7 +677,7 @@ strings.translate_frame = function (frame, surface, fallback)
     if walk_metadata.section and options.can_lookup_section
         and not options.can_lookup_section(walk_metadata.section) then return stats end
     local tooltip = allows_protected_children(frame)
-    scan_frame(frame, {}, stats, tooltip, surface, walk_metadata)
+    scan_frame(frame, seen or {}, stats, tooltip, surface, walk_metadata)
     return stats
 end
 

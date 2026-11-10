@@ -17,6 +17,15 @@ local function is_secret(value)
     return not ok or secret == true
 end
 
+local function visible(frame)
+    if not frame then return false end
+    local ok, value = pcall(function ()
+        local method = frame.IsVisible or frame.IsShown
+        return type(method) ~= "function" or method(frame)
+    end)
+    return ok and not is_secret(value) and value == true
+end
+
 local function hook_text_region(region, after_translate)
     if not region then return end
     hooks.region(region, "SetText", function (self)
@@ -449,8 +458,8 @@ local function translate_frame(frame)
     frame = frame or _G.ProfessionsFrame
     if not frame then return end
     translate_title(frame)
-    translate_page(frame.CraftingPage)
-    translate_book(frame.BookPage)
+    if visible(frame.CraftingPage) then translate_page(frame.CraftingPage) end
+    if visible(frame.BookPage) then translate_book(frame.BookPage) end
     hook_right_tab(frame.ProfessionsOverviewTab)
     for _, tab in ipairs(frame.rightProfessionTabs or {}) do
         hook_right_tab(tab)
@@ -481,6 +490,8 @@ local function hook_instances()
     hooks.region_script(frame, "OnShow", translate_frame,
         "profession-frame")
     hooks.region_script(page, "OnShow", translate_page, "profession-frame")
+    hooks.region_script(frame and frame.BookPage, "OnShow", translate_book,
+        "profession-book")
     hooks.region_script(_G.ProfessionsBookFrame, "OnShow", translate_book,
         "profession-frame")
 end
@@ -509,6 +520,6 @@ adapter.prepare = function ()
     hooks.mixin("ProfessionsMixin", "SelectBookPage", translate_frame)
     hooks.mixin("ProfessionsMixin", "RefreshRightTab", after_refresh_right_tab)
     hook_instances()
-    translate_frame()
-    translate_book(_G.ProfessionsBookFrame)
+    if visible(_G.ProfessionsFrame) then translate_frame() end
+    if visible(_G.ProfessionsBookFrame) then translate_book(_G.ProfessionsBookFrame) end
 end

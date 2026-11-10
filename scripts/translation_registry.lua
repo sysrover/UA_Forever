@@ -5,6 +5,14 @@ local scheduler = addon_table.use("translation_scheduler")
 
 local surfaces = {}
 local options = addon_table.use("options")
+local function frame_visible(frame)
+    if not frame then return false end
+    local ok, shown = pcall(function ()
+        local method = frame.IsVisible or frame.IsShown
+        return type(method) == "function" and method(frame)
+    end)
+    return ok and not runtime.is_secret_value(shown) and shown == true
+end
 if options.on_activity_change then
     options.on_activity_change("registry-pending", function ()
         for id, surface in pairs(surfaces) do
@@ -212,6 +220,11 @@ registry.register_surface = function (definition)
     local existing = surfaces[definition.id]
     if existing then return existing end
     definition.generation = 0
+    -- Establish the static UI session before native OnShow/domain hooks can
+    -- create claims. The first passive refresh must not release those writes.
+    if definition.preserve_claims_on_refresh then
+        definition.generation = runtime.begin_generation(definition, 1)
+    end
     surfaces[definition.id] = definition
     return definition
 end
@@ -378,24 +391,18 @@ registry.register_defaults = function (translate_frame)
             dynamic_hooks = meta.hooks or { "PanelTemplates_SetTab" },
             slots = meta.slots or { "ui.text" },
             clear_on_reuse = true,
+            preserve_claims_on_refresh = true,
             static = function (surface)
+                local seen = {}
                 for _, name in ipairs(roots) do
                     local frame = _G[name]
-                    if frame and frame.IsShown then
-                        local ok, shown = pcall(frame.IsShown, frame)
-                        if ok and shown then
-                            translate_frame(frame, surface)
-                        end
-                    end
+                    if frame_visible(frame) then translate_frame(frame, surface, nil, seen) end
                 end
             end,
             is_open = function ()
                 for _, name in ipairs(roots) do
                     local frame = _G[name]
-                    if frame and frame.IsShown then
-                        local ok, shown = pcall(frame.IsShown, frame)
-                        if ok and shown then return true end
-                    end
+                    if frame_visible(frame) then return true end
                 end
                 return false
             end,
@@ -470,9 +477,13 @@ registry.refresh = function (id, phase)
         return
     end
     if surface.refresh_pending then return end
+    if type(surface.is_open) == "function" and not surface.is_open() then return end
     surface.refresh_pending = true
-    local generation = runtime.begin_generation(surface, surface.generation + 1,
-        runtime.restore_owned_source)
+    local generation = runtime.generation(surface)
+    if not surface.preserve_claims_on_refresh or phase == "rebuild" or generation == 0 then
+        generation = runtime.begin_generation(surface, surface.generation + 1,
+            runtime.restore_owned_source)
+    end
     surface.generation = generation
     scheduler.request({ id=id, surface=surface, instance="refresh",
         generation=generation, callback=function ()

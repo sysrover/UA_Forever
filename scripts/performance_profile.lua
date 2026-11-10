@@ -87,15 +87,14 @@ end
 
 -- Continuations preserve every return value, including trailing nils, without
 -- allocating a packed-results table for every instrumented call.
-profiler.call = function (label, callback, ...)
+local function call_profiled(label, callback, entered, ...)
     local session = current
     if not session then return callback(...) end
-    local entered = now()
+    entered = entered or now()
     if session.depth >= MAX_DEPTH then
         session.report.depthDrops = session.report.depthDrops + 1
         return callback(...)
     end
-    label = public_string(label) or "unknown"
     local report = session.report
     local row = report.calls[label]
     if not row then
@@ -120,8 +119,15 @@ profiler.call = function (label, callback, ...)
     return finish(session, frame, pcall(callback, ...))
 end
 
+profiler.call = function (label, callback, ...)
+    if not current then return callback(...) end
+    local entered = now()
+    return call_profiled(public_string(label) or "unknown", callback, entered, ...)
+end
+
 profiler.wrap = function (label, callback, event_index)
     if type(callback) ~= "function" then return callback end
+    label = public_string(label) or "unknown"
     return function (...)
         if not current then return callback(...) end
         local key = label
@@ -135,7 +141,7 @@ profiler.wrap = function (label, callback, event_index)
                 end
             end
         end
-        return profiler.call(key, callback, ...)
+        return call_profiled(key, callback, nil, ...)
     end
 end
 
@@ -232,7 +238,8 @@ local function sample_frame(_, elapsed)
         if ms > 33 then frames.over33ms = frames.over33ms + 1 end
         if ms > 50 then frames.over50ms = frames.over50ms + 1 end
         local heap, drop
-        if type(_G.collectgarbage) == "function" then
+        if started >= (session.nextHeapAt or 0) and type(_G.collectgarbage) == "function" then
+            session.nextHeapAt = started + 100
             local ok, value = pcall(_G.collectgarbage, "count")
             heap = ok and public_number(value) or nil
             if heap then
@@ -243,10 +250,12 @@ local function sample_frame(_, elapsed)
                     frames.heapDrops = (frames.heapDrops or 0) + 1
                 end
                 frames.lastHeapKB = heap
+                frames.heapSampleAtMs = math.max(0, started - session.started)
             end
         end
         if ms > 33 or interval.maxMs > 5 then
-            retain_slowest(report.slowIntervals, { frameMs = ms, heapKB = heap,
+            retain_slowest(report.slowIntervals, { frameMs = ms, heapKB = frames.lastHeapKB,
+                heapSampleAtMs = frames.heapSampleAtMs,
                 heapDropKB = drop, callbackMs = interval.totalMs,
                 calls = interval.calls, topCall = interval.label, topCallMs = interval.maxMs,
                 instrumentationMs = interval.overheadMs, context = context(),
@@ -271,7 +280,7 @@ profiler.start = function (seconds, on_saved)
     local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
-    local report = { version = 1, patch = "addon-profile-collections-visible-2026-11-10", status = "recording",
+    local report = { version = 1, patch = "addon-profile-shared-refresh-2026-11-10", status = "recording",
         requestedSeconds = seconds, build = utils.build_version, buildNumber = utils.build_number,
         calls = {}, labelCount = 0, labelDrops = 0, depthDrops = 0, clockResets = 0,
         instrumentationMs = 0, collectorMs = 0, slowCalls = {}, slowIntervals = {},
@@ -279,6 +288,7 @@ profiler.start = function (seconds, on_saved)
         frameAttribution = "callbacks between collector ticks; not an exact frame boundary",
         localFunctions = "included in nearest measured caller; not individually enumerated",
         firstCallMeaning = "first completed call in this capture; ADDON_LOADED labels identify module loads",
+        heapSamplePeriodMs = 100,
         coverage = { modules = {}, exportedFunctions = 0 },
         frames = { count = 0, totalMs = 0, maxMs = 0, over33ms = 0, over50ms = 0 },
         settings = { enabled = account.enabled, dev = account.dev_mode,

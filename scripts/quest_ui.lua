@@ -94,10 +94,17 @@ local function quest_name_region(region, id, owner)
     if options.can_lookup_section and not options.can_lookup_section("quest_names") then return false end
     local current = safe_text(region)
     local claim = region and runtime.get(region)
-    if owner == "quest-tracker" and claim and current == claim.translated then
+    local slot = safe_number(id) and "quest:" .. id .. ".name" or nil
+    if not slot then
+        if region then runtime.invalidate(region) end
+        return false
+    end
+    local retained = claim and claim.owner == owner and claim.slot == slot
+        and (current == claim.translated or current == claim.source)
+    if retained and current == claim.translated then
         current = claim.source
     end
-    if region then runtime.invalidate(region) end
+    if region and not retained then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
     local english = type(id) == "number" and english_title(id)
     local entry = english and matching_quest_entry(id, english)
@@ -116,9 +123,10 @@ local function quest_name_region(region, id, owner)
     end
     if not translated then return false end
     return runtime.apply(region, {
-        owner = owner, slot = "quest:" .. id .. ".name",
+        owner = owner, slot = slot,
         source = source, translated = translated, category = "quest",
         option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
+        reapply_cached = true,
     }), true
 end
 
@@ -330,6 +338,18 @@ local function objective_region(region, slot, after_apply, quest_id, surface)
         apply_dialog_language(region)
         return true
     end
+    if after_apply == nil and previous and previous.owner == "quest-objective" and previous.slot == slot
+        and previous.surface == surface and source == previous.source
+        and options.can_lookup("translate_quest") then
+        local applied = runtime.apply(region, {
+            owner = previous.owner, slot = slot, source = source,
+            translated = previous.translated, option = "translate_quest",
+            priority = runtime.PRIORITY.DOMAIN, surface = surface,
+            after_apply = after_apply, reapply_cached = true,
+        })
+        if applied then apply_dialog_language(region) end
+        return applied, true
+    end
     runtime.invalidate(region)
     if not options.can_lookup("translate_quest") then return false end
     local native = native_quest_objective(quest_id)
@@ -384,28 +404,35 @@ local function quest_log_titles(scroll)
             if translated then
                 local height_ok, old_height = pcall(region.GetStringHeight, region)
                 old_height = height_ok and safe_number(old_height)
-                runtime.invalidate(region)
-                runtime.apply(region, {
-                    owner = "quest-log", slot = "quest:" .. id .. ".name",
+                local previous = runtime.get(region)
+                local slot = "quest:" .. id .. ".name"
+                if not previous or previous.owner ~= "quest-log" or previous.slot ~= slot
+                    or current ~= previous.source and current ~= previous.translated then
+                    runtime.invalidate(region)
+                end
+                local applied = runtime.apply(region, {
+                    owner = "quest-log", slot = slot,
                     source = source, translated = translated, category = "quest",
                     option = "translate_quest", priority = runtime.PRIORITY.DOMAIN,
                     surface = scroll,
-                    after_apply = function ()
-                        local ok, new_height = pcall(region.GetStringHeight, region)
-                        new_height = ok and safe_number(new_height)
-                        if old_height and new_height then
-                            local frame_ok, frame_height = pcall(region.GetHeight, region)
-                            frame_height = frame_ok and safe_number(frame_height)
-                            if frame_height and new_height > frame_height then
-                                pcall(region.SetHeight, region, new_height)
-                            end
-                            if math.abs(new_height - old_height) >= 0.5 then
-                                grow_quest_log_row(button, new_height - old_height)
-                                changed = true
-                            end
-                        end
-                    end,
+                    reapply_cached = true,
                 })
+                if applied then
+                    if options.can_translate("override_system_fonts") then runtime.ensure_font(region) end
+                    local ok, new_height = pcall(region.GetStringHeight, region)
+                    new_height = ok and safe_number(new_height)
+                    if old_height and new_height then
+                        local frame_ok, frame_height = pcall(region.GetHeight, region)
+                        frame_height = frame_ok and safe_number(frame_height)
+                        if frame_height and new_height > frame_height + 0.5 then
+                            pcall(region.SetHeight, region, new_height)
+                        end
+                        if math.abs(new_height - old_height) >= 0.5 then
+                            grow_quest_log_row(button, new_height - old_height)
+                            changed = true
+                        end
+                    end
+                end
             end
         elseif region then
             runtime.invalidate(region)

@@ -120,8 +120,6 @@ end
 local function set_font_if_needed(font, file, height, flags)
     flags = sanitize_font_flags(flags)
     local signature = desired_signature(file, height, flags)
-    if applied_signatures[font] == signature
-        and font_matches(font, file, height, flags) then return true end
     if font_matches(font, file, height, flags) then
         applied_signatures[font] = signature
         return true
@@ -133,6 +131,32 @@ local function set_font_if_needed(font, file, height, flags)
     if not ok or applied == false then return false end
     applied_signatures[font] = signature
     return true
+end
+
+local function applied_font_is_current(font)
+    if type(_G.issecretvalue) == "function" and _G.issecretvalue(font) then return false end
+    local expected = applied_signatures[font]
+    -- Combat fonts, HTML and compositor objects have separate ownership and
+    -- release rules. Only the ordinary FontString path uses this read-only hit.
+    if type(expected) ~= "string" or expected:match("^compositor\031")
+        or expected:match("^html\031") or original_combat_fonts[font]
+        or combat_font_sources[font] then return false end
+    local getter = font.GetFont
+    if type(getter) ~= "function" then return false end
+    if type(_G.issecretvalue) == "function" and _G.issecretvalue(getter) then return false end
+    local file, height, flags = getter(font)
+    if type(_G.issecretvalue) == "function"
+        and (_G.issecretvalue(file) or _G.issecretvalue(height)
+            or _G.issecretvalue(flags)) then return false end
+    if type(file) ~= "string" or type(height) ~= "number" or height <= 0
+        or flags ~= nil and type(flags) ~= "string" then return false end
+    return desired_signature(file, height, sanitize_font_flags(flags)) == expected
+end
+
+fonts.is_applied_to_font_string = function (font)
+    if not font or not options.can_translate("override_system_fonts") then return false end
+    local ok, matches = pcall(applied_font_is_current, font)
+    return ok and matches == true
 end
 
 local function apply_combat_font(font, file, height, flags)

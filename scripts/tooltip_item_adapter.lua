@@ -54,6 +54,10 @@ local cache_head = 1
 local cache_tail = 0
 local cache_count = 0
 local CACHE_LIMIT = 256
+local set_member_aliases = {}
+for _, aliases in pairs(catalog.item_set_member_aliases or {}) do
+    for name in pairs(aliases) do set_member_aliases[name] = true end
+end
 local ITEM_RUNTIME_FLAGS = {
     record_runtime = false,
     verify_after_apply = false,
@@ -175,7 +179,15 @@ local function make_item_state(item_id, key)
             end
         end
     end
-    local item_set, item_set_id = client_db.get_item_set_for_item(item_id)
+    local item_set_id = tonumber(metadata.ItemSet)
+    local item_set
+    if item_set_id and item_set_id > 0 then
+        if type(client_db.get_item_set) == "function" then
+            item_set = client_db.get_item_set(item_set_id)
+        else
+            item_set, item_set_id = client_db.get_item_set_for_item(item_id)
+        end
+    end
     return cache_item(key, {
         item_id = item_id,
         english_name = client_db.get_english_name(item_id),
@@ -367,8 +379,24 @@ local function translate_classification(state, source)
 end
 
 local function translate_set_line(state, source, region)
+    if type(source) ~= "string" then return nil end
+    -- Ordinary items do not need the reverse index of every ItemSet. Resolve
+    -- sparse membership only when a header, bonus or actual item-name row can
+    -- belong to a set; metadata-backed sets use their direct ID from the start.
+    if not state.item_set and not state.item_set_checked then
+        local member = source:match("^%s*(.-)%s*$")
+        local candidate = source:match("^.- %(%d+/%d+%)$")
+            or source:match("^%(%d+%) Set: ")
+            or set_member_aliases[member]
+            or type(client_db.get_id_by_english_name) ~= "function"
+            or client_db.get_id_by_english_name(member)
+        if candidate then
+            state.item_set, state.item_set_id = client_db.get_item_set_for_item(state.item_id)
+            state.item_set_checked = true
+        end
+    end
     local set = state.item_set
-    if type(set) ~= "table" or type(source) ~= "string" then return nil end
+    if type(set) ~= "table" then return nil end
     local name, equipped, total = source:match("^(.-) %((%d+)/(%d+)%)$")
     if name == set.name then
         local translated = catalog.item_set_names[name]

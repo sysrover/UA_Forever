@@ -120,6 +120,7 @@ adapter.bind = function (id)
         api.surface = registry.register_surface({ id = id, roots = roots,
             domains = { "ui", "npc", "item" }, name_category = "none",
             slots = { "ui.label", "ui.tooltip", "npc.name", "item.name" },
+            preserve_claims_on_refresh = true,
             static = refresh, is_open = function ()
                 for _, name in ipairs(roots) do
                     local frame = _G[name]

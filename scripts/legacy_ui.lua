@@ -336,6 +336,7 @@ end
 
 legacy.prepare = function ()
     api.surface = registry.register_surface({ id = "legacy-ui", roots = { "LegacySystemFrame" },
+        preserve_claims_on_refresh = true,
         domains = { "ui", "achievement", "item", "spell" }, name_category = "none",
         static = refresh, is_open = function ()
             return _G.LegacySystemFrame and LegacySystemFrame:IsShown() or false

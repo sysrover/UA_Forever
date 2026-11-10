@@ -7,6 +7,12 @@ local installed = {}
 local installed_regions = {}
 local bound = {}
 
+local function public_object(object)
+    if type(_G.issecretvalue) ~= "function" then return true end
+    local ok, secret = pcall(_G.issecretvalue, object)
+    return ok and secret ~= true
+end
+
 local function guarded(scope, callback, cleanup, label)
     if profiler.wrap then callback = profiler.wrap("hook:" .. scope .. ":" .. label, callback) end
     if cleanup then return callback end
@@ -46,18 +52,19 @@ translation_hooks.bind = function (scope)
     hooks.region = function (region, method, callback, work_scope)
         local region_type = type(region)
         if (region_type ~= "table" and region_type ~= "userdata")
-            or type(callback) ~= "function" or type(_G.hooksecurefunc) ~= "function" then
+            or type(callback) ~= "function" or type(_G.hooksecurefunc) ~= "function"
+            or not public_object(region) then
             return false
         end
+        local regions = installed_regions[scope]
+        local methods = regions and regions[region]
+        if methods and methods[method] then return true end
         local ok, method_value = pcall(function () return region[method] end)
         if not ok or type(method_value) ~= "function" then return false end
-        local regions = installed_regions[scope]
         if not regions then
             regions = setmetatable({}, { __mode = "k" })
             installed_regions[scope] = regions
         end
-        local methods = regions[region]
-        if methods and methods[method] then return true end
         if not pcall(_G.hooksecurefunc, region, method,
             guarded(work_scope or scope, callback, false, method)) then return false end
         if not methods then
@@ -71,17 +78,17 @@ translation_hooks.bind = function (scope)
     hooks.region_script = function (frame, script, callback, key, work_scope)
         local frame_type = type(frame)
         if (frame_type ~= "table" and frame_type ~= "userdata")
-            or type(callback) ~= "function" then return false end
+            or type(callback) ~= "function" or not public_object(frame) then return false end
+        local regions = installed_regions[scope]
+        local methods = regions and regions[frame]
+        local hook_key = "script:" .. script .. ":" .. (key or "default")
+        if methods and methods[hook_key] then return true end
         local ok, hook_script = pcall(function () return frame.HookScript end)
         if not ok or type(hook_script) ~= "function" then return false end
-        local regions = installed_regions[scope]
         if not regions then
             regions = setmetatable({}, { __mode = "k" })
             installed_regions[scope] = regions
         end
-        local methods = regions[frame]
-        local hook_key = "script:" .. script .. ":" .. (key or "default")
-        if methods and methods[hook_key] then return true end
         if not pcall(hook_script, frame, script,
             guarded(work_scope or scope, callback, script == "OnHide", hook_key)) then return false end
         if not methods then

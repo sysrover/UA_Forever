@@ -19,7 +19,16 @@ local hook_owner = hooks.region
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
     local ok, result = pcall(_G.issecretvalue, value)
-    return ok and result or false
+    return not ok or result == true
+end
+
+local function visible(frame)
+    if not frame then return false end
+    local ok, value = pcall(function ()
+        local method = frame.IsVisible or frame.IsShown
+        return type(method) ~= "function" or method(frame)
+    end)
+    return ok and not is_secret(value) and value == true
 end
 
 local function shown(frame)
@@ -31,8 +40,7 @@ local function shown(frame)
             if ok and result then return false end
         end
     end
-    local ok, value = pcall(frame.IsShown, frame)
-    return ok and value or false
+    return visible(frame)
 end
 
 local function skill_roots()
@@ -133,6 +141,7 @@ end
 
 skills.refresh = function (only_frame)
     local total = { frames = 0, translated = 0 }
+    local seen = {}
     local roots = only_frame and { only_frame } or skill_roots()
     for _, frame in ipairs(roots) do
         if shown(frame) then
@@ -140,7 +149,7 @@ skills.refresh = function (only_frame)
                 and registry.get("skills") or nil, {
                     id = "skills-refresh", surface = "skills",
                     owner = "skills", reason = "REGISTERED_STATIC_SCAN",
-                })
+                }, seen)
             total.frames = total.frames + (stats.frames or 0)
             total.translated = total.translated + (stats.translated or 0)
             if options.account and (options.account.auto_scan_content
@@ -188,7 +197,9 @@ local function translate_element(frame, seen, depth, category, max_depth)
         local ok, children = pcall(function () return { frame:GetChildren() } end)
         if ok then
             for _, child in ipairs(children) do
-                translate_element(child, seen, depth + 1, category, max_depth)
+                if visible(child) then
+                    translate_element(child, seen, depth + 1, category, max_depth)
+                end
             end
         end
     end
@@ -245,7 +256,7 @@ end
 local function translate_spellbook(frame)
     local root = _G.PlayerSpellsFrame
     local book = root and root.SpellBookFrame or frame
-    if not book then return end
+    if not visible(book) then return end
 
     -- PlayerSpellsFrame is protected in Camelot. Translate only its completed
     -- public SpellBook surface: title, search, headers, items and page text.
