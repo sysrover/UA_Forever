@@ -544,6 +544,8 @@ end
 
 layout.restore_tooltip_rows = function (tooltip)
     tooltip.uaForeverItemLayout = nil
+    tooltip.uaForeverItemLayoutPass = nil
+    tooltip.uaForeverItemBuildEpoch = nil
     pending_tooltip_layout[tooltip] = nil
     local originals = tooltip_row_anchors[tooltip]
     tooltip_row_anchors[tooltip] = nil
@@ -642,33 +644,44 @@ local function item_layout_current(tooltip, generation, instance, owner)
     return ok and not is_secret(current_owner) and current_owner == owner
 end
 
-local function set_layout_value(object, getter, setter, expected)
+local function set_layout_value(object, getter, setter, expected, writable)
     local callback = object[getter]
     if type(callback) == "function" then
         local ok, current = pcall(callback, object)
-        if not ok or is_secret(current) then return false end
-        if current == expected then return true end
+        if not ok or is_secret(current) then return false, writable end
+        if current == expected then return true, writable end
     end
-    if not runtime.can_write_text(object) then return false end
-    return type(object[setter]) ~= "function" or pcall(object[setter], object, expected)
+    if writable == nil then writable = runtime.can_write_text(object) end
+    if not writable then return false, writable end
+    local ok = type(object[setter]) ~= "function" or pcall(object[setter], object, expected)
+    return ok, writable
 end
 
 local function apply_item_layout(tooltip, plan)
-    if not set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width) then return false end
+    local ok, tooltip_writable = set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width)
+    if not ok then return false end
     for _, row in ipairs(plan.rows) do
         for _, side in ipairs({ "Left", "Right" }) do
             local region = row[side]
             if region then
+                -- As in the full layout pass, check this region once for this
+                -- synchronous batch, rather than walking its parents per setter.
+                local writable
                 local width = row[side .. "TargetWidth"]
                 if width then
-                    if not set_layout_value(region, "GetWidth", "SetWidth", width)
-                        or not set_layout_value(region, "GetMaxLines", "SetMaxLines", 0)
-                        or not set_layout_value(region, "CanWordWrap", "SetWordWrap", true)
-                        or not set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", true) then return false end
+                    ok, writable = set_layout_value(region, "GetWidth", "SetWidth", width, writable)
+                    if not ok then return false end
+                    ok, writable = set_layout_value(region, "GetMaxLines", "SetMaxLines", 0, writable)
+                    if not ok then return false end
+                    ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", true, writable)
+                    if not ok then return false end
+                    ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", true, writable)
+                    if not ok then return false end
                     local height = safe_dimension(region, "GetHeight")
                     if not height then return false end
                     if height ~= row[side .. "FittedHeight"] then
-                        if not runtime.can_write_text(region)
+                        if writable == nil then writable = runtime.can_write_text(region) end
+                        if not writable
                             or not pcall(region.SetHeight, region, 0) then return false end
                     end
                 end
@@ -685,7 +698,8 @@ local function apply_item_layout(tooltip, plan)
                         and relative_point == expected_point and x == expected_x and y == -row.Offset
                 end
                 if not matches then
-                    if not runtime.can_write_text(region)
+                    if writable == nil then writable = runtime.can_write_text(region) end
+                    if not writable
                         or not pcall(region.ClearAllPoints, region)
                         or not pcall(region.SetPoint, region, expected_point, tooltip,
                             expected_point, expected_x, -row.Offset) then return false end
@@ -693,7 +707,7 @@ local function apply_item_layout(tooltip, plan)
             end
         end
     end
-    return set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height)
+    return set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height, tooltip_writable)
 end
 
 layout.fit_item_tooltip = function (tooltip)
@@ -730,6 +744,49 @@ layout.fit_item_tooltip = function (tooltip)
     end
     tooltip.uaForeverItemLayoutApplying = nil
     return ok and fitted
+end
+
+layout.begin_item_build = function (tooltip)
+    tooltip.uaForeverItemBuildEpoch = (tooltip.uaForeverItemBuildEpoch or 0) + 1
+    tooltip.uaForeverItemLayoutPass = nil
+end
+
+layout.invalidate_item_pass = function (tooltip)
+    if tooltip then tooltip.uaForeverItemLayoutPass = nil end
+end
+
+-- Native setters, comparison anchoring and outer entry points can all report
+-- the same completed build. Only the first needs content/font/row processing.
+layout.fit_item_tooltip_once = function (tooltip, before_fit)
+    if not tooltip or tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
+        or not is_shown(tooltip) then return false end
+    local count = safe_dimension(tooltip, "NumLines")
+    local width = safe_dimension(tooltip, "GetWidth")
+    local height = safe_dimension(tooltip, "GetHeight")
+    local scale = safe_dimension(tooltip, "GetEffectiveScale")
+    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not owner_ok or is_secret(owner) then return false end
+    local epoch = tooltip.uaForeverItemBuildEpoch or 0
+    local previous = tooltip.uaForeverItemLayoutPass
+    if previous and count and width and height and scale and previous.epoch == epoch
+        and previous.generation == tooltip.uaForeverGeneration
+        and previous.instance == tooltip.uaForeverSessionKey and previous.owner == owner
+        and previous.count == count and previous.width == width
+        and previous.height == height and previous.scale == scale then return true end
+    if before_fit then before_fit(tooltip) end
+    local fitted = layout.fit_item_tooltip(tooltip)
+    if fitted and count and width and height and scale then
+        width = safe_dimension(tooltip, "GetWidth")
+        height = safe_dimension(tooltip, "GetHeight")
+        if width and height then
+            tooltip.uaForeverItemLayoutPass = {
+                epoch = epoch, generation = tooltip.uaForeverGeneration,
+                instance = tooltip.uaForeverSessionKey, owner = owner, count = count,
+                width = width, height = height, scale = scale,
+            }
+        end
+    end
+    return fitted
 end
 
 layout.fit_quest_pin_tooltip = function (tooltip)

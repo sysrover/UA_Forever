@@ -2130,7 +2130,18 @@ local function prepare_tooltip_frames()
                 end
             end
             if tooltip == _G.GameTooltip then
+                local bag_layout_hooked = hooks.region(tooltip, "SetBagItem", function (self)
+                    layout.fit_item_tooltip_once(self)
+                end)
                 hooks.region(tooltip, "Show", function (self)
+                    if bag_layout_hooked and self.uaForeverKind == "item" then
+                        local ok, getter = pcall(function ()
+                            return self.processingInfo and self.processingInfo.getterName
+                        end)
+                        -- Fojji may call Show while its Item post-call is still
+                        -- appending rows. SetBagItem is the completed boundary.
+                        if ok and safe_string(getter) == "GetBagItem" then return end
+                    end
                     layout.fit_translated_tooltip(self)
                 end)
                 hooks.region(tooltip, "SetLootItem", refresh_loot_item_tooltip)
@@ -2249,6 +2260,7 @@ local function prepare_tooltip_frames()
                 end
             end)
             hooks.region_script(tooltip, "OnTooltipCleared", function (self)
+                    layout.begin_item_build(self)
                     if is_shopping_tooltip(self) then
                         self.uaForeverComparisonWriteReady = false
                     end
@@ -2464,7 +2476,7 @@ local function prepare_bag_tooltip_hooks()
     local portrait_hooked = hooks.global("ContainerFramePortraitButton_OnEnter",
         translate_appended_bag_tooltip_lines)
     hooks.global("ContainerFrameItemButton_OnEnter", function ()
-        layout.fit_item_tooltip(_G.GameTooltip)
+        layout.fit_item_tooltip_once(_G.GameTooltip)
     end)
     return line_hooked or portrait_hooked
 end

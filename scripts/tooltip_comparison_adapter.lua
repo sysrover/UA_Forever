@@ -165,6 +165,7 @@ comparison_adapter.install = function (api)
         local applied = runtime.apply(region, spec)
         if applied then
             remember_comparison_claim(tooltip, region)
+            layout.invalidate_item_pass(tooltip)
         end
         return applied
     end
@@ -409,6 +410,7 @@ comparison_adapter.install = function (api)
             comparison_guard_swept_tooltips[tooltip] = true
         end
         hooks.region(tooltip, "ClearLines", function (self)
+            layout.begin_item_build(self)
             self.uaForeverComparisonWriteReady = false
             self.uaForeverComparisonBaseLines = nil
         end)
@@ -646,9 +648,8 @@ comparison_adapter.install = function (api)
             local ok, visible = pcall(tooltip.IsShown, tooltip)
             shown[index] = ok and not is_secret(visible) and visible == true
             if shown[index] then
-                translate_native_tail(tooltip)
                 local before = layout.safe_dimension(tooltip, "GetWidth")
-                layout.fit_item_tooltip(tooltip)
+                layout.fit_item_tooltip_once(tooltip, translate_native_tail)
                 local after = layout.safe_dimension(tooltip, "GetWidth")
                 width_changed = width_changed or before ~= after
             end
@@ -672,8 +673,7 @@ comparison_adapter.install = function (api)
             local comparisons = self.tooltip and self.tooltip.shoppingTooltips
             local tooltip = comparisons and comparisons[is_primary and 1 or 2]
             if tooltip then
-                translate_native_tail(tooltip)
-                layout.fit_item_tooltip(tooltip)
+                layout.fit_item_tooltip_once(tooltip, translate_native_tail)
             end
         end)
         hooks.region(manager, "AnchorShoppingTooltips", finish_comparison_layout)
