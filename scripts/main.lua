@@ -526,6 +526,16 @@ local function translate_wardrobe_page(region)
         registry.get("collections"))
 end
 
+local function prepare_wardrobe_hooks()
+    local wardrobe = _G.WardrobeCollectionFrame
+    local page_text = wardrobe and wardrobe.ItemsCollectionFrame
+        and wardrobe.ItemsCollectionFrame.PagingFrame
+        and wardrobe.ItemsCollectionFrame.PagingFrame.PageText
+    hooks.region(page_text, "SetText", translate_wardrobe_page)
+    hooks.region(page_text, "SetFormattedText", translate_wardrobe_page)
+    translate_wardrobe_page(page_text)
+end
+
 local function prepare_panel_hooks()
     if type(_G.hooksecurefunc) ~= "function" then return end
     hooks.global("ShowUIPanel", opened_panel)
@@ -563,13 +573,7 @@ local function prepare_panel_hooks()
     hooks.region_script(_G.MacroPopupFrame, "OnShow", translate_macro_popup)
     translate_macro_popup(_G.MacroPopupFrame)
 
-    local wardrobe = _G.WardrobeCollectionFrame
-    local page_text = wardrobe and wardrobe.ItemsCollectionFrame
-        and wardrobe.ItemsCollectionFrame.PagingFrame
-        and wardrobe.ItemsCollectionFrame.PagingFrame.PageText
-    hooks.region(page_text, "SetText", translate_wardrobe_page)
-    hooks.region(page_text, "SetFormattedText", translate_wardrobe_page)
-    translate_wardrobe_page(page_text)
+    prepare_wardrobe_hooks()
 
     hooks.region_script(_G.CommunitiesAddDialog, "OnShow",
         schedule_communities_add_dialog)
@@ -1152,6 +1156,11 @@ local panel_loads = {
         modules = { "legacy_ui", "achievements" },
         surfaces = { "legacy-ui" },
     },
+    Blizzard_Collections = {
+        modules = { "collections_ui" },
+        surfaces = { "collections-ui" },
+        prepare = prepare_wardrobe_hooks,
+    },
 }
 
 local function prepare_loaded_panel(loaded_addon)
@@ -1163,6 +1172,7 @@ local function prepare_loaded_panel(loaded_addon)
     tooltips.prepare()
     menus_ui.prepare()
     for _, name in ipairs(route.modules) do addon_table.use(name).prepare() end
+    if route.prepare then route.prepare() end
     registry.prepare_root_hooks()
     registry.install_hooks(loaded_addon)
     schedule_panel_refresh(route.surfaces)

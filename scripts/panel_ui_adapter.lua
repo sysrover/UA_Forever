@@ -116,7 +116,7 @@ adapter.bind = function (id)
             end
         end
     end
-    api.prepare = function (roots, addon, globals, methods, refresh)
+    api.prepare = function (roots, addon, globals, methods, refresh, global_callbacks)
         api.surface = registry.register_surface({ id = id, roots = roots,
             domains = { "ui", "npc", "item" }, name_category = "none",
             slots = { "ui.label", "ui.tooltip", "npc.name", "item.name" },
@@ -124,7 +124,10 @@ adapter.bind = function (id)
                 for _, name in ipairs(roots) do
                     local frame = _G[name]
                     if frame then
-                        local ok, shown = pcall(frame.IsShown, frame)
+                        local ok, shown = pcall(function ()
+                            local method = frame.IsVisible or frame.IsShown
+                            return type(method) == "function" and method(frame)
+                        end)
                         if ok and not runtime.is_secret_value(shown) and shown == true then return true end
                     end
                 end
@@ -132,7 +135,8 @@ adapter.bind = function (id)
             end })
         for _, target in ipairs(globals) do
             registry.declare_hook({ id = id .. ":" .. target, surface = id,
-                kind = "global", target = target, callback = refresh,
+                kind = "global", target = target,
+                callback = global_callbacks and global_callbacks[target] or refresh,
                 blizzardAddon = addon, verifiedBuild = api.verified_build or "1.60.1.70205" })
         end
         for _, method in ipairs(methods) do

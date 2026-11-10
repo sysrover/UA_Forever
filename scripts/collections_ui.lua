@@ -22,6 +22,15 @@ local function number(value)
     if not runtime.is_secret_value(value) and type(value) == "number" then return value end
 end
 
+local function visible(frame)
+    if not frame then return false end
+    local ok, shown = pcall(function ()
+        local method = frame.IsVisible or frame.IsShown
+        return type(method) == "function" and method(frame)
+    end)
+    return ok and not runtime.is_secret_value(shown) and shown == true
+end
+
 local function native_text(region)
     local text = ui.text(region)
     local claim = region and runtime.get(region)
@@ -143,67 +152,108 @@ local function labels(frame)
     ui.button(frame.FilterDropdown)
 end
 
-local function refresh()
-    if ui.surface then
-        ui.surface.skip_region = function (region)
-            if not region or type(region.GetParent) ~= "function" then return true end
-            local ok, parent = pcall(region.GetParent, region)
-            if not ok then return true end
-            -- Species/mount/item names have domain handlers; custom pet and
-            -- wardrobe names must never pass through a generic UI lookup.
-            if parent and (parent.name == region or parent.subName == region) then return true end
-            if parent and type(parent.GetObjectType) == "function" then
-                local kind_ok, kind = pcall(parent.GetObjectType, parent)
-                return not kind_ok or runtime.is_secret_value(kind) or kind == "EditBox"
-            end
-            return false
-        end
+local function skip_region(region)
+    if not region or type(region.GetParent) ~= "function" then return true end
+    local ok, parent = pcall(region.GetParent, region)
+    if not ok then return true end
+    -- Species/mount/item names have domain handlers; custom pet and
+    -- wardrobe names must never pass through a generic UI lookup.
+    if parent and (parent.name == region or parent.subName == region) then return true end
+    if parent and type(parent.GetObjectType) == "function" then
+        local kind_ok, kind = pcall(parent.GetObjectType, parent)
+        return not kind_ok or runtime.is_secret_value(kind) or kind == "EditBox"
     end
+    return false
+end
+
+local function refresh_pet_list()
+    local frame = _G.PetJournal
+    if not visible(frame) then return end
+    count_label(frame.PetCount)
+    each_row(frame.ScrollBox, pet_row)
+end
+
+local function refresh_pet_summon()
+    local frame = _G.PetJournal
+    if visible(frame) then ui.button(frame.SummonButton) end
+end
+
+local function refresh_mount_display()
+    local frame = _G.MountJournal
+    if not visible(frame) then return end
+    mount_card()
+    ui.button(frame.MountButton)
+    local display = frame.MountDisplay
+    local info = display and display.InfoButton
+    ui.label(info and info.Source)
+    ui.label(info and info.Lore)
+    ui.label(display and display.NoMounts)
+end
+
+local function refresh_toy_rows()
+    local frame = _G.ToyBox
+    if not visible(frame) then return end
+    local toys = frame.iconsFrame
+    if not toys then return end
+    for index = 1, 100 do
+        local row = toys["spellButton" .. index]
+        if not row then break end
+        item_row(row)
+    end
+end
+
+local function refresh()
+    -- api.prepare publishes the surface before invoking this first refresh.
+    if ui.surface then ui.surface.skip_region = skip_region end
     local journal = _G.CollectionsJournal
-    if journal then
+    if visible(journal) then
         ui.regions(journal)
         for _, tab in ipairs(journal.TabContainer and journal.TabContainer.Tabs or {}) do
             ui.button(tab)
         end
         if type(journal.GetTitleText) == "function" then ui.watch(journal:GetTitleText()) end
-        ui.hooks.region(journal, "SetTitle", function ()
-            if type(journal.GetTitleText) == "function" then ui.label(journal:GetTitleText()) end
-        end)
     end
-    labels(_G.PetJournal)
-    labels(_G.MountJournal)
-    each_row(_G.PetJournal and PetJournal.ScrollBox, pet_row)
-    each_row(_G.MountJournal and MountJournal.ScrollBox, mount_row)
-    local toys = _G.ToyBox and ToyBox.iconsFrame
-    if toys then
-        for index = 1, 100 do
-            local row = toys["spellButton" .. index]
-            if not row then break end
-            item_row(row)
-        end
-    end
-    for _, row in ipairs(_G.HeirloomsJournal and HeirloomsJournal.heirloomEntryFrames or {}) do
-        item_row(row)
-    end
-    pet_card()
-    mount_card()
+    -- IsVisible includes hidden parents. IsShown alone treats the default
+    -- child of a still-hidden CollectionsJournal as work for the cold load.
     for _, frame in ipairs({ _G.PetJournal or false, _G.MountJournal or false,
         _G.ToyBox or false, _G.HeirloomsJournal or false,
         _G.WardrobeCollectionFrame or false }) do
-        if frame then
+        if visible(frame) then
             labels(frame)
             strings.translate_frame(frame, ui.surface)
-            each_row(frame.ScrollBox, item_row)
+            if frame == _G.PetJournal then
+                each_row(frame.ScrollBox, pet_row)
+                pet_card()
+            elseif frame == _G.MountJournal then
+                each_row(frame.ScrollBox, mount_row)
+                mount_card()
+            elseif frame == _G.ToyBox then
+                refresh_toy_rows()
+            elseif frame == _G.HeirloomsJournal then
+                for _, row in ipairs(frame.heirloomEntryFrames or {}) do item_row(row) end
+                each_row(frame.ScrollBox, item_row)
+            else
+                each_row(frame.ScrollBox, item_row)
+            end
         end
     end
-    ui.hooks.region(_G.HeirloomsJournal, "UpdateButton", function (_, row) item_row(row) end)
 end
 
 collections.prepare = function ()
     ui.prepare({ "CollectionsJournal", "PetJournal", "MountJournal", "ToyBox", "HeirloomsJournal" },
         "Blizzard_Collections", { "CollectionsJournal_UpdateSelectedTab",
             "PetJournal_UpdateSummonButtonState", "PetJournal_UpdatePetList",
-            "MountJournal_UpdateMountDisplay", "ToyBox_UpdateButtons" }, {}, refresh)
+            "MountJournal_UpdateMountDisplay", "ToyBox_UpdateButtons" }, {}, refresh, {
+            PetJournal_UpdateSummonButtonState = refresh_pet_summon,
+            PetJournal_UpdatePetList = refresh_pet_list,
+            MountJournal_UpdateMountDisplay = refresh_mount_display,
+            ToyBox_UpdateButtons = refresh_toy_rows,
+        })
+    local journal = _G.CollectionsJournal
+    ui.hooks.region(journal, "SetTitle", function ()
+        if journal and type(journal.GetTitleText) == "function" then ui.label(journal:GetTitleText()) end
+    end)
+    ui.hooks.region(_G.HeirloomsJournal, "UpdateButton", function (_, row) item_row(row) end)
     ui.hooks.global("PetJournal_InitPetButton", pet_row)
     ui.hooks.global("PetJournal_UpdatePetCard", pet_card)
     ui.hooks.global("MountJournal_InitMountButton", mount_row)
