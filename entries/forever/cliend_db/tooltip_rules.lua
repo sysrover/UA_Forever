@@ -1670,6 +1670,13 @@ local function translate_limit_category_capture(value, kind)
     return translate_format_capture(value, kind, true)
 end
 
+local function item_format_matches(renderer, format, source)
+    if renderer.matches_format(format[2], source) then return true end
+    if format[1] ~= "EQUIPMENT_SETS" then return false end
+    local plain = format[2]:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    return renderer.matches_format(plain, source)
+end
+
 local function translate_client_item_format(source)
     local cached = item_format_cache[source]
     if cached ~= nil then return cached ~= false and cached or nil end
@@ -1679,8 +1686,10 @@ local function translate_client_item_format(source)
     for _, format in ipairs(item_client_formats) do
         -- All-placeholder formats have no semantic identity. Item names,
         -- set names and stat arguments have dedicated domain handlers.
+        -- Reject unrelated formats before traversing UI context dictionaries.
         if format[1] ~= "ITEM_SUFFIX_TEMPLATE" and format[1] ~= "ITEM_SET_NAME"
-            and format[1] ~= "ITEM_QUANTITY_TEMPLATE" and format[1] ~= "ITEM_CLASSES_ALLOWED" then
+            and format[1] ~= "ITEM_QUANTITY_TEMPLATE" and format[1] ~= "ITEM_CLASSES_ALLOWED"
+            and item_format_matches(renderer, format, source) then
             local ukrainian = strings.find_ui_translation(format[2])
             if ukrainian then
                 local preserve = format[1] == "ITEM_CREATED_BY"

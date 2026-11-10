@@ -879,9 +879,7 @@ local function plural_variants(text)
     end
 end
 
-renderer.render_format = function (english, ukrainian, native, translate_capture)
-    if is_secret_value(native) or type(native) ~= "string"
-        or type(english) ~= "string" or type(ukrainian) ~= "string" then return nil end
+local function format_plans(english)
     local plans = format_cache[english]
     if not plans then
         plans = {}
@@ -906,6 +904,25 @@ renderer.render_format = function (english, ukrainian, native, translate_capture
         end
         format_cache[english] = plans
     end
+    return plans
+end
+
+-- Reject unrelated native rows before resolving a Ukrainian format. Both paths
+-- share the same printf/plural matcher, including numbered arguments and colors.
+renderer.matches_format = function (english, native)
+    if is_secret_value(native) or type(native) ~= "string"
+        or type(english) ~= "string" then return false end
+    for _, plan in ipairs(format_plans(english)) do
+        if (plan.guard == "" or native:find(plan.guard, 1, true))
+            and native:match(plan.pattern) ~= nil then return true end
+    end
+    return false
+end
+
+renderer.render_format = function (english, ukrainian, native, translate_capture)
+    if is_secret_value(native) or type(native) ~= "string"
+        or type(english) ~= "string" or type(ukrainian) ~= "string" then return nil end
+    local plans = format_plans(english)
     for _, plan in ipairs(plans) do
         if plan.guard == "" or native:find(plan.guard, 1, true) then
         local captured = { native:match(plan.pattern) }
