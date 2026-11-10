@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("settings") or _G.CreateFrame
 
 local options = addon_table.use("options")
 local auto_scan = addon_table.use("auto_scan")

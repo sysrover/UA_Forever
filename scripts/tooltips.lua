@@ -1,4 +1,17 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("tooltips") or _G.CreateFrame
+local profile_callback = profiler.wrap or function (_, callback) return callback end
+
+local function add_tooltip_post_call(kind, callback)
+    return TooltipDataProcessor.AddTooltipPostCall(kind,
+        profile_callback("tooltip.post:" .. tostring(kind), callback))
+end
+
+local function add_line_post_call(kind, callback)
+    return TooltipDataProcessor.AddLinePostCall(kind,
+        profile_callback("tooltip.line:" .. tostring(kind), callback))
+end
 
 local dev_log = addon_table.use("dev_log")
 local auto_scan = addon_table.use("auto_scan")
@@ -2588,13 +2601,13 @@ tooltips.prepare = function ()
     tooltips.prepared = true
     if _G.EventRegistry and type(_G.EventRegistry.RegisterCallback) == "function" then
         _G.EventRegistry:RegisterCallback("TalentDisplay.TooltipCreated",
-            function (...)
+            profile_callback("event:TalentDisplay.TooltipCreated", function (...)
                 if tooltip_work_enabled("spell") then return talent_adapter.translate(...) end
-            end, tooltips)
+            end), tooltips)
     end
     local types = Enum.TooltipDataType
     if types.Currency then
-        TooltipDataProcessor.AddTooltipPostCall(types.Currency, function (tooltip, data)
+        add_tooltip_post_call(types.Currency, function (tooltip, data)
             if not tooltip_work_enabled("character-currency") then return end
             local id = type(data) == "table" and not is_secret(data) and safe_number(data.id)
             begin_tooltip(tooltip, "currency:" .. tostring(id or "native"), true)
@@ -2623,7 +2636,7 @@ tooltips.prepare = function ()
             false, false, nil, nil, provenance and provenance.source)
     end
     if types.Item then
-        TooltipDataProcessor.AddTooltipPostCall(types.Item, function (tooltip, data)
+        add_tooltip_post_call(types.Item, function (tooltip, data)
             if not tooltip_work_enabled("item") then return end
             runtime.metric("native_item_post_calls", tooltip,
                 tooltip and tooltip.uaForeverGeneration)
@@ -2655,7 +2668,7 @@ tooltips.prepare = function ()
     -- SetToyByItemID produces Toy (19), not Item, in build 70840. Keep its
     -- structured effect lines on the same item-rendering and layout route.
     if types.Toy then
-        TooltipDataProcessor.AddTooltipPostCall(types.Toy, function (tooltip, data)
+        add_tooltip_post_call(types.Toy, function (tooltip, data)
             if not tooltip_work_enabled("item") then return end
             sync_tooltip_original_state(tooltip)
             safe_process(tooltip, data, "item", true)
@@ -2664,7 +2677,7 @@ tooltips.prepare = function ()
     local line_types = Enum.TooltipDataLineType
     if line_types and line_types.SellPrice
         and type(TooltipDataProcessor.AddLinePostCall) == "function" then
-        TooltipDataProcessor.AddLinePostCall(line_types.SellPrice,
+        add_line_post_call(line_types.SellPrice,
             function (tooltip)
                 if not tooltip or not tooltip_work_enabled("item") then return end
                 local count_ok, count = pcall(tooltip.NumLines, tooltip)
@@ -2680,7 +2693,7 @@ tooltips.prepare = function ()
             end)
     end
     if types.Spell then
-        TooltipDataProcessor.AddTooltipPostCall(types.Spell, function (tooltip, data)
+        add_tooltip_post_call(types.Spell, function (tooltip, data)
             if not tooltip_work_enabled("spell") then return end
             if tooltip.uaForeverKind == "trainer" then
                 translate_trainer_tooltip(tooltip, data)
@@ -2695,13 +2708,13 @@ tooltips.prepare = function ()
         end)
     end
     if types.PetAction then
-        TooltipDataProcessor.AddTooltipPostCall(types.PetAction,
+        add_tooltip_post_call(types.PetAction,
             function (tooltip, data)
                 safe_process(tooltip, data, "spell", true)
             end)
     end
     if types.UnitAura then
-        TooltipDataProcessor.AddTooltipPostCall(types.UnitAura,
+        add_tooltip_post_call(types.UnitAura,
             function (tooltip, data)
             if not tooltip_work_enabled("aura") then return end
                 if tooltip.uaForeverTargetAuraMeasuring then return end
@@ -2715,7 +2728,7 @@ tooltips.prepare = function ()
         for _, line_type in ipairs({ line_types.SpellName,
             line_types.SpellPassive, line_types.SpellDescription }) do
             if line_type then
-                TooltipDataProcessor.AddLinePostCall(line_type,
+                add_line_post_call(line_type,
                     function (...)
                         if tooltip_work_enabled("spell") then
                             return talent_adapter.translate_structured_line(...)
@@ -2725,17 +2738,17 @@ tooltips.prepare = function ()
         end
     end
     if types.Unit then
-        TooltipDataProcessor.AddTooltipPostCall(types.Unit, function (tooltip, data)
+        add_tooltip_post_call(types.Unit, function (tooltip, data)
             safe_process(tooltip, data, "npc")
         end)
     end
     if types.Quest then
-        TooltipDataProcessor.AddTooltipPostCall(types.Quest, function (tooltip, data)
+        add_tooltip_post_call(types.Quest, function (tooltip, data)
             safe_process(tooltip, data, "quest")
         end)
     end
     if types.QuestPartyProgress then
-        TooltipDataProcessor.AddTooltipPostCall(types.QuestPartyProgress, function (tooltip, data)
+        add_tooltip_post_call(types.QuestPartyProgress, function (tooltip, data)
             -- A native rebuild may change counters and group members while
             -- the tooltip remains shown. Start a fresh claim generation each
             -- time, then cover any rows appended after the structured call.
@@ -2745,7 +2758,7 @@ tooltips.prepare = function ()
         end)
     end
     if types.Object then
-        TooltipDataProcessor.AddTooltipPostCall(types.Object, function (tooltip, data)
+        add_tooltip_post_call(types.Object, function (tooltip, data)
             if not tooltip_work_enabled("object") then return end
             safe_process(tooltip, data, "object")
             -- Build 70058 can clear and rebuild a world-object tooltip while
@@ -2758,7 +2771,7 @@ tooltips.prepare = function ()
         end)
     end
     if types.MinimapMouseover then
-        TooltipDataProcessor.AddTooltipPostCall(types.MinimapMouseover,
+        add_tooltip_post_call(types.MinimapMouseover,
             function (tooltip)
                 if tooltip ~= _G.GameTooltip or not tooltip_work_enabled("minimap") then return end
                 translate_minimap_tooltip(tooltip)

@@ -1,4 +1,6 @@
 local addon_name, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("main") or _G.CreateFrame
 local addon_version = "0.25.2"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
@@ -657,7 +659,29 @@ local function register_slash_command()
     _G.SLASH_UAFOREVER1 = "/uaf"
     SlashCmdList.UAFOREVER = function (input)
         local command, value = tostring(input or ""):lower():match("^(%S*)%s*(.-)$")
-        if command == "on" then
+        if command == "profile" then
+            if value == "stop" then
+                if not profiler.stop() then message(message_text.addon_profile_inactive) end
+                return
+            end
+            local seconds = value == "" and 30 or tonumber(value)
+            if not seconds or seconds ~= seconds or seconds < 5 or seconds > 120 then
+                message(message_text.addon_profile_usage)
+                return
+            end
+            local ok, reason = profiler.start(seconds, function (report)
+                tooltip_diagnostics.append_report("addonPerformance", report)
+                local history = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.addonPerformance
+                if history and history.snapshots then
+                    while #history.snapshots > 5 do table.remove(history.snapshots, 1) end
+                end
+                message(message_text.addon_profile_saved)
+            end)
+            if ok then message(string.format(message_text.addon_profile_started, seconds))
+            elseif reason == "active" then message(message_text.addon_profile_busy)
+            else message(message_text.addon_profile_unavailable) end
+            return
+        elseif command == "on" then
             options.account.enabled = true
             runtime.refresh_policy()
             options.refresh_activity()
@@ -705,6 +729,7 @@ local function register_slash_command()
             end
         elseif command == "tooltip" then
             if value == "profile" then
+                if profiler.active then message(message_text.addon_profile_busy); return end
                 scheduler.cancel("manual-tooltip-performance")
                 if not runtime.start_tooltip_profile() then
                     message(message_text.tooltip_profile_unavailable)

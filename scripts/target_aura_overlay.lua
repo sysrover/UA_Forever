@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("target_aura_overlay") or _G.CreateFrame
 
 local overlay = addon_table.use("target_aura_overlay")
 local client_db = addon_table.use("spell_client_db")

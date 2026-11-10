@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("items") or _G.CreateFrame
 
 local auto_scan = addon_table.use("auto_scan")
 local entries = addon_table.use("entries")
@@ -388,7 +390,7 @@ items.prepare = function ()
     refresh_required_items()
     hooks.once("loot-events", function ()
         if type(_G.CreateFrame) ~= "function" then return false end
-        local frame = _G.CreateFrame("Frame")
+        local frame = CreateFrame("Frame")
         local opened = pcall(frame.RegisterEvent, frame, "LOOT_OPENED")
         pcall(frame.RegisterEvent, frame, "LOOT_SLOT_CHANGED")
         if not opened then return false end

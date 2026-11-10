@@ -271,6 +271,8 @@ local function native_profiler_snapshot()
     return result
 end
 
+runtime.capture_native_profiler = native_profiler_snapshot
+
 runtime.start_tooltip_profile = function ()
     if type(_G.debugprofilestop) ~= "function" then return false end
     local account = options.account or {}

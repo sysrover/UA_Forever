@@ -1,4 +1,7 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("fojji") or _G.CreateFrame
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local integration = addon_table.use("fojji")
 local options = addon_table.use("options")
@@ -35,6 +38,7 @@ local translated_quest_prefix = text[quest_format]:match("^(.-)%%s$")
 local item_line_cache, item_line_cache_size = {}, 0
 local item_tooltip_hooks = setmetatable({}, { __mode = "k" })
 local native_effect_rows = setmetatable({}, { __mode = "k" })
+local translate
 
 local function enabled()
     local account = options.account
@@ -142,9 +146,37 @@ integration.finish_item_lines = function (tooltip)
     end
 end
 
-local function item_line_added(tooltip, source)
+local function translate_drop_source(source)
+    -- Extras.lua writes boss + dim-colored dungeon into the left column;
+    -- the right column contains the drop chance and must remain untouched.
+    local boss, color, spacing, dungeon, reset = source:match(
+        "^(.-)(|c%x%x%x%x%x%x%x%x)(%s%s+)(.-)(|r)$")
+    if not boss or boss == "" or dungeon == "" then return nil end
+    local name = entries.lookup_name("npc", boss) or translate(boss)
+    local place = translate(dungeon)
+    if place == dungeon then
+        local family, wing = dungeon:match("^(.-): (.+)$")
+        if family then place = translate(family) .. ": " .. translate(wing) end
+    end
+    local translated = name .. color .. spacing .. place .. reset
+    return translated ~= source and translated or nil
+end
+
+local function item_line_added(tooltip, source, drop_source)
     if not enabled() or not safe_string(source) then return end
-    local translated = translate_item_addition(source)
+    if not drop_source then
+        local _, body = unwrap_item_line(source)
+        if body == "Dungeon Journal" or body == text["Dungeon Journal"] then
+            tooltip.uaForeverFojjiDropSources = true
+        end
+    end
+    local translated
+    if drop_source then
+        if not tooltip.uaForeverFojjiDropSources then return end
+        translated = translate_drop_source(source)
+    else
+        translated = translate_item_addition(source)
+    end
     if not translated then return end
     local count_ok, index = pcall(tooltip.NumLines, tooltip)
     local name_ok, name = pcall(tooltip.GetName, tooltip)
@@ -169,9 +201,15 @@ local function prepare_item_tooltips()
     for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
         local tooltip = _G[name]
         if tooltip and not item_tooltip_hooks[tooltip] then
-            hooksecurefunc(tooltip, "AddLine", item_line_added)
+            hooksecurefunc(tooltip, "AddLine", function (self, source)
+                item_line_added(self, source)
+            end)
+            hooksecurefunc(tooltip, "AddDoubleLine", function (self, source)
+                item_line_added(self, source, true)
+            end)
             local function clear(self)
                 self.uaForeverFojjiRows = nil
+                self.uaForeverFojjiDropSources = nil
                 native_effect_rows[self] = nil
             end
             tooltip:HookScript("OnTooltipCleared", clear)
@@ -262,8 +300,6 @@ local function remember(source, translated)
     cache_size = cache_size + 1
     return translated
 end
-
-local translate
 
 local function translate_markup(source)
     local result, offset, changed = {}, 1, false

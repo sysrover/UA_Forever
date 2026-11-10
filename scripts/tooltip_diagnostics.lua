@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("tooltip_diagnostics") or _G.CreateFrame
 
 local diagnostics = addon_table.use("tooltip_diagnostics")
 local item_client_db = addon_table.use("item_client_db")

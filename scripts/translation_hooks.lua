@@ -1,12 +1,14 @@
 local _, addon_table = ...
 local translation_hooks = addon_table.use("translation_hooks")
 local options = addon_table.use("options")
+local profiler = addon_table.use("performance_profile")
 
 local installed = {}
 local installed_regions = {}
 local bound = {}
 
-local function guarded(scope, callback, cleanup)
+local function guarded(scope, callback, cleanup, label)
+    if profiler.wrap then callback = profiler.wrap("hook:" .. scope .. ":" .. label, callback) end
     if cleanup then return callback end
     return function (...)
         if options.work_enabled and not options.work_enabled(scope) then return end
@@ -57,7 +59,7 @@ translation_hooks.bind = function (scope)
         local methods = regions[region]
         if methods and methods[method] then return true end
         if not pcall(_G.hooksecurefunc, region, method,
-            guarded(work_scope or scope, callback)) then return false end
+            guarded(work_scope or scope, callback, false, method)) then return false end
         if not methods then
             methods = {}
             regions[region] = methods
@@ -81,7 +83,7 @@ translation_hooks.bind = function (scope)
         local hook_key = "script:" .. script .. ":" .. (key or "default")
         if methods and methods[hook_key] then return true end
         if not pcall(hook_script, frame, script,
-            guarded(work_scope or scope, callback, script == "OnHide")) then return false end
+            guarded(work_scope or scope, callback, script == "OnHide", hook_key)) then return false end
         if not methods then
             methods = {}
             regions[frame] = methods
@@ -94,7 +96,7 @@ translation_hooks.bind = function (scope)
         if type(_G[name]) ~= "function" or type(callback) ~= "function"
             or type(_G.hooksecurefunc) ~= "function" then return false end
         return mark(scope, name, function ()
-            return pcall(_G.hooksecurefunc, name, guarded(work_scope or scope, callback))
+            return pcall(_G.hooksecurefunc, name, guarded(work_scope or scope, callback, false, name))
         end)
     end
 

@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("cast_bar_adapter") or _G.CreateFrame
 
 local adapter = addon_table.use("cast_bar_adapter")
 local entries = addon_table.use("entries")
@@ -191,7 +193,7 @@ adapter.prepare = function ()
     -- simulation through SetText. Keep the HandleCastStart post-hook because
     -- spellID is assigned after that write. No addon OnUpdate is needed.
     if not driver and _G.UIParent and type(_G.CreateFrame) == "function" then
-        driver = _G.CreateFrame("Frame", nil, _G.UIParent)
+        driver = CreateFrame("Frame", nil, _G.UIParent)
         driver:SetScript("OnEvent", function (_, event)
             if event == "PLAYER_REGEN_ENABLED" then
                 for _, state in pairs(states) do refresh(state) end

@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("quest_switcher") or _G.CreateFrame
 
 local quest_switcher = addon_table.use("quest_switcher")
 local quest_ui = addon_table.use("quest_ui")

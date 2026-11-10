@@ -2,6 +2,7 @@ local _, addon_table = ...
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local options = addon_table.use("options")
+local profiler = addon_table.use("performance_profile")
 
 local pending = {}
 local scoped_pending = setmetatable({}, { __mode = "k" })
@@ -212,7 +213,14 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
         runtime.metric("timers_executed", request.surface, request.generation)
         local started = type(_G.debugprofilestop) == "function"
             and _G.debugprofilestop() or nil
-        local retry = request.callback(request.attempt) == false
+        local retry
+        if profiler.active then
+            local kind = type(request.id) == "string" and request.id:match("^([^:]+)") or request.task_kind
+            retry = profiler.call("task:" .. request.work_scope .. ":" .. tostring(kind),
+                request.callback, request.attempt) == false
+        else
+            retry = request.callback(request.attempt) == false
+        end
         if started and runtime.tooltip_profile_active and request.work_scope == "tooltips" then
             local kind = type(request.id) == "string" and request.id:match("^([^:]+)") or request.task_kind
             runtime.tooltip_profile_end("deferred." .. tostring(kind), started, request.surface)

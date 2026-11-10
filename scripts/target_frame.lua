@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local CreateFrame = profiler.frame_factory and profiler.frame_factory("target_frame") or _G.CreateFrame
 
 local target_frame = addon_table.use("target_frame")
 local aura_overlay = addon_table.use("target_aura_overlay")
