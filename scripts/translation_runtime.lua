@@ -216,9 +216,148 @@ end
 
 local safe_string = runtime.safe_string_or_nil
 
+local function read_member(object, member)
+    return object[member]
+end
+
+-- Explicit ten-second captures only. No timers, traces or SavedVariables writes
+-- occur here during normal play; the slash command owns starting/stopping it.
+local tooltip_profile
+local function native_profiler_snapshot()
+    local profiler, metrics = _G.C_AddOnProfiler, _G.Enum and _G.Enum.AddOnProfilerMetric
+    local result = { available = false }
+    if type(profiler) ~= "table" or type(metrics) ~= "table"
+        or type(profiler.IsEnabled) ~= "function"
+        or type(profiler.GetAddOnMetric) ~= "function" then return result end
+    local ok, enabled = pcall(profiler.IsEnabled)
+    if not ok or enabled ~= true then return result end
+    result.available = true
+    local names = { "UA_Forever", "FojjiCore", "FojjiCore_DungeonJournal", "FojjiCore_BiS" }
+    local addons = _G.C_AddOns
+    if addons and type(addons.GetNumAddOns) == "function" and type(addons.GetAddOnInfo) == "function" then
+        local count_ok, count = pcall(addons.GetNumAddOns)
+        if count_ok and type(count) == "number" then
+            for index = 1, count do
+                local name_ok, name = pcall(addons.GetAddOnInfo, index)
+                name = name_ok and runtime.safe_string_or_nil(name)
+                if name then names[#names + 1] = name end
+            end
+        end
+    end
+    local seen = {}
+    for _, name in ipairs(names) do
+        if not seen[name] then
+            seen[name] = true
+            local row = {}
+            for _, metric in ipairs({ "RecentAverageTime", "SessionAverageTime", "PeakTime",
+                "CountTimeOver5Ms", "CountTimeOver10Ms", "CountTimeOver50Ms", "CountTimeOver100Ms" }) do
+                if metrics[metric] ~= nil then
+                    local success, value = pcall(profiler.GetAddOnMetric, name, metrics[metric])
+                    if success and not runtime.is_secret_value(value) and type(value) == "number" then
+                        row[metric] = value
+                    end
+                end
+            end
+            result[name] = row
+        end
+    end
+    return result
+end
+
+runtime.start_tooltip_profile = function ()
+    if type(_G.debugprofilestop) ~= "function" then return false end
+    local account = options.account or {}
+    local utils = addon_table.use("utils")
+    tooltip_profile = {
+        version = 1, patch = "tooltip-audit-2026-11-10", status = "recording",
+        build = utils.build_version, buildNumber = utils.build_number,
+        overlappingStages = true, stages = {},
+        clockResets = 0, skipFirstFrame = true,
+        frames = { count = 0, totalMs = 0, maxMs = 0, over33ms = 0, over50ms = 0, kinds = {} },
+        settings = { dev = account.dev_mode, diagnostics = account.auto_scan_diagnostics,
+            autoscan = account.auto_scan_content, fojji = account.translate_fojji,
+            language = account.tooltip_language_mode, fonts = account.override_system_fonts },
+        nativeProfilerBefore = native_profiler_snapshot(),
+        startedMs = _G.debugprofilestop(),
+        startedSeconds = type(_G.GetTime) == "function" and _G.GetTime() or nil,
+    }
+    runtime.tooltip_profile_active = true
+    return true
+end
+
+runtime.tooltip_profile_begin = function ()
+    if runtime.tooltip_profile_active then return _G.debugprofilestop() end
+end
+
+runtime.tooltip_profile_end = function (stage, started, tooltip)
+    if not tooltip_profile or not runtime.tooltip_profile_active or not started then return end
+    local elapsed = _G.debugprofilestop() - started
+    if elapsed < 0 then
+        tooltip_profile.clockResets = tooltip_profile.clockResets + 1
+        return
+    end
+    local surface = tooltip and (tooltip == _G.GameTooltip and "main"
+        or tooltip == _G.ItemRefTooltip and "reference"
+        or tooltip == _G.ShoppingTooltip1 and "comparison1"
+        or tooltip == _G.ShoppingTooltip2 and "comparison2") or "other"
+    local key = stage .. ":" .. surface
+    local row = tooltip_profile.stages[key]
+    if not row then
+        row = { calls = 0, totalMs = 0, maxMs = 0, over5ms = 0, over16ms = 0 }
+        tooltip_profile.stages[key] = row
+    end
+    row.calls = row.calls + 1
+    row.totalMs = row.totalMs + elapsed
+    row.maxMs = math.max(row.maxMs, elapsed)
+    if elapsed > 5 then row.over5ms = row.over5ms + 1 end
+    if elapsed > 16 then row.over16ms = row.over16ms + 1 end
+end
+
+runtime.tooltip_profile_frame = function (elapsed, kind)
+    if not tooltip_profile or not runtime.tooltip_profile_active
+        or type(elapsed) ~= "number" then return end
+    -- The command's initial native-profiler snapshot can itself take time.
+    -- Exclude that first frame from the scenario's frame-time statistics.
+    if tooltip_profile.skipFirstFrame then tooltip_profile.skipFirstFrame = nil; return end
+    local ms, frames = elapsed * 1000, tooltip_profile.frames
+    frames.count = frames.count + 1
+    kind = type(kind) == "string" and kind or "unknown"
+    frames.kinds[kind] = (frames.kinds[kind] or 0) + 1
+    frames.totalMs = frames.totalMs + ms
+    frames.maxMs = math.max(frames.maxMs, ms)
+    if ms > 33 then frames.over33ms = frames.over33ms + 1 end
+    if ms > 50 then frames.over50ms = frames.over50ms + 1 end
+    if type(_G.collectgarbage) == "function" then
+        local ok, memory = pcall(_G.collectgarbage, "count")
+        if ok and type(memory) == "number" then
+            frames.minHeapKB = math.min(frames.minHeapKB or memory, memory)
+            frames.maxHeapKB = math.max(frames.maxHeapKB or memory, memory)
+            if frames.lastHeapKB and memory < frames.lastHeapKB then
+                frames.heapDrops = (frames.heapDrops or 0) + 1
+                frames.maxHeapDropKB = math.max(frames.maxHeapDropKB or 0, frames.lastHeapKB - memory)
+                frames.maxFrameWithHeapDropMs = math.max(frames.maxFrameWithHeapDropMs or 0, ms)
+            end
+            frames.lastHeapKB = memory
+        end
+    end
+end
+
+runtime.stop_tooltip_profile = function ()
+    runtime.tooltip_profile_active = false
+    local report = tooltip_profile
+    tooltip_profile = nil
+    if not report then return { status = "not_recording" } end
+    report.durationMs = report.startedSeconds and type(_G.GetTime) == "function"
+        and math.max(0, (_G.GetTime() - report.startedSeconds) * 1000)
+        or math.max(0, _G.debugprofilestop() - report.startedMs)
+    report.startedMs, report.startedSeconds, report.skipFirstFrame, report.status = nil, nil, nil, "complete"
+    report.nativeProfilerAfter = native_profiler_snapshot()
+    return report
+end
+
 local function safe_text(region)
     if not region then return nil end
-    local method_ok, get_text = pcall(function () return region.GetText end)
+    local method_ok, get_text = pcall(read_member, region, "GetText")
     if not method_ok or type(get_text) ~= "function" then return nil end
     local ok, value = pcall(get_text, region)
     if ok then return safe_string(value) end
@@ -226,7 +365,7 @@ end
 
 local function region_is_visible(region)
     if not region then return false end
-    local method_ok, is_visible = pcall(function () return region.IsVisible end)
+    local method_ok, is_visible = pcall(read_member, region, "IsVisible")
     if not method_ok or type(is_visible) ~= "function" then return true end
     local ok, visible = pcall(is_visible, region)
     if not ok or is_secret_value(visible) then return true end
@@ -404,7 +543,7 @@ local function protected_frame_state(region)
     for _ = 1, 5 do
         if not frame then break end
         for _, method in ipairs(protected_state_methods) do
-            local method_ok, callback = pcall(function () return frame[method] end)
+            local method_ok, callback = pcall(read_member, frame, method)
             if not method_ok or is_secret_value(callback) then
                 return nil, method == "IsForbidden"
                     and "FORBIDDEN_STATE_UNREADABLE" or "PROTECTED_STATE_UNREADABLE"
@@ -423,7 +562,7 @@ local function protected_frame_state(region)
                 end
             end
         end
-        local method_ok, get_parent = pcall(function () return frame.GetParent end)
+        local method_ok, get_parent = pcall(read_member, frame, "GetParent")
         if not method_ok or is_secret_value(get_parent) then
             return nil, "PARENT_STATE_UNREADABLE"
         end
@@ -609,7 +748,7 @@ runtime.ensure_font = function (region)
     return fonts.apply_to_font_string(region)
 end
 
-runtime.apply = function (region, spec)
+local function apply_translation(region, spec)
     if not region or not spec then return false end
     local translated = safe_string(spec.translated)
     if not translated then return false end
@@ -700,7 +839,7 @@ runtime.apply = function (region, spec)
     end
     if cached_native_overwrite
         and not (spec.tooltip and spec.tooltip.uaForeverShowOriginal) then
-        local method_ok, set_text = pcall(function () return region.SetText end)
+        local method_ok, set_text = pcall(read_member, region, "SetText")
         local write_allowed = runtime.can_write_text(region,
             spec.combat_text_only == true)
         if method_ok and type(set_text) == "function" and write_allowed then
@@ -741,7 +880,7 @@ runtime.apply = function (region, spec)
     if source == display then return false end
     if spec.tooltip and spec.tooltip.uaForeverShowOriginal then return false end
 
-    local method_ok, set_text = pcall(function () return region.SetText end)
+    local method_ok, set_text = pcall(read_member, region, "SetText")
     if not method_ok or type(set_text) ~= "function" then
         if allowed then
             record_runtime_result(region, spec, source, translated, "SetText недоступний")
@@ -819,6 +958,16 @@ runtime.apply = function (region, spec)
     return true
 end
 
+runtime.apply = function (region, spec)
+    if not runtime.tooltip_profile_active or not spec or not spec.tooltip
+        or spec.tooltip.uaForeverKind ~= "item" then return apply_translation(region, spec) end
+    local started = runtime.tooltip_profile_begin()
+    local ok, result, reason, detail = pcall(apply_translation, region, spec)
+    runtime.tooltip_profile_end("runtime.apply", started, spec.tooltip)
+    if not ok then error(result, 0) end
+    return result, reason, detail
+end
+
 runtime.retry_deferred = function ()
     local pending = {}
     for region, spec in pairs(deferred_writes) do
@@ -873,7 +1022,7 @@ runtime.retry_deferred = function ()
     return applied
 end
 
-runtime.show_original = function (region, show)
+local function show_original(region, show)
     local claim = claims[region]
     if not claim then return false end
     local write_allowed = runtime.can_write_text(region)
@@ -895,7 +1044,7 @@ runtime.show_original = function (region, show)
     if claim.visible_original == visible_original and safe_text(region) == text then
         return true
     end
-    local method_ok, set_text = pcall(function () return region.SetText end)
+    local method_ok, set_text = pcall(read_member, region, "SetText")
     if not method_ok or type(set_text) ~= "function" then return false end
     writing[region] = true
     local ok = pcall(set_text, region, text)
@@ -905,6 +1054,21 @@ runtime.show_original = function (region, show)
         if claim.after_visibility then pcall(claim.after_visibility, region) end
     end
     return ok
+end
+
+runtime.show_original = function (region, show)
+    if not runtime.tooltip_profile_active then return show_original(region, show) end
+    local claim = claims[region]
+    local surface = claim and claim.surface
+    if surface ~= _G.GameTooltip and surface ~= _G.ItemRefTooltip
+        and surface ~= _G.ShoppingTooltip1 and surface ~= _G.ShoppingTooltip2 then
+        return show_original(region, show)
+    end
+    local started = runtime.tooltip_profile_begin()
+    local ok, result = pcall(show_original, region, show)
+    runtime.tooltip_profile_end("runtime.visibility", started, surface)
+    if not ok then error(result, 0) end
+    return result
 end
 
 -- Static surface refreshes discard claims before walking the same regions.

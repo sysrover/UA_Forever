@@ -855,7 +855,10 @@ local function safe_process(tooltip, data, kind, native_rebuild)
         tooltip.uaForeverQuestPinOwner = nil
         native_rebuild = true
     end
+    local profile_started = kind == "item" and runtime.tooltip_profile_active
+        and runtime.tooltip_profile_begin()
     local ok, result = pcall(process, tooltip, data, kind, native_rebuild)
+    if profile_started then runtime.tooltip_profile_end("item.pipeline", profile_started, tooltip) end
     if not ok then
         dev_log.issue("Forever tooltip " .. tostring(kind), tostring(result))
         return false
@@ -2500,6 +2503,9 @@ tooltips.prepare = function ()
     prepare_map_surface_hooks()
     prepare_tooltip_frames()
     hooks.region_script(_G.GameTooltip, "OnUpdate", function (self, elapsed)
+        if runtime.tooltip_profile_active then
+            runtime.tooltip_profile_frame(safe_number(elapsed), self.uaForeverKind)
+        end
         if self.uaForeverKind == "item" or not tooltip_work_enabled("aura")
             or aura_tooltip_context(self) ~= "player" then
             player_aura_elapsed[self] = nil

@@ -699,6 +699,19 @@ local function register_slash_command()
                 capture_owner()
             end
         elseif command == "tooltip" then
+            if value == "profile" then
+                scheduler.cancel("manual-tooltip-performance")
+                if not runtime.start_tooltip_profile() then
+                    message(message_text.tooltip_profile_unavailable)
+                    return
+                end
+                message(message_text.tooltip_profile_started)
+                scheduler.request("manual-tooltip-performance", nil, function ()
+                    tooltip_diagnostics.append_report("tooltipPerformance", runtime.stop_tooltip_profile())
+                    message(message_text.tooltip_profile_saved)
+                end, 10)
+                return
+            end
             local write_id, write_delay = value:match("^write%s+(%d+)%s*(%d*)$")
             if write_id then
                 local function probe_npc_write()

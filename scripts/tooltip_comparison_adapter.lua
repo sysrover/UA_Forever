@@ -571,7 +571,7 @@ comparison_adapter.install = function (api)
         return comparison_title_claim_is_visible(tooltip)
     end
 
-    local function bootstrap_comparison_translation(tooltip, data)
+    local function bootstrap_comparison_translation_impl(tooltip, data)
         local item_id
         if type(data) == "table" and not is_secret(data) then
             local ok, value = pcall(function ()
@@ -606,6 +606,17 @@ comparison_adapter.install = function (api)
         return true
     end
     
+    local function bootstrap_comparison_translation(tooltip, data)
+        if not runtime.tooltip_profile_active then
+            return bootstrap_comparison_translation_impl(tooltip, data)
+        end
+        local started = runtime.tooltip_profile_begin()
+        local ok, result = pcall(bootstrap_comparison_translation_impl, tooltip, data)
+        runtime.tooltip_profile_end("comparison.translate", started, tooltip)
+        if not ok then error(result, 0) end
+        return result
+    end
+
     local function translate_comparison_fallback_once(tooltip, generation, allow_hidden)
         if not tooltip or tooltip.uaForeverGeneration ~= generation
             or tooltip.uaForeverComparisonFallbackGeneration == generation then

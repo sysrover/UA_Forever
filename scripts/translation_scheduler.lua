@@ -213,6 +213,10 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
         local started = type(_G.debugprofilestop) == "function"
             and _G.debugprofilestop() or nil
         local retry = request.callback(request.attempt) == false
+        if started and runtime.tooltip_profile_active and request.work_scope == "tooltips" then
+            local kind = type(request.id) == "string" and request.id:match("^([^:]+)") or request.task_kind
+            runtime.tooltip_profile_end("deferred." .. tostring(kind), started, request.surface)
+        end
         if started then
             local finished = _G.debugprofilestop()
             if type(finished) == "number" then

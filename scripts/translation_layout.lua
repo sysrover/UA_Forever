@@ -15,6 +15,8 @@ local TOOLTIP_TEXT_PADDING = 24
 local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
+local TOOLTIP_SIDES = { "Left", "Right" }
+local TOOLTIP_FRAME_READS = { "GetOwner", "GetEffectiveScale" }
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
 local tooltip_row_anchors = setmetatable({}, { __mode = "k" })
 local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
@@ -38,9 +40,13 @@ local function is_protected_frame(frame)
     return strings.is_protected_frame and strings.is_protected_frame(frame)
 end
 
+local function read_member(object, member)
+    return object[member]
+end
+
 local function safe_dimension(owner, method)
     if not owner then return nil end
-    local method_ok, callback = pcall(function () return owner[method] end)
+    local method_ok, callback = pcall(read_member, owner, method)
     if not method_ok or type(callback) ~= "function" then return nil end
     local ok, value = pcall(callback, owner)
     -- On Camelot, tooltip measurements derived from aura data can themselves
@@ -57,7 +63,7 @@ end
 
 local function is_button(frame)
     if not frame then return false end
-    local method_ok, get_type = pcall(function () return frame.GetObjectType end)
+    local method_ok, get_type = pcall(read_member, frame, "GetObjectType")
     if not method_ok or type(get_type) ~= "function" then return false end
     local ok, object_type = pcall(get_type, frame)
     return ok and not is_secret(object_type) and object_type == "Button"
@@ -65,7 +71,7 @@ end
 
 local function is_tooltip(frame)
     if not frame then return false end
-    local method_ok, get_type = pcall(function () return frame.GetObjectType end)
+    local method_ok, get_type = pcall(read_member, frame, "GetObjectType")
     if not method_ok or type(get_type) ~= "function" then return false end
     local ok, object_type = pcall(get_type, frame)
     return ok and not is_secret(object_type) and object_type == "GameTooltip"
@@ -73,7 +79,7 @@ end
 
 local function object_name(owner)
     if not owner then return nil end
-    local method_ok, get_name = pcall(function () return owner.GetName end)
+    local method_ok, get_name = pcall(read_member, owner, "GetName")
     if not method_ok or type(get_name) ~= "function" then return nil end
     local ok, name = pcall(get_name, owner)
     return ok and not is_secret(name) and type(name) == "string" and name or nil
@@ -81,7 +87,7 @@ end
 
 local function parent_of(owner)
     if not owner then return nil end
-    local method_ok, get_parent = pcall(function () return owner.GetParent end)
+    local method_ok, get_parent = pcall(read_member, owner, "GetParent")
     if not method_ok or type(get_parent) ~= "function" then return nil end
     local ok, parent = pcall(get_parent, owner)
     return ok and not is_secret(parent) and parent or nil
@@ -400,7 +406,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
     local rows, required_width = {}, width
     for index = 1, count do
         local row = {}
-        for _, side in ipairs({ "Left", "Right" }) do
+        for _, side in ipairs(TOOLTIP_SIDES) do
             local region = _G[name .. "Text" .. side .. index]
             if region and is_shown(region) then
                 local ok, text = pcall(region.GetText, region)
@@ -437,7 +443,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
     local available = width - TOOLTIP_TEXT_PADDING
     for index, row in ipairs(rows) do
         local right_width = row.Right and math.min(row.RightWidth, available * 0.45) or 0
-        for _, side in ipairs({ "Left", "Right" }) do
+        for _, side in ipairs(TOOLTIP_SIDES) do
             local region = row[side]
             if region and row[side .. "Empty"] then
                 -- Blank spacer rows have no string height. Preserve their
@@ -474,7 +480,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
         for _, row in ipairs(rows) do
             row.Offset = offset
             local row_height = math.max(row.LeftHeight or 0, row.RightHeight or 0)
-            for _, side in ipairs({ "Left", "Right" }) do
+            for _, side in ipairs(TOOLTIP_SIDES) do
                 local region = row[side]
                 if region then
                     if not originals[region] then
@@ -501,7 +507,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
         local ok = pcall(tooltip.SetHeight, tooltip, height)
         if ok then
             for _, row in ipairs(rows) do
-                for _, side in ipairs({ "Left", "Right" }) do
+                for _, side in ipairs(TOOLTIP_SIDES) do
                     if row[side] then
                         row[side .. "FittedHeight"] = safe_dimension(row[side], "GetHeight")
                             or row[side .. "Height"]
@@ -515,7 +521,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
     if not top then return false end
     local height = 0
     for _, row in ipairs(rows) do
-        for _, side in ipairs({ "Left", "Right" }) do
+        for _, side in ipairs(TOOLTIP_SIDES) do
             if row[side] then
                 local row_top = safe_dimension(row[side], "GetTop")
                 if not row_top then return false end
@@ -584,56 +590,82 @@ end
 -- Cache measurements by content, not by the geometry Blizzard resets on every
 -- native rebuild. Reapply the measured plan synchronously at the render boundary.
 local missing_layout_value = {}
-local function snapshot_values(snapshot, object, method, count, optional, ...)
-    local ok, callback = pcall(function () return object[method] end)
-    if not ok or is_secret(callback) then return false end
-    if type(callback) ~= "function" then
-        if not optional then return false end
-        for _ = 1, count do snapshot[#snapshot + 1] = missing_layout_value end
-        return true
+local function snapshot_value(snapshot, cursor, value, compare)
+    value = value == nil and missing_layout_value or value
+    if compare then
+        if snapshot[cursor] ~= value then return nil end
+    else
+        snapshot[cursor] = value
     end
-    local values = { pcall(callback, object, ...) }
-    if not values[1] then return false end
-    for index = 2, count + 1 do
-        local value = values[index]
-        if is_secret(value) then return false end
-        snapshot[#snapshot + 1] = value == nil and missing_layout_value or value
-    end
-    return true
+    return cursor + 1
 end
 
-local function item_layout_snapshot(tooltip)
+local function snapshot_values(snapshot, cursor, object, method, count, optional, compare)
+    local ok, callback = pcall(read_member, object, method)
+    if not ok or is_secret(callback) then return nil end
+    if type(callback) ~= "function" then
+        if not optional then return nil end
+        for _ = 1, count do
+            cursor = snapshot_value(snapshot, cursor, nil, compare)
+            if not cursor then return nil end
+        end
+        return cursor
+    end
+    -- These getters return one value, or the three GetFont values. Keep them
+    -- in locals instead of allocating a result table for every region/getter.
+    local success, first, second, third = pcall(callback, object)
+    if not success or is_secret(first) then return nil end
+    cursor = snapshot_value(snapshot, cursor, first, compare)
+    if not cursor then return nil end
+    if count == 3 then
+        if is_secret(second) or is_secret(third) then return nil end
+        cursor = snapshot_value(snapshot, cursor, second, compare)
+        if not cursor then return nil end
+        cursor = snapshot_value(snapshot, cursor, third, compare)
+    end
+    return cursor
+end
+
+local function item_layout_snapshot(tooltip, previous)
     local name = object_name(tooltip)
     local count = safe_dimension(tooltip, "NumLines")
     if not name or not count then return nil end
-    local snapshot = { tooltip.uaForeverGeneration or missing_layout_value,
-        tooltip.uaForeverSessionKey or missing_layout_value, count }
-    for _, method in ipairs({ "GetOwner", "GetEffectiveScale" }) do
-        if not snapshot_values(snapshot, tooltip, method, 1) then return nil end
+    local snapshot = previous or {}
+    local compare = previous ~= nil
+    local cursor = snapshot_value(snapshot, 1, tooltip.uaForeverGeneration, compare)
+    cursor = cursor and snapshot_value(snapshot, cursor, tooltip.uaForeverSessionKey, compare)
+    cursor = cursor and snapshot_value(snapshot, cursor, count, compare)
+    if not cursor then return nil end
+    for _, method in ipairs(TOOLTIP_FRAME_READS) do
+        cursor = snapshot_values(snapshot, cursor, tooltip, method, 1, false, compare)
+        if not cursor then return nil end
     end
-    if _G.UIParent and not snapshot_values(snapshot, _G.UIParent, "GetWidth", 1) then return nil end
+    if _G.UIParent then
+        cursor = snapshot_values(snapshot, cursor, _G.UIParent, "GetWidth", 1, false, compare)
+        if not cursor then return nil end
+    end
     for index = 1, count do
-        for _, side in ipairs({ "Left", "Right" }) do
+        for _, side in ipairs(TOOLTIP_SIDES) do
             local region = _G[name .. "Text" .. side .. index]
-            snapshot[#snapshot + 1] = region or missing_layout_value
-            if region and not snapshot_values(snapshot, region, "IsShown", 1) then return nil end
-            local shown = region and snapshot[#snapshot] == true
-            if shown then
-                if not snapshot_values(snapshot, region, "GetText", 1)
-                    or not snapshot_values(snapshot, region, "GetFont", 3)
-                    or not snapshot_values(snapshot, region, "GetSpacing", 1, true) then return nil end
+            cursor = snapshot_value(snapshot, cursor, region, compare)
+            if not cursor then return nil end
+            if region then
+                local shown_cursor = cursor
+                cursor = snapshot_values(snapshot, cursor, region, "IsShown", 1, false, compare)
+                if not cursor then return nil end
+                if snapshot[shown_cursor] == true then
+                    cursor = snapshot_values(snapshot, cursor, region, "GetText", 1, false, compare)
+                    if not cursor then return nil end
+                    cursor = snapshot_values(snapshot, cursor, region, "GetFont", 3, false, compare)
+                    if not cursor then return nil end
+                    cursor = snapshot_values(snapshot, cursor, region, "GetSpacing", 1, true, compare)
+                    if not cursor then return nil end
+                end
             end
         end
     end
+    if compare and cursor - 1 ~= #previous then return nil end
     return snapshot
-end
-
-local function same_item_layout(previous, current)
-    if not previous or not current or #previous ~= #current then return false end
-    for index, value in ipairs(previous) do
-        if value ~= current[index] then return false end
-    end
-    return true
 end
 
 local function item_layout_current(tooltip, generation, instance, owner)
@@ -661,7 +693,7 @@ local function apply_item_layout(tooltip, plan)
     local ok, tooltip_writable = set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width)
     if not ok then return false end
     for _, row in ipairs(plan.rows) do
-        for _, side in ipairs({ "Left", "Right" }) do
+        for _, side in ipairs(TOOLTIP_SIDES) do
             local region = row[side]
             if region then
                 -- As in the full layout pass, check this region once for this
@@ -728,11 +760,16 @@ layout.fit_item_tooltip = function (tooltip)
     end
     pending_tooltip_layout[tooltip] = nil
     if not has_current_translation(tooltip) then return false end
-    local signature = item_layout_snapshot(tooltip)
+    local profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
     local cached = tooltip.uaForeverItemLayout
+    local signature = cached and item_layout_snapshot(tooltip, cached.signature)
+    local cache_valid = signature ~= nil
+    if not cache_valid then signature = item_layout_snapshot(tooltip) end
+    if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
     tooltip.uaForeverItemLayoutApplying = true
     local ok, fitted
-    if cached and same_item_layout(cached.signature, signature) then
+    profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
+    if cache_valid then
         ok, fitted = pcall(apply_item_layout, tooltip, cached.plan)
     else
         tooltip.uaForeverItemLayout = nil
@@ -741,6 +778,9 @@ layout.fit_item_tooltip = function (tooltip)
         if ok and fitted and signature then
             tooltip.uaForeverItemLayout = { signature = signature, plan = plan }
         end
+    end
+    if profile_started then
+        runtime.tooltip_profile_end(cache_valid and "layout.reapply" or "layout.measure", profile_started, tooltip)
     end
     tooltip.uaForeverItemLayoutApplying = nil
     return ok and fitted
