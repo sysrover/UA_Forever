@@ -438,8 +438,8 @@ local function translate_journal(addon)
     end
 end
 
--- Native item rows can still be unreadable/hidden during the Item post-call.
--- Retry only known effect templates at Fojji's completed Show boundary, using
+-- Recover effects left native after the Item post-call. Retry only known
+-- effect templates at Fojji's completed Show boundary, using
 -- the item owner's claims so Shift and subsequent native rebuilds retain them.
 local function translate_native_effect(tooltip, region, source, side, index, owner)
     if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
@@ -485,7 +485,8 @@ local function fit_tooltip()
     local owner = tooltip:GetOwner()
     if not owned(owner) then return end
     if not mutable(tooltip) then
-        pending_tooltip = { owner = owner, epoch = tooltip_epoch }
+        pending_tooltip = { owner = owner, epoch = tooltip_epoch,
+            generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey }
         return
     end
     pending_tooltip = nil
@@ -582,7 +583,9 @@ integration.recover = function ()
     for region in pairs(pending_regions) do localize(region) end
     local pending = pending_tooltip
     if pending and pending.epoch == tooltip_epoch and GameTooltip
-        and GameTooltip:GetOwner() == pending.owner then fit_tooltip() end
+        and GameTooltip:GetOwner() == pending.owner
+        and GameTooltip.uaForeverGeneration == pending.generation
+        and GameTooltip.uaForeverSessionKey == pending.instance then fit_tooltip() end
 end
 
 integration.add_settings = function (page, anchor)
