@@ -34,6 +34,7 @@ local quest_prefix = quest_format:match("^(.-)%%s$")
 local translated_quest_prefix = text[quest_format]:match("^(.-)%%s$")
 local item_line_cache, item_line_cache_size = {}, 0
 local item_tooltip_hooks = setmetatable({}, { __mode = "k" })
+local native_effect_rows = setmetatable({}, { __mode = "k" })
 
 local function enabled()
     local account = options.account
@@ -169,7 +170,10 @@ local function prepare_item_tooltips()
         local tooltip = _G[name]
         if tooltip and not item_tooltip_hooks[tooltip] then
             hooksecurefunc(tooltip, "AddLine", item_line_added)
-            local function clear(self) self.uaForeverFojjiRows = nil end
+            local function clear(self)
+                self.uaForeverFojjiRows = nil
+                native_effect_rows[self] = nil
+            end
             tooltip:HookScript("OnTooltipCleared", clear)
             tooltip:HookScript("OnHide", clear)
             item_tooltip_hooks[tooltip] = true
@@ -434,6 +438,47 @@ local function translate_journal(addon)
     end
 end
 
+-- Native item rows can still be unreadable/hidden during the Item post-call.
+-- Retry only known effect templates at Fojji's completed Show boundary, using
+-- the item owner's claims so Shift and subsequent native rebuilds retain them.
+local function translate_native_effect(tooltip, region, source, side, index, owner)
+    if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
+        or not tooltip.uaForeverSessionKey or not tooltip.uaForeverGeneration
+        or not options.can_translate("translate_item")
+        or options.section_enabled and not options.section_enabled("item_details") then return false end
+    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    if not clean:match("^Equip:%s") and not clean:match("^Use:%s")
+        and not clean:match("^Chance on hit:%s") then return false end
+    local rows = native_effect_rows[tooltip]
+    if not rows or rows.owner ~= owner or rows.generation ~= tooltip.uaForeverGeneration
+        or rows.instance ~= tooltip.uaForeverSessionKey then
+        rows = { owner = owner, generation = tooltip.uaForeverGeneration,
+            instance = tooltip.uaForeverSessionKey }
+        native_effect_rows[tooltip] = rows
+    end
+    local key = side .. index
+    local row = rows[key]
+    if not row or row.source ~= source or row.region ~= region then
+        row = { source = source, region = region,
+            translated = addon_table.forever_tooltip_ui.translate_item_line(source) or false }
+        rows[key] = row
+    end
+    if not row.translated then return false end
+    local claim = runtime.get(region)
+    local same_claim = claim and claim.owner == "item-tooltip" and claim.surface == tooltip
+        and claim.generation == rows.generation and claim.instance == rows.instance
+        and claim.source == source
+    return runtime.apply(region, {
+        owner = "item-tooltip", slot = same_claim and claim.slot
+            or (side == "Right" and "item.right:" or "item.shared-line:") .. index,
+        option = "translate_item", source = source, translated = row.translated,
+        priority = runtime.PRIORITY.DOMAIN, surface = tooltip, tooltip = tooltip,
+        generation = rows.generation, instance = rows.instance, phase = "dynamic",
+        allow_unknown_source = true, record_runtime = false,
+        verify_after_apply = false, reapply_cached = true,
+    }) == true
+end
+
 local function fit_tooltip()
     local tooltip = _G.GameTooltip
     if not enabled() or not tooltip or not tooltip:IsShown() then return end
@@ -444,6 +489,9 @@ local function fit_tooltip()
         return
     end
     pending_tooltip = nil
+    local item = tooltip.uaForeverKind == "item"
+    if item and tooltip.uaForeverShowOriginal then return end
+    local changed = false
     for index = 1, tooltip:NumLines() do
         for _, side in ipairs({ "Left", "Right" }) do
             local region = _G["GameTooltipText" .. side .. index]
@@ -451,13 +499,27 @@ local function fit_tooltip()
                 local source = region:GetText()
                 if safe_string(source) then
                     local translated = translate(source)
-                    if translated ~= source then region:SetText(translated) end
-                    runtime.ensure_font(region)
+                    if translated ~= source then
+                        region:SetText(translated)
+                        runtime.ensure_font(region)
+                        changed = true
+                    elseif item then
+                        changed = translate_native_effect(tooltip, region, source,
+                            side, index, owner) or changed
+                    else
+                        runtime.ensure_font(region)
+                    end
                 end
             end
         end
     end
-    if layout.fit_addon_tooltip(tooltip) then tooltip_layout_owned = true end
+    if item then
+        -- The shared Show hook owns item geometry and its measurement cache.
+        -- A second fit is needed only when this pass actually changed a row.
+        if changed then layout.fit_item_tooltip(tooltip) end
+    elseif layout.fit_addon_tooltip(tooltip) then
+        tooltip_layout_owned = true
+    end
 end
 
 integration.prepare = function (rescan)

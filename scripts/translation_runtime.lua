@@ -220,6 +220,13 @@ local function read_member(object, member)
     return object[member]
 end
 
+local function read_method(object, method, guard_callback)
+    local callback = object[method]
+    if guard_callback and is_secret_value(callback) then return nil end
+    if type(callback) ~= "function" then return false end
+    return true, callback(object)
+end
+
 -- Explicit ten-second captures only. No timers, traces or SavedVariables writes
 -- occur here during normal play; the slash command owns starting/stopping it.
 local tooltip_profile
@@ -271,7 +278,7 @@ runtime.start_tooltip_profile = function ()
     local fojji = addon_table.use("fojji")
     local fojji_namespace = _G.FojjiCoreNS
     tooltip_profile = {
-        version = 1, patch = "tooltip-geometry-epsilon-2026-11-10", status = "recording",
+        version = 1, patch = "tooltip-fused-reads-2026-11-10", status = "recording",
         build = utils.build_version, buildNumber = utils.build_number,
         overlappingStages = true, stages = {},
         clockResets = 0, skipFirstFrame = true,
@@ -365,18 +372,14 @@ end
 
 local function safe_text(region)
     if not region then return nil end
-    local method_ok, get_text = pcall(read_member, region, "GetText")
-    if not method_ok or type(get_text) ~= "function" then return nil end
-    local ok, value = pcall(get_text, region)
-    if ok then return safe_string(value) end
+    local ok, present, value = pcall(read_method, region, "GetText")
+    if ok and present then return safe_string(value) end
 end
 
 local function region_is_visible(region)
     if not region then return false end
-    local method_ok, is_visible = pcall(read_member, region, "IsVisible")
-    if not method_ok or type(is_visible) ~= "function" then return true end
-    local ok, visible = pcall(is_visible, region)
-    if not ok or is_secret_value(visible) then return true end
+    local ok, present, visible = pcall(read_method, region, "IsVisible")
+    if not ok or not present or is_secret_value(visible) then return true end
     return visible == true
 end
 
@@ -551,17 +554,12 @@ local function protected_frame_state(region)
     for _ = 1, 5 do
         if not frame then break end
         for _, method in ipairs(protected_state_methods) do
-            local method_ok, callback = pcall(read_member, frame, method)
-            if not method_ok or is_secret_value(callback) then
+            local ok, present, value = pcall(read_method, frame, method, true)
+            if not ok or present == nil or present and is_secret_value(value) then
                 return nil, method == "IsForbidden"
                     and "FORBIDDEN_STATE_UNREADABLE" or "PROTECTED_STATE_UNREADABLE"
             end
-            if type(callback) == "function" then
-                local ok, value = pcall(callback, frame)
-                if not ok or is_secret_value(value) then
-                    return nil, method == "IsForbidden"
-                        and "FORBIDDEN_STATE_UNREADABLE" or "PROTECTED_STATE_UNREADABLE"
-                end
+            if present then
                 if value == true then
                     if method == "IsForbidden" then
                         return nil, "IS_FORBIDDEN"
@@ -570,15 +568,11 @@ local function protected_frame_state(region)
                 end
             end
         end
-        local method_ok, get_parent = pcall(read_member, frame, "GetParent")
-        if not method_ok or is_secret_value(get_parent) then
+        local parent_ok, present, parent = pcall(read_method, frame, "GetParent", true)
+        if not parent_ok or present == nil or present and is_secret_value(parent) then
             return nil, "PARENT_STATE_UNREADABLE"
         end
-        if type(get_parent) ~= "function" then break end
-        local parent_ok, parent = pcall(get_parent, frame)
-        if not parent_ok or is_secret_value(parent) then
-            return nil, "PARENT_STATE_UNREADABLE"
-        end
+        if not present then break end
         if parent == frame then break end
         frame = parent
     end
@@ -612,6 +606,29 @@ end
 
 runtime.get = function (region)
     return claims[region]
+end
+
+-- Read-only existence query: stop at the first current visible translation.
+-- The general visitor below needs a snapshot because its callbacks can mutate
+-- claims. Layout only reads, so copying every row here would be wasted work.
+runtime.has_visible_translation = function (surface, generation, slot_prefix)
+    if not surface or is_secret_value(surface) then return false end
+    local bucket = indexed_bucket(claim_surfaces, claim_scalar_surfaces, surface, false)
+    if not bucket then return false end
+    for region, claim in pairs(bucket) do
+        runtime.metric("claim_visits", surface, claim.generation)
+        if claims[region] == claim and claim.generation == generation
+            and (not slot_prefix or type(claim.slot) == "string"
+                and claim.slot:sub(1, #slot_prefix) == slot_prefix) then
+            local ok, present, shown = pcall(read_method, region, "IsShown")
+            if ok and present and not is_secret_value(shown) and shown == true then
+                local text = safe_text(region)
+                if claims[region] == claim and text and text ~= ""
+                    and text == claim.translated and text ~= claim.source then return true end
+            end
+        end
+    end
+    return false
 end
 
 runtime.for_each_claim = function (surface, callback)

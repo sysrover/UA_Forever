@@ -53,19 +53,22 @@ local function is_protected_frame(frame)
     return strings.is_protected_frame and strings.is_protected_frame(frame)
 end
 
-local function read_member(object, member)
-    return object[member]
+-- Protect the member read and the getter in one pcall. A missing optional
+-- method is distinct from an unreadable method or a getter returning nil.
+local function read_method(object, method, guard_callback)
+    local callback = object[method]
+    if guard_callback and is_secret(callback) then return nil end
+    if type(callback) ~= "function" then return false end
+    return true, callback(object)
 end
 
 local function safe_dimension(owner, method)
     if not owner then return nil end
-    local method_ok, callback = pcall(read_member, owner, method)
-    if not method_ok or type(callback) ~= "function" then return nil end
-    local ok, value = pcall(callback, owner)
+    local ok, present, value = pcall(read_method, owner, method)
     -- On Camelot, tooltip measurements derived from aura data can themselves
     -- be secret numbers. Checking their Lua type is not sufficient: any
     -- comparison or arithmetic on such a value taints and raises an error.
-    if not ok or is_secret(value) or type(value) ~= "number" then return nil end
+    if not ok or not present or is_secret(value) or type(value) ~= "number" then return nil end
     if value >= 0 then return value end
 end
 
@@ -76,34 +79,26 @@ end
 
 local function is_button(frame)
     if not frame then return false end
-    local method_ok, get_type = pcall(read_member, frame, "GetObjectType")
-    if not method_ok or type(get_type) ~= "function" then return false end
-    local ok, object_type = pcall(get_type, frame)
-    return ok and not is_secret(object_type) and object_type == "Button"
+    local ok, present, object_type = pcall(read_method, frame, "GetObjectType")
+    return ok and present and not is_secret(object_type) and object_type == "Button"
 end
 
 local function is_tooltip(frame)
     if not frame then return false end
-    local method_ok, get_type = pcall(read_member, frame, "GetObjectType")
-    if not method_ok or type(get_type) ~= "function" then return false end
-    local ok, object_type = pcall(get_type, frame)
-    return ok and not is_secret(object_type) and object_type == "GameTooltip"
+    local ok, present, object_type = pcall(read_method, frame, "GetObjectType")
+    return ok and present and not is_secret(object_type) and object_type == "GameTooltip"
 end
 
 local function object_name(owner)
     if not owner then return nil end
-    local method_ok, get_name = pcall(read_member, owner, "GetName")
-    if not method_ok or type(get_name) ~= "function" then return nil end
-    local ok, name = pcall(get_name, owner)
-    return ok and not is_secret(name) and type(name) == "string" and name or nil
+    local ok, present, name = pcall(read_method, owner, "GetName")
+    return ok and present and not is_secret(name) and type(name) == "string" and name or nil
 end
 
 local function parent_of(owner)
     if not owner then return nil end
-    local method_ok, get_parent = pcall(read_member, owner, "GetParent")
-    if not method_ok or type(get_parent) ~= "function" then return nil end
-    local ok, parent = pcall(get_parent, owner)
-    return ok and not is_secret(parent) and parent or nil
+    local ok, present, parent = pcall(read_method, owner, "GetParent")
+    return ok and present and not is_secret(parent) and parent or nil
 end
 
 local function is_descendant_of(owner, root, max_depth)
@@ -326,10 +321,8 @@ end
 
 local function is_shown(frame)
     if not frame then return false end
-    local method_ok, callback = pcall(function () return frame.IsShown end)
-    if not method_ok or type(callback) ~= "function" then return false end
-    local ok, value = pcall(callback, frame)
-    return ok and not is_secret(value) and value == true
+    local ok, present, value = pcall(read_method, frame, "IsShown")
+    return ok and present and not is_secret(value) and value == true
 end
 
 -- Direct tooltip writers bypass tooltips.set_translation. Give them the same
@@ -433,10 +426,17 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
                     if not text or not runtime.can_write_text(region) then return false end
                     row[side] = region
                     row[side .. "Empty"] = text:match("^%s*$") ~= nil
-                    row[side .. "Width"] = unbounded_text_width(region) or 0
                 end
             end
         end
+        -- Once the frame is wide enough for the prose cap, another capped
+        -- single-column row cannot increase its width. Only the title and
+        -- paired columns still need an unbounded string-width measurement.
+        if row.Left and (row.Right or not prose_width or index == 1
+            or required_width < prose_width + TOOLTIP_TEXT_PADDING) then
+            row.LeftWidth = unbounded_text_width(row.Left) or 0
+        end
+        if row.Right then row.RightWidth = unbounded_text_width(row.Right) or 0 end
         local left_width = row.LeftWidth or 0
         if prose_width and index > 1 and not row.Right then
             left_width = math.min(left_width, prose_width)
@@ -580,6 +580,9 @@ layout.restore_tooltip_rows = function (tooltip)
 end
 
 local function has_current_translation(tooltip, slot_prefix)
+    if type(runtime.has_visible_translation) == "function" then
+        return runtime.has_visible_translation(tooltip, tooltip.uaForeverGeneration, slot_prefix)
+    end
     local translated = false
     runtime.for_each_claim(tooltip, function (region, claim)
         if claim.generation == tooltip.uaForeverGeneration and is_shown(region)
@@ -606,37 +609,38 @@ local missing_layout_value = {}
 local function snapshot_value(snapshot, cursor, value, compare)
     value = value == nil and missing_layout_value or value
     if compare then
-        if snapshot[cursor] ~= value then return nil end
-    else
-        snapshot[cursor] = value
+        if snapshot[cursor] == value then return snapshot, cursor + 1, true end
+        -- Fork only on the first changed value. The matched prefix is already
+        -- known; copy it without calling the native getters a second time.
+        local previous = snapshot
+        snapshot = {}
+        for index = 1, cursor - 1 do snapshot[index] = previous[index] end
+        compare = false
     end
-    return cursor + 1
+    snapshot[cursor] = value
+    return snapshot, cursor + 1, compare
 end
 
 local function snapshot_values(snapshot, cursor, object, method, count, optional, compare)
-    local ok, callback = pcall(read_member, object, method)
-    if not ok or is_secret(callback) then return nil end
-    if type(callback) ~= "function" then
+    -- These getters return one value, or the three GetFont values. Protect
+    -- lookup + invocation together and keep the results in locals.
+    local ok, present, first, second, third = pcall(read_method, object, method, true)
+    if not ok or present == nil then return nil end
+    if not present then
         if not optional then return nil end
         for _ = 1, count do
-            cursor = snapshot_value(snapshot, cursor, nil, compare)
-            if not cursor then return nil end
+            snapshot, cursor, compare = snapshot_value(snapshot, cursor, nil, compare)
         end
-        return cursor
+        return snapshot, cursor, compare
     end
-    -- These getters return one value, or the three GetFont values. Keep them
-    -- in locals instead of allocating a result table for every region/getter.
-    local success, first, second, third = pcall(callback, object)
-    if not success or is_secret(first) then return nil end
-    cursor = snapshot_value(snapshot, cursor, first, compare)
-    if not cursor then return nil end
+    if is_secret(first) then return nil end
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, first, compare)
     if count == 3 then
         if is_secret(second) or is_secret(third) then return nil end
-        cursor = snapshot_value(snapshot, cursor, second, compare)
-        if not cursor then return nil end
-        cursor = snapshot_value(snapshot, cursor, third, compare)
+        snapshot, cursor, compare = snapshot_value(snapshot, cursor, second, compare)
+        snapshot, cursor, compare = snapshot_value(snapshot, cursor, third, compare)
     end
-    return cursor
+    return snapshot, cursor, compare
 end
 
 local function item_layout_snapshot(tooltip, previous)
@@ -645,39 +649,42 @@ local function item_layout_snapshot(tooltip, previous)
     if not name or not count then return nil end
     local snapshot = previous or {}
     local compare = previous ~= nil
-    local cursor = snapshot_value(snapshot, 1, tooltip.uaForeverGeneration, compare)
-    cursor = cursor and snapshot_value(snapshot, cursor, tooltip.uaForeverSessionKey, compare)
-    cursor = cursor and snapshot_value(snapshot, cursor, count, compare)
-    if not cursor then return nil end
+    local cursor
+    snapshot, cursor, compare = snapshot_value(snapshot, 1, tooltip.uaForeverGeneration, compare)
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverSessionKey, compare)
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, count, compare)
     for _, method in ipairs(TOOLTIP_FRAME_READS) do
-        cursor = snapshot_values(snapshot, cursor, tooltip, method, 1, false, compare)
-        if not cursor then return nil end
+        snapshot, cursor, compare = snapshot_values(snapshot, cursor, tooltip, method, 1, false, compare)
+        if not snapshot then return nil end
     end
     if _G.UIParent then
-        cursor = snapshot_values(snapshot, cursor, _G.UIParent, "GetWidth", 1, false, compare)
-        if not cursor then return nil end
+        snapshot, cursor, compare = snapshot_values(snapshot, cursor, _G.UIParent, "GetWidth", 1, false, compare)
+        if not snapshot then return nil end
     end
     for index = 1, count do
         for _, side in ipairs(TOOLTIP_SIDES) do
             local region = _G[name .. "Text" .. side .. index]
-            cursor = snapshot_value(snapshot, cursor, region, compare)
-            if not cursor then return nil end
+            snapshot, cursor, compare = snapshot_value(snapshot, cursor, region, compare)
             if region then
                 local shown_cursor = cursor
-                cursor = snapshot_values(snapshot, cursor, region, "IsShown", 1, false, compare)
-                if not cursor then return nil end
+                snapshot, cursor, compare = snapshot_values(snapshot, cursor, region, "IsShown", 1, false, compare)
+                if not snapshot then return nil end
                 if snapshot[shown_cursor] == true then
-                    cursor = snapshot_values(snapshot, cursor, region, "GetText", 1, false, compare)
-                    if not cursor then return nil end
-                    cursor = snapshot_values(snapshot, cursor, region, "GetFont", 3, false, compare)
-                    if not cursor then return nil end
-                    cursor = snapshot_values(snapshot, cursor, region, "GetSpacing", 1, true, compare)
-                    if not cursor then return nil end
+                    snapshot, cursor, compare = snapshot_values(snapshot, cursor, region, "GetText", 1, false, compare)
+                    if not snapshot then return nil end
+                    snapshot, cursor, compare = snapshot_values(snapshot, cursor, region, "GetFont", 3, false, compare)
+                    if not snapshot then return nil end
+                    snapshot, cursor, compare = snapshot_values(snapshot, cursor, region, "GetSpacing", 1, true, compare)
+                    if not snapshot then return nil end
                 end
             end
         end
     end
-    if compare and cursor - 1 ~= #previous then return nil end
+    if compare and cursor - 1 ~= #previous then
+        local trimmed = {}
+        for index = 1, cursor - 1 do trimmed[index] = snapshot[index] end
+        return trimmed
+    end
     return snapshot
 end
 
@@ -778,9 +785,8 @@ layout.fit_item_tooltip = function (tooltip)
     if not has_current_translation(tooltip) then return false end
     local profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
     local cached = tooltip.uaForeverItemLayout
-    local signature = cached and item_layout_snapshot(tooltip, cached.signature)
-    local cache_valid = signature ~= nil
-    if not cache_valid then signature = item_layout_snapshot(tooltip) end
+    local signature = item_layout_snapshot(tooltip, cached and cached.signature)
+    local cache_valid = cached and signature ~= nil and signature == cached.signature
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
     tooltip.uaForeverItemLayoutApplying = true
     local ok, fitted, detail

@@ -493,6 +493,7 @@ local function translate_structured(tooltip, data, state)
                 end
                 local translated
                 local slot
+                local shared_checked = false
 
                 if line_index == 1 then
                     translated = source and translated_item_name(state, source)
@@ -558,6 +559,7 @@ local function translate_structured(tooltip, data, state)
                     -- Use the shared visible-text templates as a fallback.
                     if not translated and source then
                         translated = translate_shared_line(state, source, region, recipe_result)
+                        shared_checked = true
                     end
                     slot = "item.effect:" .. tostring(line_type)
                         .. ":" .. tostring(effect_index)
@@ -578,6 +580,7 @@ local function translate_structured(tooltip, data, state)
                     end
                     if not translated and source then
                         translated = translate_shared_line(state, source, region, recipe_result)
+                        shared_checked = true
                         slot = translated and "item.shared-line:" .. line_index or nil
                     end
                 end
@@ -585,7 +588,7 @@ local function translate_structured(tooltip, data, state)
                 -- Requirements, class restrictions and set rows can use
                 -- specialized TooltipData types. The fallback must run after
                 -- every semantic branch, rather than only for type 0.
-                if not translated and source and line_index > 1 then
+                if not translated and not shared_checked and source and line_index > 1 then
                     translated = translate_shared_line(state, source, region, recipe_result)
                     slot = translated and "item.shared-line:" .. line_index or slot
                 end
