@@ -56,6 +56,123 @@ local tooltip = {
         ["of Agility"] = "спритності",
         ["of Strength"] = "сили",
         ["of Eluding"] = "ухилення",
+        ["of Intellect"] = "інтелекту",
+        ["of Spirit"] = "духу",
+        ["of Stamina"] = "витривалості",
+        ["of the Owl"] = "сови",
+        ["of the Eagle"] = "орла",
+        ["of the Whale"] = "кита",
+        ["of the Gorilla"] = "горили",
+        ["of the Falcon"] = "сокола",
+        ["of the Boar"] = "кнура",
+        ["of the Wolf"] = "вовка",
+        ["of the Tiger"] = "тигра",
+        ["of Power"] = "могутності",
+        ["of Magic"] = "магії",
+        ["of Healing"] = "зцілення",
+        ["of Defense"] = "захисту",
+        ["of Regeneration"] = "регенерації",
+        ["of Concentration"] = "зосередженості",
+        ["of Arcane Protection"] = "захисту від аркани",
+        ["of Fire Protection"] = "захисту від вогню",
+        ["of Frost Protection"] = "захисту від криги",
+        ["of Nature Protection"] = "захисту від природи",
+        ["of Shadow Protection"] = "захисту від тіні",
+        ["of the Sorcerer"] = "чаклуна",
+        ["of the Elder"] = "старійшини",
+        ["of the Channeler"] = "провідника",
+        ["of the Physician"] = "лікаря",
+        ["of the Hierophant"] = "ієрофанта",
+        ["of the Bandit"] = "бандита",
+        ["of the Champion"] = "чемпіона",
+        ["of the Defender"] = "захисника",
+        ["of the Knight"] = "лицаря",
+        ["of Arcane Wrath"] = "арканічного гніву",
+        ["of Fiery Wrath"] = "полум'яного гніву",
+        ["of Frozen Wrath"] = "морозного гніву",
+        ["of Holy Wrath"] = "священного гніву",
+        ["of Nature's Wrath"] = "гніву природи",
+        ["of Shadow Wrath"] = "гніву тіні",
+        ["of Arcane Resistance"] = "опору аркані",
+        ["of Fire Resistance"] = "опору вогню",
+        ["of Frost Resistance"] = "опору кризі",
+        ["of Nature Resistance"] = "опору природі",
+        ["of Shadow Resistance"] = "опору тіні",
+        ["of the Monkey"] = "мавпи",
+        ["of the Prophet"] = "пророка",
+    },
+    -- Standalone ItemNameDescription labels from build 1.60.1.70862.
+    item_name_descriptions = {
+        ["Raid Unique (3)"] = "Унікальний для рейду (3)",
+        ["Blue"] = "Сині",
+        ["Green"] = "Зелений",
+        ["White"] = "Білий",
+        ["Molten"] = "Розплавлений",
+        ["Core Forged"] = "Викуваний у Надрах",
+        ["Draconic"] = "Драконічний",
+        ["Bloodied"] = "Закривавлений",
+        ["Shadowflame"] = "Тіньове полум'я",
+        ["Timeworn"] = "Потертий часом",
+        ["Void-Touched"] = "Торкнутий Порожнечею",
+        ["Sanctified"] = "Освячений",
+        ["Rank 1"] = "Ранг 1",
+        ["Rank 2"] = "Ранг 2",
+        ["Rank 3"] = "Ранг 3",
+        ["Rank 4"] = "Ранг 4",
+        ["Rank 5"] = "Ранг 5",
+        ["Rank 6"] = "Ранг 6",
+        ["Rank 7"] = "Ранг 7",
+        ["Rank 8"] = "Ранг 8",
+        ["Rank 9"] = "Ранг 9",
+        ["Rank 10"] = "Ранг 10",
+        ["Soulfrost"] = "Мороз душі",
+        ["Grey"] = "Сірий",
+        ["Season of Discovery"] = "Сезон відкриттів",
+        ["Scarlet Uniform"] = "Форма Багряного Походу",
+        ["Charm"] = "Оберіг",
+        ["Vessel of Transmutation"] = "Посудина трансмутації",
+        ["PTR Only"] = "Лише для PTR",
+        ["Test"] = "Тест",
+        ["Max Rank"] = "Максимальний ранг",
+        ["Apprentice"] = "Учень",
+        ["Journeyman"] = "Підмайстер",
+        ["Expert"] = "Експерт",
+        ["Artisan"] = "Ремісник",
+        ["Scarce"] = "Дефіцитний",
+        ["Crafted"] = "Виготовлений",
+    },
+    -- ItemLimitCategory names belong only to the Unique/Unique-Equipped payload.
+    item_limit_category_names = {
+        ["Signet Ring of the Bronze Dragonflight"] = "перстень-печатка бронзових драконів",
+        ["Trinket of the Dawn"] = "Аксесуар Світанку",
+        ["Supply Shipment"] = "партія припасів",
+        ["Waylaid Shipment"] = "Загублена партія припасів",
+        ["Void Pearl"] = "Перлина Порожнечі",
+        ["Void-Touched"] = "Торкнутий Порожнечею",
+        ["Ashenvale Spoils of War"] = "Воєнні трофеї Ясенедолу",
+        ["Hypercharged Gear"] = "Гіперзаряджене спорядження",
+        ["Blood Moon"] = "Кривавий місяць",
+        ["Blazefury"] = "Палюча лють",
+        ["Striker"] = "Ударник",
+        ["Zila Gular"] = "Зіла Ґулар",
+        ["Jeweled Healing Focus"] = "Оздоблений самоцвітами осередок зцілення",
+        ["Crystallized Tear"] = "Кристалізована сльоза",
+        ["Obsidian Weapon"] = "Обсидіанова зброя",
+        ["Desecrated Ring"] = "Осквернений перстень",
+        ["Hand of Justice"] = "рука правосуддя",
+        ["Sword in the Stone"] = "Меч у камені",
+        ["Adaptation"] = "Адаптація",
+        ["Bough of the World Tree"] = "Гілка Світового Дерева",
+        ["Undermine Trinkets"] = "Аксесуари Підштольні",
+        ["Artisan's Tier"] = "Комплект ремісника",
+        ["Everlook Prototype"] = "Прототип Завшегляду",
+        ["Watcher's Ring"] = "Перстень спостерігача",
+        ["Royal Seal"] = "Королівська печатка",
+        ["Tusk of Umbrinoth"] = "Бивень Умбрінота",
+        ["Rune of Battle"] = "Руна битви",
+        ["Seal of Battle"] = "Печатка битви",
+        ["Talisman of Battle"] = "Талісман битви",
+        ["Arena Master"] = "Майстер арени",
     },
     translated_cast_markers = {
         ["Миттєво"] = true,
@@ -269,6 +386,7 @@ end
 -- emit these without an enchantment ID, including on inspected equipment.
 -- Recognition is whole-name only; this is not a substring/glossary search.
 local item_modification_names = {
+    ["Predatory Instincts"] = "Хижацькі інстинкти",
     ["Poultry Precision Scope"] = "Приціл пташиної точності",
     ["Abyssal Essence"] = "Сутність безодні",
     ["Aftershock"] = "Післяшок",
@@ -1504,11 +1622,12 @@ local item_client_formats = {
 }
 
 local item_format_cache, item_format_cache_count = {}, 0
-local function translate_format_capture(value, kind)
+local function translate_format_capture(value, kind, limit_category)
     if kind ~= "s" then return value end
     local clean = value:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     local strings = addonTable.use("strings")
-    local name = tooltip.translate_item_modification(clean)
+    local name = limit_category and tooltip.item_limit_category_names[clean]
+        or tooltip.translate_item_modification(clean)
         or addonTable.use("item_client_db").get_name_by_english(clean)
         or addonTable.use("faction_client_db").get_name(clean)
         or strings.find_ui_translation(clean)
@@ -1534,6 +1653,10 @@ local function translate_format_capture(value, kind)
     return name and tooltip.restore_item_markup(value, name) or value
 end
 
+local function translate_limit_category_capture(value, kind)
+    return translate_format_capture(value, kind, true)
+end
+
 local function translate_client_item_format(source)
     local cached = item_format_cache[source]
     if cached ~= nil then return cached ~= false and cached or nil end
@@ -1550,8 +1673,11 @@ local function translate_client_item_format(source)
                 local preserve = format[1] == "ITEM_CREATED_BY"
                     or format[1] == "ITEM_WRAPPED_BY" or format[1] == "ITEM_WRITTEN_BY"
                     or format[1] == "EQUIPMENT_SETS"
+                local translate_capture = (format[1] == "ITEM_LIMIT_CATEGORY"
+                    or format[1] == "ITEM_LIMIT_CATEGORY_MULTIPLE")
+                    and translate_limit_category_capture or translate_format_capture
                 local candidate = renderer.render_format(format[2], ukrainian, source,
-                    not preserve and translate_format_capture or nil)
+                    not preserve and translate_capture or nil)
                 if not candidate and format[1] == "EQUIPMENT_SETS" then
                     -- Only the label is localized; saved set names and their
                     -- markup remain intact even when the client omits color.
@@ -1573,6 +1699,7 @@ local function translate_plain_item_line(source)
     if type(source) ~= "string" or source == "" then return nil end
     local translated = translate_consumable_use(source)
         or tooltip.item_line_exact[source]
+        or tooltip.item_name_descriptions[source]
         or tooltip.comparison_item_labels[source]
     if translated then return translated end
     local reference = tonumber(source:match("^%$@spelldesc(%d+)$"))
