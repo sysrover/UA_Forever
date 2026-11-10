@@ -486,10 +486,13 @@ local function register_addon_settings()
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
     local fojji = addon_table.use("fojji")
-    local fojji_controls = fojji.add_settings(page, custom)
+    local fojji_controls = type(fojji.add_settings) == "function"
+        and fojji.add_settings(page, custom)
     local function place_custom_controls()
+        local available = fojji_controls and type(fojji.available) == "function"
+            and fojji.available()
         custom_controls:SetPoint("TOPLEFT",
-            fojji.available() and fojji_controls or custom, "BOTTOMLEFT", 0, -12)
+            available and fojji_controls or custom, "BOTTOMLEFT", 0, -12)
     end
     page:HookScript("OnShow", place_custom_controls)
     place_custom_controls()

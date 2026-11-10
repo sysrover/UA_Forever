@@ -268,11 +268,16 @@ runtime.start_tooltip_profile = function ()
     if type(_G.debugprofilestop) ~= "function" then return false end
     local account = options.account or {}
     local utils = addon_table.use("utils")
+    local fojji = addon_table.use("fojji")
+    local fojji_namespace = _G.FojjiCoreNS
     tooltip_profile = {
-        version = 1, patch = "tooltip-anchor-2026-11-10", status = "recording",
+        version = 1, patch = "tooltip-layout-results-2026-11-10", status = "recording",
         build = utils.build_version, buildNumber = utils.build_number,
         overlappingStages = true, stages = {},
         clockResets = 0, skipFirstFrame = true,
+        integration = { module = type(fojji.prepare) == "function",
+            namespace = type(fojji_namespace) == "table",
+            locale = type(fojji_namespace) == "table" and type(fojji_namespace.TR) == "table" },
         frames = { count = 0, totalMs = 0, maxMs = 0, over33ms = 0, over50ms = 0, kinds = {} },
         settings = { dev = account.dev_mode, diagnostics = account.auto_scan_diagnostics,
             autoscan = account.auto_scan_content, fojji = account.translate_fojji,
@@ -289,7 +294,7 @@ runtime.tooltip_profile_begin = function ()
     if runtime.tooltip_profile_active then return _G.debugprofilestop() end
 end
 
-runtime.tooltip_profile_end = function (stage, started, tooltip)
+runtime.tooltip_profile_end = function (stage, started, tooltip, success, detail)
     if not tooltip_profile or not runtime.tooltip_profile_active or not started then return end
     local elapsed = _G.debugprofilestop() - started
     if elapsed < 0 then
@@ -311,6 +316,9 @@ runtime.tooltip_profile_end = function (stage, started, tooltip)
     row.maxMs = math.max(row.maxMs, elapsed)
     if elapsed > 5 then row.over5ms = row.over5ms + 1 end
     if elapsed > 16 then row.over16ms = row.over16ms + 1 end
+    if success == true then row.succeeded = (row.succeeded or 0) + 1
+    elseif success == false then row.failed = (row.failed or 0) + 1 end
+    if detail ~= nil then row.lastDetail = detail end
 end
 
 runtime.tooltip_profile_frame = function (elapsed, kind)

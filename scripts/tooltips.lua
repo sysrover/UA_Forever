@@ -22,6 +22,7 @@ local spell_client_db = addon_table.use("spell_client_db")
 local talent_adapter = addon_table.use("tooltip_talent_adapter")
 local character_adapter = addon_table.use("tooltip_character_adapter")
 local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
+local fojji = addon_table.use("fojji")
 local hooks = addon_table.use("translation_hooks").bind("tooltips")
 local tooltips = addon_table.use("tooltips")
 local utils = addon_table.use("utils")
@@ -2645,7 +2646,9 @@ tooltips.prepare = function ()
             else
                 safe_process(tooltip, data, "item", true)
             end
-            addon_table.use("fojji").finish_item_lines(tooltip)
+            if type(fojji.finish_item_lines) == "function" then
+                fojji.finish_item_lines(tooltip)
+            end
             translate_pending_sell_price(tooltip)
         end)
     end

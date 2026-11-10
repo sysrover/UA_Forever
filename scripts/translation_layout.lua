@@ -691,7 +691,7 @@ end
 
 local function apply_item_layout(tooltip, plan)
     local ok, tooltip_writable = set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width)
-    if not ok then return false end
+    if not ok then return false, "tooltip.width" end
     for _, row in ipairs(plan.rows) do
         for _, side in ipairs(TOOLTIP_SIDES) do
             local region = row[side]
@@ -702,30 +702,30 @@ local function apply_item_layout(tooltip, plan)
                 local width = row[side .. "TargetWidth"]
                 if width then
                     ok, writable = set_layout_value(region, "GetWidth", "SetWidth", width, writable)
-                    if not ok then return false end
+                    if not ok then return false, "region.width" end
                     ok, writable = set_layout_value(region, "GetMaxLines", "SetMaxLines", 0, writable)
-                    if not ok then return false end
+                    if not ok then return false, "region.max-lines" end
                     ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", true, writable)
-                    if not ok then return false end
+                    if not ok then return false, "region.word-wrap" end
                     ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", true, writable)
-                    if not ok then return false end
+                    if not ok then return false, "region.non-space-wrap" end
                     local height = safe_dimension(region, "GetHeight")
-                    if not height then return false end
+                    if not height then return false, "region.height-read" end
                     if height ~= row[side .. "FittedHeight"] then
                         if writable == nil then writable = runtime.can_write_text(region) end
                         if not writable
-                            or not pcall(region.SetHeight, region, 0) then return false end
+                            or not pcall(region.SetHeight, region, 0) then return false, "region.height-write" end
                     end
                 end
                 local expected_point = side == "Right" and "TOPRIGHT" or "TOPLEFT"
                 local expected_x = side == "Right" and -TOOLTIP_TEXT_PADDING / 2 or TOOLTIP_TEXT_PADDING / 2
                 local count = safe_dimension(region, "GetNumPoints")
-                if not count then return false end
+                if not count then return false, "region.points-count" end
                 local matches = false
                 if count == 1 then
                     local ok, point, relative, relative_point, x, y = pcall(region.GetPoint, region, 1)
                     if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
-                        or is_secret(x) or is_secret(y) then return false end
+                        or is_secret(x) or is_secret(y) then return false, "region.point-read" end
                     matches = point == expected_point and relative == tooltip
                         and relative_point == expected_point and x == expected_x and y == -row.Offset
                 end
@@ -734,12 +734,14 @@ local function apply_item_layout(tooltip, plan)
                     if not writable
                         or not pcall(region.ClearAllPoints, region)
                         or not pcall(region.SetPoint, region, expected_point, tooltip,
-                            expected_point, expected_x, -row.Offset) then return false end
+                            expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
                 end
             end
         end
     end
-    return set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height, tooltip_writable)
+    ok = set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height, tooltip_writable)
+    if not ok then return false, "tooltip.height" end
+    return true
 end
 
 layout.fit_item_tooltip = function (tooltip)
@@ -767,10 +769,10 @@ layout.fit_item_tooltip = function (tooltip)
     if not cache_valid then signature = item_layout_snapshot(tooltip) end
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
     tooltip.uaForeverItemLayoutApplying = true
-    local ok, fitted
+    local ok, fitted, detail
     profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
     if cache_valid then
-        ok, fitted = pcall(apply_item_layout, tooltip, cached.plan)
+        ok, fitted, detail = pcall(apply_item_layout, tooltip, cached.plan)
     else
         tooltip.uaForeverItemLayout = nil
         local plan
@@ -780,7 +782,10 @@ layout.fit_item_tooltip = function (tooltip)
         end
     end
     if profile_started then
-        runtime.tooltip_profile_end(cache_valid and "layout.reapply" or "layout.measure", profile_started, tooltip)
+        local failure = not ok and runtime.safe_string_or_nil(fitted)
+            or not fitted and (detail or "incomplete-measurement") or nil
+        runtime.tooltip_profile_end(cache_valid and "layout.reapply" or "layout.measure",
+            profile_started, tooltip, ok and fitted == true, failure)
     end
     tooltip.uaForeverItemLayoutApplying = nil
     return ok and fitted
@@ -813,6 +818,25 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
         and previous.instance == tooltip.uaForeverSessionKey and previous.owner == owner
         and previous.count == count and previous.width == width
         and previous.height == height and previous.scale == scale then return true end
+    if runtime.tooltip_profile_active then
+        local reason = not previous and "no-stamp"
+            or previous.epoch ~= epoch and "build"
+            or previous.generation ~= tooltip.uaForeverGeneration and "generation"
+            or previous.instance ~= tooltip.uaForeverSessionKey and "session"
+            or previous.owner ~= owner and "owner"
+            or previous.count ~= count and "lines"
+            or previous.width ~= width and "width"
+            or previous.height ~= height and "height"
+            or previous.scale ~= scale and "scale" or "unknown"
+        runtime.tooltip_profile_end("layout.pass." .. reason,
+            runtime.tooltip_profile_begin(), tooltip, nil, {
+                width = width, height = height, scale = scale, lines = count,
+                previousWidth = previous and previous.width,
+                previousHeight = previous and previous.height,
+                previousScale = previous and previous.scale,
+                previousLines = previous and previous.count,
+            })
+    end
     if before_fit then before_fit(tooltip) end
     local fitted = layout.fit_item_tooltip(tooltip)
     if fitted and count and width and height and scale then
