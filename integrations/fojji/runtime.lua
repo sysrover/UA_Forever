@@ -490,7 +490,8 @@ end
 local function translate_native_item_line(tooltip, region, source, side, index, owner)
     local catalog = addon_table.forever_tooltip_ui
     local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    if not catalog.item_line_exact[clean]
+    local exact = catalog.item_line_exact[clean]
+    if not exact
         and not clean:match("^Equip:%s") and not clean:match("^Use:%s")
         and not clean:match("^Chance on hit:%s") then return nil end
     if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
@@ -508,7 +509,8 @@ local function translate_native_item_line(tooltip, region, source, side, index, 
     local row = rows[key]
     if not row or row.source ~= source or row.region ~= region then
         row = { source = source, region = region,
-            translated = catalog.translate_item_line(source) or false }
+            translated = exact and catalog.restore_item_markup(source, exact)
+                or catalog.translate_item_line(source) or false }
         rows[key] = row
     end
     if not row.translated then return false end

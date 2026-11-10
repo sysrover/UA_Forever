@@ -421,7 +421,9 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
             if region and is_shown(region) then
                 local ok, text = pcall(region.GetText, region)
                 if not ok or is_secret(text) then return false end
+                local empty_original = original_item and (text == nil or text == "")
                 text = runtime.safe_string_or_nil(text)
+                if empty_original then text = "" end
                 -- Pooled right FontStrings may stay shown without text. They
                 -- must not turn a prose row into a two-column layout or abort it.
                 local empty_right = single_line_right and side == "Right"
@@ -935,12 +937,13 @@ end
 
 -- Ordinary SetText/Unit tooltips can be resized by native Show after our
 -- per-line writes. Fit the completed display only when it still contains a
--- translation from this exact session. Item/comparison owners and spells
--- without translated crafted-item effects keep their existing layouts.
+-- translation from this exact session. Owned item sessions fit their current
+-- language in both modes; spells without crafted effects retain native layout.
 layout.fit_translated_tooltip = function (tooltip)
-    if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
+    if not tooltip or tooltip ~= _G.GameTooltip then return false end
     local kind = tooltip.uaForeverKind
     if kind == "item" then return layout.fit_item_tooltip(tooltip) end
+    if tooltip.uaForeverShowOriginal then return false end
     if kind == "quest" and tooltip.uaForeverQuestPinOwner then
         return layout.fit_quest_pin_tooltip(tooltip)
     end
