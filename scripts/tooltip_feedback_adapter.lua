@@ -24,6 +24,7 @@ local function release_view(view)
     view.label:Hide()
     runtime.invalidate(view.label)
     if region then
+        layout.set_tooltip_row_content(nil, region, nil)
         watched_rows[region].view = nil
         pcall(region.SetAlpha, region, view.alpha)
         -- Only this hidden feedback row has a temporary height. Release it
@@ -104,6 +105,7 @@ local function apply_feedback(tooltip, region, native, translated, tier, provena
         end
         region:SetAlpha(original and view.alpha or 0)
         label:SetShown(not original)
+        layout.set_tooltip_row_content(tooltip, region, not original and label or nil)
     end
     -- Leave GetText() on the native row unchanged: the secure PTR reporter
     -- scans it for duplicates. Never hide a token inside hyperlink markup.

@@ -2144,7 +2144,8 @@ local function prepare_tooltip_frames()
                 -- Show finishes the native layout even when this frame was
                 -- already visible. Its OnShow script alone misses those writes.
                 hooks.region(tooltip, "Show", function (self)
-                    translate_generic_tooltip(self)
+                    translate_generic_tooltip_content(self)
+                    layout.fit_current_tooltip(self)
                 end)
                 for _, method in ipairs({ "AddLine", "AddDoubleLine" }) do
                     hooks.region(tooltip, method, function (self)
@@ -2892,7 +2893,7 @@ tooltips.refresh_active = function ()
                     id = tooltip.uaForeverID, spellID = tooltip.uaForeverID },
                     tooltip.uaForeverKind)
             else
-                translate_generic_tooltip(tooltip)
+                translate_generic_tooltip_content(tooltip)
             end
             -- The native post-call normally ends with Show(), which lays out
             -- appended, wrapping lines. A manual mode/Shift refresh runs outside

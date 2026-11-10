@@ -18,9 +18,10 @@ local TOOLTIP_COMPACT_WIDTH = 180
 local ITEM_LAYOUT_EPSILON = 0.5
 local ITEM_RIGHT_TEXT_PADDING = 2
 local TOOLTIP_SIDES = { "Left", "Right" }
-local TOOLTIP_FRAME_READS = { "GetOwner", "GetEffectiveScale" }
+local TOOLTIP_FRAME_READS = { "GetEffectiveScale" }
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
 local tooltip_row_anchors = setmetatable({}, { __mode = "k" })
+local tooltip_row_content = setmetatable({}, { __mode = "k" })
 local QUEST_DETAILS_HINT = "<Click to view Quest Details>"
 local AUCTION_TAB_SOURCES = {
     Auctions = true, Bid = true, Bids = true, Browse = true, Buy = true,
@@ -94,6 +95,13 @@ local function object_name(owner)
     if not owner then return nil end
     local ok, present, name = pcall(read_method, owner, "GetName")
     return ok and present and not is_secret(name) and type(name) == "string" and name or nil
+end
+
+-- A reporter may retain its native row for scanning while showing a separate
+-- translated label over it. Measure that visible label, not the hidden text.
+layout.set_tooltip_row_content = function (tooltip, region, content)
+    tooltip_row_content[region] = content and { tooltip = tooltip, content = content,
+        generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey } or nil
 end
 
 local function parent_of(owner)
@@ -326,6 +334,15 @@ local function is_shown(frame)
     return ok and present and not is_secret(value) and value == true
 end
 
+local function row_content(tooltip, region)
+    local entry = tooltip_row_content[region]
+    if entry and entry.tooltip == tooltip and entry.generation == tooltip.uaForeverGeneration
+        and entry.instance == tooltip.uaForeverSessionKey and is_shown(entry.content) then
+        return entry.content
+    end
+    return region
+end
+
 -- Direct tooltip writers bypass tooltips.set_translation. Give them the same
 -- text/font-to-layout lifecycle, with incremental, repeat-safe height changes.
 layout.tooltip_after_text = function (tooltip, region, source, wrap_to_tooltip)
@@ -416,6 +433,7 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                 if not empty_right then
                     if not text or not runtime.can_write_text(region) then return false end
                     row[side] = region
+                    row[side .. "Content"] = row_content(tooltip, region)
                     row[side .. "Empty"] = text:match("^%s*$") ~= nil
                     if single_line_right and side == "Right" then
                         -- A pooled right label may already be squeezed/wrapped
@@ -433,10 +451,10 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
         -- paired columns still need an unbounded string-width measurement.
         if row.Left and (row.Right or not prose_width or index == 1
             or required_width < prose_width + TOOLTIP_TEXT_PADDING) then
-            row.LeftWidth = unbounded_text_width(row.Left) or 0
+            row.LeftWidth = unbounded_text_width(row.LeftContent) or 0
         end
         if row.Right then
-            row.RightWidth = unbounded_text_width(row.Right) or 0
+            row.RightWidth = unbounded_text_width(row.RightContent) or 0
             if single_line_right then
                 if row.RightWidth <= 0 then return false end
                 row.RightWidth = math.ceil(row.RightWidth) + ITEM_RIGHT_TEXT_PADDING
@@ -492,10 +510,12 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                 if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, wraps) end
                 if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, wraps) end
                 if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
-                local height = safe_dimension(region, "GetStringHeight")
+                local content = row[side .. "Content"]
+                local height = safe_dimension(content, "GetStringHeight")
                 if not height or height <= 0 then
                     return false
                 end
+                if content ~= region and not pcall(region.SetHeight, region, height) then return false end
                 -- Leave shared GameTooltip rows at automatic height so later
                 -- item/quest tooltips cannot inherit this text's line count.
                 row[side .. "Height"] = height
@@ -675,7 +695,7 @@ local function snapshot_values(snapshot, cursor, object, method, count, optional
     return snapshot, cursor, compare
 end
 
-local function item_layout_snapshot(tooltip, previous)
+local function tooltip_layout_snapshot(tooltip, previous, owner)
     local name = object_name(tooltip)
     local count = safe_dimension(tooltip, "NumLines")
     if not name or not count then return nil end
@@ -687,6 +707,7 @@ local function item_layout_snapshot(tooltip, previous)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverKind, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, tooltip.uaForeverShowOriginal == true, compare)
     snapshot, cursor, compare = snapshot_value(snapshot, cursor, count, compare)
+    snapshot, cursor, compare = snapshot_value(snapshot, cursor, owner, compare)
     for _, method in ipairs(TOOLTIP_FRAME_READS) do
         snapshot, cursor, compare = snapshot_values(snapshot, cursor, tooltip, method, 1, false, compare)
         if not snapshot then return nil end
@@ -710,6 +731,15 @@ local function item_layout_snapshot(tooltip, previous)
                     if not snapshot then return nil end
                     snapshot, cursor, compare = snapshot_values(snapshot, cursor, region, "GetSpacing", 1, true, compare)
                     if not snapshot then return nil end
+                    local content = row_content(tooltip, region)
+                    snapshot, cursor, compare = snapshot_value(snapshot, cursor, content, compare)
+                    if content ~= region then
+                        for _, read in ipairs({ { "GetText", 1 }, { "GetFont", 3 }, { "GetSpacing", 1 } }) do
+                            snapshot, cursor, compare = snapshot_values(snapshot, cursor, content,
+                                read[1], read[2], read[1] == "GetSpacing", compare)
+                            if not snapshot then return nil end
+                        end
+                    end
                 end
             end
         end
@@ -768,8 +798,9 @@ local function apply_item_layout(tooltip, plan)
                     if not height then return false, "region.height-read" end
                     if not same_dimension(height, row[side .. "FittedHeight"]) then
                         if writable == nil then writable = runtime.can_write_text(region) end
+                        local height = row[side .. "Content"] ~= region and row[side .. "Height"] or 0
                         if not writable
-                            or not pcall(region.SetHeight, region, 0) then return false, "region.height-write" end
+                            or not pcall(region.SetHeight, region, height) then return false, "region.height-write" end
                     end
                 end
                 if plan.arrange_rows ~= false then
@@ -840,7 +871,7 @@ fit_complete_tooltip = function (tooltip, maximum_width, arrange_rows, prose_wid
         and (original and "uaForeverOriginalItemLayout" or "uaForeverItemLayout")
         or (original and "uaForeverOriginalTooltipLayout" or "uaForeverTooltipLayout")
     local cached = tooltip[cache_key]
-    local signature = item_layout_snapshot(tooltip, cached and cached.signature)
+    local signature = tooltip_layout_snapshot(tooltip, cached and cached.signature, owner)
     local cache_valid = cached and signature ~= nil and signature == cached.signature
         and cached.policy == policy
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
