@@ -171,14 +171,16 @@ local function refresh_open_panels()
     local dirty = dirty_open_panels
     refresh_all_open_panels = false
     dirty_open_panels = {}
-    update_quest_npc_name()
-    items.refresh_quest_rewards()
+    if refresh_all or dirty["quest-gossip"] then update_quest_npc_name() end
+    if refresh_all or dirty["items"] or dirty["quest-gossip"] then
+        items.refresh_quest_rewards()
+    end
     if refresh_all then
         registry.refresh_open()
     else
         for id in pairs(dirty) do registry.refresh(id) end
     end
-    quest_switcher.refresh()
+    if refresh_all or dirty["quest-gossip"] then quest_switcher.refresh() end
     if type(auto_scan.diagnostics_enabled) == "function"
         and auto_scan.diagnostics_enabled() then
         if refresh_all then
@@ -1124,6 +1126,49 @@ local event_scopes = {
     QUEST_COMPLETE = "quest", QUEST_GREETING = "quest", QUEST_LOG_UPDATE = "quest",
     ITEM_TEXT_BEGIN = "books", ITEM_TEXT_READY = "books", COMBAT_TEXT_UPDATE = "combat-text",
 }
+
+-- Build 70862 loads the professions templates, book and main window as three
+-- separate addons. Re-preparing every unrelated panel on each dependency load
+-- repeats mail/menu/edit-mode translation before the new window can open.
+-- Keep the full compatibility path below for providers not traced here.
+local profession_load = {
+    modules = { "profession_frame_adapter", "profession_recipe_adapter",
+        "panel_fallback_ui" },
+    surfaces = { "professions" },
+}
+local panel_loads = {
+    Blizzard_ProfessionsTemplates = profession_load,
+    Blizzard_ProfessionsBook = profession_load,
+    Blizzard_Professions = profession_load,
+    Blizzard_PlayerSpells = {
+        modules = { "skills", "talent_frame_adapter" },
+        surfaces = { "skills" },
+    },
+    Blizzard_AchievementUI = {
+        modules = { "achievements", "legacy_ui" },
+        surfaces = { "collections", "legacy-ui" },
+    },
+    Blizzard_LegacySystem = {
+        modules = { "legacy_ui", "achievements" },
+        surfaces = { "legacy-ui" },
+    },
+}
+
+local function prepare_loaded_panel(loaded_addon)
+    local route = panel_loads[loaded_addon]
+    if not route then return false end
+    strings.prepare()
+    fonts.prepare()
+    -- Shared tooltip owners and gamepad footers can be created by these panels.
+    tooltips.prepare()
+    menus_ui.prepare()
+    for _, name in ipairs(route.modules) do addon_table.use(name).prepare() end
+    registry.prepare_root_hooks()
+    registry.install_hooks(loaded_addon)
+    schedule_panel_refresh(route.surfaces)
+    return true
+end
+
 if options.on_activity_change then
     options.on_activity_change("main-events", function ()
         for event, scope in pairs(event_scopes) do
@@ -1151,6 +1196,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         if loaded_addon ~= addon_name then
             if self.uaForeverLoginReady and type(loaded_addon) == "string"
                 and loaded_addon:find("^Blizzard_") then
+                if prepare_loaded_panel(loaded_addon) then return end
                 strings.prepare()
                 quest_switcher.prepare()
                 quest_ui.prepare()

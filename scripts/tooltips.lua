@@ -2339,16 +2339,23 @@ local function prepare_tooltip_frames()
 end
 
 local function after_game_tooltip_update(tooltip)
-    if tooltip and not tooltip_work_enabled(tooltip.uaForeverKind) then return end
+    if not tooltip then return end
+    local kind = tooltip.uaForeverKind
+    if kind == "item" then
+        if tooltip.uaForeverUpdateBudget ~= 0 then tooltip.uaForeverUpdateBudget = 0 end
+        return
+    end
+    local budget = tooltip.uaForeverUpdateBudget or 0
+    if budget <= 0 and (kind ~= "npc" or tooltip.uaForeverShowOriginal) then return end
+    if not tooltip_work_enabled(kind) then return end
     if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
-    if tooltip.uaForeverKind == "item" or is_shopping_tooltip(tooltip) then
+    if is_shopping_tooltip(tooltip) then
         -- Build 70058 reruns TooltipDataProcessor post-calls after item
         -- rebuilds. Comparison-only rows are handled by their native writers,
         -- so neither surface needs UA Forever's bounded OnUpdate fallback.
         tooltip.uaForeverUpdateBudget = 0
         return
     end
-    local budget = tooltip.uaForeverUpdateBudget or 0
     -- Native unit refreshes can overwrite rows after the bounded fallback
     -- budget is exhausted. Keep the visible NPC surface current at 10 Hz.
     if tooltip.uaForeverKind == "npc" and not tooltip.uaForeverShowOriginal then
@@ -2520,8 +2527,7 @@ tooltips.prepare = function ()
         if runtime.tooltip_profile_active then
             runtime.tooltip_profile_frame(safe_number(elapsed), self.uaForeverKind)
         end
-        if self.uaForeverKind == "item" or not tooltip_work_enabled("aura")
-            or aura_tooltip_context(self) ~= "player" then
+        if self.uaForeverKind == "item" then
             player_aura_elapsed[self] = nil
             return
         end
@@ -2532,6 +2538,12 @@ tooltips.prepare = function ()
             return
         end
         player_aura_elapsed[self] = 0
+        -- Finding an unmarked owner walks up to ten parents. Do that at the
+        -- same 10 Hz as the refresh, including non-aura tooltip rejection.
+        -- Native aura setters still translate immediately; do not cache an
+        -- owner classification across pooled-button reuse.
+        if not tooltip_work_enabled("aura")
+            or aura_tooltip_context(self) ~= "player" then return end
         after_aura_tooltip_rendered(self)
     end, "player-aura")
     prepare_comparison_manager()
