@@ -2,7 +2,7 @@
 local _, addonTable = ...
 
 addonTable.forever_client_catalog = {
-    ["build"] = "1.60.1.70840",
-    ["generated"] = "2026-11-04T20:14:11+00:00",
+    ["build"] = "1.60.1.70862",
+    ["generated"] = "2026-11-09T23:53:43.441390+00:00",
 }
 

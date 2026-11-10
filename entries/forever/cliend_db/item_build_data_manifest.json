@@ -1,6 +1,6 @@
 {
-  "sourceBuild": "1.60.1.70840",
-  "itemMetadata": 4039,
+  "sourceBuild": "1.60.1.70862",
+  "itemMetadata": 4091,
   "itemClasses": 17,
   "itemSubclasses": 100,
   "itemSets": 545,
@@ -17,11 +17,11 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "inventory": "build/forever-client-inventory/70840/db2",
-  "itemMetadataInventory": "build/forever-client-inventory/70840/db2/itemsparse.json",
-  "cacheSHA256": "9613a8d275c4914432519183964095b5aae0e1ac9be9b17e645a8481a9c8b966",
-  "cacheProvenance": "build/forever-client-inventory/70840/cache/provenance.json",
-  "cacheScope": "70840 exact-build base and verified hotfix cache; historical compatibility rows retained.",
+  "inventory": "build/forever-client-inventory/70862/hotfix-816e2a800d7a",
+  "itemMetadataInventory": "build/forever-client-inventory/70862/hotfix-816e2a800d7a/db2/itemsparse.json",
+  "cacheSHA256": "816e2a800d7a3a9676284ec00c6ef2268f6ebd46e3f71a0b86f8bd1dc0138023",
+  "cacheProvenance": "build/forever-client-inventory/70862/hotfix-816e2a800d7a/cache/provenance.json",
+  "cacheScope": "Exact-build 70862 snapshot; unchanged tables inherited from baseline; approved and historical compatibility rows retained.",
   "retainedHotfixProvenance": {
     "sourceBuild": "1.60.1.70755",
     "itemMetadata": 4039,

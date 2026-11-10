@@ -416,4 +416,5 @@ integration.add_settings = function (page, anchor)
     end
     page:HookScript("OnShow", refresh)
     refresh()
+    return group
 end

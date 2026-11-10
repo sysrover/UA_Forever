@@ -485,7 +485,14 @@ local function register_addon_settings()
 
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
-    addon_table.use("fojji").add_settings(page, form_button)
+    local fojji = addon_table.use("fojji")
+    local fojji_controls = fojji.add_settings(page, custom)
+    local function place_custom_controls()
+        custom_controls:SetPoint("TOPLEFT",
+            fojji.available() and fojji_controls or custom, "BOTTOMLEFT", 0, -12)
+    end
+    page:HookScript("OnShow", place_custom_controls)
+    place_custom_controls()
 
     local ok, category = pcall(Settings.RegisterCanvasLayoutCategory, page, "UA Forever")
     if not ok or not category then return end
