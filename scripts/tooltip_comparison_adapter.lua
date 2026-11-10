@@ -165,7 +165,6 @@ comparison_adapter.install = function (api)
         local applied = runtime.apply(region, spec)
         if applied then
             remember_comparison_claim(tooltip, region)
-            layout.request_item_tooltip(tooltip)
         end
         return applied
     end
@@ -365,13 +364,8 @@ comparison_adapter.install = function (api)
         hooks.region(tooltip, "ClearLines", function (self)
             self.uaForeverComparisonWriteReady = false
         end)
-        hooks.region(tooltip, "Show", layout.request_item_tooltip)
-        hooks.region(tooltip, "AddDoubleLine", function (self)
-            if self.uaForeverComparisonWriteReady then layout.request_item_tooltip(self) end
-        end)
         hooks.region(tooltip, "AddLine", function (self, native)
             if not self.uaForeverComparisonWriteReady then return end
-            layout.request_item_tooltip(self)
             local count_ok, count = pcall(self.NumLines, self)
             count = count_ok and safe_number(count) or nil
             if not count or count < 1 then return end
@@ -429,7 +423,6 @@ comparison_adapter.install = function (api)
                 end
             end
         end
-        layout.request_item_tooltip(tooltip)
         return true
     end
     
@@ -582,9 +575,53 @@ comparison_adapter.install = function (api)
         end
     end
 
+    local finishing_comparison_layout = false
+    local function finish_comparison_layout()
+        if finishing_comparison_layout then return end
+        local manager = _G.TooltipComparisonManager
+        local primary = manager and manager.tooltip
+        local comparisons = primary and primary.shoppingTooltips
+        if type(comparisons) ~= "table" then return end
+        finishing_comparison_layout = true
+        local width_changed = false
+        local shown = {}
+        for index, tooltip in ipairs(comparisons) do
+            local ok, visible = pcall(tooltip.IsShown, tooltip)
+            shown[index] = ok and not is_secret(visible) and visible == true
+            if shown[index] then
+                local before = layout.safe_dimension(tooltip, "GetWidth")
+                layout.fit_item_tooltip(tooltip)
+                local after = layout.safe_dimension(tooltip, "GetWidth")
+                width_changed = width_changed or before ~= after
+            end
+        end
+        -- A fallback may run after native anchoring. Reanchor once in this same
+        -- call only when the final widths actually changed; never via a timer.
+        if width_changed and not runtime.combat_locked()
+            and runtime.can_write_text(primary)
+            and type(manager.AnchorShoppingTooltips) == "function" then
+            pcall(manager.AnchorShoppingTooltips, manager, shown[1], shown[2])
+        end
+        finishing_comparison_layout = false
+    end
+
     prepare_comparison_manager = function ()
-        comparison_manager_hooked = _G.TooltipComparisonManager ~= nil
-        return comparison_manager_hooked
+        local manager = _G.TooltipComparisonManager
+        if not manager then return false end
+        if comparison_manager_hooked == manager then return true end
+        hooks.region(manager, "SetItemTooltip", function (self, is_primary)
+            if is_secret(is_primary) then return end
+            local comparisons = self.tooltip and self.tooltip.shoppingTooltips
+            local tooltip = comparisons and comparisons[is_primary and 1 or 2]
+            if tooltip then layout.fit_item_tooltip(tooltip) end
+        end)
+        hooks.region(manager, "AnchorShoppingTooltips", finish_comparison_layout)
+        -- Keep the actual bag/client entry points as fallbacks: manager hooks
+        -- alone are not reliable for every secure Forever comparison route.
+        hooks.region(_G.C_TooltipComparison, "CompareItem", finish_comparison_layout)
+        hooks.global("GameTooltip_ShowCompareItem", finish_comparison_layout)
+        comparison_manager_hooked = manager
+        return true
     end
 
     return {

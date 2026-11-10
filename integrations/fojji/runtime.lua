@@ -21,6 +21,7 @@ local pending_scan = false
 local tooltip_hooked = false
 local pending_tooltip
 local tooltip_epoch = 0
+local tooltip_layout_owned = false
 local journal_locale
 local regions = setmetatable({}, { __mode = "k" })
 for _, value in pairs(text) do translated_values[value] = true end
@@ -328,7 +329,7 @@ local function fit_tooltip()
             end
         end
     end
-    layout.fit_addon_tooltip(tooltip)
+    if layout.fit_addon_tooltip(tooltip) then tooltip_layout_owned = true end
 end
 
 integration.prepare = function (rescan)
@@ -358,10 +359,16 @@ integration.prepare = function (rescan)
             pending_tooltip = nil
             tooltip_epoch = tooltip_epoch + 1
         end
-        GameTooltip:HookScript("OnHide", clear_tooltip)
+        GameTooltip:HookScript("OnHide", function ()
+            clear_tooltip()
+            tooltip_layout_owned = false
+        end)
         GameTooltip:HookScript("OnTooltipCleared", function (self)
             clear_tooltip()
-            layout.restore_tooltip_rows(self)
+            if tooltip_layout_owned then
+                tooltip_layout_owned = false
+                layout.restore_tooltip_rows(self)
+            end
         end)
     end
     translate_journal(addon)

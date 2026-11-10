@@ -1401,6 +1401,7 @@ local function refresh_loot_item_tooltip(tooltip, slot)
     -- as proof that every final item line has already been translated.
     safe_process(tooltip, item_data, "item")
     reapply_cached_surface(tooltip)
+    layout.fit_item_tooltip(tooltip)
     each_shopping_tooltip(function (shopping)
         local ok, visible = pcall(shopping.IsShown, shopping)
         if not ok or is_secret(visible) or not visible then return end
@@ -1411,6 +1412,7 @@ local function refresh_loot_item_tooltip(tooltip, slot)
             and not reapply_comparison_claims(shopping) then
             translate_shopping_tooltip(shopping)
         end
+        layout.fit_item_tooltip(shopping)
     end)
 end
 
@@ -2136,8 +2138,6 @@ local function prepare_tooltip_frames()
                     hooks.region(tooltip, method, function (self)
                         if self.uaForeverKind == "npc" then
                             schedule_tooltip_finalize(self)
-                        elseif self.uaForeverKind == "item" then
-                            layout.request_item_tooltip(self)
                         end
                     end)
                 end
@@ -2203,6 +2203,11 @@ local function prepare_tooltip_frames()
                     translate_object_tooltip_title(self)
                 end)
             end
+            if tooltip == _G.ItemRefTooltip or tooltip == _G.EmbeddedItemTooltip then
+                hooks.region(tooltip, "Show", function (self)
+                    layout.fit_item_tooltip(self)
+                end)
+            end
             hooks.region_script(tooltip, "OnShow", function (self)
                 note_tooltip_event(self, "onShow")
                 if aura_tooltip_context(self) == "player" then
@@ -2238,6 +2243,7 @@ local function prepare_tooltip_frames()
                     -- above and stay translated through guarded native writes.
                     translate_comparison_fallback_once(self,
                         self.uaForeverGeneration)
+                    layout.fit_item_tooltip(self)
                 elseif self.uaForeverKind ~= "talent" then
                     schedule_tooltip_finalize(self)
                 end
@@ -2425,6 +2431,7 @@ local function translate_appended_bag_tooltip_lines()
     if not tooltip or tooltip.uaForeverKind ~= "item" then return end
     local first_index = (safe_number(tooltip.uaForeverItemLineCount) or 0) + 1
     item_adapter.translate_appended_lines(tooltip, first_index)
+    layout.fit_item_tooltip(tooltip)
 end
 
 local function prepare_bag_tooltip_hooks()
@@ -2452,6 +2459,9 @@ local function prepare_bag_tooltip_hooks()
     end)
     local portrait_hooked = hooks.global("ContainerFramePortraitButton_OnEnter",
         translate_appended_bag_tooltip_lines)
+    hooks.global("ContainerFrameItemButton_OnEnter", function ()
+        layout.fit_item_tooltip(_G.GameTooltip)
+    end)
     return line_hooked or portrait_hooked
 end
 
@@ -2827,6 +2837,8 @@ tooltips.refresh_active = function ()
             if type(tooltip.Show) == "function" and runtime.can_write_text(tooltip) then
                 pcall(tooltip.Show, tooltip)
             end
+        elseif tooltip.uaForeverKind == "item" then
+            layout.fit_item_tooltip(tooltip)
         end
     end
     -- Comparison tooltips can be cleared and rebuilt without a matching hide.
@@ -2847,5 +2859,6 @@ tooltips.refresh_active = function ()
         if not show and not reapply_comparison_claims(tooltip) then
             translate_shopping_tooltip(tooltip)
         end
+        layout.fit_item_tooltip(tooltip)
     end)
 end

@@ -6,7 +6,6 @@ local client_db = addon_table.use("item_client_db")
 local spell_db = addon_table.use("spell_client_db")
 local renderer = addon_table.use("spell_template_renderer")
 local strings = addon_table.use("strings")
-local layout = addon_table.use("translation_layout")
 local adapter = addon_table.use("tooltip_item_adapter")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
@@ -642,7 +641,6 @@ adapter.translate_appended_lines = function (tooltip, first_index)
             ) or applied
         end
     end
-    if applied then layout.request_item_tooltip(tooltip) end
     return applied
 end
 
@@ -716,7 +714,6 @@ adapter.add = function (tooltip, data, fallback_id)
     tooltip.uaForeverItemIdentity = key
     local applied, line_count = translate_structured(tooltip, data, state)
     if line_count == 0 then applied = translate_title_fallback(tooltip, state) end
-    if applied then layout.request_item_tooltip(tooltip) end
     local result = {
         status = applied and "complete" or "unchanged",
         applied = applied,
