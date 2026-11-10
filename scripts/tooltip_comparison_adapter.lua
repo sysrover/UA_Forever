@@ -420,6 +420,15 @@ comparison_adapter.install = function (api)
                 self.uaForeverComparisonBaseLines = ok and safe_number(count) or nil
             end
         end)
+        hooks.region(tooltip, "SetShown", function (self, shown)
+            if is_secret(shown) or shown ~= true
+                or not comparison_manager_owns(self) then return end
+            -- AnchorShoppingTooltips calls SetShown after the delta rows are
+            -- complete, before reading either comparison width. Fit after
+            -- that native Show, rather than fitting once before it and again
+            -- after it resets the frame's geometry.
+            layout.fit_item_tooltip_once(self, translate_native_tail)
+        end)
         hooks.region_script(tooltip, "OnHide", function (self)
             self.uaForeverComparisonBaseLines = nil
         end, "comparison-base-lines")
@@ -679,14 +688,9 @@ comparison_adapter.install = function (api)
         local manager = _G.TooltipComparisonManager
         if not manager then return false end
         if comparison_manager_hooked == manager then return true end
-        hooks.region(manager, "SetItemTooltip", function (self, is_primary)
-            if is_secret(is_primary) then return end
-            local comparisons = self.tooltip and self.tooltip.shoppingTooltips
-            local tooltip = comparisons and comparisons[is_primary and 1 or 2]
-            if tooltip then
-                layout.fit_item_tooltip_once(tooltip, translate_native_tail)
-            end
-        end)
+        -- Each comparison's SetShown hook fits the final rows before this
+        -- method reads widths. Keep the completed-call fallbacks for clients
+        -- or surfaces where that hook could not be installed.
         hooks.region(manager, "AnchorShoppingTooltips", finish_comparison_layout)
         -- Keep the actual bag/client entry points as fallbacks: manager hooks
         -- alone are not reliable for every secure Forever comparison route.

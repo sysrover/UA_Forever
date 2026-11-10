@@ -269,7 +269,7 @@ runtime.start_tooltip_profile = function ()
     local account = options.account or {}
     local utils = addon_table.use("utils")
     tooltip_profile = {
-        version = 1, patch = "tooltip-audit-2026-11-10", status = "recording",
+        version = 1, patch = "tooltip-anchor-2026-11-10", status = "recording",
         build = utils.build_version, buildNumber = utils.build_number,
         overlappingStages = true, stages = {},
         clockResets = 0, skipFirstFrame = true,
@@ -1025,8 +1025,6 @@ end
 local function show_original(region, show)
     local claim = claims[region]
     if not claim then return false end
-    local write_allowed = runtime.can_write_text(region)
-    if not write_allowed then return false end
     local policy_original = not runtime.allowed(claim)
         or claim.option and not options.can_translate(claim.option)
     for _, option in ipairs(claim.options or {}) do
@@ -1041,9 +1039,13 @@ local function show_original(region, show)
     local visible_original = show == true or policy_original == true
     local text = visible_original and claim.source or display_translation(claim)
     if not safe_string(text) then return false end
-    if claim.visible_original == visible_original and safe_text(region) == text then
+    if (claim.visible_original == true) == visible_original and safe_text(region) == text then
         return true
     end
+    -- Cached comparison rows are often already correct. Reading them does
+    -- not need a protected-parent walk; retain that guard for actual writes.
+    local write_allowed = runtime.can_write_text(region)
+    if not write_allowed then return false end
     local method_ok, set_text = pcall(read_member, region, "SetText")
     if not method_ok or type(set_text) ~= "function" then return false end
     writing[region] = true
