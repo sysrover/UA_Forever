@@ -671,7 +671,8 @@ comparison_adapter.install = function (api)
                 local before = layout.safe_dimension(tooltip, "GetWidth")
                 layout.fit_item_tooltip_once(tooltip, translate_native_tail)
                 local after = layout.safe_dimension(tooltip, "GetWidth")
-                width_changed = width_changed or before ~= after
+                width_changed = width_changed
+                    or before ~= after and not layout.dimensions_match(before, after)
             end
         end
         -- A fallback may run after native anchoring. Reanchor once in this same

@@ -15,6 +15,7 @@ local TOOLTIP_TEXT_PADDING = 24
 local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
+local ITEM_LAYOUT_EPSILON = 0.5
 local TOOLTIP_SIDES = { "Left", "Right" }
 local TOOLTIP_FRAME_READS = { "GetOwner", "GetEffectiveScale" }
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
@@ -34,6 +35,18 @@ local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
     local ok, result = pcall(_G.issecretvalue, value)
     return not ok or result == true
+end
+
+-- Private callers supply dimensions already checked by safe_dimension or
+-- the guarded point/getter reads below. Native anchoring rounds these floats.
+local function same_dimension(first, second)
+    return type(first) == "number" and type(second) == "number"
+        and math.abs(first - second) <= ITEM_LAYOUT_EPSILON
+end
+
+layout.dimensions_match = function (first, second)
+    if is_secret(first) or is_secret(second) then return false end
+    return same_dimension(first, second)
 end
 
 local function is_protected_frame(frame)
@@ -681,7 +694,7 @@ local function set_layout_value(object, getter, setter, expected, writable)
     if type(callback) == "function" then
         local ok, current = pcall(callback, object)
         if not ok or is_secret(current) then return false, writable end
-        if current == expected then return true, writable end
+        if current == expected or same_dimension(current, expected) then return true, writable end
     end
     if writable == nil then writable = runtime.can_write_text(object) end
     if not writable then return false, writable end
@@ -711,7 +724,7 @@ local function apply_item_layout(tooltip, plan)
                     if not ok then return false, "region.non-space-wrap" end
                     local height = safe_dimension(region, "GetHeight")
                     if not height then return false, "region.height-read" end
-                    if height ~= row[side .. "FittedHeight"] then
+                    if not same_dimension(height, row[side .. "FittedHeight"]) then
                         if writable == nil then writable = runtime.can_write_text(region) end
                         if not writable
                             or not pcall(region.SetHeight, region, 0) then return false, "region.height-write" end
@@ -727,7 +740,8 @@ local function apply_item_layout(tooltip, plan)
                     if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
                         or is_secret(x) or is_secret(y) then return false, "region.point-read" end
                     matches = point == expected_point and relative == tooltip
-                        and relative_point == expected_point and x == expected_x and y == -row.Offset
+                        and relative_point == expected_point
+                        and same_dimension(x, expected_x) and same_dimension(y, -row.Offset)
                 end
                 if not matches then
                     if writable == nil then writable = runtime.can_write_text(region) end
@@ -816,8 +830,8 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
     if previous and count and width and height and scale and previous.epoch == epoch
         and previous.generation == tooltip.uaForeverGeneration
         and previous.instance == tooltip.uaForeverSessionKey and previous.owner == owner
-        and previous.count == count and previous.width == width
-        and previous.height == height and previous.scale == scale then return true end
+        and previous.count == count and same_dimension(previous.width, width)
+        and same_dimension(previous.height, height) and previous.scale == scale then return true end
     if runtime.tooltip_profile_active then
         local reason = not previous and "no-stamp"
             or previous.epoch ~= epoch and "build"
@@ -825,8 +839,8 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
             or previous.instance ~= tooltip.uaForeverSessionKey and "session"
             or previous.owner ~= owner and "owner"
             or previous.count ~= count and "lines"
-            or previous.width ~= width and "width"
-            or previous.height ~= height and "height"
+            or not same_dimension(previous.width, width) and "width"
+            or not same_dimension(previous.height, height) and "height"
             or previous.scale ~= scale and "scale" or "unknown"
         runtime.tooltip_profile_end("layout.pass." .. reason,
             runtime.tooltip_profile_begin(), tooltip, nil, {

@@ -271,7 +271,7 @@ runtime.start_tooltip_profile = function ()
     local fojji = addon_table.use("fojji")
     local fojji_namespace = _G.FojjiCoreNS
     tooltip_profile = {
-        version = 1, patch = "tooltip-layout-results-2026-11-10", status = "recording",
+        version = 1, patch = "tooltip-geometry-epsilon-2026-11-10", status = "recording",
         build = utils.build_version, buildNumber = utils.build_number,
         overlappingStages = true, stages = {},
         clockResets = 0, skipFirstFrame = true,
