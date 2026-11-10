@@ -474,17 +474,19 @@ local function translate_journal(addon)
     end
 end
 
--- Recover effects left native after the Item post-call. Retry only known
--- effect templates at Fojji's completed Show boundary, using
--- the item owner's claims so Shift and subsequent native rebuilds retain them.
-local function translate_native_effect(tooltip, region, source, side, index, owner)
+-- Recover native item labels and effects at Fojji's completed Show boundary.
+-- Item vocabulary takes precedence over unrelated spell names (Sword, etc.).
+-- Keep the item owner's claims so Shift and native rebuilds retain the source.
+local function translate_native_item_line(tooltip, region, source, side, index, owner)
+    local catalog = addon_table.forever_tooltip_ui
+    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    if not catalog.item_line_exact[clean]
+        and not clean:match("^Equip:%s") and not clean:match("^Use:%s")
+        and not clean:match("^Chance on hit:%s") then return nil end
     if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
         or not tooltip.uaForeverSessionKey or not tooltip.uaForeverGeneration
         or not options.can_translate("translate_item")
         or options.section_enabled and not options.section_enabled("item_details") then return false end
-    local clean = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    if not clean:match("^Equip:%s") and not clean:match("^Use:%s")
-        and not clean:match("^Chance on hit:%s") then return false end
     local rows = native_effect_rows[tooltip]
     if not rows or rows.owner ~= owner or rows.generation ~= tooltip.uaForeverGeneration
         or rows.instance ~= tooltip.uaForeverSessionKey then
@@ -496,7 +498,7 @@ local function translate_native_effect(tooltip, region, source, side, index, own
     local row = rows[key]
     if not row or row.source ~= source or row.region ~= region then
         row = { source = source, region = region,
-            translated = addon_table.forever_tooltip_ui.translate_item_line(source) or false }
+            translated = catalog.translate_item_line(source) or false }
         rows[key] = row
     end
     if not row.translated then return false end
@@ -535,16 +537,22 @@ local function fit_tooltip()
             if region and mutable(region) and region:IsShown() then
                 local source = region:GetText()
                 if safe_string(source) then
-                    local translated = translate(source)
-                    if translated ~= source then
-                        region:SetText(translated)
-                        runtime.ensure_font(region)
-                        changed = true
-                    elseif item then
-                        changed = translate_native_effect(tooltip, region, source,
-                            side, index, owner) or changed
+                    local item_line
+                    if item and index > 1 then
+                        item_line = translate_native_item_line(tooltip, region, source,
+                            side, index, owner)
+                    end
+                    if item_line ~= nil then
+                        changed = item_line or changed
                     else
-                        runtime.ensure_font(region)
+                        local translated = translate(source)
+                        if translated ~= source then
+                            region:SetText(translated)
+                            runtime.ensure_font(region)
+                            changed = true
+                        elseif not item then
+                            runtime.ensure_font(region)
+                        end
                     end
                 end
             end

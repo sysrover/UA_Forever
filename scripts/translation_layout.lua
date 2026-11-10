@@ -16,6 +16,7 @@ local TOOLTIP_MAX_WIDTH = 300
 local TOOLTIP_HINT_MAX_WIDTH = 420
 local TOOLTIP_COMPACT_WIDTH = 180
 local ITEM_LAYOUT_EPSILON = 0.5
+local ITEM_RIGHT_TEXT_PADDING = 2
 local TOOLTIP_SIDES = { "Left", "Right" }
 local TOOLTIP_FRAME_READS = { "GetOwner", "GetEffectiveScale" }
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
@@ -386,9 +387,10 @@ end
 
 -- Fit completed tooltips, including both columns and late native writes.
 -- Per-write height deltas are unreliable while Blizzard is building rows.
-local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width)
+local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
     if not is_tooltip(tooltip) or tooltip.uaForeverShowOriginal
         or not is_shown(tooltip) then return false end
+    single_line_right = single_line_right or prose_width ~= nil
     local generation = tooltip.uaForeverGeneration
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
     if not owner_ok or is_secret(owner) then return false end
@@ -398,7 +400,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
             local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
             if ok and not is_secret(current_owner) and current_owner == owner
                 and tooltip.uaForeverGeneration == generation then
-                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width)
+                fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
             end
         end
         return false
@@ -409,7 +411,7 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
     local count = safe_dimension(tooltip, "NumLines")
     local width = safe_dimension(tooltip, "GetWidth")
     if not name or not count or not width then return false end
-    local rows, required_width = {}, width
+    local rows, required_width, minimum_right_width = {}, width, 0
     for index = 1, count do
         local row = {}
         for _, side in ipairs(TOOLTIP_SIDES) do
@@ -420,12 +422,20 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
                 text = runtime.safe_string_or_nil(text)
                 -- Pooled right FontStrings may stay shown without text. They
                 -- must not turn a prose row into a two-column layout or abort it.
-                local empty_right = prose_width and side == "Right"
+                local empty_right = single_line_right and side == "Right"
                     and (not text or text:match("^%s*$") ~= nil)
                 if not empty_right then
                     if not text or not runtime.can_write_text(region) then return false end
                     row[side] = region
                     row[side .. "Empty"] = text:match("^%s*$") ~= nil
+                    if single_line_right and side == "Right" then
+                        -- A pooled right label may already be squeezed/wrapped
+                        -- by native layout. Measure it as one complete line,
+                        -- then anchor its full width to the same right edge.
+                        if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, false) end
+                        if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, false) end
+                        if type(region.SetWidth) == "function" then pcall(region.SetWidth, region, 0) end
+                    end
                 end
             end
         end
@@ -436,7 +446,16 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
             or required_width < prose_width + TOOLTIP_TEXT_PADDING) then
             row.LeftWidth = unbounded_text_width(row.Left) or 0
         end
-        if row.Right then row.RightWidth = unbounded_text_width(row.Right) or 0 end
+        if row.Right then
+            row.RightWidth = unbounded_text_width(row.Right) or 0
+            if single_line_right then
+                if row.RightWidth <= 0 then return false end
+                row.RightWidth = math.ceil(row.RightWidth) + ITEM_RIGHT_TEXT_PADDING
+                minimum_right_width = math.max(minimum_right_width,
+                    row.RightWidth + TOOLTIP_TEXT_PADDING
+                        + (row.Left and 12 + math.min(row.LeftWidth or 0, TOOLTIP_COMPACT_WIDTH) or 0))
+            end
+        end
         local left_width = row.LeftWidth or 0
         if prose_width and index > 1 and not row.Right then
             left_width = math.min(left_width, prose_width)
@@ -449,13 +468,18 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
     local screen_width = safe_dimension(_G.UIParent, "GetWidth")
     local maximum = screen_width and math.min(maximum_width, screen_width - 32)
         or maximum_width
+    if single_line_right and screen_width then
+        maximum = math.min(screen_width - 32, math.max(maximum, minimum_right_width))
+    end
     width = math.min(maximum, math.max(width, required_width))
     if width <= TOOLTIP_TEXT_PADDING
         or type(tooltip.SetWidth) ~= "function"
         or not pcall(tooltip.SetWidth, tooltip, width) then return false end
     local available = width - TOOLTIP_TEXT_PADDING
     for index, row in ipairs(rows) do
-        local right_width = row.Right and math.min(row.RightWidth, available * 0.45) or 0
+        local right_limit = single_line_right and math.max(1, available - (row.Left and 13 or 0))
+            or available * 0.45
+        local right_width = row.Right and math.min(row.RightWidth, right_limit) or 0
         for _, side in ipairs(TOOLTIP_SIDES) do
             local region = row[side]
             if region and row[side .. "Empty"] then
@@ -469,12 +493,15 @@ local function fit_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_
                     text_width = math.min(text_width, prose_width)
                 end
                 row[side .. "TargetWidth"] = math.max(1, text_width)
+                local wraps = not (single_line_right and side == "Right"
+                    and row.RightWidth <= right_limit)
+                row[side .. "Wrap"] = wraps
                 if type(region.SetWidth) == "function" then
                     pcall(region.SetWidth, region, math.max(1, text_width))
                 end
                 if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
-                if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
-                if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, true) end
+                if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, wraps) end
+                if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, wraps) end
                 if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
                 local height = safe_dimension(region, "GetStringHeight")
                 if not height or height <= 0 then
@@ -553,7 +580,7 @@ end
 
 -- Call only after an integration has established ownership of this tooltip.
 layout.fit_addon_tooltip = function (tooltip)
-    return fit_complete_tooltip(tooltip, 460, true)
+    return fit_complete_tooltip(tooltip, 460, true, nil, true)
 end
 
 layout.fit_settings_tooltip = function (tooltip)
@@ -725,9 +752,10 @@ local function apply_item_layout(tooltip, plan)
                     if not ok then return false, "region.width" end
                     ok, writable = set_layout_value(region, "GetMaxLines", "SetMaxLines", 0, writable)
                     if not ok then return false, "region.max-lines" end
-                    ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", true, writable)
+                    local wraps = row[side .. "Wrap"] ~= false
+                    ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", wraps, writable)
                     if not ok then return false, "region.word-wrap" end
-                    ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", true, writable)
+                    ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", wraps, writable)
                     if not ok then return false, "region.non-space-wrap" end
                     local height = safe_dimension(region, "GetHeight")
                     if not height then return false, "region.height-read" end
