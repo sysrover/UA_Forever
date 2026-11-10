@@ -642,6 +642,7 @@ adapter.translate_appended_lines = function (tooltip, first_index)
             ) or applied
         end
     end
+    if applied then layout.request_item_tooltip(tooltip) end
     return applied
 end
 
@@ -715,7 +716,7 @@ adapter.add = function (tooltip, data, fallback_id)
     tooltip.uaForeverItemIdentity = key
     local applied, line_count = translate_structured(tooltip, data, state)
     if line_count == 0 then applied = translate_title_fallback(tooltip, state) end
-    if applied then layout.fit_item_tooltip(tooltip) end
+    if applied then layout.request_item_tooltip(tooltip) end
     local result = {
         status = applied and "complete" or "unchanged",
         applied = applied,

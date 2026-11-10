@@ -1,6 +1,7 @@
 local _, addon_table = ...
 local layout = addon_table.use("translation_layout")
 local runtime = addon_table.use("translation_runtime")
+local scheduler = addon_table.use("translation_scheduler")
 local strings = addon_table.use("strings")
 
 local BUTTON_TEXT_PADDING = 24
@@ -515,6 +516,9 @@ layout.fit_settings_tooltip = function (tooltip)
 end
 
 layout.restore_tooltip_rows = function (tooltip)
+    tooltip.uaForeverItemLayout = nil
+    pending_tooltip_layout[tooltip] = nil
+    scheduler.cancel_surface(tooltip, "item-layout")
     local originals = tooltip_row_anchors[tooltip]
     tooltip_row_anchors[tooltip] = nil
     if not originals or runtime.combat_locked() then return end
@@ -549,11 +553,124 @@ layout.fit_crafted_item_tooltip = function (tooltip)
     return fit_complete_tooltip(tooltip, 420, true)
 end
 
+-- Compare public inputs AND fitted geometry. Text alone cannot detect native
+-- rebuilds resetting widths, wrapping or anchors on an otherwise identical item.
+local missing_layout_value = {}
+local function snapshot_values(snapshot, object, method, count, optional, ...)
+    local ok, callback = pcall(function () return object[method] end)
+    if not ok or is_secret(callback) then return false end
+    if type(callback) ~= "function" then
+        if not optional then return false end
+        for _ = 1, count do snapshot[#snapshot + 1] = missing_layout_value end
+        return true
+    end
+    local values = { pcall(callback, object, ...) }
+    if not values[1] then return false end
+    for index = 2, count + 1 do
+        local value = values[index]
+        if is_secret(value) then return false end
+        snapshot[#snapshot + 1] = value == nil and missing_layout_value or value
+    end
+    return true
+end
+
+local function item_layout_snapshot(tooltip)
+    local name = object_name(tooltip)
+    local count = safe_dimension(tooltip, "NumLines")
+    if not name or not count then return nil end
+    local snapshot = { tooltip.uaForeverGeneration or missing_layout_value,
+        tooltip.uaForeverSessionKey or missing_layout_value, count }
+    for _, method in ipairs({ "GetOwner", "GetWidth", "GetHeight", "GetEffectiveScale" }) do
+        if not snapshot_values(snapshot, tooltip, method, 1) then return nil end
+    end
+    if _G.UIParent and not snapshot_values(snapshot, _G.UIParent, "GetWidth", 1) then return nil end
+    for index = 1, count do
+        for _, side in ipairs({ "Left", "Right" }) do
+            local region = _G[name .. "Text" .. side .. index]
+            snapshot[#snapshot + 1] = region or missing_layout_value
+            if region and not snapshot_values(snapshot, region, "IsShown", 1) then return nil end
+            local shown = region and snapshot[#snapshot] == true
+            if shown then
+                if not snapshot_values(snapshot, region, "GetText", 1)
+                    or not snapshot_values(snapshot, region, "GetFont", 3)
+                    or not snapshot_values(snapshot, region, "GetWidth", 1)
+                    or not snapshot_values(snapshot, region, "GetHeight", 1) then return nil end
+                for _, method in ipairs({ "GetMaxLines", "CanWordWrap", "CanNonSpaceWrap" }) do
+                    if not snapshot_values(snapshot, region, method, 1, true) then return nil end
+                end
+                local points = safe_dimension(region, "GetNumPoints")
+                if not points then return nil end
+                snapshot[#snapshot + 1] = points
+                for point = 1, points do
+                    if not snapshot_values(snapshot, region, "GetPoint", 5, false, point) then return nil end
+                end
+            end
+        end
+    end
+    return snapshot
+end
+
+local function same_item_layout(previous, current)
+    if not previous or not current or #previous ~= #current then return false end
+    for index, value in ipairs(previous) do
+        if value ~= current[index] then return false end
+    end
+    return true
+end
+
+local function item_layout_current(tooltip, generation, instance, owner)
+    if tooltip.uaForeverKind ~= "item" or tooltip.uaForeverShowOriginal
+        or tooltip.uaForeverGeneration ~= generation
+        or tooltip.uaForeverSessionKey ~= instance or not is_shown(tooltip) then return false end
+    local ok, current_owner = pcall(tooltip.GetOwner, tooltip)
+    return ok and not is_secret(current_owner) and current_owner == owner
+end
+
 layout.fit_item_tooltip = function (tooltip)
     if not tooltip or tooltip.uaForeverKind ~= "item"
         or tooltip.uaForeverShowOriginal
-        or not has_current_translation(tooltip) then return false end
-    return fit_complete_tooltip(tooltip, 420, true)
+        or not is_shown(tooltip) then return false end
+    if runtime.combat_locked() then
+        local generation, instance = tooltip.uaForeverGeneration, tooltip.uaForeverSessionKey
+        local ok, owner = pcall(tooltip.GetOwner, tooltip)
+        if not ok or is_secret(owner) then return false end
+        pending_tooltip_layout[tooltip] = function ()
+            pending_tooltip_layout[tooltip] = nil
+            if item_layout_current(tooltip, generation, instance, owner) then
+                layout.fit_item_tooltip(tooltip)
+            end
+        end
+        return false
+    end
+    pending_tooltip_layout[tooltip] = nil
+    if not has_current_translation(tooltip) then return false end
+    if tooltip.uaForeverItemLayout
+        and same_item_layout(tooltip.uaForeverItemLayout, item_layout_snapshot(tooltip)) then return true end
+    tooltip.uaForeverItemLayout = nil
+    local fitted = fit_complete_tooltip(tooltip, 420, true)
+    if fitted then tooltip.uaForeverItemLayout = item_layout_snapshot(tooltip) end
+    return fitted
+end
+
+-- Row writers and Show may all run in one native rebuild. Coalesce their
+-- requests before measuring or mutating any geometry, including late deltas.
+layout.request_item_tooltip = function (tooltip)
+    if not tooltip or tooltip.uaForeverKind ~= "item"
+        or tooltip.uaForeverShowOriginal then return false end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or is_secret(owner) then return false end
+    local generation, instance = tooltip.uaForeverGeneration, tooltip.uaForeverSessionKey
+    scheduler.request({
+        id = "tooltip-item-layout:" .. tostring(tooltip),
+        surface = tooltip, generation = generation, instance = instance,
+        task_kind = "item-layout", delay = 0,
+        callback = function ()
+            if item_layout_current(tooltip, generation, instance, owner) then
+                layout.fit_item_tooltip(tooltip)
+            end
+        end,
+    })
+    return true
 end
 
 layout.fit_quest_pin_tooltip = function (tooltip)
@@ -583,7 +700,7 @@ end
 layout.fit_translated_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or tooltip.uaForeverShowOriginal then return false end
     local kind = tooltip.uaForeverKind
-    if kind == "item" then return layout.fit_item_tooltip(tooltip) end
+    if kind == "item" then return layout.request_item_tooltip(tooltip) end
     if kind == "quest" and tooltip.uaForeverQuestPinOwner then
         return layout.fit_quest_pin_tooltip(tooltip)
     end

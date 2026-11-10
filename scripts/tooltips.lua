@@ -2136,6 +2136,8 @@ local function prepare_tooltip_frames()
                     hooks.region(tooltip, method, function (self)
                         if self.uaForeverKind == "npc" then
                             schedule_tooltip_finalize(self)
+                        elseif self.uaForeverKind == "item" then
+                            layout.request_item_tooltip(self)
                         end
                     end)
                 end

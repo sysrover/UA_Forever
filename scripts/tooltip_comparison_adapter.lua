@@ -165,7 +165,7 @@ comparison_adapter.install = function (api)
         local applied = runtime.apply(region, spec)
         if applied then
             remember_comparison_claim(tooltip, region)
-            layout.fit_item_tooltip(tooltip)
+            layout.request_item_tooltip(tooltip)
         end
         return applied
     end
@@ -365,8 +365,13 @@ comparison_adapter.install = function (api)
         hooks.region(tooltip, "ClearLines", function (self)
             self.uaForeverComparisonWriteReady = false
         end)
+        hooks.region(tooltip, "Show", layout.request_item_tooltip)
+        hooks.region(tooltip, "AddDoubleLine", function (self)
+            if self.uaForeverComparisonWriteReady then layout.request_item_tooltip(self) end
+        end)
         hooks.region(tooltip, "AddLine", function (self, native)
             if not self.uaForeverComparisonWriteReady then return end
+            layout.request_item_tooltip(self)
             local count_ok, count = pcall(self.NumLines, self)
             count = count_ok and safe_number(count) or nil
             if not count or count < 1 then return end
@@ -424,7 +429,7 @@ comparison_adapter.install = function (api)
                 end
             end
         end
-        layout.fit_item_tooltip(tooltip)
+        layout.request_item_tooltip(tooltip)
         return true
     end
     
