@@ -6,6 +6,7 @@
     <Script file="dev_log.lua"/>
     <Script file="auto_scan.lua"/>
     <Script file="utils.lua"/>
+    <Script file="ukrainian_grammar.lua"/>
     <Script file="spell_client_db.lua"/>
     <Script file="spell_template_renderer.lua"/>
     <Script file="item_client_db.lua"/>

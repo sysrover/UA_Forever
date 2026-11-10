@@ -270,6 +270,16 @@ tooltip.format = {
     dynamic_value_range = function (value)
         return (value:gsub("([%d%.,]+)%s+to%s+([%d%.,]+)", "%1–%2"))
     end,
+    dynamic_token_value = function (identity, value, previous_text)
+        if identity ~= "$z" then return nil end
+        local translated = addonTable.zone and addonTable.zone[value]
+        if type(translated) ~= "string" then return value end
+        if previous_text:match("^до%s*$") or previous_text:match("%sдо%s*$") then
+            return addonTable.use("ukrainian_grammar").location_genitive(translated)
+                or ("локації «" .. translated .. "»")
+        end
+        return translated
+    end,
     aura_time_remaining = function (amount, unit)
         local translated_unit = tooltip.dynamic_value_words[unit:lower()]
         if not translated_unit then return nil end

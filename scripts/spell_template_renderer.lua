@@ -64,15 +64,19 @@ local function match_dynamic_token(text)
         or text:match("^%$%d*[A-Za-z]")
 end
 
-local function localize_dynamic_value(value)
+local function localize_dynamic_value(value, identity, previous_text)
     -- Native whitespace can be consumed by either a value or its adjacent
     -- literal. Normalize that boundary so equivalent matches do not veto a
     -- translation as ambiguous; the translated template owns its spacing.
     value = value:match("^%s*(.-)%s*$")
+    local format = tooltip_catalog.format
+    if format and type(format.dynamic_token_value) == "function" then
+        local translated = format.dynamic_token_value(identity, value, previous_text)
+        if translated then return translated end
+    end
     local phrases = tooltip_catalog.dynamic_value_phrases
     local translated = phrases and phrases[value:lower()]
     if translated then return translated end
-    local format = tooltip_catalog.format
     if format and type(format.dynamic_value_range) == "function" then
         value = format.dynamic_value_range(value)
     end
@@ -368,7 +372,8 @@ local function render_nodes(nodes, decisions, values, decorations)
             if node.tooltip_spell_id then
                 value = render_referenced_tooltip(node.tooltip_spell_id, value)
             end
-            output[#output + 1] = node.raw and value or localize_dynamic_value(value)
+            output[#output + 1] = node.raw and value or localize_dynamic_value(
+                value, node.identity, output[#output] or "")
         elseif node.kind == "spell_name" then
             local value = client_db.get_name(node.spell_id)
             if not value then return nil end
