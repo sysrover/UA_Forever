@@ -52,6 +52,7 @@ local function finish(session, frame, ok, ...)
         row.selfMs = row.selfMs + exclusive
         row.maxMs = math.max(row.maxMs, inclusive)
         row.maxSelfMs = math.max(row.maxSelfMs, exclusive)
+        if row.calls == 1 then row.firstMs, row.firstSelfMs = inclusive, exclusive end
         if not ok then row.errors = row.errors + 1 end
         if inclusive > 5 then row.over5ms = row.over5ms + 1 end
         if inclusive > 16 then row.over16ms = row.over16ms + 1 end
@@ -124,9 +125,15 @@ profiler.wrap = function (label, callback, event_index)
     return function (...)
         if not current then return callback(...) end
         local key = label
-        if event_index then
+        if event_index and event_index <= select("#", ...) then
             local event = public_string(select(event_index, ...))
-            if event then key = label .. ":" .. event:sub(1, 80) end
+            if event then
+                key = label .. ":" .. event:sub(1, 80)
+                if event == "ADDON_LOADED" and event_index < select("#", ...) then
+                    local addon = public_string(select(event_index + 1, ...))
+                    if addon then key = key .. ":" .. addon:sub(1, 80) end
+                end
+            end
         end
         return profiler.call(key, callback, ...)
     end
@@ -264,13 +271,14 @@ profiler.start = function (seconds, on_saved)
     local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
-    local report = { version = 1, patch = "addon-profile-2026-11-10", status = "recording",
+    local report = { version = 1, patch = "addon-profile-cold-load-2026-11-10", status = "recording",
         requestedSeconds = seconds, build = utils.build_version, buildNumber = utils.build_number,
         calls = {}, labelCount = 0, labelDrops = 0, depthDrops = 0, clockResets = 0,
         instrumentationMs = 0, collectorMs = 0, slowCalls = {}, slowIntervals = {},
         nestedTimesOverlap = true, selfTimeIsAdditive = true,
         frameAttribution = "callbacks between collector ticks; not an exact frame boundary",
         localFunctions = "included in nearest measured caller; not individually enumerated",
+        firstCallMeaning = "first completed call in this capture; ADDON_LOADED labels identify module loads",
         coverage = { modules = {}, exportedFunctions = 0 },
         frames = { count = 0, totalMs = 0, maxMs = 0, over33ms = 0, over50ms = 0 },
         settings = { enabled = account.enabled, dev = account.dev_mode,
@@ -321,7 +329,7 @@ profiler.stop = function (reason)
     local ranked = {}
     for label, row in pairs(report.calls) do
         ranked[#ranked + 1] = { label = label, calls = row.calls, selfMs = row.selfMs,
-            totalMs = row.totalMs, maxMs = row.maxMs }
+            totalMs = row.totalMs, maxMs = row.maxMs, firstMs = row.firstMs }
     end
     table.sort(ranked, function (left, right) return left.selfMs > right.selfMs end)
     report.topSelf = {}

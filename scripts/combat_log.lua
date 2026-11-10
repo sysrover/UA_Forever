@@ -7,6 +7,51 @@ local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
 local templates, terms, term_heads, event_templates = {}, {}, {}, {}
 
+-- Event families from build 1.60.1.70862 GlobalStrings. All 212 ACTION_*_FULL_TEXT
+-- keys use one of these families and three suffixes. Probe this bounded set
+-- directly, including names that are not loaded yet; never enumerate _G.
+local action_families = [[
+DAMAGE_SHIELD DAMAGE_SHIELD_MISSED DAMAGE_SHIELD_MISSED_BLOCK DAMAGE_SHIELD_MISSED_DEFLECT
+DAMAGE_SHIELD_MISSED_DODGE DAMAGE_SHIELD_MISSED_EVADED DAMAGE_SHIELD_MISSED_IMMUNE
+DAMAGE_SHIELD_MISSED_MISS DAMAGE_SHIELD_MISSED_PARRY DAMAGE_SHIELD_MISSED_RESIST
+DAMAGE_SPLIT DAMAGE_SPLIT_ABSORBED DAMAGE_SPLIT_RESULT ENCHANT_APPLIED ENCHANT_REMOVED
+ENVIRONMENTAL_DAMAGE ENVIRONMENTAL_DAMAGE_DROWNING ENVIRONMENTAL_DAMAGE_FALLING
+ENVIRONMENTAL_DAMAGE_FATIGUE ENVIRONMENTAL_DAMAGE_FIRE ENVIRONMENTAL_DAMAGE_LAVA
+ENVIRONMENTAL_DAMAGE_SLIME PARTY_KILL PARTY_KILL_UNCONSCIOUS RANGE_DAMAGE RANGE_MISSED
+RANGE_MISSED_ABSORB RANGE_MISSED_BLOCK RANGE_MISSED_DEFLECT RANGE_MISSED_DODGE
+RANGE_MISSED_EVADE RANGE_MISSED_IMMUNE RANGE_MISSED_MISFIRE RANGE_MISSED_MISS
+RANGE_MISSED_PARRY RANGE_MISSED_RESIST SPELL_AURA_APPLIED_BUFF SPELL_AURA_APPLIED_BUFF_WITH_POINTS
+SPELL_AURA_APPLIED_DEBUFF SPELL_AURA_APPLIED_DEBUFF_WITH_POINTS SPELL_AURA_APPLIED_DOSE_BUFF
+SPELL_AURA_APPLIED_DOSE_DEBUFF SPELL_AURA_BROKEN_BUFF SPELL_AURA_BROKEN_DEBUFF
+SPELL_AURA_BROKEN_SPELL_BUFF SPELL_AURA_BROKEN_SPELL_DEBUFF SPELL_AURA_REFRESH_BUFF
+SPELL_AURA_REFRESH_BUFF_WITH_POINTS SPELL_AURA_REFRESH_DEBUFF SPELL_AURA_REFRESH_DEBUFF_WITH_POINTS
+SPELL_AURA_REMOVED SPELL_AURA_REMOVED_BUFF SPELL_AURA_REMOVED_BUFF_WITH_POINTS
+SPELL_AURA_REMOVED_DEBUFF SPELL_AURA_REMOVED_DEBUFF_WITH_POINTS SPELL_AURA_REMOVED_DOSE_BUFF
+SPELL_AURA_REMOVED_DOSE_DEBUFF SPELL_BUILDING_DAMAGE SPELL_BUILDING_HEAL SPELL_CAST_FAILED
+SPELL_CAST_START SPELL_CAST_SUCCESS SPELL_CREATE SPELL_DAMAGE SPELL_DISPEL_BUFF SPELL_DISPEL_DEBUFF
+SPELL_DISPEL_FAILED SPELL_DRAIN SPELL_DURABILITY_DAMAGE SPELL_DURABILITY_DAMAGE_ALL
+SPELL_EMPOWER_END SPELL_EMPOWER_INTERRUPT SPELL_EMPOWER_START SPELL_ENERGIZE SPELL_EXTRA_ATTACKS
+SPELL_HEAL SPELL_INSTAKILL SPELL_INSTAKILL_UNCONSCIOUS SPELL_INTERRUPT SPELL_LEECH SPELL_MISSED
+SPELL_MISSED_ABSORB SPELL_MISSED_BLOCK SPELL_MISSED_DEFLECT SPELL_MISSED_DODGE SPELL_MISSED_EVADE
+SPELL_MISSED_IMMUNE SPELL_MISSED_MISFIRE SPELL_MISSED_MISS SPELL_MISSED_PARRY SPELL_MISSED_REFLECT
+SPELL_MISSED_RESIST SPELL_PERIODIC_DAMAGE SPELL_PERIODIC_DRAIN SPELL_PERIODIC_ENERGIZE
+SPELL_PERIODIC_HEAL SPELL_PERIODIC_LEECH SPELL_PERIODIC_MISSED SPELL_PERIODIC_MISSED_ABSORB
+SPELL_PERIODIC_MISSED_BLOCK SPELL_PERIODIC_MISSED_DEFLECTED SPELL_PERIODIC_MISSED_DODGE
+SPELL_PERIODIC_MISSED_EVADED SPELL_PERIODIC_MISSED_IMMUNE SPELL_PERIODIC_MISSED_MISS
+SPELL_PERIODIC_MISSED_PARRY SPELL_PERIODIC_MISSED_RESIST SPELL_RESURRECT SPELL_STOLEN
+SPELL_STOLEN_BUFF SPELL_STOLEN_DEBUFF SPELL_SUMMON SWING_DAMAGE SWING_MISSED SWING_MISSED_ABSORB
+SWING_MISSED_BLOCK SWING_MISSED_DEFLECT SWING_MISSED_DODGE SWING_MISSED_EVADE SWING_MISSED_IMMUNE
+SWING_MISSED_MISFIRE SWING_MISSED_MISS SWING_MISSED_PARRY SWING_MISSED_RESIST
+UNIT_BECOMES_UNCONSCIOUS UNIT_DESTROYED UNIT_DIED UNIT_DISSIPATES
+]]
+local action_tags, template_sources, power_sources = {}, {}, {}
+local vocabulary_ready, prepared_terms
+for family in action_families:gmatch("%S+") do
+    for _, suffix in ipairs({ "", "_NO_SOURCE", "_NO_DEST" }) do
+        action_tags[#action_tags + 1] = "ACTION_" .. family .. "_FULL_TEXT" .. suffix
+    end
+end
+
 local function enabled()
     return options.can_translate("translate_chat")
         and (not options.section_enabled or options.section_enabled("combat_log"))
@@ -61,22 +106,33 @@ local function compile_template(source)
 end
 
 local function prepare_vocabulary()
+    local changed = not vocabulary_ready or prepared_terms ~= catalog.terms
+    for _, tag in ipairs(action_tags) do
+        local source = runtime.safe_string_or_nil(rawget(_G, tag))
+        if template_sources[tag] ~= source then
+            template_sources[tag], changed = source, true
+        end
+    end
+    local power = _G.COMBAT_LOG_POWER_TYPE_STRINGS or {}
+    for key in pairs(power_sources) do
+        if runtime.safe_string_or_nil(power[key]) == nil then power_sources[key], changed = nil, true end
+    end
+    for key, value in pairs(power) do
+        local source = runtime.safe_string_or_nil(value)
+        if power_sources[key] ~= source then power_sources[key], changed = source, true end
+    end
+    if not changed then return end
     templates, terms, term_heads, event_templates = {}, {}, {}, {}
     local seen = {}
-    for tag, value in pairs(_G) do
-        if type(tag) == "string" and tag:match("^ACTION_.+_FULL_TEXT") then
-            local source = runtime.safe_string_or_nil(value)
-            if source then
-                local compiled = seen[source]
-                if compiled == nil then
-                    compiled = compile_template(source)
-                    seen[source] = compiled or false
-                    if compiled then compiled.events = {}; templates[#templates + 1] = compiled end
-                end
-                if compiled then
-                    compiled.events[tag:match("^ACTION_(.-)_FULL_TEXT")] = true
-                end
-            end
+    for tag, source in pairs(template_sources) do
+        local compiled = seen[source]
+        if compiled == nil then
+            compiled = compile_template(source)
+            seen[source] = compiled or false
+            if compiled then compiled.events = {}; templates[#templates + 1] = compiled end
+        end
+        if compiled then
+            compiled.events[tag:match("^ACTION_(.-)_FULL_TEXT")] = true
         end
     end
     table.sort(templates, function(a, b)
@@ -87,9 +143,8 @@ local function prepare_vocabulary()
         terms[#terms + 1] = { source = source, translated = translated }
     end
     -- Resource wording already belongs to the existing UI catalog.
-    for _, value in pairs(_G.COMBAT_LOG_POWER_TYPE_STRINGS or {}) do
-        local source = runtime.safe_string_or_nil(value)
-        local translated = source and resolver.find_ui(source)
+    for _, source in pairs(power_sources) do
+        local translated = resolver.find_ui(source)
         if translated and translated ~= source and not catalog.terms[source] then
             terms[#terms + 1] = { source = source, translated = translated }
         end
@@ -100,6 +155,7 @@ local function prepare_vocabulary()
         term_heads[head] = term_heads[head] or {}
         table.insert(term_heads[head], term)
     end
+    vocabulary_ready, prepared_terms = true, catalog.terms
 end
 
 local function translate_terms(text)

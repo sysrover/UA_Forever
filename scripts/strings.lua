@@ -31,11 +31,6 @@ local combat_text_event_globals = {
     REFLECT = "COMBAT_TEXT_REFLECT",
 }
 local combat_text_originals = {}
-local combat_text_catalog_sources = {
-    [" (%d blocked)"] = true,
-    ["%s (Block)"] = true,
-    ["Changed Target!"] = true,
-}
 local combat_text_catalog_globals = {}
 -- Display globals read by the build-70205 combat renderer and native threat
 -- warnings. Wording stays in the UI catalog, including formatted templates.
@@ -59,16 +54,14 @@ local function discover_combat_text_catalog_globals()
     local catalog = addon_table.forever_ui
     if type(catalog) ~= "table" then return end
 
-    -- Some world combat messages are read directly from unnamed client
-    -- globals before a FontString or CombatText_AddMessage callback exists.
-    -- Match only known exact source strings so this does not mutate unrelated
-    -- display globals or rely on a client-version-specific global name.
-    for global_name, source in pairs(_G) do
-        if type(global_name) == "string" and type(source) == "string"
-            and combat_text_catalog_globals[global_name] == nil then
+    -- Build 70862 GlobalStrings puts every supported combat source under
+    -- these known names, including BLOCK_TRAILER, COMBAT_TEXT_BLOCK_REDUCED
+    -- and COMBAT_THREAT_DECREASE_0/1. Never scan all globals on window loads.
+    -- Missing names are retried directly when their UI module arrives later.
+    for global_name in pairs(combat_text_catalog_names) do
+        local source = rawget(_G, global_name)
+        if type(source) == "string" and combat_text_catalog_globals[global_name] == nil then
             local ok, ukrainian = pcall(function ()
-                if not combat_text_catalog_names[global_name]
-                    and not combat_text_catalog_sources[source] then return nil end
                 local value = catalog[source]
                 if type(value) ~= "string" or value == "" or value == source then
                     return nil
