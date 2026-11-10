@@ -443,20 +443,37 @@ local function quest_log_titles(scroll)
         for button in header_pool:EnumerateActive() do
             local ok, region = pcall(button.GetFontString, button)
             region = ok and region or nil
-            local source = safe_text(region)
+            local current = safe_text(region)
+            local previous = region and runtime.get(region)
+            local slot = "quest-header:" .. tostring(button.questLogIndex) .. ".name"
+            local retained = previous and previous.owner == "quest-log" and previous.slot == slot
+                and (current == previous.source or current == previous.translated)
+            local source = retained and current == previous.translated and previous.source or current
             local translated = source and entries.get_glossary_text(source, source)
             local class_forms = source and addon_table.class
                 and addon_table.class[source:lower():gsub(" ", "")]
             if translated == source and class_forms and class_forms["н"] then
                 translated = utils.cap(class_forms["н"][1])
             end
-            if region then runtime.invalidate(region) end
+            if region and not retained then runtime.invalidate(region) end
             if source and safe_string(translated) and translated ~= source then
-                changed = runtime.apply(region, {
-                    owner = "quest-log", slot = "quest-header:" .. tostring(button.questLogIndex) .. ".name",
+                local old_ok, old_height = false, nil
+                if current ~= translated then
+                    old_ok, old_height = pcall(region.GetStringHeight, region)
+                    old_height = old_ok and safe_number(old_height) or nil
+                end
+                local applied = runtime.apply(region, {
+                    owner = "quest-log", slot = slot,
                     source = source, translated = translated,
                     option = "translate_quest", priority = runtime.PRIORITY.CONTEXT,
-                }) or changed
+                    reapply_cached = true,
+                })
+                if applied and current ~= translated then
+                    local new_ok, new_height = pcall(region.GetStringHeight, region)
+                    new_height = new_ok and safe_number(new_height) or nil
+                    if not old_height or not new_height
+                        or math.abs(new_height - old_height) >= 0.5 then changed = true end
+                end
             end
         end
     end

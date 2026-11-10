@@ -46,6 +46,7 @@ local push_code_group_to_table = function (tbl, name_key, case_key, text)
     end
 end
 
+local prepared_codes
 local function prepare_codes(name, name_cases, race, class, is_male)
     local at = addon_table
     local sex = is_male and 1 or 2
@@ -110,6 +111,7 @@ local function prepare_codes(name, name_cases, race, class, is_male)
     codes["{СТАТЬ:(.-):(.-)}"] = function (a, b) return is_male and a or b end
 
     at.codes = codes
+    prepared_codes = codes
 end
 
 local function prepare_glossary()
@@ -308,8 +310,15 @@ local function make_text(text)
         return
     end
 
+    -- prepare_codes emits only brace-delimited patterns. Ordinary quest names
+    -- and paragraphs need no pass over that entire substitution vocabulary.
+    -- Preserve the general path if a caller supplies a different code table.
+    local braced = prepared_codes and addon_table.codes == prepared_codes
+    if braced and not text:find("{", 1, true) then return text end
     for k, v in pairs(addon_table.codes) do
-        text = text:gsub(k, v)
+        local count
+        text, count = text:gsub(k, v)
+        if braced and count > 0 and not text:find("{", 1, true) then break end
     end
 
     return text
