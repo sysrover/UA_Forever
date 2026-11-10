@@ -1,6 +1,7 @@
 local _, addon_table = ...
 local profiler = addon_table.use("performance_profile")
 local CreateFrame = profiler.frame_factory and profiler.frame_factory("settings") or _G.CreateFrame
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local options = addon_table.use("options")
 local auto_scan = addon_table.use("auto_scan")
@@ -182,12 +183,12 @@ local function show_export_window()
                 text = addon_locale.clear_confirmation,
                 button1 = addon_locale.clear,
                 button2 = addon_locale.cancel,
-                OnAccept = function ()
+                OnAccept = profile_callback("settings.clear-confirmation", function ()
                     auto_scan.clear()
                     -- WoW writes SavedVariables during reload. Reload also
                     -- cancels pending manual captures from the old session.
                     ReloadUI()
-                end,
+                end),
                 timeout = 0,
                 whileDead = true,
                 hideOnEscape = true,

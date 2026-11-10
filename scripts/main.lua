@@ -1,6 +1,7 @@
 local addon_name, addon_table = ...
 local profiler = addon_table.use("performance_profile")
 local CreateFrame = profiler.frame_factory and profiler.frame_factory("main") or _G.CreateFrame
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 local addon_version = "0.25.2"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
@@ -447,7 +448,7 @@ local function prepare_character_scroll_box(pane, stats, row_callback)
     if not character_scroll_owners[scroll_box] then
         local owner = {}
         local ok = pcall(_G.ScrollUtil.AddInitializedFrameCallback,
-            scroll_box, function (_, row) translate_row(row) end, owner, false)
+            scroll_box, profile_callback("main.character.scroll", function (_, row) translate_row(row) end), owner, false)
         if ok then character_scroll_owners[scroll_box] = owner end
     end
     if type(scroll_box.ForEachFrame) == "function" then
@@ -657,9 +658,13 @@ end
 local manual_capture_sequence = 0
 local function register_slash_command()
     _G.SLASH_UAFOREVER1 = "/uaf"
-    SlashCmdList.UAFOREVER = function (input)
+    SlashCmdList.UAFOREVER = profile_callback("main.command", function (input)
         local command, value = tostring(input or ""):lower():match("^(%S*)%s*(.-)$")
         if command == "profile" then
+            if type(profiler.start) ~= "function" or type(profiler.stop) ~= "function" then
+                message(message_text.addon_profile_unavailable)
+                return
+            end
             if value == "stop" then
                 if not profiler.stop() then message(message_text.addon_profile_inactive) end
                 return
@@ -1093,7 +1098,7 @@ local function register_slash_command()
         else
             message(message_text.command_help .. panel_probe_text.help .. cast_bar_probe_text.help)
         end
-    end
+    end)
 end
 
 local event_frame = CreateFrame("Frame")

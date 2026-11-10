@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local entries = addon_table.use("entries")
 local layout = addon_table.use("translation_layout")
@@ -436,7 +438,7 @@ adapter.prepare = function ()
         local registry = _G.EventRegistry
         if not registry or type(registry.RegisterCallback) ~= "function" then return false end
         return pcall(registry.RegisterCallback, registry, "MapCanvas.QuestPin.OnEnter",
-            function (_, _, id)
+            profile_callback("event:MapCanvas.QuestPin.OnEnter", function (_, _, id)
                 id = contract.safe_number(id)
                 if id and _G.GameTooltip then
                     local tooltip = _G.GameTooltip
@@ -445,7 +447,7 @@ adapter.prepare = function ()
                         contract.process(tooltip, { id = id, uaForeverMapPin = owner }, "quest")
                     end
                 end
-            end, adapter)
+            end), adapter)
     end)
     hooks.global("GameTooltip_AddQuest", function (self)
         local id = self and contract.safe_number(self.questID)

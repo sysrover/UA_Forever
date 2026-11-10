@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local lfg_ui = addon_table.use("lfg_ui")
 local surface_text = assert(addon_table.forever_surface_ui,
@@ -436,7 +438,7 @@ lfg_ui.prepare = function ()
         if scroll_box and type(scroll_box.RegisterCallback) == "function"
             and _G.ScrollBoxListMixin and not lfg_scroll_boxes[scroll_box] then
             scroll_box:RegisterCallback(ScrollBoxListMixin.Event.OnInitializedFrame,
-                function (_, row) initialize_row(row) end, lfg_scroll_boxes)
+                profile_callback("lfg_ui.scroll", function (_, row) initialize_row(row) end), lfg_scroll_boxes)
             lfg_scroll_boxes[scroll_box] = true
         end
         if scroll_box and type(scroll_box.ForEachFrame) == "function" then

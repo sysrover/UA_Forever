@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local assets    = addon_table.use("assets") ---@class assets_class
 local auto_scan = addon_table.use("auto_scan")
@@ -1169,6 +1171,10 @@ local function prepare_chat_tabs()
     end
     registry.refresh("chat-tabs")
 end
+
+-- Keep filter identity stable for Add/RemoveMessageEventFilter.
+filter_chat_msg = profile_callback("chat:npc", filter_chat_msg, 2)
+filter_system_msg = profile_callback("chat:system", filter_system_msg, 2)
 
 chats.prepare = function()
     local function update_filters()

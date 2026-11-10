@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 local adapter = addon_table.use("loot_history_ui")
 local ui = addon_table.use("panel_ui_adapter").bind("loot-history")
 local runtime = addon_table.use("translation_runtime")
@@ -104,7 +106,7 @@ local function refresh()
     if scroll_box and type(scroll_box.RegisterCallback) == "function"
         and _G.ScrollBoxListMixin and not registered_scroll_boxes[scroll_box] then
         scroll_box:RegisterCallback(ScrollBoxListMixin.Event.OnInitializedFrame,
-            function (_, row) prepare_row(row) end, registered_scroll_boxes)
+            profile_callback("loot_history_ui.scroll", function (_, row) prepare_row(row) end), registered_scroll_boxes)
         registered_scroll_boxes[scroll_box] = true
     end
     if scroll_box and type(scroll_box.ForEachFrame) == "function" then

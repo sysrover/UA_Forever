@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 local legacy = addon_table.use("legacy_ui")
 local api = addon_table.use("panel_ui_adapter").bind("legacy-ui")
 local registry = addon_table.use("translation_registry")
@@ -139,7 +141,7 @@ local function prepare_scroll(box, callback)
     local event = _G.ScrollBoxListMixin and ScrollBoxListMixin.Event
         and ScrollBoxListMixin.Event.OnInitializedFrame
     if event and type(box.RegisterCallback) == "function" and not scroll_boxes[box] then
-        box:RegisterCallback(event, function (_, row) callback(row) end, scroll_boxes)
+        box:RegisterCallback(event, profile_callback("legacy_ui.scroll", function (_, row) callback(row) end), scroll_boxes)
         scroll_boxes[box] = true
     end
     if type(box.ForEachFrame) == "function" then box:ForEachFrame(callback) end

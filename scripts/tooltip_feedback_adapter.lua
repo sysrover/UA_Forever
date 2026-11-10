@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local adapter = addon_table.use("tooltip_feedback_adapter")
 local options = addon_table.use("options")
@@ -38,8 +40,8 @@ local function feedback_view(tooltip, region)
         view = { label = label }
         views[tooltip] = view
         -- Cleanup must also run when translation has just been disabled.
-        tooltip:HookScript("OnTooltipCleared", function () release_view(view) end)
-        tooltip:HookScript("OnHide", function () release_view(view) end)
+        tooltip:HookScript("OnTooltipCleared", profile_callback("ptr-feedback.clear", function () release_view(view) end))
+        tooltip:HookScript("OnHide", profile_callback("ptr-feedback.hide", function () release_view(view) end))
     end
     local watcher = watched_rows[region]
     if not watcher then
@@ -48,8 +50,8 @@ local function feedback_view(tooltip, region)
         local function native_write()
             if watcher.view then release_view(watcher.view) end
         end
-        hooksecurefunc(region, "SetText", native_write)
-        hooksecurefunc(region, "SetFormattedText", native_write)
+        hooksecurefunc(region, "SetText", profile_callback("ptr-feedback.SetText", native_write))
+        hooksecurefunc(region, "SetFormattedText", profile_callback("ptr-feedback.SetFormattedText", native_write))
     end
     return view, watcher
 end

@@ -261,6 +261,7 @@ profiler.start = function (seconds, on_saved)
     if type(seconds) ~= "number" or seconds ~= seconds or seconds < 5 or seconds > 120 then
         return false, "duration"
     end
+    local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
     local report = { version = 1, patch = "addon-profile-2026-11-10", status = "recording",
@@ -276,6 +277,12 @@ profiler.start = function (seconds, on_saved)
             diagnostics = account.auto_scan_diagnostics, autoscan = account.auto_scan_content,
             fonts = account.override_system_fonts, fojji = account.translate_fojji,
             language = account.tooltip_language_mode }, nativeBefore = native_snapshot() }
+    report.integration = { fojjiNamespace = type(_G.FojjiCoreNS) == "table" }
+    report.tooltipTypes = {}
+    local types = _G.Enum and _G.Enum.TooltipDataType
+    for name, value in pairs(types or {}) do
+        if public_string(name) and public_number(value) then report.tooltipTypes[value] = name end
+    end
     if not driver then
         driver = _G.CreateFrame("Frame")
         driver:Hide()
@@ -287,6 +294,8 @@ profiler.start = function (seconds, on_saved)
     reset_interval(session.interval)
     instrument_modules(session)
     session.started = now()
+    session.startedSeconds = type(_G.GetTime) == "function" and _G.GetTime() or 0
+    report.setupMs = math.max(0, session.started - setup_started)
     current, profiler.active = session, true
     driver:Show()
     return true

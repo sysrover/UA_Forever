@@ -201,19 +201,19 @@ local function prepare_item_tooltips()
     for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
         local tooltip = _G[name]
         if tooltip and not item_tooltip_hooks[tooltip] then
-            hooksecurefunc(tooltip, "AddLine", function (self, source)
+            hooksecurefunc(tooltip, "AddLine", profile_callback("fojji.item.AddLine", function (self, source)
                 item_line_added(self, source)
-            end)
-            hooksecurefunc(tooltip, "AddDoubleLine", function (self, source)
+            end))
+            hooksecurefunc(tooltip, "AddDoubleLine", profile_callback("fojji.item.AddDoubleLine", function (self, source)
                 item_line_added(self, source, true)
-            end)
+            end))
             local function clear(self)
                 self.uaForeverFojjiRows = nil
                 self.uaForeverFojjiDropSources = nil
                 native_effect_rows[self] = nil
             end
-            tooltip:HookScript("OnTooltipCleared", clear)
-            tooltip:HookScript("OnHide", clear)
+            tooltip:HookScript("OnTooltipCleared", profile_callback("fojji.item.clear", clear))
+            tooltip:HookScript("OnHide", profile_callback("fojji.item.hide", clear))
             item_tooltip_hooks[tooltip] = true
         end
     end
@@ -388,10 +388,10 @@ local function localize(region)
     local raw_set = region.trSetText or region.SetText
     local state = { writing = false }
     regions[region] = state
-    region.SetText = function (self, source, ...)
+    region.SetText = profile_callback("fojji.region.SetText", function (self, source, ...)
         if state.writing or not mutable(self) then return raw_set(self, source, ...) end
         return raw_set(self, translate(source), ...)
-    end
+    end)
     local function refresh(self)
         if state.writing or not mutable(self) then return end
         local source = self:GetText()
@@ -404,18 +404,18 @@ local function localize(region)
         end
     end
     if type(region.SetFormattedText) == "function" then
-        hooksecurefunc(region, "SetFormattedText", refresh)
+        hooksecurefunc(region, "SetFormattedText", profile_callback("fojji.region.SetFormattedText", refresh))
     end
     if type(region.SetFont) == "function" then
         local writing_font = false
-        hooksecurefunc(region, "SetFont", function (self, file, size, flags)
+        hooksecurefunc(region, "SetFont", profile_callback("fojji.region.SetFont", function (self, file, size, flags)
             if writing_font or not valid_font_size(size)
                 or runtime.is_secret_value(file) or file == assets.font_frizqt
                 or not mutable(self) then return end
             writing_font = true
             self:SetFont(assets.font_frizqt, size, font_flags(flags))
             writing_font = false
-        end)
+        end))
         local _, size, flags = region:GetFont()
         -- Kit.Text calls Localize immediately after CreateFontString, before
         -- Kit.SetFont assigns its positive size. Lua treats zero as truthy.
@@ -439,7 +439,7 @@ local function walk(frame)
     end
     if not watched[frame] and frame.HookScript then
         watched[frame] = true
-        frame:HookScript("OnShow", walk)
+        frame:HookScript("OnShow", profile_callback("fojji.window.OnShow", walk))
     end
     if frame.GetChildren then
         for _, child in ipairs({ frame:GetChildren() }) do walk(child) end
@@ -576,28 +576,28 @@ integration.prepare = function (rescan)
         for source, translated in pairs(text) do addon.TR[source] = translated end
         addon.Translated = true
         addon.WideFont = true
-        addon.Tr = translate
-        addon.Localize = localize
-        addon.LocalFont = function () return assets.font_frizqt end
+        addon.Tr = profile_callback("fojji.translate", translate)
+        addon.Localize = profile_callback("fojji.localize", localize)
+        addon.LocalFont = profile_callback("fojji.font", function () return assets.font_frizqt end)
     end
     if not tooltip_hooked and _G.GameTooltip then
         tooltip_hooked = true
-        hooksecurefunc(GameTooltip, "Show", fit_tooltip)
+        hooksecurefunc(GameTooltip, "Show", profile_callback("fojji.tooltip.Show", fit_tooltip))
         local function clear_tooltip()
             pending_tooltip = nil
             tooltip_epoch = tooltip_epoch + 1
         end
-        GameTooltip:HookScript("OnHide", function ()
+        GameTooltip:HookScript("OnHide", profile_callback("fojji.tooltip.hide", function ()
             clear_tooltip()
             tooltip_layout_owned = false
-        end)
-        GameTooltip:HookScript("OnTooltipCleared", function (self)
+        end))
+        GameTooltip:HookScript("OnTooltipCleared", profile_callback("fojji.tooltip.clear", function (self)
             clear_tooltip()
             if tooltip_layout_owned then
                 tooltip_layout_owned = false
                 layout.restore_tooltip_rows(self)
             end
-        end)
+        end))
     end
     translate_journal(addon)
     if InCombatLockdown and InCombatLockdown() then pending_scan = true; return end

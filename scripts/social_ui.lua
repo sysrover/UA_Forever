@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local social_ui = addon_table.use("social_ui")
 local strings = addon_table.use("strings")
@@ -76,7 +78,7 @@ local function prepare_social_scroll_box(scroll_box, callback)
         or type(scroll_box.RegisterCallback) ~= "function" then return end
     if not social_scroll_boxes[scroll_box] then
         scroll_box:RegisterCallback(event,
-            function (_, row, element_data) callback(row, element_data) end,
+            profile_callback("social_ui.scroll", function (_, row, element_data) callback(row, element_data) end),
             social_scroll_boxes)
         social_scroll_boxes[scroll_box] = true
     end

@@ -1,4 +1,6 @@
 local _, addon_table = ...
+local profiler = addon_table.use("performance_profile")
+local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local chat_links = addon_table.use("chat_links")
 local chats = addon_table.use("chats")
@@ -77,7 +79,7 @@ local function prepare_frame(frame)
     if not callbacks[frame] then
         -- Build 70170 invokes these callbacks after rebuilding visible lines.
         local ok = pcall(function ()
-            frame:AddOnDisplayRefreshedCallback(function () refresh_frame(frame) end)
+            frame:AddOnDisplayRefreshedCallback(profile_callback("chat_links.display", function () refresh_frame(frame) end))
         end)
         if ok then callbacks[frame] = true end
     end
