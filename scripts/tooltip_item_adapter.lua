@@ -6,6 +6,7 @@ local client_db = addon_table.use("item_client_db")
 local spell_db = addon_table.use("spell_client_db")
 local renderer = addon_table.use("spell_template_renderer")
 local strings = addon_table.use("strings")
+local runtime = addon_table.use("translation_runtime")
 local adapter = addon_table.use("tooltip_item_adapter")
 local catalog = assert(addon_table.forever_tooltip_ui,
     "UA Forever tooltip catalog is not loaded")
@@ -258,7 +259,8 @@ end
 
 local function cached_line(state, line_index, line_type, source, build)
     local cached = state.rendered_lines[line_index]
-    if cached and cached.line_type == line_type and cached.source == source then
+    if cached and cached.line_type == line_type
+        and (cached.source == source or cached.translated == source) then
         return cached.translated ~= false and cached.translated or nil
     end
     local translated = build()
@@ -438,6 +440,19 @@ local function translate_shared_line(state, source, region, recipe_result)
     return catalog.restore_item_markup(source, translated)
 end
 
+local function original_line_source(tooltip, region, visible)
+    visible = deps().safe_string(visible)
+    local claim = region and runtime.get(region)
+    if visible and claim and claim.owner == "item-tooltip" and claim.surface == tooltip
+        and claim.generation == tooltip.uaForeverGeneration
+        and claim.instance == tooltip.uaForeverSessionKey and visible == claim.translated then
+        -- A fallback/manual pass can see our previous Ukrainian write. Feed
+        -- its retained native source back into the renderer, not the translation.
+        return deps().safe_string(claim.source) or visible
+    end
+    return visible
+end
+
 local function translate_structured(tooltip, data, state)
     local contract = deps()
     local lines = type(data) == "table" and data.lines or nil
@@ -462,7 +477,7 @@ local function translate_structured(tooltip, data, state)
                 -- $1308027d) after Blizzard has already rendered "1 hour".
                 -- Claims and numeric extraction must target the actual native
                 -- FontString, with structured text only as a fallback.
-                local source = contract.safe_string(rendered_source)
+                local source = original_line_source(tooltip, region, rendered_source)
                     or structured_source
                 if structured_source == catalog.item_transmog_header then
                     transmog_name_index = line_index + 1
@@ -578,7 +593,7 @@ local function translate_structured(tooltip, data, state)
                 local structured_right = contract.safe_string(line_data.rightText)
                 local rendered_right, right_region = contract.tooltip_line(
                     tooltip, "Right", line_index)
-                local right_source = contract.safe_string(rendered_right)
+                local right_source = original_line_source(tooltip, right_region, rendered_right)
                     or structured_right
                 local right_translated = right_source
                     and translate_classification(state, right_source) or nil

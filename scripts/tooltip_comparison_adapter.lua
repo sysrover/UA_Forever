@@ -529,7 +529,7 @@ comparison_adapter.install = function (api)
     local function collect_comparison_claims(tooltip, reset)
         if reset then comparison_claim_regions[tooltip] = nil end
         runtime.for_each_claim(tooltip, function (region, claim)
-            if claim and claim.surface == tooltip then
+            if claim and claim.surface == tooltip and claim.owner ~= "fojji-tooltip" then
                 remember_comparison_claim(tooltip, region)
             end
         end)

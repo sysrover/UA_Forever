@@ -75,13 +75,19 @@ local function begin_tooltip(tooltip, key, force)
     return true
 end
 
-local function reapply_cached_surface(tooltip)
+local function reapply_cached_surface(tooltip, native_item_only)
     if not tooltip or tooltip.uaForeverShowOriginal
         or options.is_bilingual_tooltip() then return false end
     local rows = {}
     local valid = true
     runtime.for_each_claim(tooltip, function (region, claim)
         if not claim or claim.surface ~= tooltip then return end
+        -- Item post-calls can precede addon/bag appenders. Their old rows may
+        -- still be blank here and must not invalidate the native item cache.
+        -- Each appender owns restoring its own rows later in the same build.
+        if native_item_only and (claim.owner ~= "item-tooltip"
+            or type(claim.slot) ~= "string"
+            or claim.slot:match("^item%.appended:")) then return end
         local ok, current = pcall(region.GetText, region)
         current = ok and runtime.safe_string_or_nil(current) or nil
         if not current or current ~= claim.source
@@ -761,7 +767,7 @@ local function process(tooltip, data, kind, native_rebuild)
         line_count = count_ok and safe_number(line_count) or nil
         local cache_valid = not started and native_rebuild == true
             and line_count and tooltip.uaForeverItemLineCount == line_count
-            and reapply_cached_surface(tooltip)
+            and reapply_cached_surface(tooltip, true)
         if cache_valid then
             translated = true
         else
