@@ -237,6 +237,8 @@ local tooltip = {
             "F6: повідомити про помилку",
         ["If you replace this item, the following stat changes will occur:"] =
             "Заміна цього предмета призведе до зміни таких характеристик:",
+        ["If you replace these items, the following stat changes will occur:"] =
+            "Заміна цих предметів призведе до зміни наступних характеристик:",
     },
     -- Class/subclass IDs from ItemClass.db2 and ItemSubClass.db2 in build
     -- 1.60.1.70058. Runtime verifies the visible English label against the

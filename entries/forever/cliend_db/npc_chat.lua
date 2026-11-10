@@ -1899,6 +1899,30 @@ local chat_rows = {
         ["npcs"] = { [1] = "Rifleman Wheeler" },
         ["text"] = "%s швидко стріляє просто в центр середньої мішені...",
     },
+    ["Guard Berton:slnosnofte2dbnfmsdrsaecginofsemtintent"] = {
+        ["english"] = { [1] = "Still no sign of the 2nd Battalion from Stormwind.  Reports are coming in of Shadowhide movement in the Northeast." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "slnosnofte2dbnfmsdrsaecginofsemtintent" } },
+        ["npcs"] = { [1] = "Guard Berton" },
+        ["text"] = "Досі жодної звістки про 2-й батальйон зі Штормовію. Надходять повідомлення про пересування Тінешкурих на північному сході.",
+    },
+    ["Ol' Beasley:cdyesesecn"] = {
+        ["english"] = { [1] = "Could ye spare some coin?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "cdyesesecn" } },
+        ["npcs"] = { [1] = "Ol' Beasley" },
+        ["text"] = "Не знайдеться монетки?",
+    },
+    ["Yorus Barleybrew:gdrntegttecsfrgd"] = {
+        ["english"] = { [1] = "Garwald ran the Gauntlet!  Three cheers for Garwald!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "gdrntegttecsfrgd" } },
+        ["npcs"] = { [1] = "Yorus Barleybrew" },
+        ["text"] = "Garwald пройшов Випробування! Тричі «слава» Garwald!",
+    },
+    ["Yorus Barleybrew:grrntegttecsfrgr"] = {
+        ["english"] = { [1] = "Gar ran the Gauntlet!  Three cheers for Gar!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "grrntegttecsfrgr" } },
+        ["npcs"] = { [1] = "Yorus Barleybrew" },
+        ["text"] = "Gar пройшов Випробування! Тричі «слава» Gar!",
+    },
     ["Tunnel Rat Kobold:lsseifcnhtttbetste"] = {
         ["english"] = { [1] = "Let's see if I can hit that bullseye this time." },
         ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "lsseifcnhtttbetste" } },

@@ -2617,6 +2617,7 @@ tooltips.prepare = function ()
             else
                 safe_process(tooltip, data, "item", true)
             end
+            addon_table.use("fojji").finish_item_lines(tooltip)
             translate_pending_sell_price(tooltip)
         end)
     end

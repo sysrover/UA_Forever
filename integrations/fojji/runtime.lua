@@ -25,6 +25,15 @@ local tooltip_layout_owned = false
 local journal_locale
 local regions = setmetatable({}, { __mode = "k" })
 for _, value in pairs(text) do translated_values[value] = true end
+local item_tooltip_literals = {}
+for _, source in ipairs(addon_table.fojji_item_tooltip_sources) do
+    item_tooltip_literals[source] = text[source]
+end
+local quest_format = addon_table.fojji_item_tooltip_quest_format
+local quest_prefix = quest_format:match("^(.-)%%s$")
+local translated_quest_prefix = text[quest_format]:match("^(.-)%%s$")
+local item_line_cache, item_line_cache_size = {}, 0
+local item_tooltip_hooks = setmetatable({}, { __mode = "k" })
 
 local function enabled()
     local account = options.account
@@ -47,6 +56,125 @@ end
 
 local function safe_string(value)
     return not runtime.is_secret_value(value) and type(value) == "string"
+end
+
+local function unwrap_item_line(source)
+    local icon, body
+    local token = source:sub(1, 2)
+    if token == "|T" then icon, body = source:match("^(|T.-|t%s*)(.*)$")
+    elseif token == "|A" then icon, body = source:match("^(|A.-|a%s*)(.*)$") end
+    body = body or source
+    local color, label, reset
+    if body:sub(1, 2) == "|c" then
+        color, label, reset = body:match("^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
+    end
+    return (icon or "") .. (color or ""), label or body, reset or ""
+end
+
+local function translate_item_addition(source)
+    local literal = item_tooltip_literals[source]
+    if literal then return literal end
+    if source:sub(1, 1) ~= "|"
+        and source:sub(1, #quest_prefix) ~= quest_prefix
+        and source:sub(1, #translated_quest_prefix) ~= translated_quest_prefix then return nil end
+    local cached = item_line_cache[source]
+    if cached ~= nil then return cached ~= false and cached or nil end
+    local prefix, body, suffix = unwrap_item_line(source)
+    local translated = item_tooltip_literals[body]
+    if not translated then
+        local title
+        if body:sub(1, #quest_prefix) == quest_prefix then
+            title = body:sub(#quest_prefix + 1)
+        elseif body:sub(1, #translated_quest_prefix) == translated_quest_prefix then
+            title = body:sub(#translated_quest_prefix + 1)
+        else
+            return nil
+        end
+        local title_prefix, english, title_suffix = unwrap_item_line(title)
+        local ids = entries.get_quest_title_ids(english)
+        local entry = ids and #ids == 1 and entries.get_entry("quest", ids[1], 1)
+        local name = entry and entry[1]
+        translated = translated_quest_prefix .. title_prefix
+            .. (safe_string(name) and name or english) .. title_suffix
+    end
+    translated = translated and prefix .. translated .. suffix or nil
+    -- Quest indexes are prepared at login; do not retain an early name miss.
+    if entries.prepared then
+        if item_line_cache_size >= 256 then item_line_cache, item_line_cache_size = {}, 0 end
+        item_line_cache[source] = translated ~= source and translated or false
+        item_line_cache_size = item_line_cache_size + 1
+    end
+    return translated ~= source and translated or nil
+end
+
+local function apply_item_addition(tooltip, row)
+    if tooltip.uaForeverKind ~= "item" or not tooltip.uaForeverSessionKey then return end
+    local ok, visible = pcall(row.region.GetText, row.region)
+    if not ok or not safe_string(visible)
+        or visible ~= row.source and visible ~= row.translated then return end
+    local claim = runtime.get(row.region)
+    local expected = tooltip.uaForeverShowOriginal and row.source or row.translated
+    if claim and claim.owner == "fojji-tooltip" and claim.surface == tooltip
+        and claim.generation == tooltip.uaForeverGeneration
+        and claim.instance == tooltip.uaForeverSessionKey
+        and claim.source == row.source and claim.translated == row.translated
+        and visible == expected then return end
+    runtime.apply(row.region, {
+        owner = "fojji-tooltip", slot = "item.fojji:" .. row.index,
+        option = "translate_item", options = { "translate_fojji" },
+        source = row.source, translated = row.translated,
+        priority = runtime.PRIORITY.DOMAIN, surface = tooltip, tooltip = tooltip,
+        generation = tooltip.uaForeverGeneration, instance = tooltip.uaForeverSessionKey,
+        allow_unknown_source = true, record_runtime = false,
+        verify_after_apply = false, reapply_cached = true,
+        combat_tooltip_text = runtime.combat_locked(), combat_text_only = true,
+    })
+end
+
+integration.finish_item_lines = function (tooltip)
+    local rows = tooltip and tooltip.uaForeverFojjiRows
+    if not rows or not enabled() then return end
+    -- A Fojji post-call may precede ours. Adopt only its recorded rows after
+    -- the item/comparison adapter has established the authoritative session.
+    for _, row in pairs(rows) do
+        apply_item_addition(tooltip, row)
+    end
+end
+
+local function item_line_added(tooltip, source)
+    if not enabled() or not safe_string(source) then return end
+    local translated = translate_item_addition(source)
+    if not translated then return end
+    local count_ok, index = pcall(tooltip.NumLines, tooltip)
+    local name_ok, name = pcall(tooltip.GetName, tooltip)
+    if not count_ok or runtime.is_secret_value(index) or type(index) ~= "number"
+        or not name_ok or not safe_string(name) then return end
+    local region = _G[name .. "TextLeft" .. index]
+    if not region then return end
+    local rows = tooltip.uaForeverFojjiRows
+    if not rows then rows = {}; tooltip.uaForeverFojjiRows = rows end
+    local row = { region = region, index = index, source = source, translated = translated }
+    rows[index] = row
+    -- Modifier state is synchronized by our item post-call. Avoid an early
+    -- translated write if Fojji happens to run before that synchronization.
+    if options.account.shift_original_tooltip ~= false and type(_G.IsShiftKeyDown) == "function" then
+        local ok, shift = pcall(_G.IsShiftKeyDown)
+        if not ok or runtime.is_secret_value(shift) or shift then return end
+    end
+    apply_item_addition(tooltip, row)
+end
+
+local function prepare_item_tooltips()
+    for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
+        local tooltip = _G[name]
+        if tooltip and not item_tooltip_hooks[tooltip] then
+            hooksecurefunc(tooltip, "AddLine", item_line_added)
+            local function clear(self) self.uaForeverFojjiRows = nil end
+            tooltip:HookScript("OnTooltipCleared", clear)
+            tooltip:HookScript("OnHide", clear)
+            item_tooltip_hooks[tooltip] = true
+        end
+    end
 end
 
 local function escape(value)
@@ -336,6 +464,7 @@ integration.prepare = function (rescan)
     if not enabled() then return end
     local addon = _G.FojjiCoreNS
     if type(addon) ~= "table" or type(addon.TR) ~= "table" then return end
+    prepare_item_tooltips()
     if installed ~= addon then
         installed = addon
         for source, value in pairs(addon.TR) do

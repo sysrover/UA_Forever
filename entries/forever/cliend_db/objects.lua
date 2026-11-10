@@ -4852,6 +4852,7 @@ addonTable.object = {
     ["Goaz Scrolls"] = "Сувої Ґоаза",
     ["Runes of the Sorceror-Kings"] = "Руни королів-чаклунів",
     ["Rumi of Gnomeregan: The Collected Works"] = "Румі з Гномреґана: зібрання творів",
+    ["Tarantula Egg"] = "Яйце тарантула",
 }
 
 addonTable.translate_object_name = function (name)

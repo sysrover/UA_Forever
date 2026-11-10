@@ -2,6 +2,15 @@
 local _, addon_table = ...
 local T = {}
 addon_table.fojji_locale_uk = T
+-- Restrict bag-tooltip handling to known Fojji additions, rather than running
+-- the complete UI template matcher over every native item row.
+addon_table.fojji_item_tooltip_sources = {
+    "Dungeon Journal",
+    "You've collected this appearance",
+    "You've collected this appearance, but not from this item",
+    "You haven't collected this appearance",
+}
+addon_table.fojji_item_tooltip_quest_format = "Quest: %s"
 
 T["% hp"] = "% ОЗ"
 T["% pw"] = "% ресурсу"
