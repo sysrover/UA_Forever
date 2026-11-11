@@ -131,6 +131,96 @@ local function bind_lfg_button(button)
     if ok then bind_lfg_display(label) end
 end
 
+local function invite_is_visible(frame)
+    local ok, visible = pcall(function () return frame:IsVisible() end)
+    return ok and not runtime.is_secret_value(visible) and visible == true
+end
+
+local function fit_lfg_invite(frame)
+    if frame ~= _G.LFGInvitePopup or not invite_is_visible(frame) then return end
+    if runtime.combat_locked() then
+        runtime.defer_layout(frame, fit_lfg_invite)
+        return
+    end
+    local title = _G.LFGInvitePopupText
+    local tank = _G.LFGInvitePopupRoleButtonTank
+    local warning = frame.QueueWarningText
+    if not title or not tank or not warning then return end
+    local function write(region, method, ...)
+        if not runtime.can_write_text(region) then return false end
+        return pcall(function (...) return region[method](region, ...) end, ...)
+    end
+    -- The native title is fixed at 240 x 38, which clips the multi-line
+    -- INVITATION warning. Keep its width and measure the complete wrapped text.
+    if not write(title, "SetWordWrap", true)
+        or not write(title, "SetMaxLines", 0)
+        or not write(title, "SetHeight", 0) then return end
+    local title_height = layout.safe_dimension(title, "GetStringHeight")
+    if not title_height then return end
+    title_height = math.max(38, math.ceil(title_height))
+    if not write(title, "SetHeight", title_height) then return end
+    local extra = title_height - 38
+    -- The other role buttons are anchored to the tank button in native XML.
+    if not write(tank, "SetPoint", "TOPLEFT", frame, "TOPLEFT", 35, -55 - extra)
+        or not write(warning, "SetPoint", "TOP", frame, "TOP", 0, -138 - extra) then return end
+    local warning_height = 0
+    if invite_is_visible(warning) then
+        if not write(warning, "SetWordWrap", true)
+            or not write(warning, "SetMaxLines", 0)
+            or not write(warning, "SetHeight", 0) then return end
+        warning_height = layout.safe_dimension(warning, "GetStringHeight")
+        if not warning_height then return end
+        warning_height = math.ceil(warning_height) + 8
+    end
+    write(frame, "SetHeight", 180 + extra + warning_height)
+end
+
+local function translate_lfg_invite()
+    local frame = _G.LFGInvitePopup
+    if not frame or not invite_is_visible(frame) then return end
+    local function label(region, slot)
+        if not region or runtime.is_applying(region) then return end
+        local ok, source = pcall(function () return region:GetText() end)
+        source = ok and runtime.safe_string_or_nil(source) or nil
+        if not source then return end
+        local previous = runtime.get(region)
+        if previous and source == previous.translated then source = previous.source end
+        -- Resolve the complete invitation even when the player name is Cyrillic.
+        local translated = resolver.find_ui(source, region)
+        if not translated then return end
+        runtime.apply(region, {
+            owner = "lfg", section = "lfg", slot = slot, surface = frame,
+            generation = runtime.generation(frame), source = source,
+            translated = translated, option = "translate_string",
+            priority = runtime.PRIORITY.CONTEXT,
+        })
+    end
+    label(_G.LFGInvitePopupText, "invite.message")
+    label(frame.QueueWarningText, "invite.warning")
+    for _, suffix in ipairs({ "AcceptButton", "DeclineButton" }) do
+        local button = _G["LFGInvitePopup" .. suffix]
+        local ok, region = pcall(function () return button:GetFontString() end)
+        if ok then label(region, "invite." .. suffix) end
+    end
+    fit_lfg_invite(frame)
+end
+
+local function prepare_lfg_invite()
+    -- The role invitation bypasses StaticPopup_Show. Its native Update runs
+    -- after Show and completes all text, role and warning geometry writes.
+    hooks.global("LFGInvitePopup_Update", translate_lfg_invite)
+    local frame = _G.LFGInvitePopup
+    hooks.region_script(frame, "OnShow", function ()
+        runtime.begin_generation(frame)
+    end)
+    hooks.region_script(frame, "OnHide", function ()
+        runtime.clear_surface(frame, function (region)
+            runtime.show_original(region, true)
+        end)
+    end)
+    translate_lfg_invite()
+end
+
 local function initialize_lfg_activity_menu_button(button)
     local label = button and button.fontString
     if not label or not runtime.can_write_text(label) then return end
@@ -342,6 +432,7 @@ local function translate_lfg_legacy_filter(_, level)
 end
 
 lfg_ui.prepare = function ()
+    prepare_lfg_invite()
     local lfg = registry.get("lfg")
     if lfg then
         if not lfg.uaForeverStaticConfigured then

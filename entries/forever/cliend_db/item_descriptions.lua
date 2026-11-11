@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70862",
-    count = 4936,
+    count = 4948,
     rows = {
         [728] = "Teaches you how to cook Westfall Stew.",
         [734] = "Upon this iron disk are stamped the words: \"Footman Malakai Stone\"",
@@ -4942,6 +4942,18 @@ local database = {
         [287975] = "This potion cannot be used in profession recipes or quest turn-ins.",
         [287976] = "This potion cannot be used in profession recipes or quest turn-ins.",
         [287977] = "This potion cannot be used in profession recipes or quest turn-ins.",
+        [11474] = "Teaches you how to summon this companion.",
+        [18467] = "Blessed by the Shen'dralar Ancients.",
+        [19054] = "Teaches you how to summon this companion.",
+        [19055] = "Teaches you how to summon this companion.",
+        [20371] = "Teaches you how to summon this companion.",
+        [22114] = "Teaches you how to summon this companion.",
+        [22253] = "The title reads \"The Brode to Nowhere\"",
+        [22780] = "Teaches you how to summon this companion.",
+        [22781] = "Teaches you how to summon this companion.",
+        [23712] = "Teaches you how to summon this companion.",
+        [23713] = "Teaches you how to summon this companion.",
+        [268879] = "Teaches you how to summon this companion.",
     },
 }
 
