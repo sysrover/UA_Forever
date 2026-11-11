@@ -1,6 +1,6 @@
 {
-  "sourceBuild": "1.60.1.70862",
-  "itemMetadata": 4091,
+  "sourceBuild": "1.60.1.70888",
+  "itemMetadata": 4094,
   "itemClasses": 17,
   "itemSubclasses": 100,
   "itemSets": 545,
@@ -17,11 +17,11 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "inventory": "build/forever-client-inventory/70862/hotfix-816e2a800d7a",
-  "itemMetadataInventory": "build/forever-client-inventory/70862/hotfix-816e2a800d7a/db2/itemsparse.json",
-  "cacheSHA256": "816e2a800d7a3a9676284ec00c6ef2268f6ebd46e3f71a0b86f8bd1dc0138023",
-  "cacheProvenance": "build/forever-client-inventory/70862/hotfix-816e2a800d7a/cache/provenance.json",
-  "cacheScope": "Exact-build 70862 snapshot; unchanged tables inherited from baseline; approved and historical compatibility rows retained.",
+  "inventory": "build/forever-client-inventory/70888/hotfix-796b64438c64",
+  "itemMetadataInventory": "build/forever-client-inventory/70888/hotfix-796b64438c64/db2/itemsparse.json",
+  "cacheSHA256": "796b64438c646cce5b34f36d0f7176500e7e823c8a8f18bef760bb9b3707575c",
+  "cacheProvenance": "build/forever-client-inventory/70888/hotfix-796b64438c64/cache/provenance.json",
+  "cacheScope": "Exact-build 70888 CASC with the stable matching cache; approved historical compatibility rows retained.",
   "retainedHotfixProvenance": {
     "sourceBuild": "1.60.1.70755",
     "itemMetadata": 4039,

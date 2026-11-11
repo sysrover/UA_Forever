@@ -1596,6 +1596,7 @@ addonTable.object_ids = {
     [702955] = { [1] = "Перука", ["en"] = "Wig" },
     [706993] = { [1] = "Багаття підмайстра", ["en"] = "Journeyman Campfire" },
     [707446] = { [1] = "Камінь", ["en"] = "Rock" },
+    [180400] = { [1] = "PVP HOLIDAY АЛЬЯНС CTF", ["en"] = "PVP HOLIDAY ALLIANCE CTF" },
 }
 
 addonTable.object = {
