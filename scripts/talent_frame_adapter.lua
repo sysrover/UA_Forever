@@ -217,9 +217,7 @@ local function install_main_frame(root)
         "talent-frame-root")
     hooks.region(root, "UpdateFrameTitle", translate_main_frame)
     -- Talent buttons can appear late, including after TabSystem reinitializes.
-    hooks.region(root, "UpdateTabs", function (self)
-        visit_main_labels(self, register_region)
-    end)
+    hooks.region(root, "UpdateTabs", translate_main_frame)
     translate_main_frame(root)
 end
 
@@ -236,6 +234,7 @@ end
 if options.on_activity_change then
     options.on_activity_change(OWNER, function ()
         for _, state in pairs(label_states) do state.pending = true end
+        for _, state in pairs(frame_states) do state.headers_seeded = nil end
         adapter.prepare()
     end)
 end
