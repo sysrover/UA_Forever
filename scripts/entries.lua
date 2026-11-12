@@ -873,12 +873,14 @@ entries.get_chat_text = function (npc_name, chat_text, message)
     local cached = message and actor_key and chat_selection
     local database = at.chat_hashed
     local version = type(database) == "table" and database.version or nil
+    local rows = type(database) == "table" and database.rows or nil
     if not cached or cached.message ~= message or cached.npc ~= npc_name or cached.source ~= chat_text
         or cached.actor ~= actor_key or cached.database ~= database or cached.version ~= version
+        or cached.rows ~= rows or cached.schema ~= lookup.version
         or cached.legacy ~= at.chat or cached.find ~= lookup.find then
         local text, source_template, code, scope = select_chat_template(npc_name, chat_text, lookup, actor)
         cached = { message = message, npc = npc_name, source = chat_text, actor = actor_key,
-            database = database, version = version, legacy = at.chat, find = lookup.find,
+            database = database, version = version, rows = rows, schema = lookup.version, legacy = at.chat, find = lookup.find,
             text = text, source_template = source_template, code = code, scope = scope }
         -- One event only. Never cache the dynamically rendered Ukrainian text.
         chat_selection = message and actor_key and cached or nil

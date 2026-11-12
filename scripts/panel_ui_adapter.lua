@@ -31,16 +31,18 @@ adapter.bind = function (id)
             and strings.translate_formatted_region(region, template, api.surface, ...) then return true end
         return strings.translate_region(region, nil, "ui.label", api.surface)
     end
-    api.watch = function (region, callback)
+    api.watch = function (region, callback, formatted_callback)
         if not region then return end
         callback = callback or api.label
+        formatted_callback = formatted_callback or (callback == api.label and api.label)
         local function written(self)
             if not runtime.is_applying(self) then callback(self) end
         end
         api.hooks.region(region, "SetText", written)
         api.hooks.region(region, "SetFormattedText", function (self, template, ...)
             if runtime.is_applying(self) then return end
-            return callback(self, template, ...)
+            if formatted_callback then return formatted_callback(self, template, ...) end
+            return callback(self)
         end)
         written(region)
     end
@@ -77,13 +79,14 @@ adapter.bind = function (id)
                 local ok, skipped = pcall(skip_region, region)
                 if not ok or runtime.is_secret_value(skipped) or skipped then return end
             end
-            return (translate or api.label)(region, template, ...)
+            if translate then return translate(region) end
+            return api.label(region, template, ...)
         end
         walker.walk({ id = id .. ":labels", surface = id, owner = id,
             reason = "REGISTERED_STATIC_SCAN", max_nodes = 1000 }, root, function (region)
                 local ok, kind = pcall(function () return region:GetObjectType() end)
                 if ok and not runtime.is_secret_value(kind) and kind == "FontString" then
-                    api.watch(region, label)
+                    api.watch(region, label, label)
                 end
             end, skip_frame, { frames = 0 }, seen)
     end

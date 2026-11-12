@@ -18,6 +18,7 @@ local runtime = addon_table.use("translation_runtime")
 local layout = addon_table.use("translation_layout")
 local hooks = addon_table.use("translation_hooks").bind("talent-frame")
 local tooltip_contexts = setmetatable({}, { __mode = "k" })
+local missed_rows = setmetatable({}, { __mode = "k" })
 
 local SPELL_NAME = 13
 local SPELL_PASSIVE = 33
@@ -387,18 +388,25 @@ local function translate_region(tooltip, side, index)
         and source == claim.translated then return false end
     local visible = contract.normalized_text(source)
     if not visible or visible == "" then return end
+    local missed = missed_rows[region]
+    if missed and missed.context[1] == context and missed.source == source then return false end
     local translated = points_requirement(source)
         or replacement_line(context.button, context.id, context.entryID, source)
         or contract.translate_static(source, region)
     if translated and translated ~= source and not translated:find("{%d+}") then
+        missed_rows[region] = nil
         local slot = side == "Left" and "talent.requirement:" .. index
             or "talent.requirement:Right:" .. index
         return contract.set_translation(tooltip, region, source, translated,
             slot, nil, "talent-tooltip", nil, false, false)
     end
+    -- AddLine may write through an already watched FontString before its
+    -- post-hook registers that same row. A failed lookup is work too.
+    missed_rows[region] = { source = source, context = setmetatable({ context }, { __mode = "v" }) }
+    return false, true
 end
 
-local function prepare_tooltip_row(tooltip, index)
+local function prepare_tooltip_row(tooltip, index, reset_misses)
     if not current_context(tooltip) then return end
     local contract = deps()
     for _, side in ipairs({ "Left", "Right" }) do
@@ -406,10 +414,11 @@ local function prepare_tooltip_row(tooltip, index)
         if index > 1 or side == "Right" then
             local _, region = contract.tooltip_line(tooltip, side, index)
             if region then
+                if reset_misses then missed_rows[region] = nil end
                 local row_index, row_side = index, side
                 local function written()
-                    if translate_region(tooltip, row_side, row_index)
-                        and contract.queue_instruction_layout then contract.queue_instruction_layout(tooltip) end
+                    local changed, observed = translate_region(tooltip, row_side, row_index)
+                    if (changed or observed) and contract.queue_instruction_layout then contract.queue_instruction_layout(tooltip) end
                 end
                 hooks.region(region, "SetText", written)
                 hooks.region(region, "SetFormattedText", written)
@@ -425,7 +434,7 @@ local function prepare_tooltip_rows(tooltip)
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and contract.safe_number(count) or nil
     if not count then return end
-    for index = 1, math.min(count, contract.max_lines) do prepare_tooltip_row(tooltip, index) end
+    for index = 1, math.min(count, contract.max_lines) do prepare_tooltip_row(tooltip, index, true) end
 end
 
 adapter.refresh = function (tooltip)

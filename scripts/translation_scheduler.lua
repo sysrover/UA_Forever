@@ -238,5 +238,8 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
             schedule(run, request.retry_delay)
         end
     end
+    -- Wrap the entire timer entry, including stale drops, generation checks,
+    -- metrics and retry scheduling. The task callback remains a nested label.
+    if profiler.wrap then run = profiler.wrap("scheduler.timer", run) end
     schedule(run, delay or 0)
 end

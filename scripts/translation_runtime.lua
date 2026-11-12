@@ -5,6 +5,22 @@ local options = addon_table.use("options")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local auto_scan = addon_table.use("auto_scan")
+local profiler = addon_table.use("performance_profile")
+local count_text_attempt = profiler.counter and profiler.counter("text.write.attempt") or function () end
+local count_text_success = profiler.counter and profiler.counter("text.write.success") or function () end
+local count_text_failure = profiler.counter and profiler.counter("text.write.failure") or function () end
+local count_item_post = profiler.counter and profiler.counter("native.item-post") or function () end
+
+local function finish_text_write(ok, ...)
+    if ok then count_text_success() else count_text_failure() end
+    return ok, ...
+end
+
+local function write_profiled_text(callback, ...)
+    if not profiler.active then return pcall(callback, ...) end
+    count_text_attempt()
+    return finish_text_write(pcall(callback, ...))
+end
 
 runtime.PRIORITY = { GENERATED = 10, STATIC_UI = 20, CONTEXT = 30, DOMAIN = 40 }
 
@@ -97,6 +113,7 @@ local function metrics_enabled()
 end
 
 runtime.metric = function (name, surface, generation, amount)
+    if profiler.active and name == "native_item_post_calls" then count_item_post() end
     if not metrics_enabled() or type(name) ~= "string" then return end
     amount = type(amount) == "number" and amount or 1
     performance_totals[name] = (performance_totals[name] or 0) + amount
@@ -874,7 +891,7 @@ local function apply_translation(region, spec)
             spec.combat_text_only == true)
         if method_ok and type(set_text) == "function" and write_allowed then
             writing[region] = true
-            local ok = pcall(set_text, region, display)
+            local ok = write_profiled_text(set_text, region, display)
             writing[region] = nil
             runtime.metric("set_text_calls", spec.surface, generation)
             runtime.metric("cached_reapply_hits", spec.surface, generation)
@@ -954,7 +971,7 @@ local function apply_translation(region, spec)
         font_ready = font_ok == true
     end
     writing[region] = true
-    local ok = pcall(set_text, region, display)
+    local ok = write_profiled_text(set_text, region, display)
     writing[region] = nil
     runtime.metric("set_text_calls", spec.surface, generation)
     if not ok then
@@ -1082,7 +1099,7 @@ local function show_original(region, show)
     local method_ok, set_text = pcall(read_member, region, "SetText")
     if not method_ok or type(set_text) ~= "function" then return false end
     writing[region] = true
-    local ok = pcall(set_text, region, text)
+    local ok = write_profiled_text(set_text, region, text)
     writing[region] = nil
     if ok then
         claim.visible_original = visible_original
@@ -1156,7 +1173,7 @@ runtime.set_fallback_text = function (region, text)
     local method_ok, set_text = pcall(function () return region.SetText end)
     if not method_ok or type(set_text) ~= "function" then return false end
     writing[region] = true
-    local ok = pcall(set_text, region, text)
+    local ok = write_profiled_text(set_text, region, text)
     writing[region] = nil
     return ok
 end

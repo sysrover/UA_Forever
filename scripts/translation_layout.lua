@@ -2,6 +2,27 @@ local _, addon_table = ...
 local layout = addon_table.use("translation_layout")
 local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
+local profiler = addon_table.use("performance_profile")
+local profile_counts = {}
+for _, name in ipairs({ "measure", "reapply", "success", "failure", "exception",
+    "cache.empty", "cache.policy", "cache.signature", "cache.unreadable",
+    "pass.skip", "build", "combat.defer", "write.attempt", "write.success", "write.failure",
+    "read.string-width", "read.string-height" }) do
+    profile_counts[name] = profiler.counter and profiler.counter("layout." .. name) or function () end
+end
+
+local function finish_layout_write(ok, ...)
+    profile_counts[ok and "write.success" or "write.failure"]()
+    return ok, ...
+end
+
+-- Count native setter attempts and successes without changing the protected
+-- call, its return arity, or the existing layout boundaries.
+local function layout_write(callback, ...)
+    if not profiler.active then return pcall(callback, ...) end
+    profile_counts["write.attempt"]()
+    return finish_layout_write(pcall(callback, ...))
+end
 
 local BUTTON_TEXT_PADDING = 24
 local AUCTION_TAB_PADDING = 20
@@ -66,6 +87,12 @@ end
 
 local function safe_dimension(owner, method)
     if not owner then return nil end
+    if profiler.active then
+        if method == "GetStringHeight" then profile_counts["read.string-height"]()
+        elseif method == "GetUnboundedStringWidth" or method == "GetStringWidth" then
+            profile_counts["read.string-width"]()
+        end
+    end
     local ok, present, value = pcall(read_method, owner, method)
     -- On Camelot, tooltip measurements derived from aura data can themselves
     -- be secret numbers. Checking their Lua type is not sufficient: any
@@ -406,15 +433,15 @@ end
 -- Per-write height deltas are unreliable while Blizzard is building rows.
 local fit_complete_tooltip
 local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, prose_width, single_line_right)
-    if not is_tooltip(tooltip) or not is_shown(tooltip) then return false end
+    if not is_tooltip(tooltip) or not is_shown(tooltip) then return false, "tooltip.hidden-or-invalid" end
     local original = tooltip.uaForeverShowOriginal == true
-    if original and not tooltip.uaForeverSessionKey then return false end
+    if original and not tooltip.uaForeverSessionKey then return false, "tooltip.session" end
     single_line_right = single_line_right or prose_width ~= nil
-    if runtime.combat_locked() or not runtime.can_write_text(tooltip) then return false end
+    if runtime.combat_locked() or not runtime.can_write_text(tooltip) then return false, "tooltip.not-writable" end
     local name = object_name(tooltip)
     local count = safe_dimension(tooltip, "NumLines")
     local width = safe_dimension(tooltip, "GetWidth")
-    if not name or not count or not width then return false end
+    if not name or not count or not width then return false, "tooltip.metadata" end
     local rows, required_width, minimum_right_width = {}, width, 0
     for index = 1, count do
         local row = {}
@@ -422,7 +449,7 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
             local region = _G[name .. "Text" .. side .. index]
             if region and is_shown(region) then
                 local ok, text = pcall(region.GetText, region)
-                if not ok or is_secret(text) then return false end
+                if not ok or is_secret(text) then return false, "region.text-read" end
                 local empty_text = text == nil or text == ""
                 text = runtime.safe_string_or_nil(text)
                 if empty_text then text = "" end
@@ -431,7 +458,7 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                 local empty_right = single_line_right and side == "Right"
                     and (not text or text:match("^%s*$") ~= nil)
                 if not empty_right then
-                    if not text or not runtime.can_write_text(region) then return false end
+                    if not text or not runtime.can_write_text(region) then return false, "region.text-or-writable" end
                     row[side] = region
                     row[side .. "Content"] = row_content(tooltip, region)
                     row[side .. "Empty"] = text:match("^%s*$") ~= nil
@@ -439,9 +466,9 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                         -- A pooled right label may already be squeezed/wrapped
                         -- by native layout. Measure it as one complete line,
                         -- then anchor its full width to the same right edge.
-                        if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, false) end
-                        if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, false) end
-                        if type(region.SetWidth) == "function" then pcall(region.SetWidth, region, 0) end
+                        if type(region.SetWordWrap) == "function" then layout_write(region.SetWordWrap, region, false) end
+                        if type(region.SetNonSpaceWrap) == "function" then layout_write(region.SetNonSpaceWrap, region, false) end
+                        if type(region.SetWidth) == "function" then layout_write(region.SetWidth, region, 0) end
                     end
                 end
             end
@@ -456,7 +483,7 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
         if row.Right then
             row.RightWidth = unbounded_text_width(row.RightContent) or 0
             if single_line_right then
-                if row.RightWidth <= 0 then return false end
+                if row.RightWidth <= 0 then return false, "region.right-width" end
                 row.RightWidth = math.ceil(row.RightWidth) + ITEM_RIGHT_TEXT_PADDING
                 minimum_right_width = math.max(minimum_right_width,
                     row.RightWidth + TOOLTIP_TEXT_PADDING
@@ -481,7 +508,7 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
     width = math.min(maximum, math.max(width, required_width))
     if width <= TOOLTIP_TEXT_PADDING
         or type(tooltip.SetWidth) ~= "function"
-        or not pcall(tooltip.SetWidth, tooltip, width) then return false end
+        or not layout_write(tooltip.SetWidth, tooltip, width) then return false, "tooltip.width" end
     local available = width - TOOLTIP_TEXT_PADDING
     for index, row in ipairs(rows) do
         local right_limit = single_line_right and math.max(1, available - (row.Left and 13 or 0))
@@ -504,18 +531,18 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                     and row.RightWidth <= right_limit)
                 row[side .. "Wrap"] = wraps
                 if type(region.SetWidth) == "function" then
-                    pcall(region.SetWidth, region, math.max(1, text_width))
+                    layout_write(region.SetWidth, region, math.max(1, text_width))
                 end
-                if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
-                if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, wraps) end
-                if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, wraps) end
-                if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+                if type(region.SetMaxLines) == "function" then layout_write(region.SetMaxLines, region, 0) end
+                if type(region.SetWordWrap) == "function" then layout_write(region.SetWordWrap, region, wraps) end
+                if type(region.SetNonSpaceWrap) == "function" then layout_write(region.SetNonSpaceWrap, region, wraps) end
+                if type(region.SetHeight) == "function" then layout_write(region.SetHeight, region, 0) end
                 local content = row[side .. "Content"]
                 local height = safe_dimension(content, "GetStringHeight")
                 if not height or height <= 0 then
-                    return false
+                    return false, "region.string-height"
                 end
-                if content ~= region and not pcall(region.SetHeight, region, height) then return false end
+                if content ~= region and not layout_write(region.SetHeight, region, height) then return false, "region.height-write" end
                 -- Leave shared GameTooltip rows at automatic height so later
                 -- item/quest tooltips cannot inherit this text's line count.
                 row[side .. "Height"] = height
@@ -535,25 +562,26 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
                     if not originals[region] then
                         local points = {}
                         local count = safe_dimension(region, "GetNumPoints")
-                        if not count then return false end
+                        if not count then return false, "region.points-count" end
                         for index = 1, count do
                             local ok, point, relative, relative_point, x, y = pcall(region.GetPoint, region, index)
                             if not ok or is_secret(point) or is_secret(relative) or is_secret(relative_point)
-                                or is_secret(x) or is_secret(y) then return false end
+                                or is_secret(x) or is_secret(y) then return false, "region.point-read" end
                             points[#points + 1] = { point, relative, relative_point, x, y }
                         end
                         originals[region] = points
                     end
-                    if not pcall(region.ClearAllPoints, region) then return false end
+                    if not layout_write(region.ClearAllPoints, region) then return false, "region.point-clear" end
                     local point = side == "Right" and "TOPRIGHT" or "TOPLEFT"
                     local x = side == "Right" and -TOOLTIP_TEXT_PADDING / 2 or TOOLTIP_TEXT_PADDING / 2
-                    if not pcall(region.SetPoint, region, point, tooltip, point, x, -offset) then return false end
+                    if not layout_write(region.SetPoint, region, point, tooltip, point, x, -offset) then return false, "region.point-write" end
                 end
             end
             offset = offset + row_height + 2
         end
         local height = math.ceil(offset + TOOLTIP_TEXT_PADDING / 2)
-        local ok = pcall(tooltip.SetHeight, tooltip, height)
+        local ok = layout_write(tooltip.SetHeight, tooltip, height)
+        if not ok then return false, "tooltip.height" end
         if ok then
             for _, row in ipairs(rows) do
                 for _, side in ipairs(TOOLTIP_SIDES) do
@@ -567,20 +595,21 @@ local function measure_complete_tooltip(tooltip, maximum_width, arrange_rows, pr
         return ok, { width = width, height = height, rows = rows }
     end
     local top = safe_dimension(tooltip, "GetTop")
-    if not top then return false end
+    if not top then return false, "tooltip.top" end
     local height = 0
     for _, row in ipairs(rows) do
         for _, side in ipairs(TOOLTIP_SIDES) do
             if row[side] then
                 local row_top = safe_dimension(row[side], "GetTop")
-                if not row_top then return false end
+                if not row_top then return false, "region.top" end
                 height = math.max(height, top - row_top + row[side .. "Height"])
             end
         end
     end
-    if height <= 0 or type(tooltip.SetHeight) ~= "function" then return false end
+    if height <= 0 or type(tooltip.SetHeight) ~= "function" then return false, "tooltip.height" end
     height = math.ceil(height + TOOLTIP_TEXT_PADDING / 2)
-    local ok = pcall(tooltip.SetHeight, tooltip, height)
+    local ok = layout_write(tooltip.SetHeight, tooltip, height)
+    if not ok then return false, "tooltip.height" end
     if ok then
         for _, row in ipairs(rows) do
             for _, side in ipairs(TOOLTIP_SIDES) do
@@ -769,7 +798,7 @@ local function set_layout_value(object, getter, setter, expected, writable)
     end
     if writable == nil then writable = runtime.can_write_text(object) end
     if not writable then return false, writable end
-    local ok = type(object[setter]) ~= "function" or pcall(object[setter], object, expected)
+    local ok = type(object[setter]) ~= "function" or layout_write(object[setter], object, expected)
     return ok, writable
 end
 
@@ -800,7 +829,7 @@ local function apply_item_layout(tooltip, plan)
                         if writable == nil then writable = runtime.can_write_text(region) end
                         local height = row[side .. "Content"] ~= region and row[side .. "Height"] or 0
                         if not writable
-                            or not pcall(region.SetHeight, region, height) then return false, "region.height-write" end
+                            or not layout_write(region.SetHeight, region, height) then return false, "region.height-write" end
                     end
                 end
                 if plan.arrange_rows ~= false then
@@ -820,8 +849,8 @@ local function apply_item_layout(tooltip, plan)
                     if not matches then
                         if writable == nil then writable = runtime.can_write_text(region) end
                         if not writable
-                            or not pcall(region.ClearAllPoints, region)
-                            or not pcall(region.SetPoint, region, expected_point, tooltip,
+                            or not layout_write(region.ClearAllPoints, region)
+                            or not layout_write(region.SetPoint, region, expected_point, tooltip,
                                 expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
                     end
                 end
@@ -856,6 +885,10 @@ fit_complete_tooltip = function (tooltip, maximum_width, arrange_rows, prose_wid
         tooltip.uaForeverTooltipLayoutPolicy = policy
     end
     if runtime.combat_locked() then
+        if profiler.active then
+            profile_counts["combat.defer"]()
+            profiler.record_layout(tooltip, "defer", nil, "combat")
+        end
         pending_tooltip_layout[tooltip] = function ()
             pending_tooltip_layout[tooltip] = nil
             if tooltip.uaForeverTooltipLayoutPolicy == policy
@@ -876,18 +909,38 @@ fit_complete_tooltip = function (tooltip, maximum_width, arrange_rows, prose_wid
         and cached.policy == policy
     if profile_started then runtime.tooltip_profile_end("layout.cache", profile_started, tooltip) end
     tooltip.uaForeverItemLayoutApplying = true
-    local ok, fitted, detail
+    local ok, fitted, detail, cache_reason
+    local stage_started, stage_overhead, text_writes_before, layout_writes_before
+    if profiler.active then
+        stage_started, stage_overhead, text_writes_before, layout_writes_before = profiler.begin_span()
+    end
     profile_started = runtime.tooltip_profile_active and runtime.tooltip_profile_begin()
     if cache_valid then
+        if profiler.active then profile_counts.reapply() end
         ok, fitted, detail = pcall(apply_item_layout, tooltip, cached.plan)
     else
+        if profiler.active then
+            profile_counts.measure()
+            cache_reason = not signature and "cache.unreadable"
+                or not cached and "cache.empty" or cached.policy ~= policy and "cache.policy"
+                or "cache.signature"
+            profile_counts[cache_reason]()
+        end
         tooltip[cache_key] = nil
         local plan
         ok, fitted, plan = pcall(measure_complete_tooltip, tooltip,
             maximum_width, arrange_rows, prose_width, single_line_right)
+        if ok and not fitted then detail = plan end
         if ok and fitted and signature and type(plan) == "table" then
             tooltip[cache_key] = { signature = signature, plan = plan, policy = policy }
         end
+    end
+    if profiler.active then
+        profiler.record_layout(tooltip, cache_valid and "reapply" or "measure", ok and fitted == true,
+            not ok and "exception" or not fitted and (detail or "incomplete-measurement") or cache_reason,
+            profiler.elapsed_span(stage_started, stage_overhead), layout_writes_before)
+        profile_counts[ok and fitted == true and "success" or "failure"]()
+        if not ok then profile_counts.exception() end
     end
     if profile_started then
         local failure = not ok and runtime.safe_string_or_nil(fitted)
@@ -907,6 +960,10 @@ layout.fit_item_tooltip = function (tooltip)
 end
 
 layout.begin_item_build = function (tooltip)
+    if profiler.active then
+        profile_counts.build()
+        profiler.record_layout(tooltip, "build")
+    end
     tooltip.uaForeverItemBuildEpoch = (tooltip.uaForeverItemBuildEpoch or 0) + 1
     tooltip.uaForeverItemLayoutPass = nil
 end
@@ -935,7 +992,11 @@ layout.fit_item_tooltip_once = function (tooltip, before_fit)
         and previous.instance == tooltip.uaForeverSessionKey and previous.owner == owner
         and previous.original == original
         and previous.count == count and same_dimension(previous.width, width)
-        and same_dimension(previous.height, height) and previous.scale == scale then return true end
+        and same_dimension(previous.height, height) and previous.scale == scale then
+        if profiler.active then profile_counts["pass.skip"]() end
+        if profiler.active then profiler.record_layout(tooltip, "skip", true, "same-pass") end
+        return true
+    end
     if runtime.tooltip_profile_active then
         local reason = not previous and "no-stamp"
             or previous.epoch ~= epoch and "build"

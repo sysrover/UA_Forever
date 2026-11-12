@@ -7,7 +7,7 @@ local utils = addon_table.use("utils")
 local function create_lookup(database_key, scope_value, lookup, chat_mode)
 lookup = lookup or {}
 local index, anchors, identities, source_templates, actor_key
-local scoped_rows, compiled_rows, prepared_scopes, indexed_database
+local scoped_rows, compiled_rows, prepared_scopes, indexed_database, indexed_rows, indexed_version, indexed_schema
 local max_captures = 24
 lookup.version = 1
 
@@ -234,6 +234,9 @@ local function rebuild()
     lookup.record_count = 0
     local database = addon_table[database_key]
     indexed_database = database
+    indexed_rows = type(database) == "table" and database.rows or nil
+    indexed_version = type(database) == "table" and database.version or nil
+    indexed_schema = lookup.version
     if type(database) ~= "table" or database.version ~= lookup.version then return end
     -- Partition raw rows once. Compiling every NPC's patterns in a chat event
     -- can exhaust the game's execution budget before the message is displayed.
@@ -389,7 +392,11 @@ end
 lookup.prepare = function(npc_id, actor)
     actor = actor or actors()
     local key = table.concat({ actor.name or "", actor.class or "", actor.race or "", tostring(actor.sex) }, "\031")
-    if not index or actor_key ~= key or indexed_database ~= addon_table[database_key] then
+    local database = addon_table[database_key]
+    local rows = type(database) == "table" and database.rows or nil
+    local version = type(database) == "table" and database.version or nil
+    if not index or actor_key ~= key or indexed_database ~= database
+        or indexed_rows ~= rows or indexed_version ~= version or indexed_schema ~= lookup.version then
         rebuild()
         actor_key = key
     end

@@ -78,7 +78,20 @@ profiler.counter = function (label)
     end
 end
 
-profiler.record_walk = function (metadata, root, frames, regions, translated, truncated, elapsed)
+profiler.begin_span = function ()
+    if current then return now(), current.report.instrumentationMs,
+        current.report.work["text.write.success"] or 0,
+        current.report.work["layout.write.success"] or 0 end
+end
+
+profiler.elapsed_span = function (started, overhead)
+    if current and started then
+        return math.max(0, now() - started - (current.report.instrumentationMs - overhead))
+    end
+    return 0
+end
+
+profiler.record_walk = function (metadata, root, frames, regions, translated, truncated, elapsed, writes_before)
     local session = current
     if not session then return end
     local started, report = now(), session.report
@@ -90,7 +103,7 @@ profiler.record_walk = function (metadata, root, frames, regions, translated, tr
     local key = (id or "unknown"):sub(1, 100) .. ":" .. (name or "<unnamed>"):sub(1, 100)
     local row = report.walks[key]
     if not row and report.walkCount < MAX_WALKS then
-        row = { calls = 0, frames = 0, regions = 0, translatedResults = 0,
+        row = { calls = 0, frames = 0, regions = 0, translatedResults = 0, textWrites = 0,
             truncated = 0, totalMs = 0, maxMs = 0 }
         report.walks[key] = row
         report.walkCount = report.walkCount + 1
@@ -99,10 +112,70 @@ profiler.record_walk = function (metadata, root, frames, regions, translated, tr
         row.calls = row.calls + 1
         row.frames, row.regions = row.frames + frames, row.regions + regions
         row.translatedResults = row.translatedResults + translated
+        row.textWrites = row.textWrites + math.max(0,
+            (report.work["text.write.success"] or 0) - (writes_before or 0))
         row.truncated = row.truncated + (truncated and 1 or 0)
         row.totalMs, row.maxMs = row.totalMs + elapsed, math.max(row.maxMs, elapsed)
     else
         report.walkDrops = report.walkDrops + 1
+    end
+    diagnostic_overhead(session, started)
+end
+
+-- Only structural identifiers and fixed branch reasons enter this summary;
+-- text, source strings, error messages and pooled owner objects stay out.
+profiler.record_layout = function (tooltip, stage, success, reason, elapsed, writes_before)
+    local session = current
+    if not session then return end
+    local started, report = now(), session.report
+    stage, reason = public_string(stage), public_string(reason)
+    elapsed = public_number(elapsed) or 0
+    if stage ~= "measure" and stage ~= "reapply" and stage ~= "build"
+        and stage ~= "skip" and stage ~= "defer" then
+        diagnostic_overhead(session, started)
+        return
+    end
+    if reason then reason = reason:sub(1, 80) end
+    if elapsed ~= elapsed or elapsed < 0 or elapsed == math.huge then elapsed = 0 end
+    local ok, name, kind, original = pcall(function ()
+        return tooltip:GetName(), tooltip.uaForeverKind, tooltip.uaForeverShowOriginal
+    end)
+    name, kind = ok and public_string(name), ok and public_string(kind)
+    -- Clear/build notifications precede the new data kind and text-mode sync.
+    -- Do not attribute a new build to the previous pooled tooltip session.
+    if stage == "build" then kind, original = "native-boundary", false end
+    if not secret(original) and name and kind then
+        local key = name:sub(1, 80) .. ":" .. kind:sub(1, 40)
+            .. (stage == "build" and "" or original == true and ":original" or ":translated")
+        local row = report.layouts[key]
+        if not row and report.layoutCount < 64 then
+            row = { stages = {}, reasons = {}, reasonCount = 0 }
+            report.layouts[key] = row
+            report.layoutCount = report.layoutCount + 1
+        end
+        if row then
+            local sample = row.stages[stage]
+            if not sample then
+                sample = { calls = 0, success = 0, failure = 0, totalMs = 0, maxMs = 0, setterCalls = 0 }
+                row.stages[stage] = sample
+            end
+            sample.calls = sample.calls + 1
+            if not secret(success) then
+                if success == true then sample.success = sample.success + 1
+                elseif success == false then sample.failure = sample.failure + 1 end
+            end
+            sample.totalMs, sample.maxMs = sample.totalMs + elapsed, math.max(sample.maxMs, elapsed)
+            if writes_before then
+                sample.setterCalls = sample.setterCalls + math.max(0,
+                    (report.work["layout.write.success"] or 0) - writes_before)
+            end
+            if reason and (row.reasons[reason] or row.reasonCount < 32) then
+                if not row.reasons[reason] then row.reasonCount = row.reasonCount + 1 end
+                row.reasons[reason] = (row.reasons[reason] or 0) + 1
+            end
+        else
+            report.layoutDrops = report.layoutDrops + 1
+        end
     end
     diagnostic_overhead(session, started)
 end
@@ -275,7 +348,7 @@ instrument_modules = function (session)
         for key, callback in pairs(module) do
             if type(key) == "string" and type(callback) == "function" then
                 local previous = slots[key]
-                if not previous or callback ~= previous.wrapped then
+                if (not previous or callback ~= previous.wrapped) and #session.replacements < MAX_LABELS then
                     -- Keep each version in restoration order: a later replacement
                     -- must restore to itself, never to an obsolete implementation.
                     local wrapped = profiler.wrap("module:" .. name .. "." .. key, callback)
@@ -315,7 +388,34 @@ end
 
 local function reset_interval(interval)
     interval.calls, interval.totalMs, interval.maxMs, interval.overheadMs = 0, 0, 0, 0
+    interval.totalCalls, interval.selfMs = 0, 0
+    interval.byLabel, interval.touched = interval.byLabel or {}, interval.touched or {}
+    for index, row in ipairs(interval.touched) do
+        row.calls, row.selfMs, row.totalMs, row.maxMs = 0, 0, 0, 0
+        interval.touched[index] = nil
+    end
+    interval.work = interval.work or {}
+    for key in pairs(interval.work) do interval.work[key] = nil end
     interval.label = nil
+end
+
+local function interval_details(interval, entry)
+    local rows = {}
+    for _, row in ipairs(interval.touched) do rows[#rows + 1] = row end
+    table.sort(rows, function (a, b)
+        if a.selfMs == b.selfMs then return a.label < b.label end
+        return a.selfMs > b.selfMs
+    end)
+    entry.topCalls, entry.work = {}, {}
+    local covered = 0
+    for index = 1, math.min(MAX_INTERVAL_CALLS, #rows) do
+        local row = rows[index]
+        entry.topCalls[index] = { label = row.label, calls = row.calls,
+            selfMs = row.selfMs, totalMs = row.totalMs, maxMs = row.maxMs }
+        covered = covered + row.selfMs
+    end
+    entry.otherSelfMs = math.max(0, interval.selfMs - covered)
+    for key, value in pairs(interval.work) do entry.work[key] = value end
 end
 
 local function sample_frame(_, elapsed)
@@ -352,12 +452,16 @@ local function sample_frame(_, elapsed)
             end
         end
         if ms > 33 or interval.maxMs > 5 then
-            retain_slowest(report.slowIntervals, { frameMs = ms, heapKB = frames.lastHeapKB,
+            local entry = { frameMs = ms, heapKB = frames.lastHeapKB,
                 heapSampleAtMs = frames.heapSampleAtMs,
                 heapDropKB = drop, callbackMs = interval.totalMs,
                 calls = interval.calls, topCall = interval.label, topCallMs = interval.maxMs,
+                totalCalls = interval.totalCalls, selfMs = interval.selfMs,
                 instrumentationMs = interval.overheadMs, context = context(),
-                atMs = math.max(0, started - session.started) }, MAX_SLOW_INTERVALS, "frameMs")
+                atMs = math.max(0, started - session.started) }
+            if retain_slowest(report.slowIntervals, entry, MAX_SLOW_INTERVALS, "frameMs") then
+                interval_details(interval, entry)
+            end
         end
         reset_interval(interval)
     end
@@ -378,21 +482,36 @@ profiler.start = function (seconds, on_saved)
     local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
-    local report = { version = 1, patch = "addon-profile-all-shift-layout-2026-11-10", status = "recording",
+    local report = { version = 2, patch = "addon-profile-interval-work-2026-11-12", status = "recording",
         requestedSeconds = seconds, build = utils.build_version, buildNumber = utils.build_number,
         calls = {}, labelCount = 0, labelDrops = 0, depthDrops = 0, clockResets = 0,
         instrumentationMs = 0, collectorMs = 0, slowCalls = {}, slowIntervals = {},
+        work = {}, counterCount = 0, counterDrops = 0,
+        walks = {}, walkCount = 0, walkDrops = 0,
+        layouts = {}, layoutCount = 0, layoutDrops = 0,
         nestedTimesOverlap = true, selfTimeIsAdditive = true,
         frameAttribution = "callbacks between collector ticks; not an exact frame boundary",
+        contextMeaning = "current GameTooltip metadata; not the cause or owner of the interval",
+        intervalTopLimit = MAX_INTERVAL_CALLS,
+        walkMeaning = "inclusive walk time; translatedResults includes stable claims, not just writes",
+        writeMeaning = "guarded setter calls in translation_runtime and completed tooltip layout; not proof of visible change",
+        buildMeaning = "native.item-post counts Item post-calls; layout.build counts boundary notifications, which may repeat",
+        exportRefreshPolicy = "start and successful observed ADDON_LOADED handlers; no continuous scan",
+        codeIdentity = "addon metadata and profiler patch; no source hash available in game",
         localFunctions = "included in nearest measured caller; not individually enumerated",
         firstCallMeaning = "first completed call in this capture; ADDON_LOADED labels identify module loads",
         heapSamplePeriodMs = 100,
-        coverage = { modules = {}, exportedFunctions = 0 },
+        coverage = { modules = {}, exportedFunctions = 0, exportScans = 0 },
         frames = { count = 0, totalMs = 0, maxMs = 0, over33ms = 0, over50ms = 0 },
         settings = { enabled = account.enabled, dev = account.dev_mode,
             diagnostics = account.auto_scan_diagnostics, autoscan = account.auto_scan_content,
             fonts = account.override_system_fonts, fojji = account.translate_fojji,
             language = account.tooltip_language_mode }, nativeBefore = native_snapshot() }
+    local metadata = _G.C_AddOns and _G.C_AddOns.GetAddOnMetadata or _G.GetAddOnMetadata
+    if type(metadata) == "function" then
+        local ok, value = pcall(metadata, addon_name, "Version")
+        if ok then report.addonVersion = public_string(value) end
+    end
     report.integration = { fojjiNamespace = type(_G.FojjiCoreNS) == "table" }
     report.tooltipTypes = {}
     local types = _G.Enum and _G.Enum.TooltipDataType
@@ -404,7 +523,7 @@ profiler.start = function (seconds, on_saved)
         driver:Hide()
         driver:SetScript("OnUpdate", sample_frame)
     end
-    local session = { report = report, replacements = {}, stack = {}, depth = 0,
+    local session = { report = report, replacements = {}, exportSlots = {}, stack = {}, depth = 0,
         interval = {}, seconds = seconds, on_saved = on_saved, skipFirstFrame = true,
         started = now(), startedSeconds = type(_G.GetTime) == "function" and _G.GetTime() or 0 }
     reset_interval(session.interval)
@@ -422,6 +541,22 @@ profiler.stop = function (reason)
     if not session then return nil, "inactive" end
     current, profiler.active = nil, false
     if driver then driver:Hide() end
+    local unwrapped, unwrapped_labels = 0, {}
+    addon_table.each_module(function (name, module)
+        if name == "performance_profile" then return end
+        local slots = session.exportSlots[module] or {}
+        for key, callback in pairs(module) do
+            if type(key) == "string" and type(callback) == "function"
+                and (not slots[key] or slots[key].wrapped ~= callback) then
+                unwrapped = unwrapped + 1
+                if #unwrapped_labels < 64 and public_string(name) and public_string(key) then
+                    unwrapped_labels[#unwrapped_labels + 1] = name:sub(1, 80) .. "." .. key:sub(1, 80)
+                end
+            end
+        end
+    end)
+    session.report.coverage.unwrappedExportsAtStop = unwrapped
+    session.report.coverage.unwrappedExports = unwrapped_labels
     for index = #session.replacements, 1, -1 do
         local replacement = session.replacements[index]
         if replacement.module[replacement.key] == replacement.wrapped then
