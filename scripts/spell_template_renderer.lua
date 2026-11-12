@@ -848,15 +848,56 @@ local function printf_parts(text)
         if text:sub(first, first + 1) == "%%" then
             parts[#parts + 1] = { text = "%" }; position = first + 2
         else
-            local token, index, kind = text:sub(first):match("^(%%(%d+)%$[-+%.%d]*([sdcif]))")
-            if not token then token, kind = text:sub(first):match("^(%%[-+%.%d]*([sdcif]))") end
+            local token, index, kind = text:sub(first):match("^(%%(%d+)%$[-+ #%.%d]*([sdcifeEgGouxXq]))")
+            if not token then token, kind = text:sub(first):match("^(%%[-+ #%.%d]*([sdcifeEgGouxXq]))") end
             if not token then return nil end
             argument = argument + 1
-            parts[#parts + 1] = { argument = tonumber(index) or argument, kind = kind }
+            parts[#parts + 1] = { argument = tonumber(index) or argument,
+                kind = kind, token = token:gsub("^%%%d+%$", "%%") }
             position = first + #token
         end
     end
     return parts
+end
+
+local function render_plural(text, number)
+    return (text:gsub("|4([^;]+);", function (forms)
+        local options = split_colon(forms)
+        local n = math.abs(number)
+        local index = n == 1 and 1 or 2
+        if #options >= 3 then
+            index = n % 10 == 1 and n % 100 ~= 11 and 1
+                or n % 10 >= 2 and n % 10 <= 4
+                    and (n % 100 < 12 or n % 100 > 14) and 2 or 3
+        end
+        return options[index] or options[#options]
+    end))
+end
+
+-- SetFormattedText provides the template and values before they lose their
+-- argument identities. Keep string arguments literal, including player names.
+renderer.format_arguments = function (template, ...)
+    if is_secret_value(template) or type(template) ~= "string" then return nil end
+    local count = select("#", ...)
+    for index = 1, count do
+        if is_secret_value(select(index, ...)) then return nil end
+    end
+    local parts = printf_parts(template)
+    if not parts then return nil end
+    local values, result, number = { ... }, {}, 0
+    for _, part in ipairs(parts) do
+        if part.text then
+            result[#result + 1] = render_plural(part.text, number)
+        else
+            if part.argument > count then return nil end
+            local value = values[part.argument]
+            local ok, formatted = pcall(string.format, part.token, value)
+            if not ok then return nil end
+            number = tonumber((formatted:gsub(",", ""))) or number
+            result[#result + 1] = formatted
+        end
+    end
+    return table.concat(result)
 end
 
 local function plural_variants(text)
@@ -934,17 +975,7 @@ renderer.render_format = function (english, ukrainian, native, translate_capture
             local result, number = {}, 0
             for _, part in ipairs(parts) do
                 if part.text then
-                    result[#result + 1] = part.text:gsub("|4([^;]+);", function (forms)
-                        local options = split_colon(forms)
-                        local n = math.abs(number)
-                        local index = n == 1 and 1 or 2
-                        if #options >= 3 then
-                            index = n % 10 == 1 and n % 100 ~= 11 and 1
-                                or n % 10 >= 2 and n % 10 <= 4
-                                    and (n % 100 < 12 or n % 100 > 14) and 2 or 3
-                        end
-                        return options[index] or options[#options]
-                    end)
+                    result[#result + 1] = render_plural(part.text, number)
                 else
                     local value = values[part.argument]
                     if value == nil then return nil end

@@ -11,6 +11,7 @@ local layout = addon_table.use("translation_layout")
 local scheduler = addon_table.use("translation_scheduler")
 local hooks = addon_table.use("translation_hooks").bind("combat-text")
 local social_toast_hooks = addon_table.use("translation_hooks").bind("social-toast")
+local renderer = addon_table.use("spell_template_renderer")
 -- These discriminators are local constants in build 70205's BNet.lua.
 local social_toast_online, social_toast_offline = 1, 2
 local debug_name
@@ -165,7 +166,7 @@ strings.find_ui_translation = function (text, region)
     return resolver.find_ui(text, region)
 end
 
-local function translate_font_string(region, category, slot, surface, phase, instance, section)
+local function translate_font_string(region, category, slot, surface, phase, instance, section, template, ...)
     if options.work_enabled and not options.work_enabled(surface and surface.id) then return false end
     if not region then return false end
     local methods_ok, get_text, set_text = pcall(function ()
@@ -177,6 +178,11 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     local ok, text = pcall(get_text, region)
     if not ok or type(text) ~= "string" or is_secret(text) then return false end
     if text == "" then return false end
+    if template then
+        local previous = runtime.get(region)
+        if previous and text == previous.translated then text = previous.source end
+        if type(text) ~= "string" or is_secret(text) then return false end
+    end
     -- Escape-menu buttons are rebuilt even during combat. Only their public
     -- label text may be updated then; font and layout work waits until combat ends.
     local text_only = type(surface) == "table" and surface.id == "game-menu"
@@ -186,7 +192,7 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     -- Latin-only font when the addon font was not ready during the first
     -- pass. OnShow and the post-login refresh must be able to repair the font
     -- even though there is no longer an English string to translate.
-    if contains_cyrillic(text) then
+    if not template and contains_cyrillic(text) then
         if text_only then return true, true end
         if not options.can_translate("override_system_fonts") then return false, true end
         return runtime.ensure_font(region), true
@@ -203,10 +209,13 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     end
     local translated, _, source_kind, inferred_category, inferred_slot,
         inferred_option, provenance =
-        resolver.find_ui(text, region, explicit_category and {
+        resolver.find_ui(template or text, region, explicit_category and {
             category = explicit_category,
             slot = slot,
         } or nil)
+    if template and translated then
+        translated = translated ~= template and renderer.format_arguments(translated, ...) or nil
+    end
     if not translated or translated == text then return false end
     category = category or inferred_category
     slot = slot or inferred_slot
@@ -230,6 +239,7 @@ local function translate_font_string(region, category, slot, surface, phase, ins
         lookup_tier = source_kind,
         catalog_source = provenance and provenance.source,
         surface = surface, phase = phase, section = section,
+        defer_if_protected = surface and surface.defer_if_protected,
         generation = phase == "dynamic" and runtime.generation(surface) or nil,
         instance = instance,
         combat_text_only = text_only == true,
@@ -252,6 +262,12 @@ end
 strings.translate_region = function (...)
     local translated = translate_font_string(...)
     return translated
+end
+
+strings.translate_formatted_region = function (region, template, surface, ...)
+    template = runtime.safe_string_or_nil(template)
+    if not template or type(renderer.format_arguments) ~= "function" then return false end
+    return translate_font_string(region, nil, "ui.label", surface, nil, nil, nil, template, ...)
 end
 
 strings.set_region_text = function (region, text, tooltip, source, category, slot)

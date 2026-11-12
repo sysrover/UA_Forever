@@ -9,6 +9,11 @@ local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local options = addon_table.use("options")
 local hooks = addon_table.use("translation_hooks").bind("menus_ui")
+local layout = addon_table.use("translation_layout")
+local profiler = addon_table.use("performance_profile")
+local prepared_menus = setmetatable({}, { __mode = "k" })
+local prepared_descriptions = setmetatable({}, { __mode = "k" })
+local early_labels = setmetatable({}, { __mode = "k" })
 local micro_button_names = {
     "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
     "SpellbookMicroButton", "SpellBookMicroButton", "TalentMicroButton",
@@ -122,11 +127,11 @@ local function is_edit_mode_layout_menu(menu)
     local dropdown = manager and manager.LayoutDropdown
     if dropdown and type(menu.GetOwnerRegion) == "function" then
         local ok, owner = pcall(menu.GetOwnerRegion, menu)
-        if ok and owner == dropdown then return true end
+        if ok and not runtime.is_secret_value(owner) and owner == dropdown then return true end
     end
     if type(menu.ToDebugString) == "function" then
         local ok, tag = pcall(menu.ToDebugString, menu)
-        if ok and tag == "MENU_EDIT_MODE_MANAGER" then return true end
+        if ok and not runtime.is_secret_value(tag) and tag == "MENU_EDIT_MODE_MANAGER" then return true end
     end
     return false
 end
@@ -148,43 +153,200 @@ local function edit_mode_user_layout_names()
     return names
 end
 
+local function menu_policy(menu)
+    local section, names = "game_menu", {}
+    local ok, tag = pcall(function () return menu:ToDebugString() end)
+    tag = ok and runtime.safe_string_or_nil(tag) or nil
+    local guild = addon_table.use("guild_menus_ui")
+    if tag and guild.owns and guild.owns(tag) then return nil end
+    if is_edit_mode_layout_menu(menu) then
+        section, names = "edit_mode", edit_mode_user_layout_names()
+    elseif tag then
+        if tag:match("^MENU_UNIT_") or tag:match("^MENU_SOCIAL_UI_") then
+            section = "social_ui"
+        elseif tag:match("^MENU_COOLDOWN_SETTINGS_") or tag:match("^COOLDOWN_VIEWER_")
+            or tag:match("^GROUP_BUFF_FILTER_") or tag:match("^MENU_GROUP_BUFF_FILTER_")
+            or tag:match("^MENU_DAMAGE_METER_") then
+            section = "game_settings"
+            if tag == "MENU_COOLDOWN_SETTINGS_LAYOUTS" then
+                names = addon_table.use("cooldown_viewer_ui").user_layout_names()
+            end
+        end
+    end
+    return { id = "menus", name_category = "none", section = section,
+        names = names, tag = tag or "", defer_if_protected = false }
+end
+
+local function fit_menu_label(region)
+    if runtime.combat_locked() then return end
+    local width = layout.safe_dimension(region, "GetUnboundedStringWidth")
+        or layout.safe_dimension(region, "GetStringWidth")
+    local current = layout.safe_dimension(region, "GetWidth")
+    if width and current and not layout.dimensions_match(current, math.ceil(width))
+        and runtime.can_write_text(region) then
+        pcall(region.SetWidth, region, math.ceil(width))
+    end
+    local height = layout.safe_dimension(region, "GetStringHeight")
+    current = layout.safe_dimension(region, "GetHeight")
+    -- Standard menu labels reserve a native minimum height (20 in 70888).
+    if height and current and height > current
+        and not layout.dimensions_match(current, math.ceil(height))
+        and runtime.can_write_text(region) then
+        pcall(region.SetHeight, region, math.ceil(height))
+    end
+end
+
+local function translate_menu_label(region)
+    local state = early_labels[region]
+    if not state or state.preserve or runtime.is_applying(region) then return end
+    local frame, expected = state.references.frame, state.references.description
+    if not frame or not expected then return end
+    if type(frame.GetElementDescription) == "function" then
+        local ok, description = pcall(frame.GetElementDescription, frame)
+        if not ok or runtime.is_secret_value(description) or description ~= expected then return end
+    end
+    local policy = state.definition.policy
+    if state.policy ~= policy then
+        runtime.invalidate(region)
+        state.policy = policy
+    end
+    if options.can_lookup_section and not options.can_lookup_section(policy.section) then return end
+    local ok, source = pcall(region.GetText, region)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    local claim = runtime.get(region)
+    if claim and source == claim.translated then
+        fit_menu_label(region)
+        return
+    end
+    if source ~= state.definition.source then return end
+    local plain = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    if policy.names[plain] then return end
+    strings.translate_region(region, nil, "ui.action", policy, nil, nil, policy.section)
+    claim = runtime.get(region)
+    local visible_ok, visible = pcall(region.GetText, region)
+    if claim and visible_ok and runtime.safe_string_or_nil(visible) == claim.translated then
+        fit_menu_label(region)
+    end
+end
+
+local function has_custom_menu_regions(frame, label)
+    if type(frame.GetRegions) == "function" then
+        local ok, regions = pcall(function () return { frame:GetRegions() } end)
+        if not ok then return true end
+        for _, region in ipairs(regions) do
+            if runtime.is_secret_value(region) then return true end
+            if region ~= label then
+                local kind_ok, kind = pcall(function () return region:GetObjectType() end)
+                if not kind_ok or runtime.is_secret_value(kind) or kind == "FontString" then return true end
+            end
+        end
+    end
+    if type(frame.GetChildren) == "function" then
+        local ok, count = pcall(function () return select("#", frame:GetChildren()) end)
+        if not ok or runtime.is_secret_value(count) or count > 0 then return true end
+    end
+    return false
+end
+
+local function prepare_menu_description(_, owner, root)
+    local util = _G.MenuUtil
+    if not root or not util or type(util.TraverseMenu) ~= "function"
+        or type(util.GetElementText) ~= "function" then return end
+    local policy = menu_policy(root)
+    if not policy then return end
+    local guild = addon_table.use("guild_menus_ui")
+    if guild.preserves_owner and guild.preserves_owner(owner) then return end
+    local tag_ok, _, context = pcall(function () return root:GetTag() end)
+    if tag_ok and not runtime.is_secret_value(context) and type(context) == "table" then
+        for _, key in ipairs({ "name", "fullName", "accountName", "battleTag" }) do
+            local value_ok, value = pcall(function () return context[key] end)
+            value = value_ok and runtime.safe_string_or_nil(value) or nil
+            if value then policy.names[value] = true end
+        end
+    end
+    util.TraverseMenu(root, function (description)
+        local state = prepared_descriptions[description]
+        if not state then
+            state = {}
+            local function initialize(frame, _, menu)
+                if not menu or runtime.is_secret_value(menu) then return end
+                local coverage = prepared_menus[menu]
+                if not coverage or coverage.policy ~= state.policy then
+                    coverage = { policy = state.policy }
+                    prepared_menus[menu] = coverage
+                end
+                local ok, region = pcall(function () return frame and frame.fontString end)
+                if not ok or runtime.is_secret_value(region) or not region then
+                    -- Dividers and spacers have no labels to translate.
+                    if not ok or state.source or not frame
+                        or has_custom_menu_regions(frame, nil) then coverage.fallback = true end
+                    return
+                end
+                if has_custom_menu_regions(frame, region) then coverage.fallback = true end
+                local preserve = not state.source and state.policy.tag:match("^MENU_UNIT_") ~= nil
+                if not state.source and not preserve then
+                    early_labels[region] = nil
+                    coverage.fallback = true
+                    return
+                end
+                local text_ok, native = pcall(region.GetText, region)
+                native = text_ok and runtime.safe_string_or_nil(native) or nil
+                local claim = runtime.get(region)
+                if state.source and native ~= state.source
+                    and not (claim and native == claim.translated and claim.source == state.source) then
+                    early_labels[region] = nil
+                    coverage.fallback = true
+                    return
+                end
+                local previous = early_labels[region]
+                if not previous or previous.references.description ~= description or previous.policy ~= state.policy then
+                    runtime.invalidate(region)
+                end
+                early_labels[region] = { policy = state.policy,
+                    definition = state, preserve = preserve,
+                    references = setmetatable({ frame = frame, description = description,
+                        menu = menu }, { __mode = "v" }) }
+                hooks.region(region, "SetText", translate_menu_label)
+                hooks.region(region, "SetTextToFit", translate_menu_label)
+                translate_menu_label(region)
+            end
+            if profiler.wrap then initialize = profiler.wrap("menus.label.initialize", initialize) end
+            if not pcall(description.AddInitializer, description, initialize) then return end
+            prepared_descriptions[description] = state
+        end
+        state.policy = policy
+        local source_ok, source = pcall(util.GetElementText, description)
+        state.source = source_ok and runtime.safe_string_or_nil(source) or nil
+    end)
+end
+
+local function open_menu()
+    local manager = _G.Menu and type(_G.Menu.GetManager) == "function"
+        and _G.Menu.GetManager() or nil
+    return manager and type(manager.GetOpenMenu) == "function"
+        and manager:GetOpenMenu() or nil
+end
+
 local function translate_open_menu()
+    local current = open_menu()
+    local prepared = current and prepared_menus[current]
+    if prepared and not prepared.fallback then return end
     local function translate()
-        local manager = _G.Menu and type(_G.Menu.GetManager) == "function"
-            and _G.Menu.GetManager() or nil
-        local menu = manager and type(manager.GetOpenMenu) == "function"
-            and manager:GetOpenMenu() or nil
+        local menu = open_menu()
         if menu then
             if type(menu.GetOwnerRegion) == "function" then
                 local ok, owner = pcall(menu.GetOwnerRegion, menu)
                 if ok and not runtime.is_secret_value(owner)
                     and addon_table.use("guild_menus_ui").preserves_owner(owner) then return end
             end
-            local section = "game_menu"
-            local cooldown_layout_menu = false
-            if is_edit_mode_layout_menu(menu) then
-                section = "edit_mode"
-            elseif type(menu.ToDebugString) == "function" then
-                local ok, tag = pcall(menu.ToDebugString, menu)
-                -- The guild owner translates standard rank names and preserves
-                -- custom names in this menu before its compositor measures them.
-                if ok and addon_table.use("guild_menus_ui").owns(tag) then return end
-                if ok and type(tag) == "string"
-                    and (tag:match("^MENU_UNIT_") or tag:match("^MENU_SOCIAL_UI_")) then
-                    section = "social_ui"
-                elseif ok and type(tag) == "string" and
-                    (tag:match("^MENU_COOLDOWN_SETTINGS_") or tag:match("^COOLDOWN_VIEWER_")
-                    or tag:match("^GROUP_BUFF_FILTER_") or tag:match("^MENU_GROUP_BUFF_FILTER_")
-                    or tag:match("^MENU_DAMAGE_METER_")) then
-                    section = "game_settings"
-                    cooldown_layout_menu = tag == "MENU_COOLDOWN_SETTINGS_LAYOUTS"
-                end
-            end
+            local policy = menu_policy(menu)
+            if not policy then return end
+            local section = policy.section
             if options.can_lookup_section and not options.can_lookup_section(section) then return end
-            if is_edit_mode_layout_menu(menu) or cooldown_layout_menu then
-                local user_layout_names = cooldown_layout_menu
-                    and addon_table.use("cooldown_viewer_ui").user_layout_names()
-                    or edit_mode_user_layout_names()
+            local coverage = prepared_menus[menu]
+            if coverage and not coverage.fallback then return end
+            if next(policy.names) or coverage then
+                local user_layout_names = policy.names
                 local walk = {
                     id = menu_walks.modern.id,
                     surface = menu_walks.modern.surface,
@@ -192,6 +354,8 @@ local function translate_open_menu()
                     reason = menu_walks.modern.reason,
                     section = section,
                     skip_region = function (region)
+                        local state = early_labels[region]
+                        if state and state.references.menu == menu then return true end
                         if not region or type(region.GetText) ~= "function" then
                             return false
                         end
@@ -306,13 +470,14 @@ menus_ui.prepare = function ()
     -- function from OnUpdate, bypassing EvaluateTooltipVisibility entirely.
     hooks.global("MainMenuBarPerformanceBarFrame_OnEnter", translate_micro_button_tooltip)
 
-    -- Modern dropdowns and context menus are anonymous pooled frames. Hook the
-    -- public manager and translate only the completed menu returned as open.
+    -- Append display initializers before native extent measurement. Keep the
+    -- manager fallback for custom controls outside the standard menu labels.
     local menu_manager = _G.Menu and type(_G.Menu.GetManager) == "function"
         and _G.Menu.GetManager() or nil
     hooks.region(menu_manager, "OpenMenu", translate_open_menu)
     hooks.region(menu_manager, "OpenContextMenu", translate_open_menu)
     hooks.region(menu_manager, "OpenSubmenu", translate_open_menu)
+    hooks.region(_G.Menu, "PopulateDescription", prepare_menu_description)
 
     hooks.global("UIDropDownMenu_AddButton", translate_legacy_dropdown)
     local game_menu_frame = _G.GameMenuFrame

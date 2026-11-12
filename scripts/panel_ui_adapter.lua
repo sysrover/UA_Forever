@@ -36,7 +36,12 @@ adapter.bind = function (id)
             if not runtime.is_applying(self) then callback(self) end
         end
         api.hooks.region(region, "SetText", written)
-        api.hooks.region(region, "SetFormattedText", written)
+        api.hooks.region(region, "SetFormattedText", function (self, template, ...)
+            if runtime.is_applying(self) then return end
+            if callback == api.label and strings.translate_formatted_region
+                and strings.translate_formatted_region(self, template, api.surface, ...) then return end
+            callback(self)
+        end)
         written(region)
     end
     api.button = function (button)
@@ -116,10 +121,11 @@ adapter.bind = function (id)
     end
     api.formatted = function (region, template, ...)
         template = runtime.safe_string_or_nil(template)
-        local translated = template and resolver.find_ui(template)
+        local translated = template and resolver.find_ui(template, region)
         if not translated then return end
-        local ok, text = pcall(string.format, translated, ...)
-        if ok then return api.apply(region, text) end
+        local renderer = addon_table.use("spell_template_renderer")
+        local text = renderer.format_arguments(translated, ...)
+        if text then return api.apply(region, text) end
     end
     api.npc = function (region, unit)
         local ok, npc_id = pcall(utils.npc_id_from_unit_id, unit)

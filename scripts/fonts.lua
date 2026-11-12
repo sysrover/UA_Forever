@@ -276,7 +276,12 @@ local function apply_compositor_font(font_string, height, flags)
     end
 
     local signature = "compositor\031" .. key
-    if applied_signatures[font_string] == signature then return true end
+    if applied_signatures[font_string] == signature then
+        -- A pooled compositor string can retain our signature after Blizzard
+        -- has reset its FontObject. Check the actual assignment before reuse.
+        local current_ok, current = pcall(function () return font_string:GetFontObject() end)
+        if current_ok and not runtime.is_secret_value(current) and current == font then return true end
+    end
     local color_ok, r, g, b, a = false, nil, nil, nil, nil
     if type(get_text_color) == "function" then
         color_ok, r, g, b, a = pcall(get_text_color, font_string)

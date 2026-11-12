@@ -13,6 +13,15 @@ local function public_object(object)
     return ok and secret ~= true
 end
 
+local function compositor_configuration(object)
+    local ok, metatable = pcall(getmetatable, object)
+    if ok and type(metatable) == "table"
+        and type(rawget(metatable, "__index")) == "function"
+        and type(rawget(metatable, "__newindex")) == "table" then
+        return metatable
+    end
+end
+
 local function guarded(scope, callback, cleanup, label)
     if profiler.wrap then callback = profiler.wrap("hook:" .. scope .. ":" .. label, callback) end
     if cleanup then return callback end
@@ -60,9 +69,17 @@ translation_hooks.bind = function (scope)
         end
         local regions = installed_regions[scope]
         local methods = regions and regions[region]
-        if methods and methods[method] then return true end
+        local previous = methods and methods[method]
         local ok, method_value = pcall(function () return region[method] end)
         if not ok or type(method_value) ~= "function" then return false end
+        local configuration = compositor_configuration(region) or false
+        -- The compositor discards its method wrappers with each configuration.
+        -- Methods stored on the region itself survive that reset.
+        if previous and (previous.configuration == configuration
+            or previous.method and type(region) == "table"
+                and rawget(region, method) == previous.method) then
+            return true
+        end
         if not regions then
             regions = setmetatable({}, { __mode = "k" })
             installed_regions[scope] = regions
@@ -73,7 +90,11 @@ translation_hooks.bind = function (scope)
             methods = {}
             regions[region] = methods
         end
-        methods[method] = true
+        local read_ok, installed_method = pcall(function () return region[method] end)
+        -- A compositor metatable closes over its region. Do not retain that
+        -- region through the values of this weak-key installation registry.
+        methods[method] = setmetatable({ configuration = configuration,
+            method = read_ok and installed_method or nil }, { __mode = "v" })
         return true
     end
 
