@@ -1129,6 +1129,7 @@ local panel_loads = {
         modules = { "skills", "talent_frame_adapter" },
         surfaces = { "skills" },
         menu_roots = { "PlayerSpellsFrame" },
+        prepare_tooltips = tooltips.prepare_player_spells,
     },
     Blizzard_AchievementUI = {
         modules = { "achievements", "legacy_ui" },
@@ -1153,7 +1154,8 @@ local function prepare_loaded_panel(loaded_addon)
     strings.prepare()
     fonts.prepare()
     -- Shared tooltip owners and gamepad footers can be created by these panels.
-    tooltips.prepare()
+    local prepare_tooltips = route.prepare_tooltips or tooltips.prepare
+    prepare_tooltips()
     menus_ui.prepare(route.menu_roots or {})
     for _, name in ipairs(route.modules) do
         if name == "panel_fallback_ui" then addon_table.use(name).prepare(route.fallback_roots or {})

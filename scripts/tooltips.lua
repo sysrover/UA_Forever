@@ -1258,6 +1258,19 @@ translate_object_tooltip_title = function (tooltip)
     return applied
 end
 
+local function prepare_talent_tooltip_hooks()
+    hooks.region(_G.TalentFrameBaseMixin, "AddConditionsToTooltip",
+        talent_adapter.translate_quest_conditions)
+    hooks.once("talent-tooltip-created", function ()
+        if not _G.EventRegistry or type(_G.EventRegistry.RegisterCallback) ~= "function" then return false end
+        _G.EventRegistry:RegisterCallback("TalentDisplay.TooltipCreated",
+            profile_callback("event:TalentDisplay.TooltipCreated", function (...)
+                if tooltip_work_enabled("spell") then return talent_adapter.translate(...) end
+            end), tooltips)
+        return true
+    end)
+end
+
 local function prepare_map_surface_hooks()
     quest_adapter.prepare()
     hooks.region(_G.FlightMap_ZoneSummaryDataProvider, "CheckMouse",
@@ -1270,8 +1283,7 @@ local function prepare_map_surface_hooks()
         map_adapter.translate_guild_news)
     hooks.region(_G.AdventureMap_ZoneSummaryPinMixin, "OnMouseEnter",
         map_adapter.translate_adventure_pin)
-    hooks.region(_G.TalentFrameBaseMixin, "AddConditionsToTooltip",
-        talent_adapter.translate_quest_conditions)
+    prepare_talent_tooltip_hooks()
 end
 
 local function reset_tooltip(self)
@@ -2690,6 +2702,16 @@ local function prepare_bag_tooltip_hooks()
     return line_hooked or portrait_hooked
 end
 
+-- Shared tooltip frames/post-calls are initialized at login. Loading talents
+-- only needs their late providers; do not revisit bags, maps or stat templates.
+tooltips.prepare_player_spells = function ()
+    if not tooltips.prepared then
+        tooltips.prepare()
+        return
+    end
+    prepare_talent_tooltip_hooks()
+end
+
 tooltips.prepare = function ()
     character_adapter.prepare()
     hooks.global("MovementSpeed_OnEnter", function (frame)
@@ -2790,12 +2812,6 @@ tooltips.prepare = function ()
         return
     end
     tooltips.prepared = true
-    if _G.EventRegistry and type(_G.EventRegistry.RegisterCallback) == "function" then
-        _G.EventRegistry:RegisterCallback("TalentDisplay.TooltipCreated",
-            profile_callback("event:TalentDisplay.TooltipCreated", function (...)
-                if tooltip_work_enabled("spell") then return talent_adapter.translate(...) end
-            end), tooltips)
-    end
     local types = Enum.TooltipDataType
     if types.Currency then
         add_tooltip_post_call(types.Currency, function (tooltip, data)
