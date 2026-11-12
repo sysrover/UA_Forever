@@ -465,6 +465,28 @@ local function provenance_for_cache(value)
     return source and { source = source } or nil
 end
 
+local function translate_settings_option_line(text, region)
+    text = safe_string(text)
+    if not text then return nil end
+    -- CreateOptionsInitTooltip renders separately colored option fields into
+    -- one FontString. Resolve the fields without changing native option data.
+    local label, description = text:match("^(.-): (.+)$")
+    if not label then label = text:match("^(.-):$") end
+    if not label then return nil end
+    local function translate_part(part)
+        local color, body, reset = part:match("^(|c%x%x%x%x%x%x%x%x)(.*)(|r)$")
+        if not color then
+            color, body, reset = part:match("^(|cn[%w_]+:)(.*)(|r)$")
+        end
+        local translated = strings.find_ui_translation(body or part, region)
+        if not translated or translated == (body or part) then return part end
+        return color and color .. translated .. reset or translated
+    end
+    local translated = translate_part(label) .. ":"
+    if description then translated = translated .. " " .. translate_part(description) end
+    if translated ~= text then return translated, nil, "pattern" end
+end
+
 local function rewrite_generic_lines(tooltip, line_count, first_index,
     allow_fallback, adjust_layout, snapshot, only_indexes, runtime_flags)
     line_count = safe_number(line_count)
@@ -544,6 +566,10 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                 if not translated_left then
                     translated_left, _, left_kind, _, _, _, left_provenance =
                         strings.find_ui_translation(left, left_region)
+                    if not translated_left and tooltip == _G.SettingsTooltip then
+                        translated_left, _, left_kind =
+                            translate_settings_option_line(left, left_region)
+                    end
                     if not translated_left and index == 1
                         and tooltip.uaForeverKind == "micro-button" then
                         local title = safe_string(left)
@@ -905,7 +931,7 @@ end
 local function tooltip_work_enabled(kind)
     local scopes = { item="item-tooltips", spell="spell-tooltips", aura="target-auras",
         npc="npc-tooltips", quest="quest-tooltips", object="object-tooltips",
-        minimap="map-tooltips", ["character-currency"]="character" }
+        minimap="map-tooltips", settings="settings", ["character-currency"]="character" }
     return not options.work_enabled or options.work_enabled(scopes[kind] or "tooltips")
 end
 
@@ -1736,9 +1762,8 @@ local function translate_generic_tooltip_content(tooltip)
     -- Settings uses its own GameTooltip frame with UI text, not item or aura
     -- data. Resolve every rendered line directly through the UI dictionary.
     if tooltip == _G.SettingsTooltip then
-        rewrite_generic_lines(tooltip)
-        layout.fit_settings_tooltip(tooltip)
-        return
+        rewrite_generic_lines(tooltip, nil, 1, false, false)
+        return layout.fit_settings_tooltip(tooltip)
     end
 
     if tooltip.uaForeverKind == "trainer" then
@@ -2232,7 +2257,37 @@ tooltip_diagnostics.install(tooltips, {
     translate_minimap_tooltip = translate_minimap_tooltip,
 })
 
+local function complete_settings_tooltip(tooltip)
+    if not tooltip or tooltip ~= _G.SettingsTooltip then return false end
+    local owner_ok, owner = pcall(function () return tooltip:GetOwner() end)
+    if not owner_ok or is_secret(owner) then return false end
+    begin_tooltip(tooltip, "settings:" .. tostring(owner))
+    tooltip.uaForeverKind = "settings"
+    sync_tooltip_original_state(tooltip)
+    if not tooltip.uaForeverShowOriginal then
+        rewrite_generic_lines(tooltip, nil, 1, false, false)
+    end
+    -- DefaultTooltipMixin calls Show after all option descriptions have been
+    -- appended. Fit once at that boundary; line writes never schedule passes.
+    scheduler.cancel("tooltip:" .. tostring(tooltip))
+    scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+    finish_instruction_layout(tooltip)
+    return layout.fit_current_tooltip(tooltip)
+end
+
+tooltips.complete_settings = complete_settings_tooltip
+tooltips.prepare_settings = function ()
+    local tooltip = _G.SettingsTooltip
+    if not tooltip then return end
+    hooks.region(tooltip, "Show", complete_settings_tooltip, "settings")
+    hooks.region_script(tooltip, "OnTooltipCleared", reset_tooltip,
+        "settings-session", "settings")
+    hooks.region_script(tooltip, "OnHide", reset_tooltip,
+        "settings-session", "settings")
+end
+
 local function prepare_tooltip_frames()
+    tooltips.prepare_settings()
     hooks.global("GameTooltip_AddInstructionLine", translate_instruction_line)
     -- Bag buttons copy their mixin methods when the frames are created, so a
     -- later hook on BaseBagSlotButtonMixin does not reach those buttons.
@@ -2294,7 +2349,7 @@ local function prepare_tooltip_frames()
             end)
     end
     local tooltip_frames, seen_tooltips = {}, {}
-    for _, name in ipairs({ "GameTooltip", "SettingsTooltip", "ItemRefTooltip",
+    for _, name in ipairs({ "GameTooltip", "ItemRefTooltip",
         "EmbeddedItemTooltip",
         "BuffFrameTooltip" }) do
         local tooltip = _G[name]
@@ -2311,20 +2366,6 @@ local function prepare_tooltip_frames()
     end)
     for _, tooltip in ipairs(tooltip_frames) do
         if tooltip then
-            if tooltip == _G.SettingsTooltip then
-                -- Show finishes the native layout even when this frame was
-                -- already visible. Its OnShow script alone misses those writes.
-                hooks.region(tooltip, "Show", function (self)
-                    finish_instruction_layout(self)
-                    translate_generic_tooltip_content(self)
-                    layout.fit_current_tooltip(self)
-                end)
-                for _, method in ipairs({ "AddLine", "AddDoubleLine" }) do
-                    hooks.region(tooltip, method, function (self)
-                        schedule_tooltip_finalize(self)
-                    end)
-                end
-            end
             if tooltip == _G.GameTooltip then
                 local bag_layout_hooked = hooks.region(tooltip, "SetBagItem", function (self)
                     finish_instruction_layout(self)

@@ -333,6 +333,7 @@ end
 options.section_for = function (spec, region)
     spec = spec or {}
     if spec.section then return spec.section end
+    if spec.tooltip and spec.tooltip == _G.SettingsTooltip then return "game_settings" end
     -- The title is an item name rendered on a bag window. Its independent
     -- switch must also win during the shared item-surface static scan.
     if region and (spec.owner == "ui" or spec.category == "item") then

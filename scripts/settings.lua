@@ -10,6 +10,7 @@ local settings_ui = addon_table.use("settings_ui")
 local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")
+local layout = addon_table.use("translation_layout")
 local resolver = addon_table.use("translation_resolver")
 local scheduler = addon_table.use("translation_scheduler")
 local tooltips = addon_table.use("tooltips")
@@ -35,6 +36,7 @@ local form_link_window
 local FORM_URL = "https://forms.gle/b2oGGebJGTxZsnfn8"
 local SETTINGS_DROPDOWN_WIDTH = 220
 local SETTINGS_BUTTON_WIDTH = 200
+local SETTINGS_BUTTON_TEXT_PADDING = 40
 local SETTINGS_CHROME_BUTTON_WIDTH = 96
 local MINIMAL_TAB_PADDING = 40
 
@@ -531,6 +533,7 @@ local function register_addon_settings()
 end
 
 local settings_generation_sequence = 0
+local settings_scroll_boxes = setmetatable({}, { __mode = "k" })
 
 local function settings_surface()
     return registry.get("settings")
@@ -653,6 +656,25 @@ local function set_width(frame, width)
     end
 end
 
+local function fit_settings_button(button, region)
+    if runtime.combat_locked() then return end
+    local text_width = layout.safe_dimension(region, "GetUnboundedStringWidth")
+        or layout.safe_dimension(region, "GetStringWidth")
+    -- UIPanelButton's own fitter uses GetTextWidth for the currently active
+    -- normal/disabled font. Keep the full FontString measurement as well.
+    local button_text_width = layout.safe_dimension(button, "GetTextWidth")
+    if button_text_width then text_width = math.max(text_width or 0, button_text_width) end
+    local width = layout.safe_dimension(button, "GetWidth")
+    if not text_width or text_width <= 0 or not width then return end
+    -- Settings owns these pooled action buttons. Reset short labels to the
+    -- native minimum, but leave room for the full translated label and edges.
+    local required = math.max(SETTINGS_BUTTON_WIDTH,
+        math.ceil(text_width + SETTINGS_BUTTON_TEXT_PADDING))
+    if math.abs(width - required) > 0.5 and runtime.can_write_text(button) then
+        set_width(button, required)
+    end
+end
+
 local function hook_native_region(region, slot, instance)
     if not region then return end
     hooks.region(region, "SetText", function (self, source)
@@ -741,18 +763,32 @@ local function translate_row(frame, supplied_initializer)
     if button and type(button.GetFontString) == "function" then
         local ok, region = pcall(button.GetFontString, button)
         if ok and region then
-            set_width(button, SETTINGS_BUTTON_WIDTH)
             -- Blizzard has already evaluated the button label. Calling its
             -- evaluator again from addon code can reach restricted APIs
             -- (for example C_Discord.IsUserOAuthed).
             local source = safe_method(region, "GetText")
             translate_source_region(region, source, "ui.action", frame)
-            hook_native_region(region, "ui.action", frame)
+            fit_settings_button(button, region)
+            hooks.region(region, "SetText", function (self, native_source)
+                if runtime.is_applying and runtime.is_applying(self) then return end
+                translate_source_region(self, native_source, "ui.action", frame)
+                fit_settings_button(button, self)
+            end)
             hooks.region(button, "SetText", function (self, native_source)
                 local font_string = safe_method(self, "GetFontString")
                 translate_source_region(font_string, native_source,
                     "ui.action", frame)
+                fit_settings_button(self, font_string)
             end)
+            local function fit_current_button(self)
+                fit_settings_button(self, safe_method(self, "GetFontString"))
+            end
+            -- Checkbox action rows call SetEnabled after SetText, which can
+            -- select another font. Hook the actual pooled button as well as
+            -- the row's mixin, including late registration on an existing row.
+            hooks.region(button, "SetEnabled", fit_current_button)
+            hooks.region_script(button, "OnShow", fit_current_button,
+                "settings-action-width")
         end
     end
 
@@ -829,6 +865,38 @@ local function translate_expandable_section(frame, supplied_initializer)
         initializer_name(frame, supplied_initializer), "ui.section", frame)
 end
 
+local function translate_keybinding_buttons(frame)
+    if not frame then return end
+    local unbound = safe_source(_G.NOT_BOUND)
+    if not unbound then return end
+    for _, key in ipairs({ "Button1", "Button2", "CustomButton" }) do
+        local button = frame[key]
+        local region = safe_method(button, "GetFontString")
+        local source = safe_source(safe_method(region, "GetText"))
+        if source then
+            local claim = runtime.get(region)
+            local owned = claim and claim.owner == "settings"
+                and claim.slot == "ui.keybinding"
+            if owned and source == claim.translated then source = claim.source end
+            local color, body, reset = source:match("^(|c%x%x%x%x%x%x%x%x)(.*)(|r)$")
+            if not color then
+                color, body, reset = source:match("^(|cn[%w_]+:)(.*)(|r)$")
+            end
+            if (body or source) == unbound then
+                local translated = resolver.find_ui(unbound, region)
+                if translated and translated ~= unbound then
+                    translate_source_region(region, source, "ui.keybinding", button,
+                        color and color .. translated .. reset or translated)
+                end
+            elseif owned then
+                -- A real key replaced this pooled button's old status. Drop
+                -- only our stale claim so later restoration cannot revive it.
+                runtime.release(region, "settings", "ui.keybinding")
+            end
+        end
+    end
+end
+
 local function translate_keybinding(frame, supplied_initializer)
     if not frame then return end
     local initializer = frame_initializer(frame, supplied_initializer)
@@ -844,6 +912,7 @@ local function translate_keybinding(frame, supplied_initializer)
         end
     end
     translate_source_region(frame.Label, source, "ui.label", frame)
+    translate_keybinding_buttons(frame)
 end
 
 local function translate_keybinding_preface(frame, source_key)
@@ -931,39 +1000,121 @@ local function translate_panel_chrome(panel)
         _G.SETTINGS_DEFAULTS, "ui.action", panel)
 end
 
-local function translate_visible_categories(panel)
-    local category_list = panel and panel.CategoryList
-    local scroll_box = category_list and category_list.ScrollBox
-    local frames = safe_method(scroll_box, "GetFrames")
-    if type(frames) ~= "table" then return end
-    for _, frame in ipairs(frames) do
-        local initializer = frame_initializer(frame)
-        local data = initializer_data(initializer)
-        if data and data.category then
-            translate_category_button(frame, initializer)
-        elseif data and data.label then
-            translate_category_header(frame, initializer)
+local function settings_objects(frame, method)
+    if not frame then return {} end
+    local ok, objects = pcall(function ()
+        local callback = frame[method]
+        if type(callback) ~= "function" then return {} end
+        return { callback(frame) }
+    end)
+    return ok and objects or {}
+end
+
+-- Only walk a completed row, never the whole panel from a text-write hook.
+-- This also covers Forever-specific templates and nested controls that do
+-- not use one of the named Blizzard mixins below.
+local function pin_settings_row(frame, root, depth, seen)
+    if not frame or depth < 0 or seen[frame] then return end
+    seen[frame] = true
+    local kind = safe_method(frame, "GetObjectType")
+    if kind == "GameTooltip" or kind == "EditBox" then return end
+    for _, region in ipairs(settings_objects(frame, "GetRegions")) do
+        if safe_method(region, "GetObjectType") == "FontString" and not seen[region] then
+            seen[region] = true
+            -- Binding text belongs to the dedicated unbound-status handler;
+            -- a real key combination must never enter the generic UI lookup.
+            if frame ~= root.Button1 and frame ~= root.Button2 and frame ~= root.CustomButton then
+                translate_region(region, "ui.text", root)
+                hook_native_region(region, "ui.text", root)
+                hooks.region(region, "SetTextToFit", function (self, source)
+                    if runtime.is_applying and runtime.is_applying(self) then return end
+                    translate_source_region(self, source, "ui.text", root)
+                end)
+            end
         end
     end
+    for _, child in ipairs(settings_objects(frame, "GetChildren")) do
+        pin_settings_row(child, root, depth - 1, seen)
+    end
+end
+
+local function translate_completed_settings_row(frame, initializer)
+    if not frame then return end
+    if frame.BaseQualityControls then
+        translate_advanced_quality_section(frame)
+        return
+    elseif frame.Button1 and frame.Button2 then
+        translate_keybinding(frame, initializer or frame.initializer)
+    else
+        translate_row(frame, initializer)
+    end
+    pin_settings_row(frame, frame, 4, {})
+end
+
+local function translate_completed_category_row(frame, initializer)
+    if not frame then return end
+    local data = initializer_data(frame_initializer(frame, initializer))
+    if data and data.category then
+        translate_category_button(frame, initializer)
+    elseif data and data.label then
+        translate_category_header(frame, initializer)
+    end
+    pin_settings_row(frame, frame, 2, {})
+end
+
+local function watch_settings_scroll_box(box, callback)
+    if not box then return end
+    local event = _G.ScrollBoxListMixin and ScrollBoxListMixin.Event
+        and ScrollBoxListMixin.Event.OnInitializedFrame
+    if not event then
+        event = _G.ScrollBoxListViewMixin and ScrollBoxListViewMixin.Event
+            and ScrollBoxListViewMixin.Event.OnInitializedFrame
+    end
+    if not event or settings_scroll_boxes[box] then return end
+    local registered = pcall(function ()
+        box:RegisterCallback(event, profile_callback("settings.row-initialized", function (_, row, initializer)
+            if options.work_enabled and not options.work_enabled("settings") then return end
+            callback(row, initializer)
+        end), settings_scroll_boxes)
+    end)
+    if registered then settings_scroll_boxes[box] = true end
+end
+
+local function prepare_settings_lists(panel)
+    if not panel then return end
+    local list = safe_method(panel, "GetSettingsList")
+        or panel.Container and panel.Container.SettingsList
+    local categories = safe_method(panel, "GetCategoryList") or panel.CategoryList
+    watch_settings_scroll_box(list and list.ScrollBox, translate_completed_settings_row)
+    watch_settings_scroll_box(categories and categories.ScrollBox, translate_completed_category_row)
+end
+
+local function for_each_settings_frame(box, callback)
+    if not box or safe_method(box, "HasView") == false then return end
+    if type(box.ForEachFrame) == "function" then
+        pcall(box.ForEachFrame, box, callback)
+        return
+    end
+    local frames = safe_method(box, "GetFrames")
+    if type(frames) == "table" then
+        for _, frame in ipairs(frames) do callback(frame) end
+    end
+end
+
+local function translate_visible_categories(panel)
+    local category_list = safe_method(panel, "GetCategoryList") or panel and panel.CategoryList
+    local scroll_box = category_list and category_list.ScrollBox
+    for_each_settings_frame(scroll_box, translate_completed_category_row)
 end
 
 local function translate_visible_settings(panel)
     if not panel then return end
     translate_panel_chrome(panel)
     translate_visible_categories(panel)
-    local list = type(panel.GetSettingsList) == "function"
-        and panel:GetSettingsList() or nil
+    local list = safe_method(panel, "GetSettingsList")
+        or panel.Container and panel.Container.SettingsList
     local scroll_box = list and list.ScrollBox
-    if not scroll_box or type(scroll_box.GetFrames) ~= "function" then return end
-    local ok, frames = pcall(scroll_box.GetFrames, scroll_box)
-    if not ok or type(frames) ~= "table" then return end
-    for _, frame in ipairs(frames) do
-        if frame.BaseQualityControls then
-            translate_advanced_quality_section(frame)
-        else
-            translate_row(frame)
-        end
-    end
+    for_each_settings_frame(scroll_box, translate_completed_settings_row)
 end
 
 local function schedule_visible_settings(panel)
@@ -975,6 +1126,7 @@ local function schedule_visible_settings(panel)
 end
 
 local function displayed_category(panel)
+    prepare_settings_lists(panel)
     translate_panel_chrome(panel)
     schedule_visible_settings(panel)
 end
@@ -1045,6 +1197,9 @@ local function declare_settings_hooks()
         "SettingsCheckboxWithButtonControlMixin", "EvaluateState", translate_row)
     declare_settings_hook("voice.keybinding.state", "mixin",
         "VoicePushToTalkMixin", "EvaluateState", translate_row)
+    declare_settings_hook("keybinding.state", "mixin",
+        "KeyBindingFrameBindingTemplateMixin", "UpdateBindingState",
+        translate_keybinding_buttons)
     declare_settings_hook("auto-loot.label", "mixin",
         "AutoLootDropdownControlMixin", "UpdateLabel", translate_row)
     declare_settings_hook("list.display", "mixin", "SettingsListMixin",
@@ -1066,6 +1221,8 @@ end
 
 settings_ui.prepare = function ()
     register_addon_settings()
+    if tooltips.prepare_settings then tooltips.prepare_settings() end
+    prepare_settings_lists(_G.SettingsPanel)
     local surface = registry.get("settings")
     if surface then
         surface.static = function ()
