@@ -16,10 +16,15 @@ local function finish_text_write(ok, ...)
     return ok, ...
 end
 
-local function write_profiled_text(callback, ...)
-    if not profiler.active then return pcall(callback, ...) end
+local write_profiled_text = pcall
+local function profile_text_write(callback, ...)
     count_text_attempt()
     return finish_text_write(pcall(callback, ...))
+end
+if profiler.on_capture then
+    profiler.on_capture("runtime-text-writes", function (active)
+        write_profiled_text = active and profile_text_write or pcall
+    end)
 end
 
 runtime.PRIORITY = { GENERATED = 10, STATIC_UI = 20, CONTEXT = 30, DOMAIN = 40 }

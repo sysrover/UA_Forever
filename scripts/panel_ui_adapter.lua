@@ -31,6 +31,8 @@ adapter.bind = function (id)
             and strings.translate_formatted_region(region, template, api.surface, ...) then return true end
         return strings.translate_region(region, nil, "ui.label", api.surface)
     end
+    -- Custom callbacks opt into template arguments explicitly; their second
+    -- argument may already be an owner-specific control flag.
     api.watch = function (region, callback, formatted_callback)
         if not region then return end
         callback = callback or api.label

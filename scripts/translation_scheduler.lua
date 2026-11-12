@@ -3,6 +3,14 @@ local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local options = addon_table.use("options")
 local profiler = addon_table.use("performance_profile")
+local profiled_timer = {}
+local profile_timer
+local function invoke_timer(callback) return callback(profiled_timer) end
+if profiler.on_capture then
+    profiler.on_capture("scheduler-timer", function (active)
+        profile_timer = active and profiler.wrap("scheduler.timer", invoke_timer) or nil
+    end)
+end
 
 local pending = {}
 local scoped_pending = setmetatable({}, { __mode = "k" })
@@ -187,7 +195,12 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
             run()
         end
     end
-    local function run()
+    local function run(profile_token)
+        -- Timers queued before capture must also be measurable. Re-enter only
+        -- during recording; normal timers have no wrapper allocation or call.
+        if profile_timer and profile_token ~= profiled_timer then
+            return profile_timer(run)
+        end
         request.handle = nil
         if not current(request) or not allowed(request.work_scope) then
             detach(request)
@@ -211,7 +224,10 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
         detach(request, true)
         request.attempt = request.attempt + 1
         runtime.metric("timers_executed", request.surface, request.generation)
-        local started = type(_G.debugprofilestop) == "function"
+        local account = options.account
+        local timing_enabled = runtime.tooltip_profile_active
+            or account and (account.dev_mode or account.auto_scan_diagnostics)
+        local started = timing_enabled and type(_G.debugprofilestop) == "function"
             and _G.debugprofilestop() or nil
         local retry
         if profiler.active then
@@ -238,8 +254,5 @@ scheduler.request = function (id, generation, callback, delay, owner_surface)
             schedule(run, request.retry_delay)
         end
     end
-    -- Wrap the entire timer entry, including stale drops, generation checks,
-    -- metrics and retry scheduling. The task callback remains a nested label.
-    if profiler.wrap then run = profiler.wrap("scheduler.timer", run) end
     schedule(run, delay or 0)
 end

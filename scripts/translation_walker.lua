@@ -15,15 +15,10 @@ local function valid_metadata(metadata)
     return true
 end
 
-walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
+local function walk(metadata, root, visit_region, skip_frame, stats, seen)
     if not valid_metadata(metadata) then
         return nil, "WALKER_METADATA_REQUIRED"
     end
-    local started, overhead, writes_before
-    if profiler.active then started, overhead, writes_before = profiler.begin_span() end
-    local previous_frames, previous_translated = stats.frames, stats.translated or 0
-    local region_count = 0
-    local walk_truncated = false
     if type(auto_scan.record_compatibility_fallback) == "function" then
         auto_scan.record_compatibility_fallback(metadata.reason,
             metadata.surface .. ":" .. metadata.owner .. ":" .. metadata.id)
@@ -36,7 +31,6 @@ walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
             or (skip_frame and skip_frame(frame)) then return end
         if stats.frames >= max_nodes then
             stats.truncated = true
-            walk_truncated = true
             return
         end
         seen[frame] = true
@@ -44,10 +38,7 @@ walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
         if frame.GetRegions then
             local ok, regions = pcall(function () return { frame:GetRegions() } end)
             if ok then
-                for _, region in ipairs(regions) do
-                    if started then region_count = region_count + 1 end
-                    visit_region(region)
-                end
+                for _, region in ipairs(regions) do visit_region(region) end
             end
         end
         if frame.GetChildren then
@@ -61,13 +52,35 @@ walker.walk = function (metadata, root, visit_region, skip_frame, stats, seen)
         end
     end
     visit(root, 1)
-    if started then
-        local frames = stats.frames - previous_frames
-        local elapsed = profiler.elapsed_span(started, overhead)
-        count_frames(frames)
-        count_regions(region_count)
-        profiler.record_walk(metadata, root, frames, region_count,
-            (stats.translated or 0) - previous_translated, walk_truncated, elapsed, writes_before)
-    end
     return stats
+end
+
+local function profile_walk(metadata, root, visit_region, skip_frame, stats, seen)
+    if not profiler.active then return walk(metadata, root, visit_region, skip_frame, stats, seen) end
+    if not valid_metadata(metadata) then return walk(metadata, root, visit_region, skip_frame, stats, seen) end
+    local started, overhead, writes_before = profiler.begin_span()
+    local previous_frames, previous_translated = stats.frames, stats.translated or 0
+    local region_count = 0
+    local function counted_visit(region)
+        region_count = region_count + 1
+        return visit_region(region)
+    end
+    local result = walk(metadata, root, counted_visit, skip_frame, stats, seen)
+    local frames = stats.frames - previous_frames
+    local elapsed = profiler.elapsed_span(started, overhead)
+    count_frames(frames)
+    count_regions(region_count)
+    profiler.record_walk(metadata, root, frames, region_count,
+        (stats.translated or 0) - previous_translated, stats.truncated == true, elapsed, writes_before)
+    return result
+end
+
+walker.walk = walk
+if profiler.on_capture then
+    local installed = walk
+    profiler.on_capture("ui-walker", function (active)
+        local replacement = active and profile_walk or walk
+        if walker.walk == installed then walker.walk = replacement end
+        installed = replacement
+    end)
 end

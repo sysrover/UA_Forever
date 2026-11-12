@@ -6,6 +6,8 @@ local MAX_LABELS, MAX_DEPTH, MAX_SLOW_CALLS, MAX_SLOW_INTERVALS = 4096, 128, 64,
 local MAX_INTERVAL_CALLS, MAX_COUNTERS, MAX_WALKS = 12, 128, 128
 local instrument_modules
 local frame_counts = {}
+local capture_listeners, capture_listener_order = {}, {}
+local owned_frame_scripts = setmetatable({}, { __mode = "kv" })
 local now = function () return _G.debugprofilestop() end
 
 local function secret(value)
@@ -20,6 +22,31 @@ end
 
 local function public_number(value)
     if not secret(value) and type(value) == "number" then return value end
+end
+
+-- Local hot-path functions opt into instrumentation only for a manual
+-- capture. Registering a listener does no sampling or timer work.
+profiler.on_capture = function (id, callback)
+    id = public_string(id)
+    if not id or type(callback) ~= "function" then return false end
+    if not capture_listeners[id] then
+        if #capture_listener_order >= 32 then return false end
+        capture_listener_order[#capture_listener_order + 1] = id
+    end
+    capture_listeners[id] = callback
+    if current then
+        local ok = pcall(callback, true)
+        if not ok then pcall(callback, false); return false end
+    end
+    return true
+end
+
+local function notify_capture(active)
+    local failures = 0
+    for _, id in ipairs(capture_listener_order) do
+        if not pcall(capture_listeners[id], active) then failures = failures + 1 end
+    end
+    return failures
 end
 
 local function context()
@@ -317,16 +344,24 @@ profiler.frame_factory = function (owner)
         local label = "frame:" .. owner .. ":" .. math.min(frame_counts[owner], 512)
         local set_script, hook_script = frame.SetScript, frame.HookScript
         local slots = {}
+        local script_state = { slots = slots, set_script = set_script }
+        owned_frame_scripts[frame] = script_state
+        -- The frame's registration methods retain its slots; the inventory
+        -- holds neither a frame nor its callback graph alive on its own.
         if type(set_script) == "function" then
             frame.SetScript = function (self, script, callback)
-                local slot = slots[script]
+                local slot = script_state.slots[script]
+                if slot and slot.wrapped and callback == slot.wrapped then callback = slot.original end
                 if not slot or slot.original ~= callback then
-                    slot = { original = callback,
-                        wrapped = profiler.wrap(label .. ":" .. script, callback,
-                            script == "OnEvent" and 2 or nil) }
-                    slots[script] = slot
+                    slot = { original = callback, label = label .. ":" .. script,
+                        event_index = script == "OnEvent" and 2 or nil }
+                    script_state.slots[script] = slot
                 end
-                return set_script(self, script, slot.wrapped)
+                if current and type(callback) == "function" then
+                    slot.wrapped = slot.wrapped or profiler.wrap(slot.label, callback, slot.event_index)
+                    return set_script(self, script, slot.wrapped)
+                end
+                return set_script(self, script, callback)
             end
         end
         if type(hook_script) == "function" then
@@ -338,6 +373,24 @@ profiler.frame_factory = function (owner)
         return frame
     end
 end
+
+profiler.on_capture("owned-frame-scripts", function (active)
+    for frame, state in pairs(owned_frame_scripts) do
+        for script, slot in pairs(state.slots) do
+            if type(slot.original) == "function" then
+                local ok, installed = pcall(function () return frame:GetScript(script) end)
+                if ok and not secret(installed) then
+                    if active and installed == slot.original then
+                        slot.wrapped = slot.wrapped or profiler.wrap(slot.label, slot.original, slot.event_index)
+                        pcall(state.set_script, frame, script, slot.wrapped)
+                    elseif not active and slot.wrapped and installed == slot.wrapped then
+                        pcall(state.set_script, frame, script, slot.original)
+                    end
+                end
+            end
+        end
+    end
+end)
 
 instrument_modules = function (session)
     addon_table.each_module(function (name, module)
@@ -482,7 +535,7 @@ profiler.start = function (seconds, on_saved)
     local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
-    local report = { version = 2, patch = "addon-profile-interval-work-2026-11-12", status = "recording",
+    local report = { version = 2, patch = "addon-profile-manual-only-2026-11-12", status = "recording",
         requestedSeconds = seconds, build = utils.build_version, buildNumber = utils.build_number,
         calls = {}, labelCount = 0, labelDrops = 0, depthDrops = 0, clockResets = 0,
         instrumentationMs = 0, collectorMs = 0, slowCalls = {}, slowIntervals = {},
@@ -527,6 +580,10 @@ profiler.start = function (seconds, on_saved)
         interval = {}, seconds = seconds, on_saved = on_saved, skipFirstFrame = true,
         started = now(), startedSeconds = type(_G.GetTime) == "function" and _G.GetTime() or 0 }
     reset_interval(session.interval)
+    if notify_capture(true) > 0 then
+        notify_capture(false)
+        return false, "unavailable"
+    end
     instrument_modules(session)
     session.started = now()
     session.startedSeconds = type(_G.GetTime) == "function" and _G.GetTime() or 0
@@ -563,6 +620,9 @@ profiler.stop = function (reason)
             replacement.module[replacement.key] = replacement.original
         end
     end
+    -- Restore exports first, then restore local direct-call functions. A
+    -- listener must never mistake a temporary module wrapper for a new owner.
+    session.report.captureRestoreErrors = notify_capture(false)
     local report = session.report
     report.status, report.stopReason = "complete", reason or "manual"
     report.durationMs = type(_G.GetTime) == "function"

@@ -18,10 +18,15 @@ end
 
 -- Count native setter attempts and successes without changing the protected
 -- call, its return arity, or the existing layout boundaries.
-local function layout_write(callback, ...)
-    if not profiler.active then return pcall(callback, ...) end
+local layout_write = pcall
+local function profile_layout_write(callback, ...)
     profile_counts["write.attempt"]()
     return finish_layout_write(pcall(callback, ...))
+end
+if profiler.on_capture then
+    profiler.on_capture("layout-writes", function (active)
+        layout_write = active and profile_layout_write or pcall
+    end)
 end
 
 local BUTTON_TEXT_PADDING = 24
@@ -85,20 +90,32 @@ local function read_method(object, method, guard_callback)
     return true, callback(object)
 end
 
-local function safe_dimension(owner, method)
+local function read_dimension(owner, method)
     if not owner then return nil end
-    if profiler.active then
-        if method == "GetStringHeight" then profile_counts["read.string-height"]()
-        elseif method == "GetUnboundedStringWidth" or method == "GetStringWidth" then
-            profile_counts["read.string-width"]()
-        end
-    end
     local ok, present, value = pcall(read_method, owner, method)
     -- On Camelot, tooltip measurements derived from aura data can themselves
     -- be secret numbers. Checking their Lua type is not sufficient: any
     -- comparison or arithmetic on such a value taints and raises an error.
     if not ok or not present or is_secret(value) or type(value) ~= "number" then return nil end
     if value >= 0 then return value end
+end
+local safe_dimension = read_dimension
+local function profile_dimension(owner, method)
+    if not profiler.active then return read_dimension(owner, method) end
+    if owner then
+        if method == "GetStringHeight" then profile_counts["read.string-height"]()
+        elseif method == "GetUnboundedStringWidth" or method == "GetStringWidth" then
+            profile_counts["read.string-width"]()
+        end
+    end
+    return read_dimension(owner, method)
+end
+if profiler.on_capture then
+    profiler.on_capture("layout-reads", function (active)
+        local replacement = active and profile_dimension or read_dimension
+        if layout.safe_dimension == safe_dimension then layout.safe_dimension = replacement end
+        safe_dimension = replacement
+    end)
 end
 
 local function unbounded_text_width(region)

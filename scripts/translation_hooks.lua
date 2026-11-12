@@ -23,10 +23,13 @@ local function compositor_configuration(object)
 end
 
 local function guarded(scope, callback, cleanup, label)
-    if profiler.wrap then callback = profiler.wrap("hook:" .. scope .. ":" .. label, callback) end
-    if cleanup then return callback end
+    local profiled
     return function (...)
-        if options.work_enabled and not options.work_enabled(scope) then return end
+        if not cleanup and options.work_enabled and not options.work_enabled(scope) then return end
+        if profiler.active and profiler.wrap then
+            profiled = profiled or profiler.wrap("hook:" .. scope .. ":" .. label, callback)
+            return profiled(...)
+        end
         return callback(...)
     end
 end

@@ -383,11 +383,11 @@ local function translate_region(tooltip, side, index)
     local contract = deps()
     local source, region = contract.tooltip_line(tooltip, side, index)
     if not region or runtime.is_applying(region) then return end
+    local visible = contract.normalized_text(source)
+    if not visible or visible == "" then return end
     local claim = runtime.get(region)
     if claim and claim.surface == tooltip and claim.generation == tooltip.uaForeverGeneration
         and source == claim.translated then return false end
-    local visible = contract.normalized_text(source)
-    if not visible or visible == "" then return end
     local missed = missed_rows[region]
     if missed and missed.context[1] == context and missed.source == source then return false end
     local translated = points_requirement(source)

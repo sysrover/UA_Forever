@@ -469,7 +469,7 @@ translate_trainer_requirements = function (region, context)
     local identity = context and tostring(context.trainer_type) .. ":" .. tostring(context.index) or "legacy"
     local instance = identity .. ":" .. tostring(options.translate_name("skill"))
         .. ":" .. tostring(options.translate_name("spell"))
-    if claim and claim.slot == "trainer.requirements" and claim.instance == instance
+    if claim and claim.owner == "skills" and claim.slot == "trainer.requirements" and claim.instance == instance
         and (source == claim.translated or source == claim.source) then
         return runtime.apply(region, { owner = "skills", slot = claim.slot,
             source = claim.source, translated = claim.translated, option = claim.option,
