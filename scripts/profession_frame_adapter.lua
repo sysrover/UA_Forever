@@ -8,6 +8,18 @@ local runtime = addon_table.use("translation_runtime")
 local spell_db = addon_table.use("spell_client_db")
 local strings = addon_table.use("strings")
 local utils = addon_table.use("utils")
+local layout = addon_table.use("translation_layout")
+local label_states = setmetatable({}, { __mode = "k" })
+local button_states = setmetatable({}, { __mode = "k" })
+if options.on_activity_change then
+    options.on_activity_change("profession-label-cache", function ()
+        label_states, button_states = setmetatable({}, { __mode = "k" }), setmetatable({}, { __mode = "k" })
+    end)
+end
+
+local function translate_label(region)
+    return strings.translate_region(region, nil, "ui.label", nil, nil, nil, "profession_ui")
+end
 
 local OWNER = "profession-frame"
 
@@ -28,12 +40,18 @@ end
 
 local function hook_text_region(region, after_translate)
     if not region then return end
-    hooks.region(region, "SetText", function (self)
-        if not runtime.is_applying(self) then strings.translate_region(self) end
+    local function translate(self)
+        if runtime.is_applying(self) then return end
+        local previous = label_states[self]
+        local signature = layout.text_signature and layout.text_signature(self, previous)
+        if signature and signature == previous then return end
+        translate_label(self)
         if after_translate then after_translate() end
-    end)
-    strings.translate_region(region)
-    if after_translate then after_translate() end
+        label_states[self] = layout.text_signature and layout.text_signature(self, signature) or nil
+    end
+    hooks.region(region, "SetText", translate)
+    hooks.region(region, "SetFormattedText", translate)
+    if visible(region) then translate(region) end
 end
 
 local function hook_button(button, fit)
@@ -42,11 +60,17 @@ local function hook_button(button, fit)
     if not ok or not font_string then return end
     local function translate(self)
         if runtime.is_applying(self) then return end
-        strings.translate_region(self)
+        local previous = button_states[button]
+        local signature = layout.text_signature and layout.text_signature(self, previous and previous.signature)
+        local width = layout.safe_dimension and layout.safe_dimension(button, "GetWidth")
+        if signature and previous and signature == previous.signature and width == previous.width then return end
+        translate_label(self)
         if fit then strings.fit_button_to_text(button, self) end
+        button_states[button] = signature and { signature = layout.text_signature(self, signature),
+            width = layout.safe_dimension(button, "GetWidth") } or nil
     end
     hooks.region(font_string, "SetText", translate)
-    translate(font_string)
+    if visible(button) then translate(font_string) end
 end
 
 local function text_from(region)
@@ -466,6 +490,14 @@ local function translate_frame(frame)
     end
 end
 
+local function translate_frame_chrome(frame)
+    frame = frame or _G.ProfessionsFrame
+    if not frame then return end
+    translate_title(frame)
+    hook_right_tab(frame.ProfessionsOverviewTab)
+    for _, tab in ipairs(frame.rightProfessionTabs or {}) do hook_right_tab(tab) end
+end
+
 local function after_refresh_right_tab(_, tab)
     hook_right_tab(tab)
 end
@@ -475,15 +507,15 @@ local function hook_instances()
     local page = frame and frame.CraftingPage
     local form = page and page.SchematicForm
     hooks.region(page, "Refresh", translate_page)
-    hooks.region(page, "UpdateSearchPreview", translate_page)
+    hooks.region(page, "UpdateSearchPreview", translate_search_chrome)
     hooks.region(page, "ValidateControls", translate_create_controls)
     hooks.region(form, "Init", translate_form_chrome)
     hooks.region(form, "Refresh", translate_form_chrome)
     hooks.region(form, "Update", translate_form_chrome)
-    hooks.region(frame, "Refresh", translate_frame)
+    hooks.region(frame, "Refresh", translate_frame_chrome)
     hooks.region(frame, "OnTradeSkillClosed", translate_frame)
     hooks.region(frame, "OnSkillAbandoned", translate_frame)
-    hooks.region(frame, "SelectBookPage", translate_frame)
+    hooks.region(frame, "SelectBookPage", translate_frame_chrome)
     hooks.region(frame, "RefreshRightTab", after_refresh_right_tab)
     hooks.region(frame and frame.BookPage, "Update", translate_book)
     hooks.region(_G.ProfessionsBookFrame, "Update", translate_book)
@@ -503,7 +535,7 @@ end
 
 adapter.prepare = function ()
     hooks.mixin("ProfessionsCraftingPageMixin", "Refresh", translate_page)
-    hooks.mixin("ProfessionsCraftingPageMixin", "UpdateSearchPreview", translate_page)
+    hooks.mixin("ProfessionsCraftingPageMixin", "UpdateSearchPreview", translate_search_chrome)
     hooks.mixin("ProfessionsCraftingPageMixin", "ValidateControls",
         translate_create_controls)
     hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Init",
@@ -516,8 +548,8 @@ adapter.prepare = function ()
     hooks.mixin("ProfessionSpellButtonMixin", "UpdateButton",
         translate_profession_spell_button)
     hooks.mixin("ProfessionsBookFrameMixin", "Update", translate_book)
-    hooks.mixin("ProfessionsMixin", "Refresh", translate_frame)
-    hooks.mixin("ProfessionsMixin", "SelectBookPage", translate_frame)
+    hooks.mixin("ProfessionsMixin", "Refresh", translate_frame_chrome)
+    hooks.mixin("ProfessionsMixin", "SelectBookPage", translate_frame_chrome)
     hooks.mixin("ProfessionsMixin", "RefreshRightTab", after_refresh_right_tab)
     hook_instances()
     if visible(_G.ProfessionsFrame) then translate_frame() end

@@ -274,21 +274,36 @@ local function translate_spellbook_item(frame)
 end
 
 local function register_spellbook_chrome(frame, depth)
-    if not frame or book_chrome[frame] or (depth or 1) > 4 then return end
+    if not frame or (depth or 1) > 4 then return end
+    local previous = book_chrome[frame]
+    if previous then
+        if not previous.seeded and visible(frame) then
+            for _, region in ipairs(previous.labels) do
+                if visible(region) then previous.label(region) end
+            end
+            previous.seeded = true
+            for _, child in ipairs(previous.children) do register_spellbook_chrome(child, (depth or 1) + 1) end
+        end
+        return
+    end
     -- Spell rows have exact database owners. Do not run a generic lookup over
     -- their names after Init/UpdateVisuals has already translated them.
-    if frame.spellBookItemInfo then return end
-    book_chrome[frame] = true
+    if frame.spellBookItemInfo or frame.Name and type(frame.UpdateTextContainer) == "function" then return end
+    local state = { labels = {}, children = {}, seeded = visible(frame) }
+    book_chrome[frame] = state
     local function label(region)
         if not runtime.is_applying(region) then
             strings.translate_region(region, nil, "ui.label", nil, nil, nil, "spell_ui")
         end
     end
+    state.label = label
+    hooks.region_script(frame, "OnShow", function () register_spellbook_chrome(frame, depth) end, "spellbook-chrome")
     if type(frame.GetRegions) == "function" then
         local ok, regions = pcall(function () return { frame:GetRegions() } end)
         if ok then for _, region in ipairs(regions) do
             local valid, kind = pcall(function () return region:GetObjectType() end)
             if valid and not is_secret(kind) and kind == "FontString" then
+                state.labels[#state.labels + 1] = region
                 hooks.region(region, "SetText", label)
                 hooks.region(region, "SetFormattedText", strings.formatted_callback
                     and strings.formatted_callback(label, nil, "ui.label", nil, "spell_ui") or label)
@@ -298,7 +313,10 @@ local function register_spellbook_chrome(frame, depth)
     end
     if type(frame.GetChildren) == "function" then
         local ok, children = pcall(function () return { frame:GetChildren() } end)
-        if ok then for _, child in ipairs(children) do register_spellbook_chrome(child, (depth or 1) + 1) end end
+        if ok then
+            state.children = children
+            for _, child in ipairs(children) do register_spellbook_chrome(child, (depth or 1) + 1) end
+        end
     end
 end
 

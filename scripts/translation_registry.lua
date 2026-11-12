@@ -16,7 +16,7 @@ end
 if options.on_activity_change then
     options.on_activity_change("registry-pending", function ()
         for id, surface in pairs(surfaces) do
-            if not options.work_enabled(id) then surface.refresh_pending = false end
+            if not options.work_enabled(id) then surface.refresh_pending, surface.refresh_roots = false, nil end
         end
     end)
 end

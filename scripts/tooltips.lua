@@ -57,6 +57,14 @@ local native_tooltip_data = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
 local instruction_layouts = setmetatable({}, { __mode = "k" })
+local owned_ui_state = setmetatable({}, { __mode = "k" })
+local micro_translation_cache = setmetatable({}, { __mode = "k" })
+if options.on_activity_change then
+    options.on_activity_change("owned-ui-tooltip-cache", function ()
+        micro_translation_cache = setmetatable({}, { __mode = "k" })
+        for _, state in pairs(owned_ui_state) do state.complete = false end
+    end)
+end
 local queue_instruction_layout
 
 local function finish_instruction_layout(tooltip)
@@ -93,6 +101,8 @@ local function begin_tooltip(tooltip, key, force)
         character_stat_line_heights[region] = nil
     end, force)
     if not started then return false end
+    owned_ui_state[tooltip] = nil
+    micro_translation_cache[tooltip] = nil
     tooltip_font_strings[tooltip] = nil
     native_tooltip_data[tooltip] = nil
     return true
@@ -319,6 +329,7 @@ local function set_tooltip_translation(tooltip, region, source, translated, slot
         end
         local ok = runtime.apply(region, {
             owner = owner or "tooltip", slot = slot, source = source,
+            section = section_spec.section,
             translated = translated, priority = priority, category = category,
             option = option, options = domain_options,
             generation = tooltip.uaForeverGeneration, tooltip = tooltip,
@@ -447,6 +458,13 @@ local function is_social_player_tooltip(tooltip)
         or name:find("FriendsListFrame.", 1, true) == 1) or false
 end
 
+local function provenance_for_cache(value)
+    if is_secret(value) then return nil end
+    local ok, source = pcall(function () return value and value.source end)
+    source = ok and safe_string(source) or nil
+    return source and { source = source } or nil
+end
+
 local function rewrite_generic_lines(tooltip, line_count, first_index,
     allow_fallback, adjust_layout, snapshot, only_indexes, runtime_flags)
     line_count = safe_number(line_count)
@@ -459,6 +477,11 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
     -- iterating with the protected value while still reaching those regions.
     line_count = line_count or MAX_TOOLTIP_LINES
     local applied = 0
+    local micro_cache
+    if tooltip.uaForeverKind == "micro-button" then
+        micro_cache = micro_translation_cache[tooltip]
+        if not micro_cache then micro_cache = {}; micro_translation_cache[tooltip] = micro_cache end
+    end
     local social_tooltip = is_social_player_tooltip(tooltip)
     runtime.metric("line_passes", tooltip, tooltip.uaForeverGeneration)
 
@@ -487,7 +510,21 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
             local translated_left, _, left_kind, _, _, _, left_provenance
             local left_category
             local translated_right, _, right_kind, _, _, _, right_provenance
-            if not left_stable then
+            local cached_left = micro_cache and micro_cache[index * 2 - 1]
+            local cached_right = micro_cache and micro_cache[index * 2]
+            local left_cached = cached_left and safe_string(left)
+                and (left == cached_left.source or left == cached_left.translated)
+            local right_cached = cached_right and safe_string(right)
+                and (right == cached_right.source or right == cached_right.translated)
+            if left_cached then
+                translated_left, left_kind, left_provenance = cached_left.translated or nil,
+                    cached_left.kind, cached_left.provenance
+            end
+            if right_cached then
+                translated_right, right_kind, right_provenance = cached_right.translated or nil,
+                    cached_right.kind, cached_right.provenance
+            end
+            if not left_stable and not left_cached then
                 -- Recent allies write the player's current location as a plain
                 -- AddLine, without structured zone data. Keep the name row native.
                 if social_tooltip and index > 1 and safe_string(left) then
@@ -527,9 +564,19 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
                     end
                 end
             end
-            if not right_stable then
+            if not right_stable and not right_cached then
                 translated_right, _, right_kind, _, _, _, right_provenance =
                     strings.find_ui_translation(right, right_region)
+            end
+            if micro_cache and index <= MAX_TOOLTIP_LINES then
+                if not left_stable and not left_cached and safe_string(left) then
+                    micro_cache[index * 2 - 1] = { source = left, translated = safe_string(translated_left) or false,
+                        kind = safe_string(left_kind), provenance = provenance_for_cache(left_provenance) }
+                end
+                if not right_stable and not right_cached and safe_string(right) then
+                    micro_cache[index * 2] = { source = right, translated = safe_string(translated_right) or false,
+                        kind = safe_string(right_kind), provenance = provenance_for_cache(right_provenance) }
+                end
             end
             if translated_left and translated_left ~= left then
                 if set_tooltip_translation(tooltip, left_region, left,
@@ -1231,6 +1278,8 @@ local function reset_tooltip(self)
     layout.restore_tooltip_rows(self)
     quest_pin_cache[self] = nil
     native_tooltip_data[self] = nil
+    owned_ui_state[self] = nil
+    micro_translation_cache[self] = nil
     tooltip_session.reset(self, function (region)
         character_stat_line_heights[region] = nil
     end)
@@ -1635,14 +1684,14 @@ local function translate_generic_tooltip_content(tooltip)
     if not tooltip then return end
     note_tooltip_event(tooltip, "finalize")
     if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
-    if tooltip.uaForeverShowOriginal then return end
     local calendar = addon_table.use("calendar_ui")
-    if calendar.translate_tooltip and calendar.translate_tooltip(tooltip) then return end
+    if calendar.translate_tooltip and calendar.translate_tooltip(tooltip) then return true end
+    if tooltip.uaForeverShowOriginal then return end
     if tooltips.is_micro_button_tooltip
         and tooltips.is_micro_button_tooltip(tooltip) then
         tooltip.uaForeverKind = "micro-button"
-        rewrite_generic_lines(tooltip, nil, 1)
-        layout.fit_micro_button_tooltip(tooltip)
+        rewrite_generic_lines(tooltip, nil, 1, nil, false, nil, nil,
+            { reapply_cached = true })
         return
     end
     if tooltip.uaForeverKind == "character-currency" then
@@ -1748,11 +1797,50 @@ local function translate_generic_tooltip_content(tooltip)
 end
 
 local function translate_generic_tooltip(tooltip)
-    translate_generic_tooltip_content(tooltip)
-    if layout.fit_translated_tooltip(tooltip) then finish_instruction_layout(tooltip) end
+    local fitted = translate_generic_tooltip_content(tooltip)
+    if fitted or layout.fit_translated_tooltip(tooltip) then finish_instruction_layout(tooltip) end
 end
 
 tooltips.finalize = translate_generic_tooltip
+
+local function owned_ui_context(tooltip)
+    if tooltip ~= _G.GameTooltip then return nil end
+    local ok, owner = pcall(function () return tooltip:GetOwner() end)
+    if not ok or is_secret(owner) or not owner then return nil end
+    if tooltips.is_micro_button_tooltip and tooltips.is_micro_button_tooltip(tooltip, owner) then
+        return owner, "micro-button"
+    end
+    local calendar = addon_table.use("calendar_ui")
+    if calendar.owns_tooltip and calendar.owns_tooltip(tooltip, owner) then return owner, "calendar" end
+end
+
+-- These native owners end every complete build with Show, including in-place
+-- refreshes. Own that boundary once; post-hooks do no work after it completed.
+tooltips.complete_owned_ui = function (tooltip, native_show)
+    local owner, kind = owned_ui_context(tooltip)
+    if not owner then return false end
+    local shown_ok, shown = pcall(function () return tooltip:IsShown() end)
+    if not shown_ok or is_secret(shown) or shown ~= true then return false end
+    local original = shift_held() or not options.can_translate()
+    local language = options.account and options.account.tooltip_language_mode
+    local state = owned_ui_state[tooltip]
+    if not state or state.owner ~= owner or state.kind ~= kind
+        or state.generation ~= tooltip.uaForeverGeneration then
+        begin_tooltip(tooltip, "owned-ui:" .. kind .. ":" .. tostring(owner))
+        micro_translation_cache[tooltip] = nil
+        state = { owner = owner, kind = kind, generation = tooltip.uaForeverGeneration }
+        owned_ui_state[tooltip] = state
+    end
+    if not native_show and state.complete and state.original == original and state.language == language then return true end
+    tooltip.uaForeverKind = kind
+    sync_tooltip_original_state(tooltip)
+    translate_generic_tooltip(tooltip)
+    state.complete, state.original, state.language = true, original, language
+    scheduler.cancel("tooltip:" .. tostring(tooltip))
+    scheduler.cancel("tooltip-late:" .. tostring(tooltip))
+    finish_instruction_layout(tooltip)
+    return true
+end
 
 local player_aura_ids = setmetatable({}, { __mode = "k" })
 local player_aura_elapsed = setmetatable({}, { __mode = "k" })
@@ -1990,6 +2078,9 @@ end
 
 
 local function schedule_tooltip_finalize(tooltip)
+    local owned = owned_ui_state[tooltip]
+    if owned and owned.complete and owned.generation == tooltip.uaForeverGeneration
+        and owned_ui_context(tooltip) == owned.owner then return end
     if not tooltip_work_enabled(tooltip.uaForeverKind) then return end
     local generation = tooltip.uaForeverGeneration
     if tooltip.uaForeverKind == "item"
@@ -2229,6 +2320,7 @@ local function prepare_tooltip_frames()
                 end)
                 hooks.region(tooltip, "Show", function (self)
                     finish_instruction_layout(self)
+                    if tooltips.complete_owned_ui(self, true) then return end
                     if bag_layout_hooked and self.uaForeverKind == "item" then
                         local ok, getter = pcall(function ()
                             return self.processingInfo and self.processingInfo.getterName
@@ -2242,6 +2334,8 @@ local function prepare_tooltip_frames()
                 hooks.region(tooltip, "SetLootItem", refresh_loot_item_tooltip)
                 for _, method in ipairs({ "AddLine", "AddDoubleLine" }) do
                     hooks.region(tooltip, method, function (self)
+                        local state = owned_ui_state[self]
+                        if state then state.complete = false end
                         if self.uaForeverKind == "npc" then
                             schedule_tooltip_finalize(self)
                         end
@@ -2305,6 +2399,8 @@ local function prepare_tooltip_frames()
                         end, 0.15, self)
                 end)
                 hooks.region(tooltip, "SetText", function (self, native)
+                    local state = owned_ui_state[self]
+                    if state then state.complete = false end
                     translate_cursor_tooltip_title(self, native)
                     translate_object_tooltip_title(self)
                 end)
@@ -2334,6 +2430,7 @@ local function prepare_tooltip_frames()
                     -- are hooked directly, so OnShow must not rescan the frame.
                     return
                 end
+                if owned_ui_context(self) then return end
                 if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
                 if self.uaForeverKind ~= "item"
                     and self.uaForeverKind ~= "talent" then
@@ -2358,6 +2455,13 @@ local function prepare_tooltip_frames()
             end)
             hooks.region_script(tooltip, "OnTooltipCleared", function (self)
                     layout.begin_item_build(self)
+                    local state = owned_ui_state[self]
+                    local owner = state and owned_ui_context(self)
+                    if state and owner == state.owner then
+                        state.complete = false
+                        tooltip_font_strings[self] = nil
+                        return
+                    end
                     if is_shopping_tooltip(self) then
                         self.uaForeverComparisonWriteReady = false
                     end

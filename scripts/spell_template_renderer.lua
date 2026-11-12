@@ -2,8 +2,14 @@ local _, addon_table = ...
 
 local renderer = addon_table.use("spell_template_renderer")
 local client_db = addon_table.use("spell_client_db")
+local profiler = addon_table.use("performance_profile")
+local count_render_hit = profiler.counter and profiler.counter("spell-template.result-hit") or function () end
+local count_prepare_hit = profiler.counter and profiler.counter("spell-template.prepared-hit") or function () end
+local count_prepare_miss = profiler.counter and profiler.counter("spell-template.prepared-miss") or function () end
 
 local compiled_cache = {}
+local compiled_order, compiled_head, compiled_tail, compiled_count = {}, 1, 0, 0
+local template_revision = 0
 local rendered_cache = {}
 local rendered_order = {}
 local rendered_head = 1
@@ -641,8 +647,9 @@ local function cache_rendered(key, value)
     rendered_count = rendered_count + 1
 end
 
-local function expand_description_references(text, getter, aura_getter, seen, depth)
+local function expand_description_references(text, getter, aura_getter, seen, depth, observe_reference)
     if type(text) ~= "string" or type(getter) ~= "function" then return text end
+    if not text:find("$@spell", 1, true) then return text end
     -- Build 70291 also uses bracketed IDs. Normalize only known reference
     -- forms, leaving other client macros untouched for safe fallback.
     text = text:gsub("%$@(spell%a+)<(%d+)>", function (kind, raw_id)
@@ -654,7 +661,7 @@ local function expand_description_references(text, getter, aura_getter, seen, de
     if (depth or 0) >= 8 then return text end
     seen = seen or {}
     return (text:gsub("%$@(spell%a+)(%d+)", function (kind, raw_id)
-        local lookup = kind == "spelldesc" and getter
+        local lookup = (kind == "spelldesc" or kind == "spelltooltip") and getter
             or kind == "spellaura" and aura_getter
         local token = "$@" .. kind .. raw_id
         if type(lookup) ~= "function" then return token end
@@ -662,19 +669,23 @@ local function expand_description_references(text, getter, aura_getter, seen, de
         if not spell_id or seen[spell_id] then
             return token
         end
+        if kind == "spelltooltip" and observe_reference then observe_reference(spell_id) end
         local referenced = lookup(spell_id)
+        if is_secret_value(referenced) then return token end
         if type(referenced) ~= "string" or referenced == "" then
             return token
         end
         seen[spell_id] = true
         local expanded = expand_description_references(
-            referenced, getter, aura_getter, seen, (depth or 0) + 1)
+            referenced, getter, aura_getter, seen, (depth or 0) + 1, observe_reference)
         seen[spell_id] = nil
-        return expanded
+        -- A tooltip reference keeps its native capture/matching semantics, but
+        -- still registers nested dependencies for prepared/result cache expiry.
+        return kind == "spelltooltip" and token or expanded
     end))
 end
 
-local function resolve_aura_template(english_raw, ukrainian_raw)
+local function resolve_aura_template(english_raw, ukrainian_raw, dependencies)
     local templates = addon_table.aura_sentence_templates
     if type(templates) ~= "table" then return ukrainian_raw end
     local english_lines, ukrainian_lines = {}, {}
@@ -691,6 +702,13 @@ local function resolve_aura_template(english_raw, ukrainian_raw)
         local subject, token, percent = line:match(
             "^(.+) reduced by (%$s%d+)(%%?)%.$")
         local format = subject and templates[subject]
+        if is_secret_value(format) then
+            if dependencies then dependencies.unsafe = true end
+            return ukrainian_raw
+        end
+        if subject and dependencies then
+            dependencies[#dependencies + 1] = { source = templates, key = subject, value = format }
+        end
         if format then
             ukrainian_lines[index] = format:format(token, percent)
             changed = true
@@ -699,6 +717,84 @@ local function resolve_aura_template(english_raw, ukrainian_raw)
     if not changed then return ukrainian_raw end
     local separator = ukrainian_raw:find("\r\n", 1, true) and "\r\n" or "\n"
     return table.concat(ukrainian_lines, separator)
+end
+
+local expand_template, compile_template, match_template, render_template_nodes =
+    expand_description_references, compile_pair, match_program, render_nodes
+if profiler.on_capture then
+    profiler.on_capture("spell-template-phases", function (active)
+        expand_template = active and profiler.wrap("spell-template.expand", expand_description_references) or expand_description_references
+        compile_template = active and profiler.wrap("spell-template.compile", compile_pair) or compile_pair
+        match_template = active and profiler.wrap("spell-template.match", match_program) or match_program
+        render_template_nodes = active and profiler.wrap("spell-template.render", render_nodes) or render_nodes
+    end)
+end
+
+local function dependencies_current(dependencies)
+    for _, dependency in ipairs(dependencies) do
+        local ok, value
+        if dependency.method then
+            local getter = client_db[dependency.method]
+            if type(getter) ~= "function" then return false end
+            ok, value = pcall(getter, dependency.key)
+        else
+            ok, value = pcall(function () return dependency.source[dependency.key] end)
+        end
+        if not ok or is_secret_value(value) or value ~= dependency.value then return false end
+    end
+    return true
+end
+
+local function prepare_template(key, kind, english, ukrainian)
+    local cached = compiled_cache[key]
+    if cached and cached.source_english == english and cached.source_ukrainian == ukrainian
+        and cached.build == client_db.source_build
+        and cached.aura_templates == addon_table.aura_sentence_templates
+        and dependencies_current(cached.dependencies) then
+        if profiler.active then count_prepare_hit() end
+        return cached
+    end
+    if profiler.active then count_prepare_miss() end
+    local dependencies, cacheable = {}, true
+    local function tracked(method)
+        return function (id)
+            local getter = client_db[method]
+            local value = type(getter) == "function" and getter(id) or nil
+            if is_secret_value(value) then cacheable = false; return nil end
+            dependencies[#dependencies + 1] = { method = method, key = id, value = value }
+            return value
+        end
+    end
+    local english_name, ukrainian_name = tracked("get_english_name"), tracked("get_name")
+    local function observe_reference(id) english_name(id); ukrainian_name(id) end
+    local expanded_english = expand_template(english, tracked("get_english_description"),
+        tracked("get_english_aura_description"), nil, nil, observe_reference)
+    local expanded_ukrainian = expand_template(ukrainian, tracked("get_description"),
+        tracked("get_aura_description"), nil, nil, observe_reference)
+    if kind == "aura" then expanded_ukrainian = resolve_aura_template(expanded_english, expanded_ukrainian, dependencies) end
+    template_revision = template_revision + 1
+    local prepared = { source_english = english, source_ukrainian = ukrainian,
+        english_raw = expanded_english, ukrainian_raw = expanded_ukrainian,
+        dependencies = dependencies, revision = template_revision,
+        build = client_db.source_build, aura_templates = addon_table.aura_sentence_templates,
+        plan = compile_template(expanded_english, expanded_ukrainian) or false }
+    if cacheable and not dependencies.unsafe then
+        if not compiled_cache[key] then
+            while compiled_count >= RENDERED_CACHE_LIMIT do
+                local oldest = compiled_order[compiled_head]
+                compiled_order[compiled_head], compiled_head = nil, compiled_head + 1
+                if oldest and compiled_cache[oldest] then compiled_cache[oldest] = nil; compiled_count = compiled_count - 1 end
+            end
+            compiled_tail = compiled_tail + 1
+            compiled_order[compiled_tail] = key
+            compiled_count = compiled_count + 1
+        end
+        compiled_cache[key] = prepared
+    else
+        compiled_cache[key] = nil
+        if cached then compiled_count = compiled_count - 1 end
+    end
+    return prepared
 end
 
 renderer.render = function (
@@ -713,36 +809,20 @@ renderer.render = function (
         or type(ukrainian_raw) ~= "string" or ukrainian_raw == ""
         or type(native_text) ~= "string" or native_text == "" then return nil end
 
-    english_raw = expand_description_references(
-        english_raw, client_db.get_english_description,
-        client_db.get_english_aura_description)
-    ukrainian_raw = expand_description_references(
-        ukrainian_raw, client_db.get_description, client_db.get_aura_description)
-    if kind == "aura" then
-        ukrainian_raw = resolve_aura_template(english_raw, ukrainian_raw)
-    end
-
-    local rendered_key = kind .. ":" .. spell_id .. "\031" .. native_text
-    local cached = rendered_cache[rendered_key]
-    if cached ~= nil then return cached ~= false and cached or nil end
-
     local compiled_key = kind .. ":" .. spell_id
-    local cached_plan = compiled_cache[compiled_key]
-    if not cached_plan or cached_plan.english_raw ~= english_raw
-        or cached_plan.ukrainian_raw ~= ukrainian_raw then
-        cached_plan = {
-            english_raw = english_raw,
-            ukrainian_raw = ukrainian_raw,
-            plan = compile_pair(english_raw, ukrainian_raw) or false,
-        }
-        compiled_cache[compiled_key] = cached_plan
+    local cached_plan = prepare_template(compiled_key, kind, english_raw, ukrainian_raw)
+    local rendered_key = compiled_key .. "\031" .. cached_plan.revision .. "\031" .. native_text
+    local cached = rendered_cache[rendered_key]
+    if cached ~= nil then
+        if profiler.active then count_render_hit() end
+        return cached ~= false and cached or nil
     end
     if cached_plan.plan == false then
         cache_rendered(rendered_key, nil)
         return nil
     end
 
-    local contexts = match_program(
+    local contexts = match_template(
         cached_plan.plan.matcher, native_text)
     if contexts then
         local translated
@@ -752,7 +832,7 @@ renderer.render = function (
         end
         for _, context in ipairs(contexts) do
             if (context.specificity or 0) == specificity then
-            local candidate = render_nodes(
+            local candidate = render_template_nodes(
                 cached_plan.plan.ukrainian,
                 context.decisions, context.values, context.decorations)
             if not candidate or candidate:find("$", 1, true)

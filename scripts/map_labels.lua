@@ -816,6 +816,7 @@ local function translate_coordinate(region, slot)
             source = source, translated = translated,
             option = "translate_string", lookup_tier = "pattern",
             surface = "worldmap-coords", priority = runtime.PRIORITY.CONTEXT,
+            section = "map_ui",
             record_runtime = false, verify_after_apply = false,
             reapply_cached = true,
         }

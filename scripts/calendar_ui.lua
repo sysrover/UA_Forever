@@ -1,6 +1,7 @@
 local _, addon_table = ...
 local calendar = addon_table.use("calendar_ui")
 local ui = addon_table.use("panel_ui_adapter").bind("calendar-ui")
+ui.defer_tooltip_layout = true
 ui.verified_build = "1.60.1.70840"
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
@@ -200,13 +201,21 @@ end
 
 -- Own these tooltips before the generic UI pass: player-created event names
 -- must not be translated even when their text happens to match a UI key.
+calendar.owns_tooltip = function (tooltip, owner)
+    if tooltip ~= _G.GameTooltip or not owner or runtime.is_secret_value(owner) then return false end
+    if owner == _G.GameTimeFrame then return true end
+    local ok, name = pcall(function () return owner:GetName() end)
+    name = ok and runtime.safe_string_or_nil(name)
+    return name ~= nil and name:match("^CalendarDayButton%d+$") ~= nil
+end
+
 calendar.translate_tooltip = function (tooltip)
     if not tooltip or tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return false end
     local ok, owner = pcall(tooltip.GetOwner, tooltip)
     if not ok or runtime.is_secret_value(owner) or not owner then return false end
     if owner == _G.GameTimeFrame then
         if options.work_enabled("calendar-ui") then
-            ui.tooltip(owner)
+            if not tooltip.uaForeverShowOriginal then ui.tooltip(owner) end
             layout.fit_calendar_tooltip(tooltip)
         end
         return true
@@ -214,7 +223,8 @@ calendar.translate_tooltip = function (tooltip)
     local name_ok, name = pcall(owner.GetName, owner)
     name = name_ok and runtime.safe_string_or_nil(name)
     if not name or not name:match("^CalendarDayButton%d+$") then return false end
-    if not options.work_enabled("calendar-ui") or tooltip.uaForeverShowOriginal then return true end
+    if not options.work_enabled("calendar-ui") then return true end
+    if tooltip.uaForeverShowOriginal then layout.fit_calendar_tooltip(tooltip); return true end
     local day, offset = number(owner.day), number(owner.monthOffset)
     if not day or not offset then return true end
     local month = call("GetMonthInfo", offset)
@@ -262,9 +272,12 @@ calendar.prepare = function ()
     ui.prepare({ "CalendarFrame" }, "Blizzard_Calendar",
         { "CalendarFrame_Update", "CalendarFrame_UpdateTitle" }, {}, refresh)
     ui.hooks.global("CalendarFrame_UpdateDayEvents", day_events)
-    ui.hooks.global("CalendarDayButton_OnEnter", function () calendar.translate_tooltip(_G.GameTooltip) end)
-    -- GameTime's native OnUpdate clears/rebuilds its tooltip every frame.
-    ui.hooks.region_script(_G.GameTimeFrame, "OnUpdate", function () calendar.translate_tooltip(_G.GameTooltip) end)
+    -- GameTime rebuilds its tooltip every frame, ending at GameTooltip.Show.
+    -- The shared completed-build owner handles it there, with no idle OnUpdate.
+    ui.hooks.global("CalendarDayButton_OnEnter", function ()
+        local tooltips = addon_table.use("tooltips")
+        if tooltips.complete_owned_ui then tooltips.complete_owned_ui(_G.GameTooltip) end
+    end)
     local frame = _G.CalendarFrame
     if frame then
         local ok, shown = pcall(frame.IsShown, frame)

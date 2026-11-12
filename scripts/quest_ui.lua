@@ -18,17 +18,32 @@ local layout = addon_table.use("translation_layout")
 local tracker_refresh_pending = false
 local log_title_cache = setmetatable({}, { __mode = "k" })
 local text_height_cache = setmetatable({}, { __mode = "k" })
+local log_header_heights = setmetatable({}, { __mode = "k" })
 local tracker_text_layouts = setmetatable({}, { __mode = "k" })
 
 local function cached_text_height(region, identity)
     local cached = text_height_cache[region]
-    local signature = layout.text_signature and layout.text_signature(region, cached and cached.signature)
-    if signature and cached and cached.identity == identity and signature == cached.signature then
-        return cached.height
+    local signature = layout.text_signature and layout.text_signature(region, cached and cached[1].signature)
+    if signature and cached then
+        -- Keep at most the native and translated measurements. Alternating
+        -- native rewrites must not evict the result needed later in this call.
+        for index, entry in ipairs(cached) do
+            local matches = entry.identity == identity and #signature == #entry.signature
+            if matches and signature ~= entry.signature then
+                for cursor = 1, #signature do
+                    if signature[cursor] ~= entry.signature[cursor] then matches = false; break end
+                end
+            end
+            if matches then
+                if index == 2 then cached[1], cached[2] = cached[2], cached[1] end
+                return entry.height
+            end
+        end
     end
     local height = layout.safe_dimension(region, "GetStringHeight")
     if signature and height then
-        text_height_cache[region] = { identity = identity, signature = signature, height = height }
+        text_height_cache[region] = { { identity = identity, signature = signature, height = height },
+            cached and cached[1] or nil }
     else
         text_height_cache[region] = nil
     end
@@ -425,7 +440,7 @@ local function quest_log_titles(scroll, buttons)
                     ukrainian = ukrainian, source = source, translated = translated } or nil
             end
             if translated then
-                local old_height = current ~= translated and cached_text_height(region, id) or nil
+                local old_height = cached_text_height(region, id)
                 local previous = runtime.get(region)
                 local slot = "quest:" .. id .. ".name"
                 if not previous or previous.owner ~= "quest-log" or previous.slot ~= slot
@@ -479,20 +494,22 @@ local function quest_log_titles(scroll, buttons)
             end
             if region and not retained then runtime.invalidate(region) end
             if source and safe_string(translated) and translated ~= source then
-                local old_ok, old_height = false, nil
-                if current ~= translated then
-                    old_height = cached_text_height(region, slot)
-                end
+                local old_height = cached_text_height(region, slot)
                 local applied = runtime.apply(region, {
                     owner = "quest-log", slot = slot,
                     source = source, translated = translated,
                     option = "translate_quest", priority = runtime.PRIORITY.CONTEXT,
                     reapply_cached = true,
                 })
-                if applied and current ~= translated then
+                if applied then
+                    if options.can_translate("override_system_fonts") then runtime.ensure_font(region) end
                     local new_height = cached_text_height(region, slot)
-                    if not old_height or not new_height
-                        or math.abs(new_height - old_height) >= 0.5 then changed = true end
+                    local previous_height = log_header_heights[region]
+                    if current ~= translated and (not old_height or not new_height
+                        or math.abs(new_height - old_height) >= 0.5)
+                        or new_height and previous_height and previous_height.slot == slot
+                            and math.abs(new_height - previous_height.height) >= 0.5 then changed = true end
+                    log_header_heights[region] = new_height and { slot = slot, height = new_height } or nil
                 end
             end
         end
@@ -873,14 +890,17 @@ local function fit_tracker_text(region)
     if signature and cached and signature == cached.signature and current_height
         and math.abs(current_height - cached.fitted_height) <= 0.5 then return cached.height end
     local function set_if_changed(getter, setter, expected)
-        if type(region[setter]) ~= "function" then return true end
-        if type(region[getter]) == "function" then
-            local ok, current = pcall(region[getter], region)
-            if not ok or runtime.is_secret_value(current) then return false end
-            if current == expected then return true end
-        end
+        local ok, writer, present, current = pcall(function ()
+            local writer, reader = region[setter], region[getter]
+            if runtime.is_secret_value(writer) or runtime.is_secret_value(reader) then return nil end
+            if type(reader) == "function" then return writer, true, reader(region) end
+            return writer, false
+        end)
+        if not ok or runtime.is_secret_value(current) then return false end
+        if type(writer) ~= "function" then return writer == nil and present ~= nil end
+        if present and current == expected then return true end
         if not runtime.can_write_text(region) then return false end
-        return pcall(region[setter], region, expected)
+        return pcall(writer, region, expected)
     end
     -- SetStringText measures immediately after SetText. Release stale caps in
     -- that same call, so Blizzard measures the final font and wrapped text.

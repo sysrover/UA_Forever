@@ -102,16 +102,18 @@ local function challenge_id(row)
     return row and row.id or row and row.Shield and row.Shield.id
 end
 
-local function translate_challenge(row)
+local function translate_challenge(row, only)
     if not row then return end
     local id = challenge_id(row)
     local data = achievements.get(id)
     if not data then return end
-    apply(row.Label, data.title, id, "achievement.name")
-    apply(row.Description, data.description, id, "achievement.description")
-    apply(row.HiddenDescription, data.description, id, "achievement.description")
+    if only ~= "Label" and only ~= "Description" and only ~= "HiddenDescription" then only = nil end
+    if not only or only == "Label" then apply(row.Label, data.title, id, "achievement.name") end
+    if not only or only == "Description" then apply(row.Description, data.description, id, "achievement.description") end
+    if not only or only == "HiddenDescription" then apply(row.HiddenDescription, data.description, id, "achievement.description") end
     -- Legacy uses SystemFont_Shadow_Med1, not ACHIEVEMENTUI_FONTHEIGHT.
-    if row.HiddenDescription and type(row.HiddenDescription.GetFont) == "function" then
+    if (not only or only == "HiddenDescription") and row.HiddenDescription
+        and type(row.HiddenDescription.GetFont) == "function" then
         local _, height = row.HiddenDescription:GetFont()
         if type(height) == "number" and height > 0 then
             row.numLines = math.ceil(row.HiddenDescription:GetHeight() / height)
@@ -121,7 +123,8 @@ end
 
 local function prepare_challenge(row)
     for _, key in ipairs({ "Label", "Description", "HiddenDescription" }) do
-        watch(row[key], function () translate_challenge(row) end)
+        local field = key
+        watch(row[field], function () translate_challenge(row, field) end)
     end
     watch(row.Tracked and row.Tracked.Text)
     -- Native InitRewards is a Legacy no-op, but occurs before Expand and the
@@ -337,6 +340,7 @@ local function refresh_tree() refresh("tree") end
 local function remember_descriptions(pane, info)
     local system = _G.LegacySystem
     if not info or not system or type(system.GetChallengeIndices) ~= "function" then return end
+    if runtime.is_secret_value(info.id) or type(info.id) ~= "number" then return end
     local start, count = system.GetChallengeIndices(info.id)
     if runtime.is_secret_value(start) or runtime.is_secret_value(count)
         or type(start) ~= "number" or type(count) ~= "number" then return end

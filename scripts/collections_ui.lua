@@ -225,6 +225,7 @@ local function refresh()
                 ui.watch_frame(frame, skip_region)
                 registered_labels[frame] = true
             end
+            ui.refresh_labels(frame)
             if frame == _G.PetJournal then
                 each_row(frame.ScrollBox, pet_row)
                 pet_card()

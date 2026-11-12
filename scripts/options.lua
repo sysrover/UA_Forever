@@ -296,6 +296,10 @@ local owner_sections = {
     ["combat-text"] = "combat_text", ["chat-links"] = "chat_links",
 }
 
+-- Only dedicated owners use this hint. Mixed surfaces still resolve the
+-- current native owner through section_for, including bag-title exceptions.
+options.surface_section = function (id) return surface_sections[id] end
+
 local function public_method(object, method)
     if not object then return nil end
     local ok, callback = pcall(function () return object[method] end)

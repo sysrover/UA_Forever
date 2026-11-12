@@ -10,10 +10,12 @@ local utils = addon_table.use("utils")
 local layout = addon_table.use("translation_layout")
 local walker = addon_table.use("translation_walker")
 local profiler = addon_table.use("performance_profile")
+local options = addon_table.use("options")
 
 -- Shared guarded label operations; each panel owns its fields and lifecycle.
 adapter.bind = function (id)
     local api = {}
+    api.section = options.surface_section and options.surface_section(id) or nil
     api.hooks = addon_table.use("translation_hooks").bind(id)
     api.visible = function (frame)
         if not frame then return false end
@@ -29,7 +31,7 @@ adapter.bind = function (id)
         if not region or runtime.is_applying(region) then return end
         if template and strings.translate_formatted_region
             and strings.translate_formatted_region(region, template, api.surface, ...) then return true end
-        return strings.translate_region(region, nil, "ui.label", api.surface)
+        return strings.translate_region(region, nil, "ui.label", api.surface, nil, nil, api.section)
     end
     -- Custom callbacks opt into template arguments explicitly; their second
     -- argument may already be an owner-specific control flag.
@@ -65,6 +67,13 @@ adapter.bind = function (id)
         end
     end
     local bound_roots = setmetatable({}, { __mode = "k" })
+    local root_labels = setmetatable({}, { __mode = "k" })
+    api.refresh_labels = function (root)
+        local state = root_labels[root]
+        if not state or state.seeded or not api.visible(root) then return end
+        for _, region in ipairs(state.regions) do state.label(region) end
+        state.seeded = true
+    end
     api.watch_frame = function (root, skip_region, translate, seen)
         if not root then return end
         local registering = not bound_roots[root]
@@ -84,13 +93,17 @@ adapter.bind = function (id)
             if translate then return translate(region) end
             return api.label(region, template, ...)
         end
+        local labels = { regions = {}, label = label }
         walker.walk({ id = id .. ":labels", surface = id, owner = id,
             reason = "REGISTERED_STATIC_SCAN", max_nodes = 1000 }, root, function (region)
                 local ok, kind = pcall(function () return region:GetObjectType() end)
                 if ok and not runtime.is_secret_value(kind) and kind == "FontString" then
+                    labels.regions[#labels.regions + 1] = region
                     api.watch(region, label, label)
                 end
             end, skip_frame, { frames = 0 }, seen)
+        labels.seeded = api.visible(root)
+        root_labels[root] = labels
     end
     local scroll_boxes = setmetatable({}, { __mode = "k" })
     api.watch_scroll = function (box, callback)
@@ -121,8 +134,10 @@ adapter.bind = function (id)
             source = source, translated = translated, option = option or "translate_string",
             options = tooltip and { "translate_other_tooltips" } or nil,
             category = category, surface = tooltip or api.surface, tooltip = tooltip,
+            section = not category and not tooltip and api.section or nil,
             priority = runtime.PRIORITY.DOMAIN, phase = "direct", reapply_cached = true,
-            after_apply = tooltip and layout.tooltip_after_text(tooltip, region, source) or nil })
+            after_apply = tooltip and not api.defer_tooltip_layout
+                and layout.tooltip_after_text(tooltip, region, source) or nil })
     end
     api.formatted = function (region, template, ...)
         template = runtime.safe_string_or_nil(template)
@@ -172,7 +187,10 @@ adapter.bind = function (id)
         for index = 1, math.min(count, 40) do
             local region = _G["GameTooltipTextLeft" .. index]
             local source = api.text(region)
-            local translated = source and resolver.find_ui(source, region)
+            local claim = region and runtime.get(region)
+            local retained = claim and claim.surface == tooltip and claim.owner == id
+                and (source == claim.source or source == claim.translated)
+            local translated = retained and claim.translated or source and resolver.find_ui(source, region)
             if translated then
                 local color, _, reset = source:match("^(|c%x%x%x%x%x%x%x%x)(.-)(|r)$")
                 if color and not translated:find("|c", 1, true) then translated = color .. translated .. reset end

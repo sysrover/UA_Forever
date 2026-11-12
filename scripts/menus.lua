@@ -23,9 +23,11 @@ local micro_button_names = {
     "StoreMicroButton", "MainMenuMicroButton", "HelpMicroButton",
 }
 
-tooltips.is_micro_button_tooltip = function (tooltip)
+tooltips.is_micro_button_tooltip = function (tooltip, known_owner)
     if not tooltip or type(tooltip.GetOwner) ~= "function" then return false end
-    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if runtime.is_secret_value(known_owner) then return false end
+    local ok, owner = true, known_owner
+    if owner == nil then ok, owner = pcall(tooltip.GetOwner, tooltip) end
     if not ok or runtime.is_secret_value(owner) or not owner then return false end
     for _, name in ipairs(micro_button_names) do
         if owner == _G[name] then return true end
@@ -116,6 +118,7 @@ end
 local function translate_micro_button_tooltip(button)
     local tooltip = _G.GameTooltip
     if not tooltip or not tooltip.GetOwner or tooltip:GetOwner() ~= button then return end
+    if tooltips.complete_owned_ui and tooltips.complete_owned_ui(tooltip) then return end
     if tooltips.finalize then
         tooltip.uaForeverKind = "micro-button"
         tooltips.finalize(tooltip)

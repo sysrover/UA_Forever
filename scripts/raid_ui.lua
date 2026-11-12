@@ -9,16 +9,16 @@ local surface
 
 local function is_shown(frame)
     if not frame then return false end
-    local ok, shown = pcall(frame.IsShown, frame)
+    local ok, shown = pcall(function () return (frame.IsVisible or frame.IsShown)(frame) end)
     return ok and not runtime.is_secret_value(shown) and shown == true
 end
 
 local function translate_region(region)
     if not region or runtime.is_applying(region) then return end
-    return strings.translate_region(region, nil, "ui.label", surface)
+    return strings.translate_region(region, nil, "ui.label", surface, nil, nil, "raid_ui")
 end
 local formatted_region = strings.formatted_callback and strings.formatted_callback(
-    translate_region, nil, "ui.label", function () return surface end) or translate_region
+    translate_region, nil, "ui.label", function () return surface end, "raid_ui") or translate_region
 
 local function prepare_region(region)
     if not region then return end
@@ -99,6 +99,12 @@ local function refresh()
     end
 end
 
+local function refresh_info_buttons()
+    if not is_shown(_G.RaidInfoFrame) then return end
+    prepare_button(_G.RaidInfoExtendButton)
+    prepare_button(_G.RaidInfoCancelButton)
+end
+
 raid_ui.prepare = function ()
     -- Generic UI walks intentionally skip RaidFrame and unit-related trees.
     -- Translate this build's explicit public labels instead of relaxing that guard.
@@ -109,7 +115,8 @@ raid_ui.prepare = function ()
     for _, target in ipairs({ "RaidFrame_OnShow", "RaidFrame_Update",
         "RaidInfoFrame_Update", "RaidInfoFrame_UpdateButtons" }) do
         registry.declare_hook({ id = "raid-ui:" .. target, surface = "raid-ui",
-            kind = "global", target = target, callback = refresh,
+            kind = "global", target = target,
+            callback = target == "RaidInfoFrame_UpdateButtons" and refresh_info_buttons or refresh,
             blizzardAddon = "Blizzard_RaidFrame", verifiedBuild = "1.60.1.70205" })
     end
     registry.declare_hook({ id = "raid-ui:instance-row", surface = "raid-ui",

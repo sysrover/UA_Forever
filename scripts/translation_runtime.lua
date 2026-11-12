@@ -10,15 +10,17 @@ local count_text_attempt = profiler.counter and profiler.counter("text.write.att
 local count_text_success = profiler.counter and profiler.counter("text.write.success") or function () end
 local count_text_failure = profiler.counter and profiler.counter("text.write.failure") or function () end
 local count_item_post = profiler.counter and profiler.counter("native.item-post") or function () end
+local count_text_write = profiler.write_counter and profiler.write_counter("text.write")
 
 local function finish_text_write(ok, ...)
-    if ok then count_text_success() else count_text_failure() end
+    if count_text_write then count_text_write(ok)
+    elseif ok then count_text_success() else count_text_failure() end
     return ok, ...
 end
 
 local write_profiled_text = pcall
 local function profile_text_write(callback, ...)
-    count_text_attempt()
+    if not count_text_write then count_text_attempt() end
     return finish_text_write(pcall(callback, ...))
 end
 if profiler.on_capture then

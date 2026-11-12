@@ -38,9 +38,9 @@ end
 local function hook_region(region)
     if not region then return end
     hooks.region(region, "SetText", function (self)
-        if not runtime.is_applying(self) then strings.translate_region(self) end
+        if not runtime.is_applying(self) then strings.translate_region(self, nil, "ui.label", nil, nil, nil, "spell_ui") end
     end)
-    strings.translate_region(region)
+    strings.translate_region(region, nil, "ui.label", nil, nil, nil, "spell_ui")
 end
 
 local function hook_button(button)
@@ -140,6 +140,12 @@ local function translate_frame(frame)
     translate_main_frame(parent)
 end
 
+local function translate_active_spec(active)
+    if not active then return end
+    hook_region(active.ActiveLabel)
+    hook_button(active.ActivateButton)
+end
+
 local function hook_instances()
     local root = _G.PlayerSpellsFrame
     local frame = root and root.TalentsFrame
@@ -147,28 +153,19 @@ local function hook_instances()
         "talent-frame-root")
     hooks.region_script(frame, "OnShow", translate_frame,
         "talent-frame")
-    hooks.region(frame, "RefreshTreeHeaders", translate_frame)
+    hooks.region(frame, "RefreshTreeHeaders", translate_tree_headers)
     hooks.region(frame, "UpdateTabs", translate_frame)
     hooks.region(frame, "InitializeTabSystem", translate_frame)
-    hooks.region(frame and frame.ActiveSpec, "Refresh", function ()
-        translate_frame(frame)
-    end)
+    hooks.region(frame and frame.ActiveSpec, "Refresh", translate_active_spec)
 end
 
 adapter.prepare = function ()
     hooks.mixin("ClassTalentsFrameMixin", "OnShow", translate_frame)
-    hooks.mixin("ClassTalentsFrameMixin", "RefreshTreeHeaders", translate_frame)
+    hooks.mixin("ClassTalentsFrameMixin", "RefreshTreeHeaders", translate_tree_headers)
     hooks.mixin("ClassTalentsFrameMixin", "UpdateTabs", translate_frame)
     hooks.mixin("ClassTalentsFrameMixin", "InitializeTabSystem", translate_frame)
     hooks.mixin("ClassTalentTreeHeaderMixin", "Setup", translate_tree_header)
-    hooks.mixin("ClassTalentActiveSpecMixin", "Refresh", function (active)
-        local frame
-        if active and type(active.GetParent) == "function" then
-            local ok, value = pcall(active.GetParent, active)
-            if ok then frame = value end
-        end
-        translate_frame(frame)
-    end)
+    hooks.mixin("ClassTalentActiveSpecMixin", "Refresh", translate_active_spec)
     hooks.mixin("PlayerSpellsFrameMixin", "UpdateFrameTitle",
         translate_main_frame)
     hooks.mixin("PlayerSpellsFrameMixin", "UpdateTabs", translate_main_frame)

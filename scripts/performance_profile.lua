@@ -59,12 +59,13 @@ local function context()
 end
 
 local function retain_slowest(list, entry, limit, field)
-    if #list < limit then list[#list + 1] = entry; return true end
+    if #list < limit then list[#list + 1] = entry; return true, "inserted" end
     local smallest = 1
     for index = 2, #list do
         if list[index][field] < list[smallest][field] then smallest = index end
     end
-    if entry[field] > list[smallest][field] then list[smallest] = entry; return true end
+    if entry[field] > list[smallest][field] then list[smallest] = entry; return true, "replaced" end
+    return false, "dropped"
 end
 
 -- Charge diagnostic bookkeeping to overhead, including when called inside a
@@ -103,6 +104,58 @@ profiler.counter = function (label)
         end
         diagnostic_overhead(session, started)
     end
+end
+
+-- One bookkeeping span for an attempted setter and its pcall outcome. Labels
+-- are fixed at registration; callers preserve the complete pcall return tuple.
+local function increment_work(session, label)
+    local report, work = session.report, session.interval.work
+    if report.work[label] ~= nil or report.counterCount < MAX_COUNTERS then
+        if report.work[label] == nil then report.counterCount = report.counterCount + 1 end
+        report.work[label] = (report.work[label] or 0) + 1
+        work[label] = (work[label] or 0) + 1
+    else report.counterDrops = report.counterDrops + 1 end
+end
+
+profiler.write_counter = function (prefix)
+    prefix = public_string(prefix)
+    if not prefix then return function () end end
+    prefix = prefix:sub(1, 100)
+    local attempt, success, failure = prefix .. ".attempt", prefix .. ".success", prefix .. ".failure"
+    return function (ok)
+        local session = current
+        if not session then return end
+        local started = now()
+        increment_work(session, attempt)
+        increment_work(session, ok and success or failure)
+        diagnostic_overhead(session, started)
+    end
+end
+
+local layout_properties = { SetWidth = true, SetHeight = true, SetMaxLines = true,
+    SetWordWrap = true, SetNonSpaceWrap = true, ClearAllPoints = true, SetPoint = true }
+profiler.record_layout_writes = function (tooltip, counts)
+    local session = current
+    if not session then return end
+    local started, report = now(), session.report
+    local ok, name, kind, original = pcall(function ()
+        return tooltip:GetName(), tooltip.uaForeverKind, tooltip.uaForeverShowOriginal
+    end)
+    name, kind = ok and public_string(name), ok and public_string(kind)
+    if name and kind and not secret(original) then
+        local key = name:sub(1, 80) .. ":" .. kind:sub(1, 40) .. (original and ":original" or ":translated")
+        local row = report.layoutWrites[key]
+        if not row and report.layoutWriteCount < 64 then
+            row = {}; report.layoutWrites[key] = row; report.layoutWriteCount = report.layoutWriteCount + 1
+        end
+        if row then
+            for property in pairs(layout_properties) do
+                local count = public_number(counts[property])
+                if count and count > 0 and count < math.huge then row[property] = (row[property] or 0) + count end
+            end
+        end
+    end
+    diagnostic_overhead(session, started)
 end
 
 profiler.begin_span = function ()
@@ -275,20 +328,15 @@ end
 
 -- Continuations preserve every return value, including trailing nils, without
 -- allocating a packed-results table for every instrumented call.
-local function call_profiled(label, callback, entered, ...)
-    local session = current
-    if not session then return callback(...) end
-    entered = entered or now()
-    if session.depth >= MAX_DEPTH then
-        session.report.depthDrops = session.report.depthDrops + 1
-        return callback(...)
-    end
+local function call_record(session, label)
+    local records = session.callRecords
+    if not records then records = {}; session.callRecords = records end
+    if records[label] then return records[label] end
     local report = session.report
     local row = report.calls[label]
     if not row then
         if report.labelCount >= MAX_LABELS then
             label = "<label-limit>"
-            report.labelDrops = report.labelDrops + 1
             row = report.calls[label]
         end
         if not row then
@@ -298,6 +346,23 @@ local function call_profiled(label, callback, entered, ...)
             report.labelCount = report.labelCount + 1
         end
     end
+    local record = records[label] or { row = row, label = label }
+    records[label] = record
+    return record
+end
+
+local function call_profiled(label, callback, entered, record, ...)
+    local session = current
+    if not session then return callback(...) end
+    entered = entered or now()
+    if session.depth >= MAX_DEPTH then
+        session.report.depthDrops = session.report.depthDrops + 1
+        return callback(...)
+    end
+    record = record or call_record(session, label)
+    if record.label == "<label-limit>" then session.report.labelDrops = session.report.labelDrops + 1 end
+    local row = record.row
+    label = record.label
     session.depth = session.depth + 1
     local frame = session.stack[session.depth]
     if not frame then frame = {}; session.stack[session.depth] = frame end
@@ -310,14 +375,23 @@ end
 profiler.call = function (label, callback, ...)
     if not current then return callback(...) end
     local entered = now()
-    return call_profiled(public_string(label) or "unknown", callback, entered, ...)
+    return call_profiled(public_string(label) or "unknown", callback, entered, nil, ...)
 end
 
 profiler.wrap = function (label, callback, event_index)
     if type(callback) ~= "function" then return callback end
     label = public_string(label) or "unknown"
+    local bound_token, record
     return function (...)
         if not current then return callback(...) end
+        if not event_index then
+            local entered = now()
+            current.recordToken = current.recordToken or {}
+            if bound_token ~= current.recordToken then
+                bound_token, record = current.recordToken, call_record(current, label)
+            end
+            return call_profiled(label, callback, entered, record, ...)
+        end
         local key, module_load = label, false
         if event_index and event_index <= select("#", ...) then
             local event = public_string(select(event_index, ...))
@@ -330,8 +404,8 @@ profiler.wrap = function (label, callback, event_index)
                 end
             end
         end
-        if module_load then return finish_load(current, call_profiled(key, callback, nil, ...)) end
-        return call_profiled(key, callback, nil, ...)
+        if module_load then return finish_load(current, call_profiled(key, callback, nil, nil, ...)) end
+        return call_profiled(key, callback, nil, nil, ...)
     end
 end
 
@@ -478,6 +552,7 @@ local function sample_frame(_, elapsed)
     if session.skipFirstFrame then
         session.skipFirstFrame = nil
         reset_interval(interval)
+        session.intervalStarted = started
         return
     end
     elapsed = public_number(elapsed)
@@ -511,12 +586,19 @@ local function sample_frame(_, elapsed)
                 calls = interval.calls, topCall = interval.label, topCallMs = interval.maxMs,
                 totalCalls = interval.totalCalls, selfMs = interval.selfMs,
                 instrumentationMs = interval.overheadMs, context = context(),
-                atMs = math.max(0, started - session.started) }
-            if retain_slowest(report.slowIntervals, entry, MAX_SLOW_INTERVALS, "frameMs") then
+                atMs = math.max(0, started - session.started), frameIndex = frames.count,
+                intervalStartMs = math.max(0, (session.intervalStarted or session.started) - session.started),
+                intervalEndMs = math.max(0, started - session.started) }
+            report.slowIntervalCandidates = report.slowIntervalCandidates + 1
+            local retained, disposition = retain_slowest(report.slowIntervals, entry, MAX_SLOW_INTERVALS, "frameMs")
+            if disposition == "replaced" then report.slowIntervalsReplaced = report.slowIntervalsReplaced + 1 end
+            report.slowIntervalsOmitted = report.slowIntervalCandidates - #report.slowIntervals
+            if retained then
                 interval_details(interval, entry)
             end
         end
         reset_interval(interval)
+        session.intervalStarted = started
     end
     report.collectorMs = report.collectorMs + math.max(0, now() - started)
     local seconds = type(_G.GetTime) == "function" and _G.GetTime() - session.startedSeconds
@@ -535,13 +617,16 @@ profiler.start = function (seconds, on_saved)
     local setup_started = now()
     local options, utils = addon_table.use("options"), addon_table.use("utils")
     local account = options.account or {}
-    local report = { version = 2, patch = "addon-profile-manual-only-2026-11-12", status = "recording",
+    local report = { version = 2, patch = "addon-profile-ui-costs-2026-11-12", status = "recording",
         requestedSeconds = seconds, build = utils.build_version, buildNumber = utils.build_number,
         calls = {}, labelCount = 0, labelDrops = 0, depthDrops = 0, clockResets = 0,
         instrumentationMs = 0, collectorMs = 0, slowCalls = {}, slowIntervals = {},
         work = {}, counterCount = 0, counterDrops = 0,
         walks = {}, walkCount = 0, walkDrops = 0,
         layouts = {}, layoutCount = 0, layoutDrops = 0,
+        layoutWrites = {}, layoutWriteCount = 0,
+        layoutWriteMeaning = "cached replay setter attempts by property, tooltip and text mode",
+        slowIntervalCandidates = 0, slowIntervalsOmitted = 0, slowIntervalsReplaced = 0,
         nestedTimesOverlap = true, selfTimeIsAdditive = true,
         frameAttribution = "callbacks between collector ticks; not an exact frame boundary",
         contextMeaning = "current GameTooltip metadata; not the cause or owner of the interval",

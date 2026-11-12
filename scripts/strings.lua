@@ -201,11 +201,13 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     local explicit_category = category
         or type(surface) == "table" and surface.name_category ~= "none"
             and surface.name_category or nil
+    local resolved_section = section
     if options.section_enabled and not (options.capture_enabled and options.capture_enabled()) then
         local spec = {section=section, category=explicit_category, slot=slot or
             (explicit_category and explicit_category .. ".name" or "ui.text"),
             surface=surface, owner="ui"}
-        if not options.section_enabled(options.section_for(spec, region)) then return false end
+        resolved_section = options.section_for(spec, region)
+        if not options.section_enabled(resolved_section) then return false end
     end
     local translated, _, source_kind, inferred_category, inferred_slot,
         inferred_option, provenance =
@@ -219,6 +221,7 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     if not translated or translated == text then return false end
     category = category or inferred_category
     slot = slot or inferred_slot
+    if not section and not inferred_category and not inferred_slot then section = resolved_section end
 
     local parent
     local parent_method_ok, get_parent = pcall(function () return region.GetParent end)

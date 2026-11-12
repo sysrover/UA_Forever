@@ -11,8 +11,10 @@ for _, name in ipairs({ "measure", "reapply", "success", "failure", "exception",
     profile_counts[name] = profiler.counter and profiler.counter("layout." .. name) or function () end
 end
 
+local count_layout_write = profiler.write_counter and profiler.write_counter("layout.write")
 local function finish_layout_write(ok, ...)
-    profile_counts[ok and "write.success" or "write.failure"]()
+    if count_layout_write then count_layout_write(ok)
+    else profile_counts[ok and "write.success" or "write.failure"]() end
     return ok, ...
 end
 
@@ -20,7 +22,7 @@ end
 -- call, its return arity, or the existing layout boundaries.
 local layout_write = pcall
 local function profile_layout_write(callback, ...)
-    profile_counts["write.attempt"]()
+    if not count_layout_write then profile_counts["write.attempt"]() end
     return finish_layout_write(pcall(callback, ...))
 end
 if profiler.on_capture then
@@ -822,7 +824,11 @@ local function tooltip_layout_current(tooltip, generation, instance, owner, orig
     return ok and not is_secret(current_owner) and current_owner == owner
 end
 
-local function set_layout_value(object, getter, setter, expected, writable)
+local function note_layout_write(counts, setter)
+    if counts then counts[setter] = (counts[setter] or 0) + 1 end
+end
+
+local function set_layout_value(object, getter, setter, expected, writable, counts)
     local callback = object[getter]
     if type(callback) == "function" then
         local ok, current = pcall(callback, object)
@@ -831,12 +837,15 @@ local function set_layout_value(object, getter, setter, expected, writable)
     end
     if writable == nil then writable = runtime.can_write_text(object) end
     if not writable then return false, writable end
-    local ok = type(object[setter]) ~= "function" or layout_write(object[setter], object, expected)
+    local callback = object[setter]
+    if type(callback) ~= "function" then return true, writable end
+    note_layout_write(counts, setter)
+    local ok = layout_write(callback, object, expected)
     return ok, writable
 end
 
-local function apply_item_layout(tooltip, plan)
-    local ok, tooltip_writable = set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width)
+local function apply_item_layout_impl(tooltip, plan, counts)
+    local ok, tooltip_writable = set_layout_value(tooltip, "GetWidth", "SetWidth", plan.width, nil, counts)
     if not ok then return false, "tooltip.width" end
     for _, row in ipairs(plan.rows) do
         for _, side in ipairs(TOOLTIP_SIDES) do
@@ -847,22 +856,23 @@ local function apply_item_layout(tooltip, plan)
                 local writable
                 local width = row[side .. "TargetWidth"]
                 if width then
-                    ok, writable = set_layout_value(region, "GetWidth", "SetWidth", width, writable)
+                    ok, writable = set_layout_value(region, "GetWidth", "SetWidth", width, writable, counts)
                     if not ok then return false, "region.width" end
-                    ok, writable = set_layout_value(region, "GetMaxLines", "SetMaxLines", 0, writable)
+                    ok, writable = set_layout_value(region, "GetMaxLines", "SetMaxLines", 0, writable, counts)
                     if not ok then return false, "region.max-lines" end
                     local wraps = row[side .. "Wrap"] ~= false
-                    ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", wraps, writable)
+                    ok, writable = set_layout_value(region, "CanWordWrap", "SetWordWrap", wraps, writable, counts)
                     if not ok then return false, "region.word-wrap" end
-                    ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", wraps, writable)
+                    ok, writable = set_layout_value(region, "CanNonSpaceWrap", "SetNonSpaceWrap", wraps, writable, counts)
                     if not ok then return false, "region.non-space-wrap" end
                     local height = safe_dimension(region, "GetHeight")
                     if not height then return false, "region.height-read" end
                     if not same_dimension(height, row[side .. "FittedHeight"]) then
                         if writable == nil then writable = runtime.can_write_text(region) end
                         local height = row[side .. "Content"] ~= region and row[side .. "Height"] or 0
-                        if not writable
-                            or not layout_write(region.SetHeight, region, height) then return false, "region.height-write" end
+                        if not writable then return false, "region.height-write" end
+                        note_layout_write(counts, "SetHeight")
+                        if not layout_write(region.SetHeight, region, height) then return false, "region.height-write" end
                     end
                 end
                 if plan.arrange_rows ~= false then
@@ -881,18 +891,27 @@ local function apply_item_layout(tooltip, plan)
                     end
                     if not matches then
                         if writable == nil then writable = runtime.can_write_text(region) end
-                        if not writable
-                            or not layout_write(region.ClearAllPoints, region)
-                            or not layout_write(region.SetPoint, region, expected_point, tooltip,
-                                expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
+                        if not writable then return false, "region.point-write" end
+                        note_layout_write(counts, "ClearAllPoints")
+                        if not layout_write(region.ClearAllPoints, region) then return false, "region.point-write" end
+                        note_layout_write(counts, "SetPoint")
+                        if not layout_write(region.SetPoint, region, expected_point, tooltip,
+                            expected_point, expected_x, -row.Offset) then return false, "region.point-write" end
                     end
                 end
             end
         end
     end
-    ok = set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height, tooltip_writable)
+    ok = set_layout_value(tooltip, "GetHeight", "SetHeight", plan.height, tooltip_writable, counts)
     if not ok then return false, "tooltip.height" end
     return true
+end
+
+local function apply_item_layout(tooltip, plan)
+    local counts = profiler.active and profiler.record_layout_writes and {} or nil
+    local ok, detail = apply_item_layout_impl(tooltip, plan, counts)
+    if counts then profiler.record_layout_writes(tooltip, counts) end
+    return ok, detail
 end
 
 fit_complete_tooltip = function (tooltip, maximum_width, arrange_rows, prose_width, single_line_right)

@@ -335,9 +335,10 @@ end
 
 local lfg_scroll_boxes = setmetatable({}, { __mode = "k" })
 
-local function translate_lfg_vanilla()
+local function translate_lfg_vanilla(only)
+    if type(only) ~= "string" then only = nil end
     local parent = _G.LFGParentFrame
-    if parent then
+    if parent and (not only or only == "tabs") then
         for index = 1, 3 do
             local tab = parent["Tab" .. index]
             bind_lfg_button(tab)
@@ -346,10 +347,12 @@ local function translate_lfg_vanilla()
             end
         end
     end
-    translate_lfg_vanilla_listing()
-    translate_lfg_vanilla_categories()
+    if not only or only == "listing" then
+        translate_lfg_vanilla_listing()
+        translate_lfg_vanilla_categories()
+    end
     local browse = _G.LFGBrowseFrame
-    if browse then
+    if browse and (not only or only == "browse") then
         bind_lfg_display(browse.TitleContainer and browse.TitleContainer.TitleText)
         bind_lfg_display(browse.CategoryDropdown and browse.CategoryDropdown.Text)
         bind_lfg_display(browse.ActivityDropdown and browse.ActivityDropdown.Text, "zone")
@@ -359,13 +362,18 @@ local function translate_lfg_vanilla()
         bind_lfg_button(browse.GroupInviteButton)
     end
     local who = _G.LFGWhoListFrame
-    if who then
+    if who and (not only or only == "who") then
         bind_lfg_display(who.TitleContainer and who.TitleContainer.TitleText)
         bind_lfg_display(who.EditBox and who.EditBox.Instructions)
         bind_lfg_display(who.FilterDropdown and who.FilterDropdown.Text)
         bind_lfg_display(who.WhoFrameTotals)
     end
 end
+
+local function refresh_lfg_tabs() translate_lfg_vanilla("tabs") end
+local function refresh_lfg_listing() translate_lfg_vanilla("listing") end
+local function refresh_lfg_browse() translate_lfg_vanilla("browse") end
+local function refresh_lfg_who() translate_lfg_vanilla("who") end
 
 local function translate_lfg_quest_description(entry)
     local region = entry and entry.Description and entry.Description.EditBox
@@ -435,6 +443,7 @@ lfg_ui.prepare = function ()
     prepare_lfg_invite()
     local lfg = registry.get("lfg")
     if lfg then
+        lfg.static_covers_dynamic = true
         if not lfg.uaForeverStaticConfigured then
             local generic_static = lfg.static
             lfg.static = function (surface)
@@ -481,10 +490,10 @@ lfg_ui.prepare = function ()
         "LFGListingFrameCategoryView", "LFGListingFrameLockedView" }) do
         hooks.region_script(_G[name], "OnShow", translate_lfg_vanilla)
     end
-    hooks.region(_G.LFGParentFrame, "UpdateTabs", translate_lfg_vanilla)
-    hooks.region(_G.LFGListingFrame, "UpdateFrameView", translate_lfg_vanilla)
-    hooks.region(_G.LFGBrowseFrame, "UpdateResults", translate_lfg_vanilla)
-    hooks.region(_G.LFGWhoListFrame, "UpdateWhoList", translate_lfg_vanilla)
+    hooks.region(_G.LFGParentFrame, "UpdateTabs", refresh_lfg_tabs)
+    hooks.region(_G.LFGListingFrame, "UpdateFrameView", refresh_lfg_listing)
+    hooks.region(_G.LFGBrowseFrame, "UpdateResults", refresh_lfg_browse)
+    hooks.region(_G.LFGWhoListFrame, "UpdateWhoList", refresh_lfg_who)
     for _, name in ipairs({ "LFGListingPostButton_UpdateText",
         "LFGListingBackButton_UpdateText", "LFGListingActivityView_OnShow",
         "LFGListingLockedView_RefreshContent" }) do
