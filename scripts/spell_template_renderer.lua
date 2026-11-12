@@ -949,7 +949,7 @@ renderer.render_format = function (english, ukrainian, native, translate_capture
                     local value = values[part.argument]
                     if value == nil then return nil end
                     number = tonumber((value:gsub(",", ""))) or number
-                    result[#result + 1] = translate_capture and translate_capture(value, part.kind) or value
+                    result[#result + 1] = translate_capture and translate_capture(value, part.kind, part.argument) or value
                 end
             end
             return table.concat(result)

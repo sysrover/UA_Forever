@@ -57,6 +57,11 @@
     <Script file="stack_split_ui.lua"/>
     <Script file="panel_ui_adapter.lua"/>
     <Script file="guild_ui.lua"/>
+    <Script file="guild_ui_text.lua"/>
+    <Script file="guild_management_ui.lua"/>
+    <Script file="guild_finder_ui.lua"/>
+    <Script file="guild_bank_ui.lua"/>
+    <Script file="guild_menus_ui.lua"/>
     <Script file="collections_ui.lua"/>
     <Script file="calendar_ui.lua"/>
     <Script file="shop_ui.lua"/>

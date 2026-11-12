@@ -368,10 +368,36 @@ local function apply_item_text_html_fonts(region)
     return paragraph_applied
 end
 
+-- Source-owned SimpleHTML panels (for example the guild event log) declare
+-- their native tag fonts instead of borrowing the item-book material policy.
+local html_policies = setmetatable({}, { __mode = "k" })
+fonts.register_html = function (region, font_table)
+    if region then html_policies[region] = font_table end
+end
+fonts.apply_to_html = function (region, font_table)
+    if not region or not options.can_translate("override_system_fonts")
+        or not runtime.can_write_text(region) then return false end
+    local ready = false
+    for tag, source in pairs(font_table) do
+        local font = item_text_font(source)
+        if font then
+            local ok, current = pcall(function () return region:GetFontObject(tag) end)
+            if ok and not runtime.is_secret_value(current) and current ~= font
+                and runtime.can_write_text(region) then
+                ready = pcall(region.SetFontObject, region, tag, font) or ready
+            elseif ok and not runtime.is_secret_value(current) and current == font then ready = true end
+        end
+    end
+    return ready
+end
+
 fonts.apply_to_font_string = function (font_string)
     if not options.can_translate("override_system_fonts") or not font_string then
         return false
     end
+
+    local html_policy = html_policies[font_string]
+    if html_policy then return fonts.apply_to_html(font_string, html_policy) end
 
     local marker_ok, is_item_text_overlay = pcall(function ()
         return font_string.uaForeverItemTextOverlay == true

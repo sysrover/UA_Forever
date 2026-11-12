@@ -161,6 +161,9 @@ local function translate_open_menu()
                 section = "edit_mode"
             elseif type(menu.ToDebugString) == "function" then
                 local ok, tag = pcall(menu.ToDebugString, menu)
+                -- The guild owner translates standard rank names and preserves
+                -- custom names in this menu before its compositor measures them.
+                if ok and addon_table.use("guild_menus_ui").owns(tag) then return end
                 if ok and type(tag) == "string"
                     and (tag:match("^MENU_UNIT_") or tag:match("^MENU_SOCIAL_UI_")) then
                     section = "social_ui"

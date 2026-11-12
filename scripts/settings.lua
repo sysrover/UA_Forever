@@ -703,7 +703,10 @@ local function translate_row(frame, supplied_initializer)
         local ok, region = pcall(button.GetFontString, button)
         if ok and region then
             set_width(button, SETTINGS_BUTTON_WIDTH)
-            local source = safe_method(frame, "EvaluateName")
+            -- Blizzard has already evaluated the button label. Calling its
+            -- evaluator again from addon code can reach restricted APIs
+            -- (for example C_Discord.IsUserOAuthed).
+            local source = safe_method(region, "GetText")
             translate_source_region(region, source, "ui.action", frame)
             hook_native_region(region, "ui.action", frame)
             hooks.region(button, "SetText", function (self, native_source)

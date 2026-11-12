@@ -898,6 +898,7 @@ local social_time_units = {
     second = "с", seconds = "с", minute = "хв", minutes = "хв",
     hour = "год", hours = "год", day = "дн.", days = "дн.",
     month = "міс.", months = "міс.", year = "р.", years = "р.",
+    sec = "с", min = "хв", hr = "год",
 }
 
 local function social_label(source)
@@ -937,6 +938,15 @@ local function translate_social_time(value)
     if valid and count > 0 and not translated:find("[A-Za-z]") then
         return translated
     end
+end
+
+-- SecondsToTime returns up to two abbreviated units for invitation tickets;
+-- guild logs instead receive LASTONLINE_* (sometimes with unresolved |4).
+addonTable.forever_surface_ui.guild.duration = function (value)
+    if value == "< an hour" then return social_label(value) end
+    if not value:match("^%d") then return nil end
+    local normalized = value:gsub("|4([A-Za-z]+):([A-Za-z]+);", "%2")
+    return translate_social_time(normalized)
 end
 
 -- Dynamic dialog sources: GlobalStrings and Blizzard_StaticPopup_Game,
@@ -1753,6 +1763,10 @@ addonTable.forever_ui_patterns = {
         replace = function (rank) return "Наступні нагороди на " .. rank .. "-му ранзі" end,
     },
     {
+        pattern = "^Rank (%d+):$",
+        replace = function (rank) return addonTable.forever_ui["Rank"] .. " " .. rank .. ":" end,
+    },
+    {
         pattern = "^Rank Points: (.+)$",
         replace = function (value) return "Очки рангу: " .. value end,
     },
@@ -2000,6 +2014,8 @@ addonTable.forever_ui_context = {
     { text = "General", frame = "ChatFrame", translation = "Загальний" },
     { text = "General", frame = "CharacterStatsPane", translation = "Загальний" },
     { text = "General", frame = "Settings", translation = "Загальний" },
+    { text = "Guild Information", frame = "CommunitiesFrameGuildDetailsFrameInfo", translation = "Інформація" },
+    { text = "Guild News", frame = "CommunitiesFrameGuildDetailsFrameNews", translation = "Новини" },
     { text = "invites you to join the guild:", frame = "GuildInviteFrameInviteText", translation = "запрошує вас до гільдії:" },
     { text = "Join Guild", frame = "GuildInviteFrameJoinButton", translation = "Вступити" },
     { text = "Decline Invitation", frame = "GuildInviteFrameDeclineButton", translation = "Відхилити" },

@@ -8,11 +8,18 @@ local entries = addon_table.use("entries")
 local item_db = addon_table.use("item_client_db")
 local utils = addon_table.use("utils")
 local layout = addon_table.use("translation_layout")
+local walker = addon_table.use("translation_walker")
+local profiler = addon_table.use("performance_profile")
 
 -- Shared guarded label operations; each panel owns its fields and lifecycle.
 adapter.bind = function (id)
     local api = {}
     api.hooks = addon_table.use("translation_hooks").bind(id)
+    api.visible = function (frame)
+        if not frame then return false end
+        local ok, shown = pcall(function () return frame:IsVisible() end)
+        return ok and not runtime.is_secret_value(shown) and shown == true
+    end
     api.text = function (region)
         if not region or type(region.GetText) ~= "function" then return nil end
         local ok, value = pcall(region.GetText, region)
@@ -45,6 +52,52 @@ adapter.bind = function (id)
             local kind_ok, kind = pcall(region.GetObjectType, region)
             if kind_ok and not runtime.is_secret_value(kind) and kind == "FontString" then
                 api.watch(region)
+            end
+        end
+    end
+    local bound_roots = setmetatable({}, { __mode = "k" })
+    api.watch_frame = function (root, skip_region, translate, seen)
+        if not root then return end
+        local registering = not bound_roots[root]
+        if not registering and not api.visible(root) then return end
+        bound_roots[root] = true
+        local function skip_frame(frame)
+            local ok, forbidden = pcall(function () return frame:IsForbidden() end)
+            return not ok or runtime.is_secret_value(forbidden) or forbidden == true
+                or not registering and not api.visible(frame)
+        end
+        local function label(region)
+            if not api.visible(region) then return end
+            if skip_region then
+                local ok, skipped = pcall(skip_region, region)
+                if not ok or runtime.is_secret_value(skipped) or skipped then return end
+            end
+            return (translate or api.label)(region)
+        end
+        walker.walk({ id = id .. ":labels", surface = id, owner = id,
+            reason = "REGISTERED_STATIC_SCAN", max_nodes = 1000 }, root, function (region)
+                local ok, kind = pcall(function () return region:GetObjectType() end)
+                if ok and not runtime.is_secret_value(kind) and kind == "FontString" then
+                    api.watch(region, label)
+                end
+            end, skip_frame, { frames = 0 }, seen)
+    end
+    local scroll_boxes = setmetatable({}, { __mode = "k" })
+    api.watch_scroll = function (box, callback)
+        if not box then return end
+        local event = _G.ScrollBoxListMixin and ScrollBoxListMixin.Event
+            and ScrollBoxListMixin.Event.OnInitializedFrame
+        if event and not scroll_boxes[box] and type(box.RegisterCallback) == "function" then
+            local initialized = function (_, row) callback(row) end
+            if profiler.wrap then initialized = profiler.wrap(id .. ".row", initialized) end
+            if pcall(box.RegisterCallback, box, event, initialized, scroll_boxes) then
+                scroll_boxes[box] = true
+            end
+        end
+        if api.visible(box) and type(box.ForEachFrame) == "function" then
+            local ok, has_view = pcall(function () return not box.HasView or box:HasView() end)
+            if ok and not runtime.is_secret_value(has_view) and has_view then
+                pcall(box.ForEachFrame, box, callback)
             end
         end
     end

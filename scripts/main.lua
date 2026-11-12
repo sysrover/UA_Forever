@@ -87,6 +87,10 @@ local function prepare_menu_panels()
     addon_table.use("damage_meter_ui").prepare()
     social_ui.prepare()
     guild_ui.prepare()
+    addon_table.use("guild_management_ui").prepare()
+    addon_table.use("guild_finder_ui").prepare()
+    addon_table.use("guild_bank_ui").prepare()
+    addon_table.use("guild_menus_ui").prepare()
     addon_table.use("channel_ui").prepare()
     addon_table.use("group_loot_ui").prepare()
     addon_table.use("battlefield_map_ui").prepare()
@@ -306,52 +310,6 @@ local function translate_character_subframe(_, subframe_name)
     if subframe then
         strings.translate_frame(subframe, registry.get("character"))
     end
-end
-
-local function translate_communities_add_dialog()
-    local dialog = _G.CommunitiesAddDialog
-    if not dialog then return end
-    local shown_ok, shown = pcall(dialog.IsShown, dialog)
-    if not shown_ok or not shown or is_secret(shown) then return end
-    for _, key in ipairs({
-        "DialogLabel", "CreateWoWCommunityLabel", "CreateWoWCommunityDescription",
-        "CreateBattleNetGroupLabel", "CreateBattleNetGroupDescription",
-        "InviteLinkLabel", "InviteLinkDescription",
-    }) do
-        local ok, region = pcall(function () return dialog[key] end)
-        if ok and region then strings.translate_region(region) end
-    end
-    local description_ok, description = pcall(function ()
-        return dialog.CreateBattleNetGroupDescription
-    end)
-    if description_ok and description then
-        local function translate_instructions(container)
-            if not container then return end
-            local ok, instructions = pcall(function () return container.Instructions end)
-            if ok and instructions then strings.translate_region(instructions) end
-        end
-        translate_instructions(description)
-        local edit_ok, edit_box = pcall(function () return description.EditBox end)
-        if edit_ok and edit_box then translate_instructions(edit_box) end
-        local nested_ok, nested_description = pcall(function ()
-            return description.Description
-        end)
-        if nested_ok and nested_description then
-            translate_instructions(nested_description)
-            local nested_edit_ok, nested_edit = pcall(function ()
-                return nested_description.EditBox
-            end)
-            if nested_edit_ok and nested_edit then translate_instructions(nested_edit) end
-        end
-    end
-    local ok, label = pcall(function ()
-        return dialog.JoinButton and dialog.JoinButton:GetFontString()
-    end)
-    if ok and label then strings.translate_region(label) end
-end
-
-local function schedule_communities_add_dialog()
-    scheduler.request("communities-add-dialog", nil, translate_communities_add_dialog)
 end
 
 local function translate_character_title(frame)
@@ -576,11 +534,6 @@ local function prepare_panel_hooks()
     translate_macro_popup(_G.MacroPopupFrame)
 
     prepare_wardrobe_hooks()
-
-    hooks.region_script(_G.CommunitiesAddDialog, "OnShow",
-        schedule_communities_add_dialog)
-    hooks.global("AddCommunitiesFlow_Toggle", schedule_communities_add_dialog)
-    schedule_communities_add_dialog()
 
     -- Camelot's character tabs and the equipment manager are not opened with
     -- ShowUIPanel. Hook their real owners after Blizzard has populated text.
@@ -1144,8 +1097,16 @@ local profession_load = {
 }
 local panel_loads = {
     Blizzard_Communities = {
-        modules = { "social_ui", "guild_ui", "panel_fallback_ui" },
-        surfaces = { "social", "guild-ui" },
+        modules = { "social_ui", "guild_ui", "guild_management_ui", "guild_finder_ui", "guild_menus_ui" },
+        surfaces = { "social", "guild-ui", "guild-management", "guild-finder" },
+    },
+    Blizzard_GuildControlUI = {
+        modules = { "guild_ui", "guild_management_ui", "guild_menus_ui" },
+        surfaces = { "guild-management" },
+    },
+    Blizzard_GuildBankUI = {
+        modules = { "guild_bank_ui" },
+        surfaces = { "guild-bank" },
     },
     Blizzard_ProfessionsTemplates = profession_load,
     Blizzard_ProfessionsBook = profession_load,

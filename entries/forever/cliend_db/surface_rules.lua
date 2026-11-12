@@ -9,6 +9,15 @@ local function channel_name(name)
 end
 
 addonTable.forever_surface_ui = {
+    guild = {
+        rank_names = {
+            ["Guild Master"] = "Розпорядник гільдії",
+            ["Officer"] = "Офіцер",
+            ["Veteran"] = "Ветеран",
+            ["Member"] = "Учасник",
+            ["Initiate"] = "Новачок",
+        },
+    },
     channel_panel = {
         name = function (source)
             local color, plain, reset = source:match("^(|[cC]%x%x%x%x%x%x%x%x)(.-)(|[rR])$")
