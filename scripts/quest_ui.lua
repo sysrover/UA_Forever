@@ -80,14 +80,8 @@ local function english_title(id)
     return raw and safe_string(raw.en) or nil
 end
 
-local function matching_quest_entry(id, english, field)
-    local entry = type(id) == "number" and entries.get_entry("quest", id, field or 1)
-    if not entry then return nil end
-    if safe_string(english) and safe_string(entry.en)
-        and not utils.same_english_name(entry.en, english) then
-        return nil
-    end
-    return entry
+local function quest_entry(id, field)
+    return type(id) == "number" and entries.get_entry("quest", id, field or 1)
 end
 
 local function quest_name_region(region, id, owner)
@@ -107,7 +101,7 @@ local function quest_name_region(region, id, owner)
     if region and not retained then runtime.invalidate(region) end
     if not options.can_lookup("translate_quest") then return false end
     local english = type(id) == "number" and english_title(id)
-    local entry = english and matching_quest_entry(id, english)
+    local entry = quest_entry(id)
     local ukrainian = entry and safe_string(entry[1])
     if not current or not english or not ukrainian then return false end
     ukrainian = utils.cap(ukrainian)
@@ -189,8 +183,7 @@ local function dialog_field(region, id, field, getter, result_index)
         return
     end
     local english = getter and original_value(getter, result_index or 1)
-    local live_title = field == 1 and english or english_title(id)
-    local entry = matching_quest_entry(id, live_title, field)
+    local entry = quest_entry(id, field)
     local ukrainian = entry and safe_string(entry[field])
     if not current or not english or not ukrainian then return end
     if field == 1 then
@@ -395,7 +388,7 @@ local function quest_log_titles(scroll)
         local current = safe_text(region)
         local info = button.info
         local english = info and safe_string(info.title)
-        local entry = matching_quest_entry(id, english)
+        local entry = quest_entry(id)
         local ukrainian = entry and safe_string(entry[1])
         if current and english and ukrainian then
             ukrainian = utils.cap(ukrainian)
@@ -559,7 +552,7 @@ local function translate_quest_greeting()
         if region then runtime.invalidate(region) end
         local id = greeting_quest_id(button)
         if id and name and options.can_lookup("translate_gossip", "translate_quest") then
-            local entry = matching_quest_entry(id, english_title(id))
+            local entry = quest_entry(id)
             local translated = entry and safe_string(entry[1])
                 or entries.get_glossary_text(name)
             local source_name = english_title(id) or name
@@ -604,7 +597,7 @@ local function translate_dialog_title()
         apply_dialog_language(region)
         return
     end
-    local entry = id and matching_quest_entry(id, english)
+    local entry = quest_entry(id)
     local ukrainian = entry and safe_string(entry[1])
     if not current or not english or not ukrainian then return end
     ukrainian = utils.cap(ukrainian)

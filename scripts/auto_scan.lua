@@ -72,6 +72,7 @@ end
 local groups = {
     { "items", "[ITEMS]" }, { "gossips", "[GOSSIPS]" },
     { "npcs", "[NPCS]" }, { "quests", "[QUESTS]" },
+    { "quest_source_mismatches", "[QUEST_SOURCE_MISMATCHES]" },
     { "books", "[BOOKS]" },
     { "skills", "[SKILLS]" }, { "spells", "[SPELLS]" },
     { "auras", "[AURAS]" }, { "chats", "[CHATS]" },
@@ -93,12 +94,13 @@ local groups = {
 }
 
 -- The ordinary autoscan is a translation worklist, not a dump of every
--- English string the client can expose. Keep only untranslated narrative and
--- world content in it. Everything else is opt-in technical diagnostics.
+-- English string the client can expose. Keep untranslated narrative/world
+-- content and quest source mismatches. Other technical diagnostics are opt-in.
 local content_groups = {
     gossips = true,
     npcs = true,
     quests = true,
+    quest_source_mismatches = true,
     books = true,
     chats = true,
     objects = true,
@@ -153,13 +155,32 @@ local function translated_name(group, id, name)
     end
     local domain = domains[group]
     local entry = domain and entries.get_entry and entries.get_entry(domain, id)
-    if group == "quests" and entry and type(name) == "string"
-        and type(entry.en) == "string" and not utils.same_english_name(entry.en, name) then
-        return false
-    end
     local source = entry and type(entry.en) == "string" and entry.en or name
     return entry and type(entry[1]) == "string" and entry[1] ~= ""
         and (not source or entry[1] ~= source)
+end
+
+local function record_quest_source_mismatch(id, source)
+    source = safe_text(source)
+    if not source then return end
+    local entry = entries.get_entry and entries.get_entry("quest", id, 1)
+    local catalog_title = entry and safe_text(entry.en)
+    if not catalog_title then return end
+    local records = bucket("quest_source_mismatches")
+    if not records then return end
+    if utils.same_english_name(catalog_title, source) then
+        records[id] = nil
+        return
+    end
+    local record = records[id]
+    local translated = safe_text(entry[1])
+    if record and record.clientTitle == source
+        and record.catalogTitle == catalog_title
+        and record.translation == translated then return end
+    records[id] = {
+        questID = id, clientTitle = source, catalogTitle = catalog_title,
+        translation = translated, reason = "QUEST_TITLE_MISMATCH",
+    }
 end
 
 local function translated_zone(source)
@@ -774,6 +795,7 @@ auto_scan.record_id = function (group, id, name, translated)
     local records = bucket(group)
     id = tonumber(id)
     if not records or not id or id <= 0 then return end
+    if group == "quests" then record_quest_source_mismatch(id, name) end
     if group == "npcs" and not english_source(name) then
         records[id] = nil
         return
@@ -836,6 +858,7 @@ auto_scan.record_visible_quest_field = function (id, field, source, visible, exp
     visible = safe_text(visible)
     if not records or not id or id <= 0 or not field
         or not source or not visible then return end
+    if field == "title" then record_quest_source_mismatch(id, source) end
     local entry = entries.get_entry and entries.get_entry("quest", id)
     local indices = { title = 1, description = 2, objective = 3,
         progress = 4, reward = 5 }
@@ -1313,6 +1336,16 @@ auto_scan.export_text = function ()
                             and strings.is_known_player_name(record.text))
                         and not has_ui_translation(record.text)
                         and not domain_store_has_text(store, record.text)
+                elseif group == "quest_source_mismatches" then
+                    local entry = entries.get_entry and entries.get_entry("quest", key, 1)
+                    local catalog_title = entry and safe_text(entry.en)
+                    local client_title = safe_text(record.clientTitle)
+                    keep = catalog_title and client_title
+                        and not utils.same_english_name(catalog_title, client_title)
+                    if keep then
+                        record.catalogTitle = catalog_title
+                        record.translation = safe_text(entry[1])
+                    end
                 elseif group == "quests" then
                     local entry = entries.get_entry and entries.get_entry("quest", key)
                     local fields = {}
@@ -1403,6 +1436,9 @@ auto_scan.export_text = function ()
                         "blizzardAddon", "required", "fallbackEvent",
                         "verifiedBuild", "available", "installed", "observed",
                         "observedCalls", "lastError" }
+                elseif group == "quest_source_mismatches" then
+                    output_fields = { "questID", "clientTitle", "catalogTitle",
+                        "translation", "reason" }
                 elseif group == "catalog_conflicts" then
                     output_fields = { "reason", "winner", "winnerSource",
                         "winnerTier", "candidates" }
