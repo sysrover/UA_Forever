@@ -16,6 +16,7 @@ local hooks = addon_table.use("translation_hooks").bind("quest")
 local layout = addon_table.use("translation_layout")
 
 local tracker_refresh_pending = false
+local tracker_rebuild_pending
 local log_title_cache = setmetatable({}, { __mode = "k" })
 local text_height_cache = setmetatable({}, { __mode = "k" })
 local log_header_heights = setmetatable({}, { __mode = "k" })
@@ -79,6 +80,46 @@ local function safe_text(region)
     if not method_ok or type(get_text) ~= "function" then return nil end
     local ok, value = pcall(get_text, region)
     return ok and safe_string(value) or nil
+end
+
+local function rebuild_tracker()
+    local request = tracker_rebuild_pending
+    if not request then return true end
+    if defer_tracker_in_combat() then return false end
+    local module, container = request.module, request.container
+    if module ~= _G.QuestObjectiveTracker or module.parentContainer ~= container then
+        tracker_rebuild_pending = nil
+        return true
+    end
+    local ok, visible = pcall(container.IsVisible, container)
+    if not ok or runtime.is_secret_value(visible) or not visible then
+        -- A closed/replaced tracker must not replay an old layout request.
+        tracker_rebuild_pending = nil
+        return true
+    end
+    local blocks = module.usedBlocks and module.usedBlocks[module.blockTemplate]
+    for _, block in pairs(type(blocks) == "table" and blocks or {}) do
+        -- Turn-in caches deliberately retain the old block until the native
+        -- animation has finished. Do not free/reanchor those pooled frames.
+        if block.activeAnim or block.pendingAnim then return false end
+    end
+    if not runtime.can_write_text(container) then return false end
+    tracker_rebuild_pending = nil
+    -- Let the native container rebuild its ordered chain and reclaim unused
+    -- blocks. Never write contentsHeight, block.height, cache or dirty flags.
+    local updated = pcall(container.Update, container)
+    if not updated then tracker_rebuild_pending = request end
+    return updated
+end
+
+local function schedule_tracker_rebuild(module, delay)
+    if module ~= _G.QuestObjectiveTracker then return end
+    local container = module.parentContainer
+    if not container or type(container.Update) ~= "function" then return end
+    tracker_rebuild_pending = { module = module, container = container }
+    scheduler.request({ id = "quest-tracker-rebuild", work_scope = "quest",
+        delay = delay or 0, max_retries = 3, retry_delay = 0.25,
+        callback = rebuild_tracker })
 end
 
 local function replace_once(text, source, replacement)
@@ -924,7 +965,8 @@ local function fit_tracker_block(block)
     local top = layout.safe_dimension(block, "GetTop")
     local height = layout.safe_dimension(block, "GetHeight")
     if not top or not height then return end
-    local required = math.max(height, fit_tracker_text(block.HeaderText) or 0)
+    local required = math.max(safe_number(block.height) or height,
+        fit_tracker_text(block.HeaderText) or 0)
     -- Late journal/combat recovery runs after native LayoutBlock. Resize the
     -- rendered frames only; never taint block.height, contentsHeight or dirty
     -- flags consumed later by the secure tracker/container layout.
@@ -943,7 +985,7 @@ local function fit_tracker_block(block)
         local bottom = line and layout.safe_dimension(line, "GetBottom")
         if bottom then required = math.max(required, top - bottom) end
     end)
-    if required > height + 0.5 and type(block.SetHeight) == "function" then
+    if math.abs(required - height) > 0.5 and type(block.SetHeight) == "function" then
         pcall(block.SetHeight, block, math.ceil(required))
     end
 end
@@ -958,14 +1000,23 @@ local function fit_tracker_blocks(module)
     local top = layout.safe_dimension(module, "GetTop")
     local height = layout.safe_dimension(module, "GetHeight")
     if not top or not height then return end
-    local required = height
+    local native_height = safe_number(module.contentsHeight)
+    if native_height then
+        native_height = native_height + (safe_number(module.bottomSpacing) or 0)
+        for _, modifier in pairs(module.heightModifiers or {}) do
+            modifier = safe_number(modifier)
+            if not modifier then return end
+            native_height = native_height + modifier
+        end
+    end
+    local required = native_height or height
     for _, block in pairs(blocks) do
         local bottom = block and block.used and layout.safe_dimension(block, "GetBottom")
         if bottom then
             required = math.max(required, top - bottom + (safe_number(module.bottomSpacing) or 0))
         end
     end
-    if required > height + 0.5 and type(module.SetHeight) == "function" then
+    if math.abs(required - height) > 0.5 and type(module.SetHeight) == "function" then
         pcall(module.SetHeight, module, math.ceil(required))
     end
 end
@@ -1119,6 +1170,12 @@ quest_ui.recover_tracker_after_combat = function ()
     -- A coalesced journal timer may still have its old 0.2-second deadline.
     -- Cancel it and recover synchronously on PLAYER_REGEN_ENABLED instead.
     scheduler.cancel("quest-tracker-progress")
+    if tracker_rebuild_pending then
+        scheduler.cancel("quest-tracker-rebuild")
+        if not rebuild_tracker() and tracker_rebuild_pending then
+            schedule_tracker_rebuild(tracker_rebuild_pending.module, 0.1)
+        end
+    end
     if quest_ui.refresh_tracker_progress() == false then
         quest_ui.schedule_tracker_refresh(0.1)
     end
@@ -1240,11 +1297,28 @@ quest_ui.prepare = function ()
     hooks.region_script(_G.ObjectiveTrackerFrame, "OnShow",
         function ()
             translate_tracker_labels()
+            if tracker_rebuild_pending then
+                schedule_tracker_rebuild(_G.QuestObjectiveTracker)
+            end
             if tracker_refresh_pending then quest_ui.schedule_tracker_refresh(0) end
         end, "quest-labels")
     hooks.region(_G.QuestObjectiveTracker, "GetBlock", prepare_tracker_block)
     hooks.region(_G.QuestObjectiveTracker, "UpdateSingle", after_update)
     hooks.region(_G.QuestObjectiveTracker, "UpdateHeight", fit_tracker_blocks)
+    hooks.region(_G.QuestObjectiveTracker, "OnEvent", function (module, event, _, added)
+        if event == "QUEST_TURNED_IN"
+            or event == "QUEST_WATCH_LIST_CHANGED" and added == false then
+            -- 70888's turn-in fade lasts 0.66 seconds. Coalesce a batch of
+            -- removals after it, then check actual animation state before work.
+            schedule_tracker_rebuild(module, 0.8)
+        end
+    end)
+    hooks.region(_G.QuestObjectiveTracker, "RemoveBlockFromCache",
+        function (module, block, from_free_block)
+            if not from_free_block and block and block.used and not block.cached then
+                schedule_tracker_rebuild(module)
+            end
+        end)
     -- The XML-created frame copies mixin methods during construction in client
     -- build 70058, so hooking the mixin afterwards does not reach that frame.
     -- Prefer the live frame and keep the mixin as a late-load fallback.

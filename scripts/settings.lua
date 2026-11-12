@@ -644,40 +644,46 @@ end
 local function translate_dropdown(frame, dropdown)
     if not dropdown then return end
     set_width(dropdown, SETTINGS_DROPDOWN_WIDTH)
-    local setting_ok, setting = pcall(function () return frame:GetSetting() end)
-    local variable_ok, variable = setting_ok and setting and pcall(function ()
-        return setting:GetVariable()
-    end)
     local source_ok, source = pcall(function () return dropdown.text end)
-    if variable_ok and type(variable) == "string"
-        and variable:find("UNIT_NAMEPLATES_", 1, true) == 1
-        and source_ok and type(source) == "string"
-        and source:find(", ", 1, true) then
-        local count = 1
-        for _ in source:gmatch(", ") do count = count + 1 end
-        local region = dropdown.Text
-        if region then
-            local surface = ensure_settings_generation()
-            runtime.apply(region, {
-                owner = "settings-nameplates", slot = "nameplate.selection",
-                source = source, translated = surface_text.selected(count),
-                surface = surface, phase = "dynamic",
-                generation = surface and runtime.generation(surface) or nil,
-                instance = tostring(frame),
-                priority = runtime.PRIORITY.CONTEXT,
-            })
-        end
-        return
-    end
     local function translate_value(region, native_source)
+        if not region then return end
         if runtime.is_applying and runtime.is_applying(region) then return end
         -- Rows are pooled: resolve the current setting on every native write.
         -- Never replace dropdown.text or optionData; both also feed the menu.
         local current_setting = safe_method(frame, "GetSetting")
         local current_variable = safe_method(current_setting, "GetVariable")
+        local current_source = safe_source(native_source)
+        if not current_source then return end
+        local is_nameplate = type(current_variable) == "string"
+            and current_variable:find("UNIT_NAMEPLATES_", 1, true) == 1
+        -- This proxy uses the native display global as its variable key in 70888.
+        local toast_variable = safe_source(_G.OPTIONS_MENU_INTERFACE_TOASTS_TEXT)
+        local is_toast = toast_variable and current_variable == toast_variable
+        local toast_none = safe_source(_G.NONE)
+        local cast_none = safe_source(_G.UNIT_NAMEPLATES_CAST_BAR_DISPLAY_NONE)
+        -- The native formatter joins selected checkbox labels with ", ".
+        -- Single toast/cast-bar selections can also have long full labels.
+        local summarize_toasts = is_toast and toast_none and current_source ~= toast_none
+        local summarize_nameplates = is_nameplate and (current_source:find(", ", 1, true)
+            or current_variable == "UNIT_NAMEPLATES_CAST_BAR_DISPLAY"
+                and cast_none and current_source ~= cast_none)
+        if summarize_toasts or summarize_nameplates then
+            local count = 1
+            for _ in current_source:gmatch(", ") do count = count + 1 end
+            local surface = ensure_settings_generation()
+            runtime.apply(region, {
+                owner = is_toast and "settings-toasts" or "settings-nameplates",
+                slot = is_toast and "ui.selection" or "nameplate.selection",
+                source = current_source, translated = surface_text.selected(count),
+                surface = surface, phase = "dynamic",
+                generation = surface and runtime.generation(surface) or nil,
+                instance = tostring(frame),
+                priority = runtime.PRIORITY.CONTEXT,
+            })
+            return
+        end
         local values = type(current_variable) == "string" and surface_text.short_values
             and surface_text.short_values[current_variable]
-        local current_source = safe_source(native_source)
         translate_source_region(region, current_source, "ui.value", frame,
             values and current_source and values[current_source])
     end
@@ -688,7 +694,7 @@ end
 local function translate_row(frame, supplied_initializer)
     if not frame then return end
     local initializer = frame_initializer(frame, supplied_initializer)
-    local label_source = initializer_name(frame, initializer)
+    local label_source = safe_source(initializer_name(frame, initializer))
     translate_source_region(frame.Text, label_source, "ui.label", frame,
         surface_text.short_labels and label_source and surface_text.short_labels[label_source])
     fit_row_label(frame)

@@ -27,6 +27,17 @@ local function deps()
     return assert(dependencies, "tooltip quest adapter is not configured")
 end
 
+local function map_title(id, title)
+    local contract = deps()
+    title = contract.safe_string(title)
+    if not title or not contract.safe_number(id)
+        or type(_G.SetQuestTitleLevelAndDifficultyColor) ~= "function" then return title end
+    -- Use the active client's level, elite suffix and difficulty-color CVar.
+    -- Re-evaluate on rebuild: player level and the CVar can change in-session.
+    local ok, formatted = pcall(_G.SetQuestTitleLevelAndDifficultyColor, id, title)
+    return ok and contract.safe_string(formatted) or title
+end
+
 adapter.resolve_blob_id = function (tooltip)
     local contract = deps()
     if not options.can_translate("translate_quest") then return nil end
@@ -36,6 +47,8 @@ adapter.resolve_blob_id = function (tooltip)
         title = claim.source
     end
     title = contract.safe_string(title)
+    local cached = blob_cache[tooltip]
+    if cached and title == cached.formatted_source then title = cached.native_title end
     if not title or not entries.get_quest_title_ids(title) then return nil end
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and contract.safe_number(count) or nil
@@ -57,15 +70,22 @@ end
 
 adapter.translate_blob = function (tooltip, id, native_title)
     local contract = deps()
-    if tooltip.uaForeverShowOriginal or not options.can_translate("translate_quest") then
+    if not options.can_translate("translate_quest") then
         return false
     end
     local entry = entries.get_entry("quest", id)
     if not entry then return false end
     local cache = blob_cache[tooltip]
-    if not cache or cache.id ~= id then
+    if not cache or cache.id ~= id or cache.native_title ~= native_title then
         cache = { id = id, title = contract.make_text(entry[1], tooltip), rows = {} }
         blob_cache[tooltip] = cache
+    end
+    cache.native_title = native_title
+    cache.formatted_source = map_title(id, native_title)
+    local formatted_title = map_title(id, cache.title)
+    if tooltip.uaForeverShowOriginal then
+        local _, region = contract.tooltip_line(tooltip, "Left", 1)
+        return runtime.restore_source(region, cache.formatted_source)
     end
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and contract.safe_number(count) or nil
@@ -96,10 +116,16 @@ adapter.translate_blob = function (tooltip, id, native_title)
                 cache.rows[index] = row
             end
             if row.translated then
-                applied = contract.set_translation(tooltip, region, source,
-                    row.translated, index == 1 and "quest.name" or "quest.objective:" .. index,
+                if index == 1 and claim and claim.owner == "quest-tooltip"
+                    and claim.source ~= cache.formatted_source then
+                    runtime.invalidate(region)
+                end
+                applied = contract.set_translation(tooltip, region,
+                    index == 1 and cache.formatted_source or source,
+                    index == 1 and formatted_title or row.translated,
+                    index == 1 and "quest.name" or "quest.objective:" .. index,
                     index == 1 and "quest" or nil, "quest-tooltip",
-                    nil, false, true, nil, nil, nil, BLOB_RUNTIME_FLAGS) or applied
+                    nil, false, false, nil, nil, nil, BLOB_RUNTIME_FLAGS) or applied
             end
         end
     end
@@ -249,6 +275,15 @@ end
 adapter.add = function (tooltip, id, skip_title, data)
     local contract = deps()
     if not options.can_lookup("translate_quest") then return false end
+    local blob = blob_cache[tooltip]
+    if blob and blob.id == id and blob.owner
+        and blob.generation == tooltip.uaForeverGeneration
+        and tooltip.uaForeverSessionKey == contract.session_key("quest", id) then
+        local ok, owner = pcall(tooltip.GetOwner, tooltip)
+        if ok and not runtime.is_secret_value(owner) and owner == blob.owner then
+            return adapter.translate_blob(tooltip, id, blob.native_title)
+        end
+    end
     local party_data = adapter.party_progress_data(tooltip, id, data)
     if party_data then
         if tooltip.uaForeverShowOriginal or not options.can_translate("translate_quest") then
@@ -272,6 +307,15 @@ adapter.add = function (tooltip, id, skip_title, data)
         if original_title then native_title = original_title end
     end
     local title = contract.make_text(entry[1], tooltip)
+    if (data and data.uaForeverMapPin) or tooltip.uaForeverQuestPinOwner then
+        -- QuestPin already formats the native header. Replacing it with the
+        -- bare catalog name used to discard both its level and its color.
+        native_title, title = map_title(id, native_title), map_title(id, title)
+        local claim = title_region and runtime.get(title_region)
+        if claim and claim.owner == "quest-tooltip" and claim.source ~= native_title then
+            runtime.invalidate(title_region)
+        end
+    end
     local applied = false
     if not skip_title and title and title_region then
         applied = contract.set_translation(tooltip, title_region,
@@ -403,6 +447,8 @@ local function after_blob_tooltip(pin)
     tooltip.uaForeverReservedFirst = 2
     contract.cancel_finalize(tooltip)
     if adapter.translate_blob(tooltip, id, native_title) then
+        blob_cache[tooltip].owner = pin
+        blob_cache[tooltip].generation = tooltip.uaForeverGeneration
         tooltip.uaForeverKey = key
         layout.fit_quest_pin_tooltip(tooltip)
     end
@@ -459,7 +505,7 @@ adapter.prepare = function ()
         if type(getter) ~= "function" then return end
         local ok, id = pcall(getter, self)
         id = ok and contract.safe_number(id) or nil
-        if id then contract.process(_G.GameTooltip, { id = id }, "quest") end
+        if id then contract.process(_G.GameTooltip, { id = id, uaForeverMapPin = self }, "quest") end
     end)
     hooks.region(_G.WorldMapBountyBoardMixin, "ShowBountyTooltip", function (self, index)
         local data = self.bounties and self.bounties[index]

@@ -123,6 +123,7 @@ addonTable.forever_surface_ui = {
         base_tab = "Основні",
         selected = function (count) return "Вибрано: " .. count end,
         short_labels = {
+            ["Controls which interface toasts will appear"] = "Сповіщення інтерфейсу",
             ["Location Visibility"] = "Видимість локації",
             ["Turn Player with Camera"] = "Поворот із камерою",
         },
@@ -131,7 +132,7 @@ addonTable.forever_surface_ui = {
         short_values = {
             PROXY_SOCIAL_LOCATION_VISIBILITY = {
                 ["Friends and Guildmates"] = "Друзі й гільдія",
-                ["Friends, Recent Allies, and Guildmates"] = "Друзі, недавні союзники, гільдія",
+                ["Friends, Recent Allies, and Guildmates"] = "Друзі, союзники, гільдія",
             },
             PROXY_GAMEPAD_TURN_WITH_CAMERA = {
                 ["Player turns with camera when moving"] = "Під час руху",

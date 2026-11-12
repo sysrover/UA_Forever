@@ -1060,7 +1060,40 @@ local function panel_format_rule(template, pattern, translate_arguments)
     end }
 end
 
+-- Settings.CreateOptionsInitTooltip joins separately colored label/description
+-- values. Both components already have approved exact UI translations.
+local function toast_option_rule(label, description, colored)
+    local function literal(value)
+        return value:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+    end
+    local pattern = colored
+        and ("^(|c%x%x%x%x%x%x%x%x)" .. literal(label)
+            .. "(|r): (|c%x%x%x%x%x%x%x%x)" .. literal(description) .. "(|r)$")
+        or ("^" .. literal(label .. ": " .. description) .. "$")
+    return { pattern = pattern, replace = function (label_color, label_reset, text_color, text_reset)
+        local ui = addonTable.forever_ui
+        local title, body = ui[label], ui[description]
+        if not title or not body then return nil end
+        if colored then
+            return label_color .. title .. label_reset .. ": " .. text_color .. body .. text_reset
+        end
+        return title .. ": " .. body
+    end }
+end
+
 addonTable.forever_ui_patterns = {
+    toast_option_rule("Show Item Toasts",
+        "Enabling this option will display toasts when some items are received.", true),
+    toast_option_rule("Show Collection Toasts",
+        "Enabling this option will display toasts when collection items are unlocked.", true),
+    toast_option_rule("Show Recipe Toasts",
+        "Enabling this option will display toasts when profession recipes are learned.", true),
+    toast_option_rule("Show Item Toasts",
+        "Enabling this option will display toasts when some items are received."),
+    toast_option_rule("Show Collection Toasts",
+        "Enabling this option will display toasts when collection items are unlocked."),
+    toast_option_rule("Show Recipe Toasts",
+        "Enabling this option will display toasts when profession recipes are learned."),
     panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nType \\\"UNLEARN\\\" into the field to confirm.",
         "^Do you want to unlearn (.-) and lose all associated recipes%?%s*|n|nType .-UNLEARN.- into the field to confirm%.$", true),
     panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nType \\\"UNLEARN\\\" into the field to confirm.",

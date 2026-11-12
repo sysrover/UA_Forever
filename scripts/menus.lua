@@ -183,6 +183,43 @@ end
 
 local function fit_menu_label(region)
     if runtime.combat_locked() then return end
+    local state = early_labels[region]
+    if state and state.policy.settings_menu then
+        -- Native Settings highlight radios use Text with maxLines=1. Fit the
+        -- complete translated option before Menu measures its attached regions.
+        local width = layout.safe_dimension(region, "GetUnboundedStringWidth")
+            or layout.safe_dimension(region, "GetStringWidth")
+        if not width or width <= 0 then return end
+        local screen = layout.safe_dimension(_G.UIParent, "GetWidth")
+        local limit = math.min(520, screen and screen > 80 and screen - 80 or 520)
+        width = math.ceil(math.min(width, limit))
+        local function dimension(owner, getter, setter, value)
+            local current = layout.safe_dimension(owner, getter)
+            if current and layout.dimensions_match(current, value) then return true end
+            if not runtime.can_write_text(owner) then return false end
+            return pcall(function () owner[setter](owner, value) end)
+        end
+        local function policy(getter, setter, value)
+            local ok, current = pcall(function () return region[getter](region) end)
+            if not ok or runtime.is_secret_value(current) then return false end
+            if current == value then return true end
+            if not runtime.can_write_text(region) then return false end
+            return pcall(function () region[setter](region, value) end)
+        end
+        if not policy("GetMaxLines", "SetMaxLines", 0)
+            or not policy("CanWordWrap", "SetWordWrap", true)
+            or not policy("CanNonSpaceWrap", "SetNonSpaceWrap", false)
+            or not dimension(region, "GetWidth", "SetWidth", width) then return end
+        local height = layout.safe_dimension(region, "GetStringHeight")
+        if not height or height <= 0 then return end
+        dimension(region, "GetHeight", "SetHeight", height)
+        local frame = state.references.frame
+        if frame then
+            dimension(frame, "GetWidth", "SetWidth", width + 48)
+            dimension(frame, "GetHeight", "SetHeight", math.max(20, math.ceil(height + 6)))
+        end
+        return
+    end
     local width = layout.safe_dimension(region, "GetUnboundedStringWidth")
         or layout.safe_dimension(region, "GetStringWidth")
     local current = layout.safe_dimension(region, "GetWidth")
@@ -222,10 +259,16 @@ local function translate_menu_label(region)
         fit_menu_label(region)
         return
     end
-    if source ~= state.definition.source then return end
+    if source ~= state.definition.source and not policy.settings_menu then return end
     local plain = source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     if policy.names[plain] then return end
-    strings.translate_region(region, nil, "ui.action", policy, nil, nil, policy.section)
+    -- Highlight radios may already have a truncated display caption. Resolve
+    -- the complete option label retained by their current native description.
+    local translated = policy.settings_menu and strings.translate_formatted_region
+        and strings.translate_formatted_region(region, state.definition.source, policy)
+    if not translated then
+        strings.translate_region(region, nil, "ui.action", policy, nil, nil, policy.section)
+    end
     claim = runtime.get(region)
     local visible_ok, visible = pcall(region.GetText, region)
     if claim and visible_ok and runtime.safe_string_or_nil(visible) == claim.translated then
@@ -258,6 +301,17 @@ local function prepare_menu_description(_, owner, root)
         or type(util.GetElementText) ~= "function" then return end
     local policy = menu_policy(root)
     if not policy then return end
+    local parent = owner
+    for _ = 1, 12 do
+        if not parent or runtime.is_secret_value(parent) then break end
+        if parent == _G.SettingsPanel then
+            policy.settings_menu, policy.section = true, "game_settings"
+            break
+        end
+        local ok, next_parent = pcall(function () return parent:GetParent() end)
+        if not ok or runtime.is_secret_value(next_parent) or next_parent == parent then break end
+        parent = next_parent
+    end
     local guild = addon_table.use("guild_menus_ui")
     if guild.preserves_owner and guild.preserves_owner(owner) then return end
     local tag_ok, _, context = pcall(function () return root:GetTag() end)
@@ -279,7 +333,9 @@ local function prepare_menu_description(_, owner, root)
                     coverage = { policy = state.policy }
                     prepared_menus[menu] = coverage
                 end
-                local ok, region = pcall(function () return frame and frame.fontString end)
+                local ok, region = pcall(function ()
+                    return frame and (frame.fontString or state.policy.settings_menu and frame.Text)
+                end)
                 if not ok or runtime.is_secret_value(region) or not region then
                     -- Dividers and spacers have no labels to translate.
                     if not ok or state.source or not frame
@@ -296,7 +352,7 @@ local function prepare_menu_description(_, owner, root)
                 local text_ok, native = pcall(region.GetText, region)
                 native = text_ok and runtime.safe_string_or_nil(native) or nil
                 local claim = runtime.get(region)
-                if state.source and native ~= state.source
+                if not state.policy.settings_menu and state.source and native ~= state.source
                     and not (claim and native == claim.translated and claim.source == state.source) then
                     early_labels[region] = nil
                     coverage.fallback = true
@@ -321,6 +377,10 @@ local function prepare_menu_description(_, owner, root)
         state.policy = policy
         local source_ok, source = pcall(util.GetElementText, description)
         state.source = source_ok and runtime.safe_string_or_nil(source) or nil
+        if policy.settings_menu then
+            local ok, label = pcall(function () return description:GetData().label end)
+            state.source = ok and runtime.safe_string_or_nil(label) or state.source
+        end
     end)
 end
 
