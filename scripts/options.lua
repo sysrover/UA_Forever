@@ -33,6 +33,7 @@ local default_account = {
     translate_spell_names = true,
     translate_skill_names = true,
     shift_original_tooltip = true,
+    original_tooltip_modifier = "SHIFT",
     translate_string = true,
     translate_combat_text = true,
     translate_zone = true,
@@ -491,6 +492,47 @@ end
 
 options.is_bilingual_tooltip = function ()
     return options.account and options.account.tooltip_language_mode == "bilingual"
+end
+
+local original_modifiers = {
+    SHIFT = { getter = "IsShiftKeyDown", left = "LSHIFT", right = "RSHIFT" },
+    ALT = { getter = "IsAltKeyDown", left = "LALT", right = "RALT" },
+    CTRL = { getter = "IsControlKeyDown", left = "LCTRL", right = "RCTRL" },
+}
+
+local function public_modifier_value(value)
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, value)
+        if not ok or secret then return nil end
+    end
+    return value
+end
+
+options.original_tooltip_modifier = function ()
+    local value = public_modifier_value(options.account
+        and options.account.original_tooltip_modifier)
+    return type(value) == "string" and original_modifiers[value] and value or "SHIFT"
+end
+
+options.original_tooltip_held = function ()
+    -- Keep the existing enable/disable preference when adding key selection.
+    if not options.account or options.account.shift_original_tooltip == false then return false end
+    local definition = original_modifiers[options.original_tooltip_modifier()]
+    local getter = _G[definition.getter]
+    if type(getter) ~= "function" then return false end
+    local ok, held = pcall(getter)
+    if not ok then return nil end
+    held = public_modifier_value(held)
+    if type(held) ~= "boolean" then return nil end
+    return held
+end
+
+options.original_tooltip_modifier_event = function (key)
+    if not options.account or options.account.shift_original_tooltip == false then return false end
+    key = public_modifier_value(key)
+    if type(key) ~= "string" then return false end
+    local definition = original_modifiers[options.original_tooltip_modifier()]
+    return key == definition.left or key == definition.right
 end
 
 local name_flags = {

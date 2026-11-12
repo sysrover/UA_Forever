@@ -81,11 +81,8 @@ local function line_record(text, source)
     return record
 end
 
-local function shift_original()
-    return options.account
-        and options.account.shift_original_tooltip ~= false
-        and type(IsShiftKeyDown) == "function"
-        and safe_call(IsShiftKeyDown) == true
+local function original_modifier_held()
+    return options.original_tooltip_held() == true
 end
 
 local function hide_tooltip()
@@ -186,7 +183,7 @@ end
 local function translated_lines(aura)
     local native = collect_native_lines(aura)
     if #native == 0 then return native end
-    if shift_original() or not options.can_translate("translate_spell")
+    if original_modifier_held() or not options.can_translate("translate_spell")
         or options.section_enabled and not options.section_enabled("auras") then
         return native
     end
@@ -611,6 +608,7 @@ overlay.prepare = function ()
     event_frame:SetScript("OnEvent", function (_, event, unit)
         if event == "UNIT_AURA" and unit ~= "target" then return end
         if event == "MODIFIER_STATE_CHANGED" then
+            if not options.original_tooltip_modifier_event(unit) then return end
             if tooltip:IsShown() then
                 for _, button in ipairs(buttons) do
                     if button:IsMouseOver() then show_tooltip(button) break end

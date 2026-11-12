@@ -91,14 +91,13 @@ local function note_tooltip_event(tooltip, event)
     tooltip_events[tooltip] = counts
 end
 
-local function shift_held()
-    return options.account and options.account.shift_original_tooltip ~= false
-        and type(_G.IsShiftKeyDown) == "function" and _G.IsShiftKeyDown()
+local function original_modifier_held()
+    return options.original_tooltip_held() == true
 end
 
 local function begin_tooltip(tooltip, key, force)
     local started = tooltip_session.begin(tooltip, key,
-        shift_held() or not options.can_translate(), function (region)
+        original_modifier_held() or not options.can_translate(), function (region)
         character_stat_line_heights[region] = nil
     end, force)
     if not started then return false end
@@ -141,7 +140,7 @@ end
 
 local function sync_tooltip_original_state(tooltip)
     if not tooltip or not tooltip.uaForeverSessionKey then return false end
-    local show = shift_held() or not options.can_translate()
+    local show = original_modifier_held() or not options.can_translate()
     if tooltip.uaForeverShowOriginal == show then return false end
     tooltip.uaForeverShowOriginal = show
     runtime.for_each_claim(tooltip, function (region, claim)
@@ -1834,7 +1833,7 @@ tooltips.complete_owned_ui = function (tooltip, native_show)
     if not owner then return false end
     local shown_ok, shown = pcall(function () return tooltip:IsShown() end)
     if not shown_ok or is_secret(shown) or shown ~= true then return false end
-    local original = shift_held() or not options.can_translate()
+    local original = original_modifier_held() or not options.can_translate()
     local language = options.account and options.account.tooltip_language_mode
     local state = owned_ui_state[tooltip]
     if not state or state.owner ~= owner or state.kind ~= kind
@@ -2989,21 +2988,21 @@ tooltips.prepare = function ()
             end)
     end
 
-    local shift_frame = CreateFrame("Frame")
+    local modifier_frame = CreateFrame("Frame")
     local function update_activity()
-        if tooltip_work_enabled() then shift_frame:RegisterEvent("MODIFIER_STATE_CHANGED")
-        else shift_frame:UnregisterEvent("MODIFIER_STATE_CHANGED") end
+        if tooltip_work_enabled() then modifier_frame:RegisterEvent("MODIFIER_STATE_CHANGED")
+        else modifier_frame:UnregisterEvent("MODIFIER_STATE_CHANGED") end
     end
-    if options.on_activity_change then options.on_activity_change("tooltip-shift-events", update_activity) end
+    if options.on_activity_change then options.on_activity_change("tooltip-modifier-events", update_activity) end
     update_activity()
-    shift_frame:SetScript("OnEvent", function (_, _, key)
-        if key ~= "LSHIFT" and key ~= "RSHIFT" then return end
+    modifier_frame:SetScript("OnEvent", function (_, _, key)
+        if not options.original_tooltip_modifier_event(key) then return end
         tooltips.refresh_active()
     end)
 end
 
 tooltips.refresh_active = function ()
-    local show = shift_held() or not options.can_translate()
+    local show = original_modifier_held() or not options.can_translate()
     local refreshed, previous_widths = {}, {}
     local function refresh_tooltip(tooltip)
         if not tooltip or refreshed[tooltip] then return end

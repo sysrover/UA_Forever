@@ -199,10 +199,7 @@ local function item_line_added(tooltip, source, drop_source)
     rows[index] = row
     -- Modifier state is synchronized by our item post-call. Avoid an early
     -- translated write if Fojji happens to run before that synchronization.
-    if options.account.shift_original_tooltip ~= false and type(_G.IsShiftKeyDown) == "function" then
-        local ok, shift = pcall(_G.IsShiftKeyDown)
-        if not ok or runtime.is_secret_value(shift) or shift then return end
-    end
+    if options.original_tooltip_held() ~= false then return end
     apply_item_addition(tooltip, row)
 end
 
@@ -566,12 +563,8 @@ local function fit_tooltip()
             or not build.generation or build.generation ~= tooltip.uaForeverGeneration
             or tooltip.uaForeverShowOriginal then return end
     elseif not tooltip.uaForeverSessionKey then
-        local original = false
-        if options.account.shift_original_tooltip ~= false and type(_G.IsShiftKeyDown) == "function" then
-            local ok, shift = pcall(_G.IsShiftKeyDown)
-            if not ok or runtime.is_secret_value(shift) then return end
-            original = shift == true
-        end
+        local original = options.original_tooltip_held()
+        if original == nil then return end
         tooltip_session.begin(tooltip, "fojji-tooltip:" .. tostring(owner), original)
         tooltip.uaForeverKind = "generic"
     end

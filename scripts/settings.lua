@@ -21,6 +21,7 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").settings
 
 local tooltip_mode_buttons = {}
+local original_modifier_buttons = {}
 local scope_buttons = {}
 local name_buttons = {}
 local group_buttons = {}
@@ -290,6 +291,11 @@ local function refresh_tooltip_mode_controls()
     if shift_button then
         shift_button:SetChecked(options.account and options.account.shift_original_tooltip ~= false)
     end
+    local modifier = options.original_tooltip_modifier()
+    for value, button in pairs(original_modifier_buttons) do
+        button:SetChecked(value == modifier)
+        button:SetEnabled(options.account and options.account.shift_original_tooltip ~= false)
+    end
     if auto_scan_button then
         auto_scan_button:SetChecked(options.account
             and options.account.auto_scan_content == true)
@@ -434,11 +440,26 @@ local function register_addon_settings()
     shift_button.text:SetWidth(310)
     shift_button.text:SetJustifyH("LEFT")
     shift_button.text:SetFontObject("GameFontHighlight")
-    runtime.set_fallback_text(shift_button.text, addon_locale.shift_original)
+    runtime.set_fallback_text(shift_button.text, addon_locale.original_tooltip)
     shift_button:SetScript("OnClick", function (self)
         options.account.shift_original_tooltip = self:GetChecked() == true
+        refresh_tooltip_mode_controls()
         refresh_open_text()
     end)
+
+    for index, modifier in ipairs({ "SHIFT", "ALT", "CTRL" }) do
+        local value = modifier
+        local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
+        button:SetPoint("BOTTOMLEFT", page, "BOTTOMLEFT", 44 + (index - 1) * 96, 22)
+        button.text:SetFontObject("GameFontHighlight")
+        runtime.set_fallback_text(button.text, addon_locale.original_tooltip_modifiers[value])
+        button:SetScript("OnClick", function ()
+            options.account.original_tooltip_modifier = value
+            refresh_tooltip_mode_controls()
+            if tooltips.refresh_active then tooltips.refresh_active() end
+        end)
+        original_modifier_buttons[value] = button
+    end
 
     local scan_heading = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     scan_heading:SetPoint("TOPLEFT", 365, -112)
