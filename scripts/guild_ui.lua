@@ -113,17 +113,17 @@ local function prepare_rank_menu()
     if not menu or type(menu.ModifyMenu) ~= "function"
         or not util or type(util.TraverseMenu) ~= "function" then return end
     for _, tag in ipairs({ "MENU_GUILD_RANKS", "MENU_GUILD_RANK" }) do
-    ui.hooks.once(tag, function ()
-        local initialize = initialize_rank_button
-        if profiler.wrap then initialize = profiler.wrap("guild_ui.rank-row", initialize) end
-        local function modify(_, root)
-            util.TraverseMenu(root, function (description)
-                description:AddInitializer(initialize)
-            end)
-        end
-        if profiler.wrap then modify = profiler.wrap("guild_ui.ranks", modify) end
-        return pcall(menu.ModifyMenu, tag, modify)
-    end)
+        ui.hooks.once(tag, function ()
+            local initialize = initialize_rank_button
+            if profiler.wrap then initialize = profiler.wrap("guild_ui.rank-row", initialize) end
+            local function modify(_, root)
+                util.TraverseMenu(root, function (description)
+                    description:AddInitializer(initialize)
+                end)
+            end
+            if profiler.wrap then modify = profiler.wrap("guild_ui.ranks", modify) end
+            return pcall(menu.ModifyMenu, tag, modify)
+        end)
     end
 end
 
@@ -386,7 +386,8 @@ local function news_text(frame, _, template)
 end
 
 local handled_panels = {
-    CommunitiesList = true, Chat = true, ChatEditBox = true, StreamDropdown = true,
+    CommunitiesList = true, CommunitiesListDropdown = true,
+    Chat = true, ChatEditBox = true, StreamDropdown = true,
     MemberList = true, GuildDetailsFrame = true, GuildPreferredPlaySettingsFrame = true,
     CommunitiesControlFrame = true, InviteButton = true, GuildLogButton = true,
     GuildFinderFrame = true, CommunityFinderFrame = true, ApplicantList = true,

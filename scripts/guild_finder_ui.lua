@@ -7,7 +7,7 @@ local text = addon_table.use("guild_ui_text")
 local guild = addon_table.use("guild_ui")
 ui.verified_build = "1.60.1.70888"
 
-local formats = { "CLUB_FINDER_FOCUS_STRING", "CLUB_FINDER_REAPPLY",
+local formats = { "CLUB_FINDER_FOCUS_STRING", "CLUB_FINDER_REAPPLY", "CLUB_FINDER_DAYS_UNTIL_EXPIRE",
     "CLUB_FINDER_RECRUITING_ONE_SPEC", "CLUB_FINDER_RECRUITING_TWO_SPECS",
     "CLUB_FINDER_RECRUITING_THREE_SPECS", "CLUB_FINDER_RECRUITING_FOUR_SPECS" }
 local function skip(region)
@@ -63,9 +63,9 @@ local function cards(frame)
         for _, row in ipairs(frame.Cards) do card(row); seen[row] = true end
     end
     ui.watch_scroll(frame.ScrollBox, card)
+    ui.hooks.region_script(frame, "OnShow", cards)
     panel(frame, seen)
     ui.hooks.region(frame, "RefreshLayout", cards)
-    ui.hooks.region_script(frame, "OnShow", cards, "cards")
 end
 
 local function search(frame)
@@ -80,7 +80,7 @@ local function search(frame)
     end
     ui.hooks.region(frame.RequestToJoinFrame, "Initialize", function (self) panel(self) end)
     panel(frame, seen)
-    ui.hooks.region(frame, "UpdateDisplay", search)
+    ui.hooks.region(frame, "GetDisplayModeBasedOnSelectedTab", search)
 end
 
 local function refresh()
@@ -114,6 +114,7 @@ finder.prepare = function ()
     ui.surface.is_open = function ()
         local root = _G.CommunitiesFrame
         return ui.visible(_G.ClubFinderGuildFinderFrame) or ui.visible(_G.ClubFinderCommunityAndGuildFinderFrame)
-            or root and (ui.visible(root.ApplicantList) or ui.visible(root.RecruitmentDialog)) or false
+            or root and (ui.visible(root.ApplicantList) or ui.visible(root.RecruitmentDialog)
+                or ui.visible(root.PostingExpirationText)) or false
     end
 end

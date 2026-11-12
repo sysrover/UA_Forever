@@ -49,7 +49,9 @@ translation_hooks.bind = function (scope)
         return hooks.region(_G[name], method, callback, work_scope)
     end
 
-    hooks.region = function (region, method, callback, work_scope)
+    -- Text observers may track restoration while work is disabled. Such a
+    -- callback must gate its translation work separately from its safe reads.
+    hooks.region = function (region, method, callback, work_scope, observe_while_disabled)
         local region_type = type(region)
         if (region_type ~= "table" and region_type ~= "userdata")
             or type(callback) ~= "function" or type(_G.hooksecurefunc) ~= "function"
@@ -66,7 +68,7 @@ translation_hooks.bind = function (scope)
             installed_regions[scope] = regions
         end
         if not pcall(_G.hooksecurefunc, region, method,
-            guarded(work_scope or scope, callback, false, method)) then return false end
+            guarded(work_scope or scope, callback, observe_while_disabled == true, method)) then return false end
         if not methods then
             methods = {}
             regions[region] = methods

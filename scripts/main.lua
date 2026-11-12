@@ -1101,7 +1101,7 @@ local panel_loads = {
         surfaces = { "social", "guild-ui", "guild-management", "guild-finder" },
     },
     Blizzard_GuildControlUI = {
-        modules = { "guild_ui", "guild_management_ui", "guild_menus_ui" },
+        modules = { "guild_management_ui", "guild_menus_ui" },
         surfaces = { "guild-management" },
     },
     Blizzard_GuildBankUI = {

@@ -20,6 +20,10 @@ local tags = {
 local owned = { MENU_GUILD_RANK = true, MENU_GUILD_RANKS = true }
 for _, tag in ipairs(tags) do owned[tag] = true end
 menus.owns = function (tag) return owned[tag] == true end
+menus.preserves_owner = function (owner)
+    local frame = _G.GuildControlUIRankDiscordFrame
+    return frame and (owner == frame.serverDropdown or owner == frame.channelDropdown) or false
+end
 
 local function fit(region)
     if not region or runtime.combat_locked() or not runtime.can_write_text(region) then return end

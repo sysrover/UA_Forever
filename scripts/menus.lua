@@ -155,6 +155,11 @@ local function translate_open_menu()
         local menu = manager and type(manager.GetOpenMenu) == "function"
             and manager:GetOpenMenu() or nil
         if menu then
+            if type(menu.GetOwnerRegion) == "function" then
+                local ok, owner = pcall(menu.GetOwnerRegion, menu)
+                if ok and not runtime.is_secret_value(owner)
+                    and addon_table.use("guild_menus_ui").preserves_owner(owner) then return end
+            end
             local section = "game_menu"
             local cooldown_layout_menu = false
             if is_edit_mode_layout_menu(menu) then

@@ -5,6 +5,8 @@ local runtime = addon_table.use("translation_runtime")
 local text = addon_table.use("guild_ui_text")
 local fonts = addon_table.use("fonts")
 local resolver = addon_table.use("translation_resolver")
+local options = addon_table.use("options")
+local profiler = addon_table.use("performance_profile")
 ui.verified_build = "1.60.1.70888"
 
 local function skip(region)
@@ -13,9 +15,11 @@ local function skip(region)
     if parent:GetObjectType() == "EditBox" then
         return region ~= parent.Instructions and region ~= parent.PromptText
     end
+    local messages = _G.GuildBankMessageFrame
+    if messages and (parent == messages or parent:GetParent() == messages) then return true end
     -- The frame title is the guild name; tab titles and descriptions are editable.
     local frame = _G.GuildBankFrame
-    return parent.TabTitle == region or parent.TitleText == region
+    return parent.TabTitle == region or parent == frame and parent.TitleText == region
         or frame and frame.TitleContainer == parent
 end
 
@@ -70,9 +74,14 @@ local function panel(frame)
     ui.hooks.region_script(frame, "OnShow", panel)
 end
 
+local function log_enabled()
+    return ui.surface and runtime.allowed({ owner = "guild-bank", surface = ui.surface,
+        option = "translate_string" }) == true or false
+end
+
 local function log()
     local frame = _G.GuildBankMessageFrame
-    if not ui.visible(frame) or not runtime.can_write_text(frame)
+    if not log_enabled() or not ui.visible(frame) or not runtime.can_write_text(frame)
         or type(frame.TransformMessages) ~= "function" then return end
     -- Transform the completed native log in place, preserving ordering, scroll,
     -- hyperlink payloads, colors and every trailing native metadata argument.
@@ -91,6 +100,25 @@ local function log()
     pcall(frame.TransformMessages, frame, matches, replace)
 end
 
+local last_log_enabled
+local function update_log_policy()
+    if not ui.surface then return end
+    local enabled = log_enabled()
+    if enabled == last_log_enabled then return end
+    last_log_enabled = enabled
+    local frame = _G.GuildBankFrame
+    if not ui.visible(frame) or runtime.combat_locked() or not runtime.can_write_text(frame) then return end
+    -- Re-read the current native log when its translation option changes.
+    -- This restores English without retaining copies of player log messages.
+    local update = frame.mode == "log" and _G.GuildBankFrame_UpdateLog
+        or frame.mode == "moneylog" and _G.GuildBankFrame_UpdateMoneyLog
+    if type(update) == "function" then pcall(update) end
+end
+if options.on_activity_change then
+    local callback = profiler.wrap and profiler.wrap("guild-bank.options", update_log_policy) or update_log_policy
+    options.on_activity_change("guild-bank-log", callback)
+end
+
 local function refresh()
     if ui.surface then ui.surface.skip_region = skip end
     panel(_G.GuildBankFrame)
@@ -104,4 +132,5 @@ bank.prepare = function ()
     ui.hooks.region(_G.GuildBankPopupFrame, "Update", panel)
     ui.hooks.global("GuildBankFrame_UpdateLog", log)
     ui.hooks.global("GuildBankFrame_UpdateMoneyLog", log)
+    last_log_enabled = log_enabled()
 end
