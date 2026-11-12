@@ -17,11 +17,13 @@ local function translate_region(region)
     if not region or runtime.is_applying(region) then return end
     return strings.translate_region(region, nil, "ui.label", surface)
 end
+local formatted_region = strings.formatted_callback and strings.formatted_callback(
+    translate_region, nil, "ui.label", function () return surface end) or translate_region
 
 local function prepare_region(region)
     if not region then return end
     hooks.region(region, "SetText", translate_region)
-    hooks.region(region, "SetFormattedText", translate_region)
+    hooks.region(region, "SetFormattedText", formatted_region)
     return translate_region(region)
 end
 

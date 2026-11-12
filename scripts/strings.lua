@@ -270,6 +270,23 @@ strings.translate_formatted_region = function (region, template, surface, ...)
     return translate_font_string(region, nil, "ui.label", surface, nil, nil, nil, template, ...)
 end
 
+-- Bind the same owner/category/slot as the ordinary label callback. Specialized
+-- callbacks keep their own path when direct template translation is unavailable.
+strings.formatted_callback = function (fallback, category, slot, surface, section, after_apply)
+    return function (region, template, ...)
+        if runtime.is_applying(region) then return end
+        local owner = surface
+        if type(surface) == "function" then owner = surface() end
+        template = runtime.safe_string_or_nil(template)
+        if template and translate_font_string(region, category, slot, owner,
+            nil, nil, section, template, ...) then
+            if after_apply then after_apply(region) end
+            return true
+        end
+        return fallback(region)
+    end
+end
+
 strings.set_region_text = function (region, text, tooltip, source, category, slot)
     if not region or type(text) ~= "string" or is_secret(text) then
         return false

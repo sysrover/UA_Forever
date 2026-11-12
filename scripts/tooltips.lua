@@ -56,6 +56,15 @@ local tooltip_events = setmetatable({}, { __mode = "k" })
 local native_tooltip_data = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
 local arm_minimap_watcher = function () end
+local instruction_layouts = setmetatable({}, { __mode = "k" })
+local queue_instruction_layout
+
+local function finish_instruction_layout(tooltip)
+    if instruction_layouts[tooltip] then
+        instruction_layouts[tooltip] = nil
+        scheduler.cancel("tooltip-instruction:" .. tostring(tooltip))
+    end
+end
 
 local function arm_tooltip_updates(tooltip, budget)
     if not tooltip then return end
@@ -1023,6 +1032,8 @@ talent_adapter.configure({
     end,
     begin_tooltip = begin_tooltip,
     set_translation = set_tooltip_translation,
+    queue_instruction_layout = function (tooltip) return queue_instruction_layout(tooltip) end,
+    finish_instruction_layout = finish_instruction_layout,
     max_lines = MAX_TOOLTIP_LINES,
 })
 
@@ -1216,6 +1227,7 @@ local function prepare_map_surface_hooks()
 end
 
 local function reset_tooltip(self)
+    finish_instruction_layout(self)
     layout.restore_tooltip_rows(self)
     quest_pin_cache[self] = nil
     native_tooltip_data[self] = nil
@@ -1737,7 +1749,7 @@ end
 
 local function translate_generic_tooltip(tooltip)
     translate_generic_tooltip_content(tooltip)
-    layout.fit_translated_tooltip(tooltip)
+    if layout.fit_translated_tooltip(tooltip) then finish_instruction_layout(tooltip) end
 end
 
 tooltips.finalize = translate_generic_tooltip
@@ -2017,6 +2029,61 @@ local function schedule_tooltip_finalize(tooltip)
     end
 end
 
+queue_instruction_layout = function (tooltip)
+    if not tooltip or not tooltip.uaForeverSessionKey
+        or not tooltip_work_enabled(tooltip.uaForeverKind) then return end
+    local ok, owner = pcall(function () return tooltip:GetOwner() end)
+    if not ok or is_secret(owner) then return end
+    local state = instruction_layouts[tooltip]
+    local generation, session, kind = tooltip.uaForeverGeneration, tooltip.uaForeverSessionKey, tooltip.uaForeverKind
+    local original = tooltip.uaForeverShowOriginal == true
+    if state and state.generation == generation and state.session == session
+        and state.owner == owner and state.kind == kind and state.original == original then return end
+    state = { generation = generation, session = session, owner = owner, kind = kind, original = original }
+    instruction_layouts[tooltip] = state
+    -- Items finish synchronously at Show/SetBagItem or the comparison manager's
+    -- final SetShown. Never race their native rebuild with a layout timer.
+    if kind == "item" then return end
+    scheduler.request({ id = "tooltip-instruction:" .. tostring(tooltip),
+        surface = tooltip, generation = generation, instance = session,
+        task_kind = "instruction-layout", work_scope = "tooltips",
+        callback = function ()
+            if instruction_layouts[tooltip] ~= state then return end
+            instruction_layouts[tooltip] = nil
+            if tooltip.uaForeverGeneration ~= generation or tooltip.uaForeverSessionKey ~= session
+                or tooltip.uaForeverKind ~= kind or (tooltip.uaForeverShowOriginal == true) ~= original
+                or not tooltip_work_enabled(kind) then return end
+            local valid, current_owner, shown = pcall(function () return tooltip:GetOwner(), tooltip:IsShown() end)
+            if not valid or is_secret(current_owner) or is_secret(shown)
+                or current_owner ~= owner or shown ~= true then return end
+            layout.fit_current_tooltip(tooltip)
+        end })
+end
+
+local function translate_instruction_line(tooltip, native)
+    native = safe_string(native)
+    if not native or not tooltip or is_secret(tooltip) or not active_tooltips[tooltip]
+        or not tooltip.uaForeverSessionKey or not tooltip_work_enabled(tooltip.uaForeverKind) then return end
+    -- The talent owner already observes AddLine/AddDoubleLine with its exact
+    -- entry/rank context. Do not repeat even a failed lookup in this helper.
+    if talent_adapter.owns_current_context and talent_adapter.owns_current_context(tooltip) then return end
+    local ok, count = pcall(function () return tooltip:NumLines() end)
+    count = ok and safe_number(count) or nil
+    if not count or count < 1 then return end
+    local source, region = tooltip_line(tooltip, "Left", count, true)
+    source = safe_string(source)
+    local claim = region and runtime.get(region)
+    if not source or not region or source ~= native
+        and not (claim and claim.surface == tooltip and claim.generation == tooltip.uaForeverGeneration
+            and claim.source == native and source == claim.translated) then return end
+    if not tooltip.uaForeverShowOriginal then
+        -- The native helper adds exactly one left instruction; its native row
+        -- color/wrap remain intact and the owning Show handles final geometry.
+        rewrite_generic_lines(tooltip, count, count, false, false)
+    end
+    queue_instruction_layout(tooltip)
+end
+
 after_aura_tooltip_rendered = function (tooltip, aura_data)
     if not tooltip_work_enabled("aura") then return end
     if not tooltip or is_secret(tooltip) then return end
@@ -2063,6 +2130,7 @@ tooltip_diagnostics.install(tooltips, {
 })
 
 local function prepare_tooltip_frames()
+    hooks.global("GameTooltip_AddInstructionLine", translate_instruction_line)
     -- Bag buttons copy their mixin methods when the frames are created, so a
     -- later hook on BaseBagSlotButtonMixin does not reach those buttons.
     -- GameTooltip_SetTitle runs after ClearLines/AddLine but before Show.
@@ -2144,6 +2212,7 @@ local function prepare_tooltip_frames()
                 -- Show finishes the native layout even when this frame was
                 -- already visible. Its OnShow script alone misses those writes.
                 hooks.region(tooltip, "Show", function (self)
+                    finish_instruction_layout(self)
                     translate_generic_tooltip_content(self)
                     layout.fit_current_tooltip(self)
                 end)
@@ -2155,9 +2224,11 @@ local function prepare_tooltip_frames()
             end
             if tooltip == _G.GameTooltip then
                 local bag_layout_hooked = hooks.region(tooltip, "SetBagItem", function (self)
+                    finish_instruction_layout(self)
                     layout.fit_item_tooltip_once(self)
                 end)
                 hooks.region(tooltip, "Show", function (self)
+                    finish_instruction_layout(self)
                     if bag_layout_hooked and self.uaForeverKind == "item" then
                         local ok, getter = pcall(function ()
                             return self.processingInfo and self.processingInfo.getterName
@@ -2241,6 +2312,7 @@ local function prepare_tooltip_frames()
             if tooltip ~= _G.GameTooltip and tooltip ~= _G.SettingsTooltip
                 and not is_shopping_tooltip(tooltip) then
                 hooks.region(tooltip, "Show", function (self)
+                    finish_instruction_layout(self)
                     layout.fit_current_tooltip(self)
                 end)
             end

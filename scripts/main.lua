@@ -485,6 +485,8 @@ local function translate_wardrobe_page(region)
     strings.translate_region(region, nil, "ui.text",
         registry.get("collections"))
 end
+local formatted_wardrobe_page = strings.formatted_callback and strings.formatted_callback(
+    translate_wardrobe_page, nil, "ui.text", function () return registry.get("collections") end) or translate_wardrobe_page
 
 local function prepare_wardrobe_hooks()
     local wardrobe = _G.WardrobeCollectionFrame
@@ -492,7 +494,7 @@ local function prepare_wardrobe_hooks()
         and wardrobe.ItemsCollectionFrame.PagingFrame
         and wardrobe.ItemsCollectionFrame.PagingFrame.PageText
     hooks.region(page_text, "SetText", translate_wardrobe_page)
-    hooks.region(page_text, "SetFormattedText", translate_wardrobe_page)
+    hooks.region(page_text, "SetFormattedText", formatted_wardrobe_page)
     translate_wardrobe_page(page_text)
 end
 

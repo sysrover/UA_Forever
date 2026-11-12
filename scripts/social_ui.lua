@@ -24,7 +24,11 @@ local function watch_social_region(region, translate)
     if not region then return end
     translate = translate or translate_social_region
     hooks.region(region, "SetText", translate)
-    hooks.region(region, "SetFormattedText", translate)
+    local formatted = translate
+    if translate == translate_social_region and strings.formatted_callback then
+        formatted = strings.formatted_callback(translate, nil, "ui.text", function () return registry.get("social") end)
+    end
+    hooks.region(region, "SetFormattedText", formatted)
     translate(region)
 end
 

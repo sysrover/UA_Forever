@@ -57,11 +57,14 @@ local function translate_label(region)
     layout_buttons()
     return changed
 end
+local formatted_label = strings.formatted_callback and strings.formatted_callback(
+    translate_label, nil, "ui.label", function () return surface end, nil,
+    layout_buttons) or translate_label
 
 local function prepare_label(region)
     if not region then return end
     hooks.region(region, "SetText", translate_label)
-    hooks.region(region, "SetFormattedText", translate_label)
+    hooks.region(region, "SetFormattedText", formatted_label)
     translate_label(region)
 end
 

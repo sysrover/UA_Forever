@@ -374,12 +374,17 @@ local function current_context(tooltip)
     return context
 end
 
+adapter.owns_current_context = function (tooltip) return current_context(tooltip) ~= nil end
+
 local function translate_region(tooltip, side, index)
     local context = current_context(tooltip)
-    if not context or not options.can_lookup_section("talents") then return end
+    if not context or tooltip.uaForeverShowOriginal or not options.can_lookup_section("talents") then return end
     local contract = deps()
     local source, region = contract.tooltip_line(tooltip, side, index)
     if not region or runtime.is_applying(region) then return end
+    local claim = runtime.get(region)
+    if claim and claim.surface == tooltip and claim.generation == tooltip.uaForeverGeneration
+        and source == claim.translated then return false end
     local visible = contract.normalized_text(source)
     if not visible or visible == "" then return end
     local translated = points_requirement(source)
@@ -388,8 +393,29 @@ local function translate_region(tooltip, side, index)
     if translated and translated ~= source and not translated:find("{%d+}") then
         local slot = side == "Left" and "talent.requirement:" .. index
             or "talent.requirement:Right:" .. index
-        contract.set_translation(tooltip, region, source, translated,
-            slot, nil, "talent-tooltip")
+        return contract.set_translation(tooltip, region, source, translated,
+            slot, nil, "talent-tooltip", nil, false, false)
+    end
+end
+
+local function prepare_tooltip_row(tooltip, index)
+    if not current_context(tooltip) then return end
+    local contract = deps()
+    for _, side in ipairs({ "Left", "Right" }) do
+        -- The left title belongs to the structured spell-name handler.
+        if index > 1 or side == "Right" then
+            local _, region = contract.tooltip_line(tooltip, side, index)
+            if region then
+                local row_index, row_side = index, side
+                local function written()
+                    if translate_region(tooltip, row_side, row_index)
+                        and contract.queue_instruction_layout then contract.queue_instruction_layout(tooltip) end
+                end
+                hooks.region(region, "SetText", written)
+                hooks.region(region, "SetFormattedText", written)
+                translate_region(tooltip, row_side, row_index)
+            end
+        end
     end
 end
 
@@ -399,23 +425,7 @@ local function prepare_tooltip_rows(tooltip)
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and contract.safe_number(count) or nil
     if not count then return end
-    for index = 1, math.min(count, contract.max_lines) do
-        for _, side in ipairs({ "Left", "Right" }) do
-            -- The left title belongs to the structured spell-name handler.
-            if index > 1 or side == "Right" then
-                local _, region = contract.tooltip_line(tooltip, side, index)
-                if region then
-                    local row_index, row_side = index, side
-                    local function written()
-                        translate_region(tooltip, row_side, row_index)
-                    end
-                    hooks.region(region, "SetText", written)
-                    hooks.region(region, "SetFormattedText", written)
-                    written()
-                end
-            end
-        end
-    end
+    for index = 1, math.min(count, contract.max_lines) do prepare_tooltip_row(tooltip, index) end
 end
 
 adapter.refresh = function (tooltip)
@@ -482,14 +492,22 @@ adapter.translate = function (_, button, tooltip)
     -- Issue-submission tools can append another instruction after TooltipCreated.
     -- Translate those writes immediately, including newly allocated rows.
     local function fit()
-        if current_context(tooltip) then layout.fit_talent_tooltip(tooltip) end
+        if current_context(tooltip) then
+            if deps().finish_instruction_layout then deps().finish_instruction_layout(tooltip) end
+            layout.fit_current_tooltip(tooltip)
+        end
     end
     local function appended()
-        prepare_tooltip_rows(tooltip)
-        fit()
+        if not current_context(tooltip) then return end
+        local ok, count = pcall(tooltip.NumLines, tooltip)
+        count = ok and deps().safe_number(count) or nil
+        if not count or count < 1 then return end
+        prepare_tooltip_row(tooltip, count)
+        if deps().queue_instruction_layout then deps().queue_instruction_layout(tooltip) end
     end
     -- Fit after the native Show has finished assigning the final row geometry.
-    hooks.region(tooltip, "Show", fit)
+    -- GameTooltip has the shared final Show hook; do not fit it twice.
+    if tooltip ~= _G.GameTooltip then hooks.region(tooltip, "Show", fit) end
     hooks.region(tooltip, "AddLine", appended)
     hooks.region(tooltip, "AddDoubleLine", appended)
     hooks.region(tooltip, "ClearLines", function () tooltip_contexts[tooltip] = nil end)

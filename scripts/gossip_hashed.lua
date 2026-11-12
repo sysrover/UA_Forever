@@ -41,6 +41,14 @@ local function actors()
         race = read_actor("UnitRace"), sex = sex }
 end
 
+-- Public actor values only; callers can reuse a template selection while
+-- rendering its dynamic substitutions again for each destination.
+lookup.actor_context = function ()
+    local actor = actors()
+    return actor, table.concat({ actor.name or "", actor.class or "", actor.race or "",
+        tostring(actor.sex) }, "\031")
+end
+
 local function canonical(text)
     return utils.lower(text:gsub("\194\160", " "):gsub("’", "'")
         :gsub("‘", "'"):gsub("“", '"'):gsub("”", '"'):gsub("%s+", " "))
@@ -378,8 +386,8 @@ local function find_identity(npc_id, source, role, actor, raw_translation)
     end
 end
 
-lookup.prepare = function(npc_id)
-    local actor = actors()
+lookup.prepare = function(npc_id, actor)
+    actor = actor or actors()
     local key = table.concat({ actor.name or "", actor.class or "", actor.race or "", tostring(actor.sex) }, "\031")
     if not index or actor_key ~= key or indexed_database ~= addon_table[database_key] then
         rebuild()
@@ -390,10 +398,10 @@ lookup.prepare = function(npc_id)
     return actor
 end
 
-lookup.find = function(npc_id, source, role, raw_translation)
+lookup.find = function(npc_id, source, role, raw_translation, actor)
     source = safe_string(source)
     if not source or source == "" then return nil end
-    local actor = lookup.prepare(npc_id)
+    actor = lookup.prepare(npc_id, actor)
     local normalized = signature(source, actor)
     local candidates, seen = {}, {}
     local function add(bucket, rank)

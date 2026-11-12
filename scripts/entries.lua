@@ -813,21 +813,13 @@ entries.get_gossip_text_for_player_reply = function (npc_id, gossip_text)
     end
 end
 
-entries.get_chat_text = function (npc_name, chat_text)
+local chat_selection
+
+local function select_chat_template(npc_name, chat_text, lookup, actor, legacy_only)
     local at = addon_table
-
-    if not npc_name or type(chat_text) ~= "string" then
-        return
-    end
-
-    local text, _, source_template = chat_lookup().find(npc_name, chat_text, nil, true)
-    if text then
-        -- Stored templates resolve the person addressed, including other players;
-        -- old translations can also retain their own # fragments.
-        local npc_strings = at.chat and at.chat[npc_name]
-        local npc_name_uk = npc_strings and npc_strings[1] or entries.get_glossary_text(npc_name, npc_name)
-        local translated = safe_make_chat_text(chat_text, text, source_template)
-        if translated then return utils.cap(npc_name_uk), translated, nil end
+    if not legacy_only then
+        local text, _, source_template = lookup.find(npc_name, chat_text, nil, true, actor)
+        if text then return text, source_template end
     end
 
     -- Only entries without a recovered English source remain in this table.
@@ -837,10 +829,7 @@ entries.get_chat_text = function (npc_name, chat_text)
         for _, npc_key in ipairs({ npc_name, '!common' }) do
             local npc_strings = at.chat[npc_key]
             if npc_strings and npc_strings[chat_code] then
-                local npc_name_uk = npc_strings[1]
-                    or entries.get_glossary_text(npc_name, npc_name)
-                local chat_text_uk = safe_make_chat_text(chat_text, npc_strings[chat_code])
-                return utils.cap(npc_name_uk), chat_text_uk, chat_code
+                return npc_strings[chat_code], nil, chat_code, npc_key
             end
         end
     end
@@ -851,12 +840,7 @@ entries.get_chat_text = function (npc_name, chat_text)
     for _, npc_key in ipairs({ npc_name, '!common' }) do
         local npc_strings = at.chat[npc_key]
         if npc_strings and npc_strings[chat_hash] then
-            local npc_name_uk = at.chat[npc_key][1]
-            if not npc_name_uk then
-                npc_name_uk = entries.get_glossary_text(npc_name, npc_name)
-            end
-            local chat_text_uk = safe_make_chat_text(chat_text, at.chat[npc_key][chat_hash])
-            return utils.cap(npc_name_uk), chat_text_uk, nil
+            return npc_strings[chat_hash], nil, nil, npc_key
         end
     end
 
@@ -869,19 +853,53 @@ entries.get_chat_text = function (npc_name, chat_text)
                 local known_chat_keys = utils.table_string_keys(npc_strings['!code'])
                 local chat_key = utils.match_text_code(chat_code, known_chat_keys)
                 if chat_key then
-                    local npc_name_uk = npc_strings[1]
-                    if not npc_name_uk then
-                        npc_name_uk = entries.get_glossary_text(npc_name, npc_name)
-                    end
                     local hash = npc_strings['!code'][chat_key]
-                    local chat_text_uk = safe_make_chat_text(chat_text, npc_strings[hash])
-                    return utils.cap(npc_name_uk), chat_text_uk, chat_code
+                    return npc_strings[hash], nil, chat_code, npc_key
                 end
             end
         end
     end
 
     return nil, nil, chat_code
+end
+
+entries.get_chat_text = function (npc_name, chat_text, message)
+    if not npc_name or type(chat_text) ~= "string" then return end
+    local at, lookup = addon_table, chat_lookup()
+    local actor, actor_key
+    if message and type(lookup.actor_context) == "function" then
+        actor, actor_key = lookup.actor_context()
+    end
+    local cached = message and actor_key and chat_selection
+    local database = at.chat_hashed
+    local version = type(database) == "table" and database.version or nil
+    if not cached or cached.message ~= message or cached.npc ~= npc_name or cached.source ~= chat_text
+        or cached.actor ~= actor_key or cached.database ~= database or cached.version ~= version
+        or cached.legacy ~= at.chat or cached.find ~= lookup.find then
+        local text, source_template, code, scope = select_chat_template(npc_name, chat_text, lookup, actor)
+        cached = { message = message, npc = npc_name, source = chat_text, actor = actor_key,
+            database = database, version = version, legacy = at.chat, find = lookup.find,
+            text = text, source_template = source_template, code = code, scope = scope }
+        -- One event only. Never cache the dynamically rendered Ukrainian text.
+        chat_selection = message and actor_key and cached or nil
+    end
+    if cached.text then
+        local npc_strings = at.chat and at.chat[cached.scope or npc_name]
+        local npc_name_uk = npc_strings and npc_strings[1] or entries.get_glossary_text(npc_name, npc_name)
+        local translated = safe_make_chat_text(chat_text, cached.text, cached.source_template)
+        if translated then return utils.cap(npc_name_uk), translated, cached.code end
+        if cached.scope ~= nil then return utils.cap(npc_name_uk), nil, cached.code end
+        -- Preserve the legacy fallback when a matched source template cannot
+        -- render with the current dynamic context.
+        if cached.scope == nil then
+            local text, source_template, code, scope = select_chat_template(npc_name, chat_text, lookup, actor, true)
+            local names = at.chat and at.chat[scope or npc_name]
+            local name = names and names[1] or entries.get_glossary_text(npc_name, npc_name)
+            if text then return utils.cap(name), safe_make_chat_text(chat_text, text, source_template), code end
+            return nil, nil, code
+        end
+    end
+    return nil, nil, cached.code
 end
 
 entries.translate_quest_objective_task = function (text, quest_id, objective_source)

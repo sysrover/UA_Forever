@@ -60,6 +60,7 @@ end
 local chat_addition_sequence = 0
 local chat_bubble_sequence = 0
 local direct_event_messages = setmetatable({}, { __mode = "k" })
+local npc_event
 
 local function has_secret_values(...)
     for index = 1, select("#", ...) do
@@ -128,7 +129,7 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
     if options.work_enabled and not options.work_enabled("npc-chat") then return nil end
     -- Returning a rewritten argument list also returns the sender/history
     -- metadata. Leave secret-bearing events entirely in the native path.
-    if has_secret_values(chat_text, npc_name, lang_name, ...) then return nil end
+    if has_secret_values(event, chat_text, npc_name, lang_name, ...) then return nil end
     if type(chat_text) ~= "string" or type(npc_name) ~= "string"
         or type(lang_name) ~= "string" then return nil end
     local known_event = known_chat_msg_events[event]
@@ -141,7 +142,22 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
         npc_name_key = "!player"
     end
 
-    local npc_name_uk, chat_text_uk, chat_text_code = entries.get_chat_text(npc_name_key, chat_text)
+    -- Build 70888's message argument 11 is the shared lineID, argument 12
+    -- the sender GUID. Without a usable ID, keep the ordinary uncached path.
+    local line_id, sender, target = select(8, ...), select(9, ...), select(2, ...)
+    local message
+    if type(line_id) == "number" and line_id > 0 and line_id % 1 == 0
+        and (sender == nil or type(sender) == "string")
+        and (target == nil or type(target) == "string") then
+        if not npc_event or npc_event.id ~= line_id or npc_event.event ~= event
+            or npc_event.source ~= chat_text or npc_event.npc ~= npc_name_key
+            or npc_event.language ~= lang_name or npc_event.sender ~= sender or npc_event.target ~= target then
+            npc_event = { id = line_id, event = event, source = chat_text, npc = npc_name_key,
+                language = lang_name, sender = sender, target = target }
+        end
+        message = npc_event
+    else npc_event = nil end
+    local npc_name_uk, chat_text_uk, chat_text_code = entries.get_chat_text(npc_name_key, chat_text, message)
 
     if not chat_text_uk and chat_text_code then
         dev_log.missing_chat_text(npc_name_key, chat_text_code, chat_text, lang_name)
@@ -151,7 +167,9 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
         chat_text_uk = string_format(chat_text_uk, npc_name_uk)
     end
 
-    if chat_text_uk and known_event.verb then
+    if chat_text_uk and known_event.verb and (not message or not message.bubble_requested)
+        and options.can_translate("translate_chat_bubble") then
+        if message then message.bubble_requested = true end
         translate_chat_bubble(chat_text, chat_text_uk)
     end
     if not options.can_translate("translate_chat") or not section_enabled("npc_chat") then

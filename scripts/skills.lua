@@ -7,6 +7,8 @@ local options = addon_table.use("options")
 local skills = addon_table.use("skills")
 local client_db = addon_table.use("spell_client_db")
 local strings = addon_table.use("strings")
+local resolver = addon_table.use("translation_resolver")
+local renderer = addon_table.use("spell_template_renderer")
 local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
 local registry = addon_table.use("translation_registry")
@@ -303,31 +305,146 @@ local function translate_trainer_region(region, category, slot)
 end
 
 local translate_trainer_requirements
+local trainer_rows = setmetatable({}, { __mode = "k" })
+local trainer_skill_index, trainer_skill_english, trainer_skill_ukrainian
+local trainer_skill_build
 
-local function translate_trainer_row(row)
-    if not row or type(row.GetRegions) ~= "function" then return end
-    local ok, regions = pcall(function () return { row:GetRegions() } end)
-    if not ok then return end
-    for _, region in ipairs(regions) do
-        local type_ok, object_type = pcall(region.GetObjectType, region)
-        if type_ok and object_type == "FontString" then
-            local is_name = region == row.name
-            local category = is_name and "skill" or nil
-            local slot = is_name and "skill.name" or nil
-            local function translate(current)
-                if current == row.subText then
-                    translate_trainer_requirements(current)
+local function trainer_requirement_name(name, skill)
+    if not options.translate_name(skill and "skill" or "spell") then return name end
+    if skill then
+        local english, ukrainian = addon_table.client_skill_lines_en, addon_table.client_skill_lines_uk
+        if english and ukrainian and english.sourceBuild == ukrainian.sourceBuild then
+            if trainer_skill_english ~= english or trainer_skill_ukrainian ~= ukrainian
+                or trainer_skill_build ~= english.sourceBuild then
+                trainer_skill_index = {}
+                for id, source in pairs(english.rows or {}) do
+                    local translated = ukrainian.rows and ukrainian.rows[id]
+                    if type(source) == "string" and type(translated) == "string" then
+                        local previous = trainer_skill_index[source]
+                        trainer_skill_index[source] = previous == nil and translated
+                            or previous == translated and translated or false
+                    end
                 end
-                translate_trainer_region(current, category, slot)
+                trainer_skill_english, trainer_skill_ukrainian = english, ukrainian
+                trainer_skill_build = english.sourceBuild
             end
-            hooks.region(region, "SetText", function (self)
-                if not runtime.is_applying(self) then
-                    translate(self)
-                end
-            end)
-            translate(region)
+            local translated = trainer_skill_index[name]
+            if translated then return utils.cap(translated) end
         end
     end
+    local translated = entries.lookup_name("spell", name)
+    return translated and utils.cap(translated) or name
+end
+
+local function trainer_api(name, ...)
+    local api = _G[name]
+    if type(api) ~= "function" then return nil end
+    local function public_results(ok, ...)
+        if not ok then return nil end
+        for index = 1, select("#", ...) do
+            if is_secret(select(index, ...)) then return nil end
+        end
+        return { ... }
+    end
+    return public_results(pcall(api, ...))
+end
+
+local function trainer_api_requirements(region, context)
+    if not context or not _G.Enum or not Enum.TrainerType then return nil end
+    local info = trainer_api("GetTrainerServiceInfo", context.index)
+    if not info or type(info[2]) ~= "string" then return nil end
+    if info[2] == "used" then
+        local native = runtime.safe_string_or_nil(_G.ITEM_SPELL_KNOWN)
+        return native, native and resolver.find_ui(native, region)
+    end
+    local skill = trainer_api("GetTrainerServiceSkillReq", context.index)
+    local count = trainer_api("GetTrainerServiceNumAbilityReq", context.index)
+    if not skill or not count
+        or type(count[1]) ~= "number" or count[1] < 0 or count[1] % 1 ~= 0 then return nil end
+    local native, translated, separator = {}, {}, ""
+    local delimiter = runtime.safe_string_or_nil(_G.PLAYER_LIST_DELIMITER)
+    if not delimiter then return nil end
+    local function append(key, values, translated_values)
+        local template = runtime.safe_string_or_nil(_G[key])
+        if not template then return false end
+        local english = renderer.format_arguments(template, unpack(values))
+        local ukrainian_template = resolver.find_ui(template, region) or template
+        local ukrainian = renderer.format_arguments(ukrainian_template, unpack(translated_values or values))
+        if not english or not ukrainian then return false end
+        native[#native + 1], translated[#translated + 1] = separator .. english, separator .. ukrainian
+        return true
+    end
+    local level = info[4]
+    if level ~= nil and type(level) ~= "number" then return nil end
+    if level and level > 1 then
+        local unit = context.trainer_type == Enum.TrainerType.Pet and "pet" or "player"
+        local player_level = trainer_api("UnitLevel", unit)
+        if not player_level or type(player_level[1]) ~= "number" then return nil end
+        if not append(player_level[1] >= level and "TRAINER_REQ_LEVEL" or "TRAINER_REQ_LEVEL_RED", { level }) then return nil end
+        separator = delimiter
+    end
+    if skill[1] then
+        if type(skill[1]) ~= "string" or type(skill[2]) ~= "number" then return nil end
+        if not append(skill[3] and "TRAINER_REQ_SKILL_RANK" or "TRAINER_REQ_SKILL_RANK_RED",
+            { skill[1], skill[2] }, { trainer_requirement_name(skill[1], true), skill[2] }) then return nil end
+        separator = delimiter
+    end
+    for index = 1, count[1] do
+        local ability = trainer_api("GetTrainerServiceAbilityReq", context.index, index)
+        if not ability then return nil end
+        if ability[1] then
+            if type(ability[1]) ~= "string" then return nil end
+            if not append(ability[2] and "TRAINER_REQ_ABILITY" or "TRAINER_REQ_ABILITY_RED",
+                { ability[1] }, { trainer_requirement_name(ability[1]) }) then return nil end
+        end
+        -- Match 70888 exactly: its ability loop retains the existing separator.
+    end
+    if #native == 0 then return "", "" end
+    local prefix = runtime.safe_string_or_nil(_G.REQUIRES_LABEL)
+    if not prefix then return nil end
+    return prefix .. " " .. table.concat(native),
+        (resolver.find_ui(prefix, region) or prefix) .. " " .. table.concat(translated)
+end
+
+local function translate_trainer_row(row, element_data)
+    if not row or is_secret(row) then return end
+    if is_secret(element_data) then
+        trainer_rows[row] = nil
+        return
+    end
+    if type(element_data) ~= "table" and type(row.GetElementData) == "function" then
+        local ok, value = pcall(row.GetElementData, row)
+        if ok and not is_secret(value) then element_data = value
+        else trainer_rows[row] = nil end
+    end
+    if not is_secret(element_data) and type(element_data) == "table" then
+        local ok, nested = pcall(function () return element_data.data end)
+        if ok and not is_secret(nested) and type(nested) == "table" then element_data = nested end
+        local data_ok, index, trainer_type = pcall(function () return element_data.skillIndex, element_data.trainerType end)
+        if ok and not is_secret(nested) and data_ok and not is_secret(index) and type(index) == "number" and index > 0
+            and index % 1 == 0 and not is_secret(trainer_type) and type(trainer_type) == "number" then
+            trainer_rows[row] = { index = index, trainer_type = trainer_type }
+        else trainer_rows[row] = nil end
+    end
+    for _, key in ipairs({ "name", "nameSubText", "alternateCost" }) do
+        local region = row[key]
+        local category = key == "name" and "skill" or nil
+        local slot = key == "name" and "skill.name" or nil
+        local function translate(current)
+            if not runtime.is_applying(current) then translate_trainer_region(current, category, slot) end
+        end
+        hooks.region(region, "SetText", translate)
+        if region then translate(region) end
+    end
+    -- The native initializer writes this field before its post-hook receives
+    -- the new elementData. Never query the preceding pooled service in SetText.
+    hooks.region(row.subText, "SetText", function (region)
+        if runtime.is_applying(region) then return end
+        local claim = runtime.get(region)
+        local source = text_from(region)
+        if claim and source ~= claim.translated and source ~= claim.source then runtime.invalidate(region) end
+    end)
+    translate_trainer_requirements(row.subText, trainer_rows[row])
 end
 
 local function translate_trainer_static_region(region)
@@ -345,32 +462,39 @@ local function translate_trainer_static_region(region)
     if not runtime.is_applying(region) then translate(region) end
 end
 
-translate_trainer_requirements = function (region)
+translate_trainer_requirements = function (region, context)
     local source = text_from(region)
     if not source or runtime.is_applying(region) then return end
-    local translated = surface_text.trainer_requirements(source, function (name)
-        local translated_name = entries.lookup_name("spell", name)
-        if translated_name then return utils.cap(translated_name) end
-        local english = addon_table.client_skill_lines_en
-        local ukrainian = addon_table.client_skill_lines_uk
-        if not english or not ukrainian or english.sourceBuild ~= ukrainian.sourceBuild then
-            return name
-        end
-        for id, english_name in pairs(english.rows or {}) do
-            local replacement = ukrainian.rows and ukrainian.rows[id]
-            if english_name == name and type(replacement) == "string" then
-                return utils.cap(replacement)
-            end
-        end
-        return name
-    end)
+    local claim = runtime.get(region)
+    local identity = context and tostring(context.trainer_type) .. ":" .. tostring(context.index) or "legacy"
+    local instance = identity .. ":" .. tostring(options.translate_name("skill"))
+        .. ":" .. tostring(options.translate_name("spell"))
+    if claim and claim.slot == "trainer.requirements" and claim.instance == instance
+        and (source == claim.translated or source == claim.source) then
+        return runtime.apply(region, { owner = "skills", slot = claim.slot,
+            source = claim.source, translated = claim.translated, option = claim.option,
+            section = "trainer", surface = claim.surface, instance = instance,
+            priority = claim.priority, reapply_cached = true })
+    end
+    if claim and claim.owner == "skills" and claim.slot == "trainer.requirements"
+        and source == claim.translated and type(claim.instance) == "string"
+        and claim.instance:sub(1, #identity + 1) == identity .. ":" then source = claim.source end
+    local expected, translated = trainer_api_requirements(region, context)
+    if expected ~= source then translated = nil end
+    if not translated then
+        translated = surface_text.trainer_requirements(source, function (name)
+            return trainer_requirement_name(name, true)
+        end)
+    end
     if translated then
-        runtime.apply(region, {
+        return runtime.apply(region, {
             owner = "skills", slot = "trainer.requirements", source = source,
             translated = translated, priority = runtime.PRIORITY.DOMAIN,
-            option = "translate_string", reapply_cached = true,
+            option = "translate_string", section = "trainer",
+            surface = registry.get("trainer"), instance = instance, reapply_cached = true,
         })
     end
+    return strings.translate_region(region)
 end
 
 local function translate_trainer_title()
@@ -434,10 +558,10 @@ local function translate_trainer_rows()
     translate_trainer_static_region(_G.ClassTrainerFrameSubText)
     translate_trainer_static_region(_G.ClassTrainerFrameSkillStepButtonName)
     local requirements = _G.ClassTrainerFrameSkillStepButtonSubText
-    hook_owner(requirements, "SetText", translate_trainer_requirements)
-    translate_trainer_requirements(requirements)
-    translate_trainer_title()
     local frame = _G.ClassTrainerFrame
+    if frame and frame.skillStepButton then translate_trainer_row(frame.skillStepButton)
+    else translate_trainer_requirements(requirements) end
+    translate_trainer_title()
     local dropdown = frame and frame.FilterDropdown
     local function translate_filter()
         translate_trainer_region(dropdown and dropdown.Text)
@@ -456,12 +580,8 @@ skills.prepare = function ()
     local trainer_frame = _G.ClassTrainerFrame
     local trainer_scroll_box = trainer_frame and trainer_frame.ScrollBox
     hooks.global("ClassTrainerFrame_Update", translate_trainer_rows)
-    hooks.global("ClassTrainerFrame_InitServiceButton", function (button)
-        translate_trainer_row(button)
-        if trainer_frame and button == trainer_frame.skillStepButton then
-            translate_trainer_static_region(button.name)
-            translate_trainer_requirements(button.subText)
-        end
+    hooks.global("ClassTrainerFrame_InitServiceButton", function (button, element_data)
+        translate_trainer_row(button, element_data)
     end)
     hook_owner(trainer_frame, "SetTitle", translate_trainer_title)
     hooks.region_script(trainer_frame, "OnShow", translate_trainer_rows,

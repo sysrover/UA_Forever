@@ -60,9 +60,9 @@ local function widen_mail_frame()
     end
 end
 
-local function translate_mail_region(region)
+local function translate_mail_region(region, template, ...)
     if not region or runtime.is_applying(region) then return end
-    hooks.region(region, "SetText", translate_mail_region)
+    hooks.region(region, "SetText", function (self) translate_mail_region(self) end)
     hooks.region(region, "SetFormattedText", translate_mail_region)
     if type(region.GetText) ~= "function" then return end
     local ok, source = pcall(region.GetText, region)
@@ -70,8 +70,14 @@ local function translate_mail_region(region)
         or source == "" then return end
     local claim = runtime.get(region)
     if claim and source == claim.translated then source = claim.source end
-    local translated, _, tier, category, _, option, provenance =
-        resolver.find_ui(source, region)
+    template = runtime.safe_string_or_nil(template)
+    local translated, _, tier, category, _, option, provenance = resolver.find_ui(template or source, region)
+    if template and translated then
+        translated = addon_table.use("spell_template_renderer").format_arguments(translated, ...)
+    end
+    if template and not translated then
+        translated, _, tier, category, _, option, provenance = resolver.find_ui(source, region)
+    end
     if not translated then
         -- Already-localized globals still need the shared font policy.
         strings.translate_region(region)

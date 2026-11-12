@@ -77,11 +77,13 @@ local function translate_special_label(region)
     return true
 end
 
-local function translate_region(region)
+local function translate_region(region, template, ...)
     if not region or runtime.is_applying(region) then return end
     if region == header_region() then
         translate_header(region)
     elseif not translate_special_label(region) then
+        if template and strings.translate_formatted_region
+            and strings.translate_formatted_region(region, template, surface, ...) then return end
         strings.translate_region(region, nil, "ui.label", surface)
     end
 end
@@ -90,7 +92,7 @@ local function prepare_region(region)
     if not region then return end
     local ok, kind = pcall(region.GetObjectType, region)
     if not ok or runtime.is_secret_value(kind) or kind ~= "FontString" then return end
-    hooks.region(region, "SetText", translate_region)
+    hooks.region(region, "SetText", function (self) translate_region(self) end)
     hooks.region(region, "SetFormattedText", translate_region)
     translate_region(region)
 end
