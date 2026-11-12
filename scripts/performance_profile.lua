@@ -1,8 +1,10 @@
-local _, addon_table = ...
+local addon_name, addon_table = ...
 local profiler = addon_table.use("performance_profile")
 
 local current, driver
 local MAX_LABELS, MAX_DEPTH, MAX_SLOW_CALLS, MAX_SLOW_INTERVALS = 4096, 128, 64, 32
+local MAX_INTERVAL_CALLS, MAX_COUNTERS, MAX_WALKS = 12, 128, 128
+local instrument_modules
 local frame_counts = {}
 local now = function () return _G.debugprofilestop() end
 
@@ -30,12 +32,79 @@ local function context()
 end
 
 local function retain_slowest(list, entry, limit, field)
-    if #list < limit then list[#list + 1] = entry; return end
+    if #list < limit then list[#list + 1] = entry; return true end
     local smallest = 1
     for index = 2, #list do
         if list[index][field] < list[smallest][field] then smallest = index end
     end
-    if entry[field] > list[smallest][field] then list[smallest] = entry end
+    if entry[field] > list[smallest][field] then list[smallest] = entry; return true end
+end
+
+-- Charge diagnostic bookkeeping to overhead, including when called inside a
+-- measured export. Do not attribute it to the caller's inclusive or self time.
+local function diagnostic_overhead(session, started)
+    local elapsed = math.max(0, now() - started)
+    session.report.instrumentationMs = session.report.instrumentationMs + elapsed
+    session.interval.overheadMs = session.interval.overheadMs + elapsed
+    local frame = session.stack[session.depth]
+    if frame and session.depth > 0 then
+        frame.childrenSpan = frame.childrenSpan + elapsed
+        frame.descendantOverhead = frame.descendantOverhead + elapsed
+    end
+end
+
+-- Fixed counter labels are checked at registration, never against UI text.
+-- Closures remain inert outside an explicit capture and are not module exports.
+profiler.counter = function (label)
+    label = public_string(label)
+    if not label then return function () end end
+    label = label:sub(1, 120)
+    return function (amount)
+        local session = current
+        if not session then return end
+        local started = now()
+        amount = amount == nil and 1 or public_number(amount)
+        if amount and amount == amount and amount >= 0 and amount < math.huge then
+            local report, work = session.report, session.interval.work
+            if report.work[label] ~= nil or report.counterCount < MAX_COUNTERS then
+                if report.work[label] == nil then report.counterCount = report.counterCount + 1 end
+                report.work[label] = (report.work[label] or 0) + amount
+                work[label] = (work[label] or 0) + amount
+            else
+                report.counterDrops = report.counterDrops + 1
+            end
+        end
+        diagnostic_overhead(session, started)
+    end
+end
+
+profiler.record_walk = function (metadata, root, frames, regions, translated, truncated, elapsed)
+    local session = current
+    if not session then return end
+    local started, report = now(), session.report
+    local id = public_string(metadata.id)
+    local ok, name = pcall(function ()
+        return type(root.GetName) == "function" and root:GetName() or nil
+    end)
+    name = ok and public_string(name) or nil
+    local key = (id or "unknown"):sub(1, 100) .. ":" .. (name or "<unnamed>"):sub(1, 100)
+    local row = report.walks[key]
+    if not row and report.walkCount < MAX_WALKS then
+        row = { calls = 0, frames = 0, regions = 0, translatedResults = 0,
+            truncated = 0, totalMs = 0, maxMs = 0 }
+        report.walks[key] = row
+        report.walkCount = report.walkCount + 1
+    end
+    if row then
+        row.calls = row.calls + 1
+        row.frames, row.regions = row.frames + frames, row.regions + regions
+        row.translatedResults = row.translatedResults + translated
+        row.truncated = row.truncated + (truncated and 1 or 0)
+        row.totalMs, row.maxMs = row.totalMs + elapsed, math.max(row.maxMs, elapsed)
+    else
+        report.walkDrops = report.walkDrops + 1
+    end
+    diagnostic_overhead(session, started)
 end
 
 local function finish(session, frame, ok, ...)
@@ -57,8 +126,18 @@ local function finish(session, frame, ok, ...)
         if inclusive > 5 then row.over5ms = row.over5ms + 1 end
         if inclusive > 16 then row.over16ms = row.over16ms + 1 end
         if inclusive > 50 then row.over50ms = row.over50ms + 1 end
+        local interval = session.interval
+        local sample = interval.byLabel[frame.label]
+        if not sample then
+            sample = { label = frame.label, calls = 0, selfMs = 0, totalMs = 0, maxMs = 0 }
+            interval.byLabel[frame.label] = sample
+        end
+        if sample.calls == 0 then interval.touched[#interval.touched + 1] = sample end
+        sample.calls = sample.calls + 1
+        sample.selfMs, sample.totalMs = sample.selfMs + exclusive, sample.totalMs + inclusive
+        sample.maxMs = math.max(sample.maxMs, inclusive)
+        interval.totalCalls, interval.selfMs = interval.totalCalls + 1, interval.selfMs + exclusive
         if session.depth == 0 then
-            local interval = session.interval
             interval.calls = interval.calls + 1
             interval.totalMs = interval.totalMs + inclusive
             if inclusive > interval.maxMs then
@@ -82,6 +161,15 @@ local function finish(session, frame, ok, ...)
         end
     end
     if not ok then error((...), 0) end
+    return ...
+end
+
+local function finish_load(session, ...)
+    if current == session then
+        local started = now()
+        instrument_modules(session)
+        diagnostic_overhead(session, started)
+    end
     return ...
 end
 
@@ -130,7 +218,7 @@ profiler.wrap = function (label, callback, event_index)
     label = public_string(label) or "unknown"
     return function (...)
         if not current then return callback(...) end
-        local key = label
+        local key, module_load = label, false
         if event_index and event_index <= select("#", ...) then
             local event = public_string(select(event_index, ...))
             if event then
@@ -138,9 +226,11 @@ profiler.wrap = function (label, callback, event_index)
                 if event == "ADDON_LOADED" and event_index < select("#", ...) then
                     local addon = public_string(select(event_index + 1, ...))
                     if addon then key = key .. ":" .. addon:sub(1, 80) end
+                    module_load = true
                 end
             end
         end
+        if module_load then return finish_load(current, call_profiled(key, callback, nil, ...)) end
         return call_profiled(key, callback, nil, ...)
     end
 end
@@ -176,20 +266,28 @@ profiler.frame_factory = function (owner)
     end
 end
 
-local function instrument_modules(session)
+instrument_modules = function (session)
     addon_table.each_module(function (name, module)
         if name == "performance_profile" then return end
         session.report.coverage.modules[name] = true
+        local slots = session.exportSlots[module]
+        if not slots then slots = {}; session.exportSlots[module] = slots end
         for key, callback in pairs(module) do
             if type(key) == "string" and type(callback) == "function" then
-                local wrapped = profiler.wrap("module:" .. name .. "." .. key, callback)
-                session.replacements[#session.replacements + 1] = {
-                    module = module, key = key, original = callback, wrapped = wrapped }
-                module[key] = wrapped
+                local previous = slots[key]
+                if not previous or callback ~= previous.wrapped then
+                    -- Keep each version in restoration order: a later replacement
+                    -- must restore to itself, never to an obsolete implementation.
+                    local wrapped = profiler.wrap("module:" .. name .. "." .. key, callback)
+                    local replacement = { module = module, key = key, original = callback, wrapped = wrapped }
+                    session.replacements[#session.replacements + 1] = replacement
+                    slots[key], module[key] = replacement, wrapped
+                end
             end
         end
     end)
     session.report.coverage.exportedFunctions = #session.replacements
+    session.report.coverage.exportScans = session.report.coverage.exportScans + 1
 end
 
 local function native_snapshot()
