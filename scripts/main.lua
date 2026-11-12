@@ -184,7 +184,7 @@ local function refresh_open_panels()
     if refresh_all then
         registry.refresh_open()
     else
-        for id in pairs(dirty) do registry.refresh(id) end
+        for id, roots in pairs(dirty) do registry.refresh(id, nil, roots ~= true and roots or nil) end
     end
     if refresh_all or dirty["quest-gossip"] then quest_switcher.refresh() end
     if type(auto_scan.diagnostics_enabled) == "function"
@@ -197,18 +197,27 @@ local function refresh_open_panels()
                 for _, root_name in ipairs(surface and surface.roots or {}) do
                     local frame = _G[root_name]
                     local shown_ok, shown = frame and pcall(frame.IsShown, frame)
-                    if shown_ok and shown then strings.capture_frame(frame) end
+                    if (dirty[id] == true or dirty[id][root_name])
+                        and shown_ok and shown then strings.capture_frame(frame) end
                 end
             end
         end
     end
 end
 
-local function schedule_panel_refresh(surface_ids)
+local function schedule_panel_refresh(surface_ids, selected_roots)
     if type(surface_ids) ~= "table" then
         refresh_all_open_panels = true
     else
-        for _, id in ipairs(surface_ids) do dirty_open_panels[id] = true end
+        for _, id in ipairs(surface_ids) do
+            if not selected_roots then
+                dirty_open_panels[id] = true
+            elseif dirty_open_panels[id] ~= true then
+                local roots = dirty_open_panels[id] or {}
+                for name, value in pairs(selected_roots) do if value then roots[name] = true end end
+                dirty_open_panels[id] = roots
+            end
+        end
     end
     scheduler.request("open-panels", nil, refresh_open_panels)
 end
@@ -483,10 +492,11 @@ end
 local function translate_wardrobe_page(region)
     if not region then return end
     strings.translate_region(region, nil, "ui.text",
-        registry.get("collections"))
+        registry.get("collections-ui"), nil, nil, "character_ui")
 end
 local formatted_wardrobe_page = strings.formatted_callback and strings.formatted_callback(
-    translate_wardrobe_page, nil, "ui.text", function () return registry.get("collections") end) or translate_wardrobe_page
+    translate_wardrobe_page, nil, "ui.text", function () return registry.get("collections-ui") end,
+    "character_ui") or translate_wardrobe_page
 
 local function prepare_wardrobe_hooks()
     local wardrobe = _G.WardrobeCollectionFrame
@@ -1096,6 +1106,8 @@ local profession_load = {
     modules = { "profession_frame_adapter", "profession_recipe_adapter",
         "panel_fallback_ui" },
     surfaces = { "professions" },
+    menu_roots = { "ProfessionsFrame" },
+    fallback_roots = { InspectRecipeFrame = true, ProfessionsCustomerOrdersFrame = true },
 }
 local panel_loads = {
     Blizzard_Communities = {
@@ -1116,14 +1128,17 @@ local panel_loads = {
     Blizzard_PlayerSpells = {
         modules = { "skills", "talent_frame_adapter" },
         surfaces = { "skills" },
+        menu_roots = { "PlayerSpellsFrame" },
     },
     Blizzard_AchievementUI = {
         modules = { "achievements", "legacy_ui" },
         surfaces = { "collections", "legacy-ui" },
+        refresh_roots = { collections = { AchievementFrame = true } },
     },
     Blizzard_LegacySystem = {
         modules = { "legacy_ui", "achievements" },
         surfaces = { "legacy-ui" },
+        menu_roots = { "LegacySystemFrame" },
     },
     Blizzard_Collections = {
         modules = { "collections_ui" },
@@ -1139,12 +1154,17 @@ local function prepare_loaded_panel(loaded_addon)
     fonts.prepare()
     -- Shared tooltip owners and gamepad footers can be created by these panels.
     tooltips.prepare()
-    menus_ui.prepare()
-    for _, name in ipairs(route.modules) do addon_table.use(name).prepare() end
+    menus_ui.prepare(route.menu_roots or {})
+    for _, name in ipairs(route.modules) do
+        if name == "panel_fallback_ui" then addon_table.use(name).prepare(route.fallback_roots or {})
+        else addon_table.use(name).prepare() end
+    end
     if route.prepare then route.prepare() end
     registry.prepare_root_hooks()
     registry.install_hooks(loaded_addon)
-    schedule_panel_refresh(route.surfaces)
+    -- Dedicated prepare callbacks already reconcile their visible surfaces.
+    -- Re-scheduling the same roots repeats the completed work on the next tick.
+    for id, roots in pairs(route.refresh_roots or {}) do registry.refresh(id, nil, roots) end
     return true
 end
 
@@ -1318,7 +1338,9 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
             auto_scan.surface_event("quest-greeting", event)
             quest_greeting_shown()
         end
-        schedule_panel_refresh({ "quest-gossip", "items" })
+        -- Rewards have their own domain refresh above; a dialog event must not
+        -- walk unrelated map/tracker, merchant, bank and bag roots.
+        schedule_panel_refresh({ "quest-gossip" }, { QuestFrame = true, GossipFrame = true })
     elseif event == "QUEST_LOG_UPDATE" then
         if options.account.auto_scan_content or options.account.dev_mode then
             scheduler.request("quest-log-capture", nil,

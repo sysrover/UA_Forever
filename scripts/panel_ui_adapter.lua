@@ -180,7 +180,7 @@ adapter.bind = function (id)
             end
         end
     end
-    api.prepare = function (roots, addon, globals, methods, refresh, global_callbacks)
+    api.prepare = function (roots, addon, globals, methods, refresh, global_callbacks, selected_roots)
         api.surface = registry.register_surface({ id = id, roots = roots,
             domains = { "ui", "npc", "item" }, name_category = "none",
             slots = { "ui.label", "ui.tooltip", "npc.name", "item.name" },
@@ -210,7 +210,7 @@ adapter.bind = function (id)
                 callback = refresh, blizzardAddon = addon, verifiedBuild = api.verified_build or "1.60.1.70205" })
         end
         for _, name in ipairs(roots) do api.hooks.region_script(_G[name], "OnShow", refresh) end
-        refresh()
+        refresh(nil, selected_roots)
     end
     return api
 end

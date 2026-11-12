@@ -9,6 +9,7 @@ local items = addon_table.use("item_client_db")
 local spells = addon_table.use("spell_client_db")
 local utils = addon_table.use("utils")
 local tooltips = addon_table.use("tooltips")
+local registered_labels = setmetatable({}, { __mode = "k" })
 
 -- 70840 Camelot loads Classic/PetCollection explicitly. Its tab implementation
 -- does not call PanelTemplates_SetTab, and scroll rows are reused independently.
@@ -220,7 +221,10 @@ local function refresh()
         _G.WardrobeCollectionFrame or false }) do
         if visible(frame) then
             labels(frame)
-            strings.translate_frame(frame, ui.surface)
+            if not registered_labels[frame] then
+                ui.watch_frame(frame, skip_region)
+                registered_labels[frame] = true
+            end
             if frame == _G.PetJournal then
                 each_row(frame.ScrollBox, pet_row)
                 pet_card()
@@ -240,7 +244,7 @@ local function refresh()
 end
 
 collections.prepare = function ()
-    ui.prepare({ "CollectionsJournal", "PetJournal", "MountJournal", "ToyBox", "HeirloomsJournal" },
+    ui.prepare({ "CollectionsJournal", "PetJournal", "MountJournal", "ToyBox", "HeirloomsJournal", "WardrobeCollectionFrame" },
         "Blizzard_Collections", { "CollectionsJournal_UpdateSelectedTab",
             "PetJournal_UpdateSummonButtonState", "PetJournal_UpdatePetList",
             "MountJournal_UpdateMountDisplay", "ToyBox_UpdateButtons" }, {}, refresh, {
@@ -249,6 +253,15 @@ collections.prepare = function ()
             MountJournal_UpdateMountDisplay = refresh_mount_display,
             ToyBox_UpdateButtons = refresh_toy_rows,
         })
+    -- Register static writers even on hidden tabs; visibility only gates their
+    -- display work. Pooled names continue to use the domain Init callbacks.
+    for _, name in ipairs({ "PetJournal", "MountJournal", "ToyBox", "HeirloomsJournal", "WardrobeCollectionFrame" }) do
+        local frame = _G[name]
+        if frame and not registered_labels[frame] then
+            ui.watch_frame(frame, skip_region)
+            registered_labels[frame] = true
+        end
+    end
     local journal = _G.CollectionsJournal
     ui.hooks.region(journal, "SetTitle", function ()
         if journal and type(journal.GetTitleText) == "function" then ui.label(journal:GetTitleText()) end

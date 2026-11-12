@@ -11,6 +11,7 @@ local resolver = addon_table.use("translation_resolver")
 local renderer = addon_table.use("spell_template_renderer")
 local tooltips = addon_table.use("tooltips")
 local runtime = addon_table.use("translation_runtime")
+local layout = addon_table.use("translation_layout")
 local registry = addon_table.use("translation_registry")
 local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("skills")
@@ -18,6 +19,9 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").skills
 local hook_mixin = hooks.mixin
 local hook_owner = hooks.region
+local book_chrome = setmetatable({}, { __mode = "k" })
+local book_seeded = setmetatable({}, { __mode = "k" })
+local book_row_layouts = setmetatable({}, { __mode = "k" })
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
     local ok, result = pcall(_G.issecretvalue, value)
@@ -220,7 +224,21 @@ end
 
 local function update_spellbook_item_layout(frame)
     if frame and type(frame.UpdateTextContainer) == "function" then
-        pcall(frame.UpdateTextContainer, frame)
+        local cached = book_row_layouts[frame]
+        local name = layout.text_signature and layout.text_signature(frame.Name, cached and cached.name)
+        local sub = layout.text_signature and layout.text_signature(frame.SubName, cached and cached.sub)
+        local level = layout.text_signature and layout.text_signature(frame.RequiredLevel, cached and cached.level)
+        local height = layout.safe_dimension and layout.safe_dimension(frame, "GetHeight")
+        if cached and name and sub and level and name == cached.name and sub == cached.sub
+            and level == cached.level and height and cached.height == height then return end
+        if runtime.combat_locked() or not runtime.can_write_text(frame) then return end
+        if pcall(frame.UpdateTextContainer, frame) and name and sub and level then
+            book_row_layouts[frame] = {
+                name = layout.text_signature(frame.Name, name),
+                sub = layout.text_signature(frame.SubName, sub),
+                level = layout.text_signature(frame.RequiredLevel, level),
+                height = layout.safe_dimension(frame, "GetHeight") }
+        end
     end
 end
 
@@ -255,22 +273,49 @@ local function translate_spellbook_item(frame)
     update_spellbook_item_layout(frame)
 end
 
+local function register_spellbook_chrome(frame, depth)
+    if not frame or book_chrome[frame] or (depth or 1) > 4 then return end
+    -- Spell rows have exact database owners. Do not run a generic lookup over
+    -- their names after Init/UpdateVisuals has already translated them.
+    if frame.spellBookItemInfo then return end
+    book_chrome[frame] = true
+    local function label(region)
+        if not runtime.is_applying(region) then
+            strings.translate_region(region, nil, "ui.label", nil, nil, nil, "spell_ui")
+        end
+    end
+    if type(frame.GetRegions) == "function" then
+        local ok, regions = pcall(function () return { frame:GetRegions() } end)
+        if ok then for _, region in ipairs(regions) do
+            local valid, kind = pcall(function () return region:GetObjectType() end)
+            if valid and not is_secret(kind) and kind == "FontString" then
+                hooks.region(region, "SetText", label)
+                hooks.region(region, "SetFormattedText", strings.formatted_callback
+                    and strings.formatted_callback(label, nil, "ui.label", nil, "spell_ui") or label)
+                if visible(region) then label(region) end
+            end
+        end end
+    end
+    if type(frame.GetChildren) == "function" then
+        local ok, children = pcall(function () return { frame:GetChildren() } end)
+        if ok then for _, child in ipairs(children) do register_spellbook_chrome(child, (depth or 1) + 1) end end
+    end
+end
+
 local function translate_spellbook(frame)
     local root = _G.PlayerSpellsFrame
     local book = root and root.SpellBookFrame or frame
+    register_spellbook_chrome(book)
     if not visible(book) then return end
 
     -- PlayerSpellsFrame is protected in Camelot. Translate only its completed
     -- public SpellBook surface: title, search, headers, items and page text.
     if root and type(root.GetTitleText) == "function" then
         local ok, title = pcall(root.GetTitleText, root)
-        if ok then strings.translate_region(title) end
+        if ok then strings.translate_region(title, nil, "ui.title", nil, nil, nil, "spell_ui") end
     end
-    translate_element(book, nil, 1, "skill")
-
-    if type(book.ForEachDisplayedSpell) == "function" then
-        pcall(book.ForEachDisplayedSpell, book, translate_spellbook_item)
-    end
+    -- Native writers and row Init/UpdateVisuals own subsequent updates. The
+    -- top-level SetTab/OnShow/OnPagedSpellsUpdate hooks only reconcile chrome.
 end
 
 local function translate_character_element(frame)
@@ -634,6 +679,11 @@ skills.prepare = function ()
     hooks.region_script(_G.PlayerSpellsFrame, "OnShow", translate_spellbook,
         "spellbook")
     translate_spellbook(spellbook)
+    if spellbook and not book_seeded[spellbook] and visible(spellbook)
+        and type(spellbook.ForEachDisplayedSpell) == "function" then
+        pcall(spellbook.ForEachDisplayedSpell, spellbook, translate_spellbook_item)
+        book_seeded[spellbook] = true
+    end
 
     -- Several base Camelot frames already exist before UA_Forever loads and
     -- therefore own copied mixin functions. Hook those concrete owners too.

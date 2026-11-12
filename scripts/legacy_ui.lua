@@ -16,6 +16,8 @@ local tooltip_catalog = assert(addon_table.forever_tooltip_ui)
 local layout = addon_table.use("translation_layout")
 local descriptions = {}
 local scroll_boxes = setmetatable({}, { __mode = "k" })
+local watched = setmetatable({}, { __mode = "k" })
+local description_categories = {}
 
 local function ui_section(region)
     if region and type(region.GetDebugName) == "function" then
@@ -80,11 +82,20 @@ local function point_tooltip(owner)
 end
 
 local function watch(region, callback)
-    api.watch(region, function (written)
-        local previous = runtime.get(written)
-        if previous and api.text(written) ~= previous.translated then runtime.invalidate(written) end
-        (callback or api.label)(written)
-    end)
+    if not region then return end
+    local written = watched[region]
+    if not written then
+        written = function (target)
+            if runtime.is_applying(target) then return end
+            -- Let runtime reconcile native overwrites; invalidating an unchanged
+            -- source discards the cached translation and font state.
+            (callback or api.label)(target)
+        end
+        watched[region] = written
+        api.hooks.region(region, "SetText", written)
+        api.hooks.region(region, "SetFormattedText", written)
+    end
+    if api.visible(region) then written(region) end
 end
 
 local function challenge_id(row)
@@ -117,7 +128,7 @@ local function prepare_challenge(row)
     -- final row layout. Instance hooks also cover templates copied before us.
     api.hooks.region(row, "InitRewards", translate_challenge)
     api.hooks.region(row, "Init", translate_challenge)
-    translate_challenge(row)
+    if api.visible(row) then translate_challenge(row) end
 end
 
 local function translate_category(row)
@@ -133,7 +144,7 @@ end
 local function prepare_category(row)
     watch(row.ButtonText, function () translate_category(row) end)
     api.hooks.region(row, "Init", translate_category)
-    translate_category(row)
+    if api.visible(row) then translate_category(row) end
 end
 
 local function prepare_scroll(box, callback)
@@ -144,7 +155,7 @@ local function prepare_scroll(box, callback)
         box:RegisterCallback(event, profile_callback("legacy_ui.scroll", function (_, row) callback(row) end), scroll_boxes)
         scroll_boxes[box] = true
     end
-    if type(box.ForEachFrame) == "function" then box:ForEachFrame(callback) end
+    if api.visible(box) and type(box.ForEachFrame) == "function" then box:ForEachFrame(callback) end
 end
 
 local function reward_translation(reward)
@@ -214,7 +225,7 @@ local function prepare_reward(row)
     api.hooks.region(row, "SetRewardName", translate_reward)
     api.hooks.region(row, "SetInfo", translate_reward)
     api.hooks.region(row, "RefreshTooltip", translate_reward_tooltip)
-    translate_reward(row)
+    if api.visible(row) then translate_reward(row) end
 end
 
 local function prepare_preview(row)
@@ -228,7 +239,7 @@ local function prepare_preview(row)
     end
     watch(row.Name or row.Text, translate)
     api.hooks.region(row, "Init", translate)
-    translate()
+    if api.visible(row) then translate() end
 end
 
 local function translate_criterion(region)
@@ -255,22 +266,23 @@ local function prepare_objectives(frame)
     end
 end
 
-local function refresh()
+local function refresh(only, registering)
     local root = _G.LegacySystemFrame
     if not root then return end
+    if not registering and not api.visible(root) then return end
     watch(root.TitleText or _G.LegacySystemFrameTitleText)
     for _, tab in ipairs(root.Tabs or {}) do
         api.hooks.region_script(tab, "OnEnter", api.tooltip)
     end
     local track = root.RewardTrackPage
-    if track then
+    if track and (registering or api.visible(track) and (only == nil or only == "rewards")) then
         watch(track.PointsLabel)
         local progress = track.LegacyRewardProgressFrame
         local rows = progress and progress:GetElements()
         for _, row in ipairs(rows or {}) do prepare_reward(row) end
     end
     local page = root.ChallengesPage
-    if page then
+    if page and (registering or api.visible(page) and (only == nil or only == "challenges")) then
         local list = page.CategoryList
         if list then
             watch(list.SearchBox and list.SearchBox.Instructions)
@@ -291,10 +303,13 @@ local function refresh()
     end
     local tree = root.TreePage
     local panel = tree and tree.LegacyTreeTraitPanel
-    if panel then
+    local tree_active = tree and (registering or api.visible(tree) and (only == nil or only == "tree"))
+    if panel and tree_active then
         watch(panel.SelectedTreeIcon and panel.SelectedTreeIcon.SelectedTreeLabel)
         watch(panel.SearchBox and panel.SearchBox.Instructions)
-        api.button(panel.ApplyButton)
+        if panel.ApplyButton and type(panel.ApplyButton.GetFontString) == "function" then
+            watch(panel.ApplyButton:GetFontString())
+        end
         for _, key in ipairs({ "ResetButton", "UndoButton" }) do
             api.hooks.region_script(panel[key], "OnEnter", api.tooltip)
         end
@@ -302,44 +317,60 @@ local function refresh()
         prepare_scroll(preview and preview.ScrollBox, prepare_preview)
         watch(preview and preview.OverflowCount and preview.OverflowCount.Text)
     end
-    local summary = tree and tree.LegacyTreePointSummary
+    local summary = tree_active and tree.LegacyTreePointSummary
     watch(summary and summary.AvailablePointsLabel, function (region)
         local source = api.text(region)
         local amount = source and source:match("^Available points: (.+)$")
         if amount then formatted(region, _G.LEGACY_POINTS_AVAILABLE, amount) end
     end)
     api.hooks.region_script(summary, "OnEnter", point_tooltip)
-    local selection = tree and tree.LegacyTreeSelectionPanel
+    local selection = tree_active and tree.LegacyTreeSelectionPanel
     for _, button in ipairs(selection and selection.treeButtons or {}) do
         api.hooks.region_script(button, "OnEnter", api.tooltip)
     end
 end
 
+local function refresh_visible() refresh() end
+local function refresh_rewards() refresh("rewards") end
+local function refresh_tree() refresh("tree") end
+
 local function remember_descriptions(pane, info)
     local system = _G.LegacySystem
     if not info or not system or type(system.GetChallengeIndices) ~= "function" then return end
     local start, count = system.GetChallengeIndices(info.id)
-    for index = start + 1, start + count do
-        local id, _, _, _, _, _, _, source = GetAchievementInfo(info.id, index)
-        local row = achievements.get(id)
-        if row and runtime.safe_string_or_nil(source) then descriptions[source] = { id, row.description } end
+    if runtime.is_secret_value(start) or runtime.is_secret_value(count)
+        or type(start) ~= "number" or type(count) ~= "number" then return end
+    local cached = description_categories[info.id]
+    if not cached or cached.start ~= start or cached.count ~= count then
+        local complete = true
+        for index = start + 1, start + count do
+            local id, _, _, _, _, _, _, source = GetAchievementInfo(info.id, index)
+            local row = achievements.get(id)
+            source = runtime.safe_string_or_nil(source)
+            if row and source then descriptions[source] = { id, row.description }
+            else complete = false end
+        end
+        -- Retry unavailable rows; progress/filter changes do not invalidate
+        -- static names/descriptions for the same build and category range.
+        description_categories[info.id] = complete and { start = start, count = count } or nil
     end
     local placeholder = _G.AchievementFrame and AchievementFrame.PlaceholderHiddenDescription
     watch(placeholder, function (region)
-        if not _G.LegacySystemFrame or not LegacySystemFrame:IsShown()
-            or not LegacySystemFrame.ChallengesPage:IsShown() then return end
+        if not api.visible(_G.LegacySystemFrame)
+            or not api.visible(LegacySystemFrame.ChallengesPage) then return end
         local row = descriptions[api.text(region)]
         if row then apply(region, row[2], row[1], "achievement.description") end
     end)
-    refresh()
+    -- Native SetDataProvider initializes its own current rows. Do not revisit
+    -- the reward and talent pages after every challenge/filter update.
 end
 
 legacy.prepare = function ()
     api.surface = registry.register_surface({ id = "legacy-ui", roots = { "LegacySystemFrame" },
         preserve_claims_on_refresh = true,
         domains = { "ui", "achievement", "item", "spell" }, name_category = "none",
-        static = refresh, is_open = function ()
-            return _G.LegacySystemFrame and LegacySystemFrame:IsShown() or false
+        static = refresh_visible, is_open = function ()
+            return api.visible(_G.LegacySystemFrame)
         end })
     local function declare(target, method, callback)
         registry.declare_hook({ id = "legacy-ui:" .. target .. "." .. method,
@@ -352,23 +383,23 @@ legacy.prepare = function ()
     declare("LegacyChallengeCriteriaMixin", "Init", prepare_criterion)
     declare("LegacyChallengeObjectivesMixin", "Display", prepare_objectives)
     declare("LegacyChallengeDetailPaneMixin", "GenerateDataProvider", remember_descriptions)
-    for _, pair in ipairs({ { "LegacySystemFrameMixin", "SelectPage" },
-        { "LegacyRewardTrackPageMixin", "SetupRewardTrack" },
-        { "LegacyTreeTraitPanelMixin", "SelectTree" },
-        { "LegacyTreeSelectionPanelMixin", "RefreshTreeButtons" } }) do
-        declare(pair[1], pair[2], refresh)
+    for _, pair in ipairs({ { "LegacySystemFrameMixin", "SelectPage", refresh_visible },
+        { "LegacyRewardTrackPageMixin", "SetupRewardTrack", refresh_rewards },
+        { "LegacyTreeTraitPanelMixin", "SelectTree", refresh_tree },
+        { "LegacyTreeSelectionPanelMixin", "RefreshTreeButtons", refresh_tree } }) do
+        declare(pair[1], pair[2], pair[3])
     end
-    api.hooks.region_script(_G.LegacySystemFrame, "OnShow", refresh)
+    api.hooks.region_script(_G.LegacySystemFrame, "OnShow", refresh_visible)
     local root = _G.LegacySystemFrame
-    api.hooks.region(root, "SelectPage", refresh)
+    api.hooks.region(root, "SelectPage", refresh_visible)
     if root then
-        api.hooks.region(root.RewardTrackPage, "SetupRewardTrack", refresh)
+        api.hooks.region(root.RewardTrackPage, "SetupRewardTrack", refresh_rewards)
         local pane = root.ChallengesPage and root.ChallengesPage.DetailPane
         api.hooks.region(pane, "GenerateDataProvider", remember_descriptions)
         if pane and pane.info then remember_descriptions(pane, pane.info) end
         local tree = root.TreePage
-        api.hooks.region(tree and tree.LegacyTreeTraitPanel, "SelectTree", refresh)
-        api.hooks.region(tree and tree.LegacyTreeSelectionPanel, "RefreshTreeButtons", refresh)
+        api.hooks.region(tree and tree.LegacyTreeTraitPanel, "SelectTree", refresh_tree)
+        api.hooks.region(tree and tree.LegacyTreeSelectionPanel, "RefreshTreeButtons", refresh_tree)
     end
-    refresh()
+    refresh(nil, true)
 end

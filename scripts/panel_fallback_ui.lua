@@ -42,9 +42,14 @@ local function editable(frame)
     return not ok or runtime.is_secret_value(kind) or kind == "EditBox"
 end
 
-panels.prepare = function ()
+panels.prepare = function (selected_roots)
     for _, group in ipairs(groups) do
         local section, roots = group[1], group[2]
+        local selected = selected_roots == nil
+        for _, name in ipairs(roots) do
+            if selected_roots and selected_roots[name] then selected = true; break end
+        end
+        if selected then
         local service = services[section]
         if not service then
             local id = "panel-fallback-" .. section
@@ -65,10 +70,10 @@ panels.prepare = function ()
                     strings.translate_region(region, nil, "ui.label", ui.surface, nil, nil, section)
                 end
             end
-            local function refresh()
+            local function refresh(_, selected)
                 for _, root in ipairs(roots) do
                     local frame = _G[root]
-                    if frame then
+                    if frame and (not selected or selected[root]) then
                         local owner = registry.find_frame(frame)
                         local ok, shown = pcall(frame.IsShown, frame)
                         if (not owner or owner == ui.surface) and ok
@@ -88,6 +93,7 @@ panels.prepare = function ()
             service = { ui = ui, refresh = refresh }
             services[section] = service
         end
-        service.ui.prepare(roots, nil, {}, {}, service.refresh)
+        service.ui.prepare(roots, nil, {}, {}, service.refresh, nil, selected_roots)
+        end
     end
 end

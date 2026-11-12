@@ -14,6 +14,7 @@ local profiler = addon_table.use("performance_profile")
 local prepared_menus = setmetatable({}, { __mode = "k" })
 local prepared_descriptions = setmetatable({}, { __mode = "k" })
 local early_labels = setmetatable({}, { __mode = "k" })
+local prepared_legends = setmetatable({}, { __mode = "k" })
 local micro_button_names = {
     "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
     "SpellbookMicroButton", "SpellBookMicroButton", "TalentMicroButton",
@@ -403,9 +404,11 @@ local function translate_gamepad_prompt(prompt)
     local label = control and control.FontString
     if not label or runtime.is_applying(label) then return end
     if not strings.translate_region(label, nil, "ui.action") then return end
-    if runtime.combat_locked() or not runtime.can_write_text(prompt) then return end
     local width = addon_table.use("translation_layout").safe_dimension(label, "GetStringWidth")
     if width and type(control.SetWidth) == "function" then
+        local current = layout.safe_dimension(control, "GetWidth")
+        if current and layout.dimensions_match(current, width) then return end
+        if runtime.combat_locked() or not runtime.can_write_text(prompt) then return end
         pcall(control.SetWidth, control, width)
         if type(prompt.RefreshInputPromptSize) == "function" then
             pcall(prompt.RefreshInputPromptSize, prompt)
@@ -414,7 +417,7 @@ local function translate_gamepad_prompt(prompt)
 end
 
 local function bind_gamepad_legend(legend)
-    if not legend or not runtime.can_write_text(legend) or type(legend.promptFrames) ~= "table"
+    if not legend or type(legend.promptFrames) ~= "table" or prepared_legends[legend]
         or type(legend.RefreshWithPromptedBindings) ~= "function" then return end
     local function bind_prompts(self)
         for _, prompt in pairs(self.promptFrames) do
@@ -425,6 +428,7 @@ local function bind_gamepad_legend(legend)
     -- Bind newly pooled prompts before RefreshWithPromptedBindings writes
     -- their labels and measures the legend, including the new hold icons.
     hooks.region(legend, "GetOrCreatePromptFrameUsingTemplateAndInputs", bind_prompts)
+    prepared_legends[legend] = true
     bind_prompts(legend)
     if not runtime.combat_locked() and runtime.can_write_text(legend)
         and type(legend.ApplyDefaultPromptPositioning) == "function" then
@@ -432,12 +436,12 @@ local function bind_gamepad_legend(legend)
     end
 end
 
-local function prepare_gamepad_prompts()
+local function prepare_gamepad_prompts(roots)
     hooks.region(_G.InputPromptLegends, "CreateInputLegend", function (parent, key)
         bind_gamepad_legend(parent and parent[key])
     end)
     -- These panels can create their footer before UA_Forever loads.
-    for _, name in ipairs({ "GameMenuFrame", "WorldMapFrame",
+    for _, name in ipairs(roots or { "GameMenuFrame", "WorldMapFrame",
         "ContainerFrameCombinedBags", "ProfessionsFrame", "PlayerSpellsFrame",
         "LegacySystemFrame", "CatalogShopFrame" }) do
         local root = _G[name]
@@ -450,8 +454,8 @@ local function prepare_gamepad_prompts()
     end
 end
 
-menus_ui.prepare = function ()
-    prepare_gamepad_prompts()
+menus_ui.prepare = function (roots)
+    prepare_gamepad_prompts(roots)
     declare_game_menu_hook()
     local game_menu = registry.get("game-menu")
     if game_menu then
@@ -482,7 +486,10 @@ menus_ui.prepare = function ()
     hooks.global("UIDropDownMenu_AddButton", translate_legacy_dropdown)
     local game_menu_frame = _G.GameMenuFrame
     hooks.region_script(game_menu_frame, "OnShow", translate_game_menu)
-    translate_game_menu(game_menu_frame)
+    if roots == nil then
+        local ok, visible = pcall(function () return game_menu_frame:IsVisible() end)
+        if ok and not runtime.is_secret_value(visible) and visible then translate_game_menu(game_menu_frame) end
+    end
 
     -- Micro buttons are created before third-party addons, so Camelot has
     -- already copied the mixin method onto each instance by this point.

@@ -741,6 +741,22 @@ local function snapshot_values(snapshot, cursor, object, method, count, optional
     return snapshot, cursor, compare
 end
 
+-- A read-only signature for ordinary UI rows. Reuse the previous table on a
+-- hit; unreadable/secret inputs never enter a cache. Height is deliberately
+-- checked by the owner separately, so a native size reset can replay the plan.
+layout.text_signature = function (region, previous)
+    if not region or is_secret(region) then return nil end
+    local snapshot, cursor, compare = previous or {}, 1, previous ~= nil
+    for _, read in ipairs({ { "GetText", 1 }, { "GetFont", 3 }, { "GetWidth", 1 },
+        { "GetEffectiveScale", 1 }, { "GetSpacing", 1, true },
+        { "CanWordWrap", 1, true }, { "CanNonSpaceWrap", 1, true }, { "GetMaxLines", 1, true } }) do
+        snapshot, cursor, compare = snapshot_values(snapshot, cursor, region,
+            read[1], read[2], read[3] == true, compare)
+        if not snapshot then return nil end
+    end
+    return snapshot
+end
+
 local function tooltip_layout_snapshot(tooltip, previous, owner)
     local name = object_name(tooltip)
     local count = safe_dimension(tooltip, "NumLines")

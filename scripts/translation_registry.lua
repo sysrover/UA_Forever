@@ -251,7 +251,7 @@ registry.prepare_root_hooks = function ()
         for _, name in ipairs(surface.roots or {}) do
             local frame = _G[name]
             hooks.region_script(frame, "OnShow", function ()
-                registry.refresh(surface.id)
+                registry.refresh(surface.id, nil, { [name] = true })
             end, nil, surface.id)
         end
     end)
@@ -375,8 +375,7 @@ registry.register_defaults = function (translate_frame)
         { "social", { "SocialUIFrame", "FriendsFrame", "FriendsTooltip", "FriendsFriendsFrame",
             "AddFriendFrame", "BattleNetInviteFrame", "GuildFrame",
             "GuildInviteFrame" }, "none" },
-        { "collections", { "WardrobeCollectionFrame",
-            "EncounterJournal", "AchievementFrame" }, "none" },
+        { "collections", { "EncounterJournal", "AchievementFrame" }, "none" },
         { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame", "TaxiFrame" }, "none" },
     }
     for _, group in ipairs(groups) do
@@ -392,11 +391,13 @@ registry.register_defaults = function (translate_frame)
             slots = meta.slots or { "ui.text" },
             clear_on_reuse = true,
             preserve_claims_on_refresh = true,
-            static = function (surface)
+            static = function (surface, selected_roots)
                 local seen = {}
                 for _, name in ipairs(roots) do
                     local frame = _G[name]
-                    if frame_visible(frame) then translate_frame(frame, surface, nil, seen) end
+                    if (not selected_roots or selected_roots[name]) and frame_visible(frame) then
+                        translate_frame(frame, surface, nil, seen)
+                    end
                 end
             end,
             is_open = function ()
@@ -466,7 +467,7 @@ registry.each = function (callback)
     for _, surface in pairs(surfaces) do callback(surface) end
 end
 
-registry.refresh = function (id, phase)
+registry.refresh = function (id, phase, selected_roots)
     local options = addon_table.use("options")
     if options.work_enabled and not options.work_enabled(id) then return end
     local surface = surfaces[id]
@@ -476,8 +477,18 @@ registry.refresh = function (id, phase)
         if callback then callback(surface) end
         return
     end
-    if surface.refresh_pending then return end
     if type(surface.is_open) == "function" and not surface.is_open() then return end
+    -- Merge before coalescing: a second root can become dirty while the first
+    -- request is pending. false means the caller requested the whole surface.
+    if not selected_roots or phase == "rebuild" then
+        surface.refresh_roots = false
+    elseif surface.refresh_roots ~= false then
+        surface.refresh_roots = surface.refresh_roots or {}
+        for name, dirty in pairs(selected_roots) do
+            if dirty then surface.refresh_roots[name] = true end
+        end
+    end
+    if surface.refresh_pending then return end
     surface.refresh_pending = true
     local generation = runtime.generation(surface)
     if not surface.preserve_claims_on_refresh or phase == "rebuild" or generation == 0 then
@@ -488,11 +499,13 @@ registry.refresh = function (id, phase)
     scheduler.request({ id=id, surface=surface, instance="refresh",
         generation=generation, callback=function ()
             surface.refresh_pending = false
+            local roots = surface.refresh_roots or nil
+            surface.refresh_roots = nil
             if type(surface.is_open) == "function" and not surface.is_open() then
                 return
             end
-            if surface.static then surface.static(surface) end
-            if surface.dynamic then surface.dynamic(surface) end
+            if surface.static then surface.static(surface, roots) end
+            if surface.dynamic and not surface.static_covers_dynamic then surface.dynamic(surface, roots) end
         end })
 end
 

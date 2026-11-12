@@ -16,6 +16,24 @@ local hooks = addon_table.use("translation_hooks").bind("quest")
 local layout = addon_table.use("translation_layout")
 
 local tracker_refresh_pending = false
+local log_title_cache = setmetatable({}, { __mode = "k" })
+local text_height_cache = setmetatable({}, { __mode = "k" })
+local tracker_text_layouts = setmetatable({}, { __mode = "k" })
+
+local function cached_text_height(region, identity)
+    local cached = text_height_cache[region]
+    local signature = layout.text_signature and layout.text_signature(region, cached and cached.signature)
+    if signature and cached and cached.identity == identity and signature == cached.signature then
+        return cached.height
+    end
+    local height = layout.safe_dimension(region, "GetStringHeight")
+    if signature and height then
+        text_height_cache[region] = { identity = identity, signature = signature, height = height }
+    else
+        text_height_cache[region] = nil
+    end
+    return height
+end
 
 local function defer_tracker_in_combat()
     if not runtime.combat_locked() then return false end
@@ -373,13 +391,14 @@ local function grow_quest_log_row(button, delta)
     end
 end
 
-local function quest_log_titles(scroll)
+local function quest_log_titles(scroll, buttons)
     if not options.can_lookup("translate_quest") then return false end
     local pool = scroll and scroll.titleFramePool
     if not pool or type(pool.EnumerateActive) ~= "function" then return false end
     local changed = false
     for button in pool:EnumerateActive() do
         local id = button.questID
+        if buttons and safe_number(id) then buttons[id] = button end
         local region = button.Text
         local tag = button.TagText
         if quest_tags[safe_text(tag)] then
@@ -391,12 +410,22 @@ local function quest_log_titles(scroll)
         local entry = quest_entry(id)
         local ukrainian = entry and safe_string(entry[1])
         if current and english and ukrainian then
-            ukrainian = utils.cap(ukrainian)
-            local source = replace_once(current, ukrainian, english) or current
-            local translated = replace_once(source, english, ukrainian)
+            local cached = log_title_cache[region]
+            local retained = cached and cached.id == id and cached.english == english
+                and cached.ukrainian == ukrainian
+                and (current == cached.source or current == cached.translated)
+            local source, translated
+            if retained then
+                source, translated = cached.source, cached.translated
+            else
+                local name = utils.cap(ukrainian)
+                source = replace_once(current, name, english) or current
+                translated = replace_once(source, english, name)
+                log_title_cache[region] = translated and { id = id, english = english,
+                    ukrainian = ukrainian, source = source, translated = translated } or nil
+            end
             if translated then
-                local height_ok, old_height = pcall(region.GetStringHeight, region)
-                old_height = height_ok and safe_number(old_height)
+                local old_height = current ~= translated and cached_text_height(region, id) or nil
                 local previous = runtime.get(region)
                 local slot = "quest:" .. id .. ".name"
                 if not previous or previous.owner ~= "quest-log" or previous.slot ~= slot
@@ -412,15 +441,14 @@ local function quest_log_titles(scroll)
                 })
                 if applied then
                     if options.can_translate("override_system_fonts") then runtime.ensure_font(region) end
-                    local ok, new_height = pcall(region.GetStringHeight, region)
-                    new_height = ok and safe_number(new_height)
-                    if old_height and new_height then
+                    local new_height = cached_text_height(region, id)
+                    if new_height then
                         local frame_ok, frame_height = pcall(region.GetHeight, region)
                         frame_height = frame_ok and safe_number(frame_height)
                         if frame_height and new_height > frame_height + 0.5 then
                             pcall(region.SetHeight, region, new_height)
                         end
-                        if math.abs(new_height - old_height) >= 0.5 then
+                        if old_height and math.abs(new_height - old_height) >= 0.5 then
                             grow_quest_log_row(button, new_height - old_height)
                             changed = true
                         end
@@ -442,8 +470,9 @@ local function quest_log_titles(scroll)
             local retained = previous and previous.owner == "quest-log" and previous.slot == slot
                 and (current == previous.source or current == previous.translated)
             local source = retained and current == previous.translated and previous.source or current
-            local translated = source and entries.get_glossary_text(source, source)
-            local class_forms = source and addon_table.class
+            local translated = retained and previous.translated
+                or source and entries.get_glossary_text(source, source)
+            local class_forms = not retained and source and addon_table.class
                 and addon_table.class[source:lower():gsub(" ", "")]
             if translated == source and class_forms and class_forms["н"] then
                 translated = utils.cap(class_forms["н"][1])
@@ -452,8 +481,7 @@ local function quest_log_titles(scroll)
             if source and safe_string(translated) and translated ~= source then
                 local old_ok, old_height = false, nil
                 if current ~= translated then
-                    old_ok, old_height = pcall(region.GetStringHeight, region)
-                    old_height = old_ok and safe_number(old_height) or nil
+                    old_height = cached_text_height(region, slot)
                 end
                 local applied = runtime.apply(region, {
                     owner = "quest-log", slot = slot,
@@ -462,8 +490,7 @@ local function quest_log_titles(scroll)
                     reapply_cached = true,
                 })
                 if applied and current ~= translated then
-                    local new_ok, new_height = pcall(region.GetStringHeight, region)
-                    new_height = new_ok and safe_number(new_height) or nil
+                    local new_height = cached_text_height(region, slot)
                     if not old_height or not new_height
                         or math.abs(new_height - old_height) >= 0.5 then changed = true end
                 end
@@ -790,16 +817,8 @@ local function prepare_dialog_hooks()
         local scroll = _G.QuestScrollFrame
         local pool = scroll and scroll.objectiveFramePool
         if not pool or type(pool.EnumerateActive) ~= "function" then return end
-        local counters, changed = {}, quest_log_titles(scroll)
         local buttons = {}
-        local titles = scroll.titleFramePool
-        if titles and type(titles.EnumerateActive) == "function" then
-            for button in titles:EnumerateActive() do
-                if type(button.questID) == "number" then
-                    buttons[button.questID] = button
-                end
-            end
-        end
+        local counters, changed = {}, quest_log_titles(scroll, buttons)
         for frame in pool:EnumerateActive() do
             local id = frame.questID
             if type(id) == "number" and frame.Text then
@@ -808,9 +827,9 @@ local function prepare_dialog_hooks()
                     "quest:" .. id .. ":log-objective:" .. counters[id],
                     nil, id, scroll)
                 local old_ok, old_height = pcall(frame.GetHeight, frame)
-                local new_ok, new_height = pcall(frame.Text.GetStringHeight, frame.Text)
                 old_height = old_ok and safe_number(old_height)
-                new_height = new_ok and safe_number(new_height)
+                local new_height = cached_text_height(frame.Text,
+                    "quest:" .. id .. ":log-objective:" .. counters[id])
                 local resized = false
                 if old_height and new_height and new_height > 0
                     and math.abs(new_height - old_height) >= 0.5 then
@@ -847,15 +866,36 @@ local function translate_header(block, id)
 end
 
 local function fit_tracker_text(region)
-    if not region or runtime.combat_locked() or not safe_text(region)
-        or not runtime.can_write_text(region) then return end
+    if not region or runtime.combat_locked() or not safe_text(region) then return end
+    local cached = tracker_text_layouts[region]
+    local signature = layout.text_signature and layout.text_signature(region, cached and cached.signature)
+    local current_height = layout.safe_dimension(region, "GetHeight")
+    if signature and cached and signature == cached.signature and current_height
+        and math.abs(current_height - cached.fitted_height) <= 0.5 then return cached.height end
+    local function set_if_changed(getter, setter, expected)
+        if type(region[setter]) ~= "function" then return true end
+        if type(region[getter]) == "function" then
+            local ok, current = pcall(region[getter], region)
+            if not ok or runtime.is_secret_value(current) then return false end
+            if current == expected then return true end
+        end
+        if not runtime.can_write_text(region) then return false end
+        return pcall(region[setter], region, expected)
+    end
     -- SetStringText measures immediately after SetText. Release stale caps in
     -- that same call, so Blizzard measures the final font and wrapped text.
-    if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
-    if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
-    if type(region.SetNonSpaceWrap) == "function" then pcall(region.SetNonSpaceWrap, region, true) end
-    if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
-    return layout.safe_dimension(region, "GetStringHeight")
+    if not set_if_changed("GetMaxLines", "SetMaxLines", 0)
+        or not set_if_changed("CanWordWrap", "SetWordWrap", true)
+        or not set_if_changed("CanNonSpaceWrap", "SetNonSpaceWrap", true) then return end
+    if type(region.SetHeight) == "function" then
+        if not runtime.can_write_text(region) or not pcall(region.SetHeight, region, 0) then return end
+    end
+    local height = cached_text_height(region, "tracker")
+    local fitted_height = layout.safe_dimension(region, "GetHeight")
+    signature = layout.text_signature and layout.text_signature(region, signature)
+    tracker_text_layouts[region] = signature and height and fitted_height
+        and { signature = signature, height = height, fitted_height = fitted_height } or nil
+    return height
 end
 
 local function fit_tracker_block(block)
@@ -961,7 +1001,7 @@ local function translate_objectives(block, id)
         local region = line and line.Text
         local source = safe_text(region)
         if not region then return end
-        if not source or not runtime.can_write_text(region) then ready = false; return end
+        if not source then ready = false; return end
         local applied, attempted = objective_region(region,
             "quest:" .. id .. ":" .. tostring(key) .. ".description",
             nil, id, "quest-tracker")
@@ -993,7 +1033,7 @@ quest_ui.refresh_tracker_progress = function ()
     if names_enabled then
         for id, block in pairs(blocks) do
             if safe_number(id) and block and block.HeaderText then
-                if safe_text(block.HeaderText) and runtime.can_write_text(block.HeaderText) then
+                if safe_text(block.HeaderText) then
                     if not translate_header(block, id) then ready = false end
                 else
                     ready = false
