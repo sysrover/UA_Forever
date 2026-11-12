@@ -2046,6 +2046,25 @@ addonTable.chat_hashed = { ["version"] = 1 }
 addonTable.chat_hashed.rows = chat_rows
 
 addonTable.chat = {
+    ["Captain Truman"] = {
+        [1] = "капітан Труман",
+        ["cntshsteashelsathsdgfh"] = "Руки капітана Трумана тремтять, коли він дивиться на свою зотлілу плоть.",
+        ["nonolnwlbefefmudylse"] = "Ні... ні. Лордерон буде вільний від невмерлих. Ось побачиш.",
+    },
+    ["Rath'mael"] = {
+        [1] = "Рат'маель",
+        ["enindhwlpt"] = "Навіть у смерті... я не здамся.",
+        ["shetaduess"] = "Такі заблудлі й нещасні душі...",
+    },
+    ["Shellene"] = {
+        [1] = "Шеллен",
+        ["beyucnaeorfe"] = "Я вірю, що ви, діти, — наше майбутнє...",
+        ["issosdfryuprcn"] = "Так шкода вас, бідолашні діти.",
+    },
+    ["The Baron"] = {
+        [1] = "Барон",
+        ["femeln"] = "Пробач мені, Лордероне...",
+    },
     ["A-Me 01"] = { [1] = "Е-Мі 01" },
     ["Acolyte Dellis"] = { [1] = "помічник Делліс" },
     ["Adam"] = { [1] = "Адам" },
@@ -2382,7 +2401,10 @@ addonTable.chat = {
     ["Myra Tyrngaarde"] = { [1] = "Міра Тірнґаард" },
     ["Nefarian's Troops"] = { [1] = "війська Нефаріана" },
     ["Number Two"] = { [1] = "номер два" },
-    ["Ol' Emma"] = { [1] = "Стара Емма" },
+    ["Ol' Emma"] = {
+        [1] = "Стара Емма",
+        ["sslehdtsdywkaltewytotewltogtmewrnortfrtrestlya"] = "Здається, я по сто разів на день плентаюся аж до криниці по воду. Кажу вам, ніякої поваги до старших.",
+    },
     ["Onyxia"] = { [1] = "Оніксія" },
     ["Overlord Runthak"] = { [1] = "властитель Рунтак" },
     ["Ozzie Togglevolt"] = { [1] = "Оззі Вольтон" },

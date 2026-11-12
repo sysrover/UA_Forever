@@ -51,6 +51,7 @@
     <Script file="lfg_ui.lua"/>
     <Script file="popup_ui.lua"/>
     <Script file="social_ui.lua"/>
+    <Script file="guild_ui.lua"/>
     <Script file="raid_ui.lua"/>
     <Script file="trade_ui.lua"/>
     <Script file="compact_raid_manager_ui.lua"/>

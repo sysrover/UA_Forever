@@ -3,6 +3,7 @@ local profiler = addon_table.use("performance_profile")
 local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local social_ui = addon_table.use("social_ui")
+local guild_ui = addon_table.use("guild_ui")
 local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local runtime = addon_table.use("translation_runtime")
@@ -196,6 +197,7 @@ local function skip_social_user_text(region)
     if not region or type(region.GetParent) ~= "function" then return false end
     local ok, parent = pcall(region.GetParent, region)
     if not ok or not parent then return true end
+    if guild_ui.skip_region and guild_ui.skip_region(region, parent) then return true end
     for _, key in ipairs({ "name", "Name", "FriendName", "CharacterName",
         "InviteeName", "NoteText", "BroadcastText", "Header", "DisplayText" }) do
         if parent[key] == region then return true end
