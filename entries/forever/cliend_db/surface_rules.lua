@@ -122,6 +122,24 @@ addonTable.forever_surface_ui = {
     settings = {
         base_tab = "Основні",
         selected = function (count) return "Вибрано: " .. count end,
+        short_labels = {
+            ["Location Visibility"] = "Видимість локації",
+            ["Turn Player with Camera"] = "Поворот із камерою",
+        },
+        -- Only the collapsed selector uses these captions. Menu options and
+        -- native setting data retain their complete text and meaning.
+        short_values = {
+            PROXY_SOCIAL_LOCATION_VISIBILITY = {
+                ["Friends and Guildmates"] = "Друзі й гільдія",
+                ["Friends, Recent Allies, and Guildmates"] = "Друзі, недавні союзники, гільдія",
+            },
+            PROXY_GAMEPAD_TURN_WITH_CAMERA = {
+                ["Player turns with camera when moving"] = "Під час руху",
+                ["Player turns with camera when moving or in combat"] = "Рух або бій",
+                ["Player turns with camera when moving, in combat or casting"] = "Рух, бій або закляття",
+                ["Player always turns with camera"] = "Завжди",
+            },
+        },
     },
     skills = {
         pet_actions = {

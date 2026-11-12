@@ -1061,6 +1061,16 @@ local function panel_format_rule(template, pattern, translate_arguments)
 end
 
 addonTable.forever_ui_patterns = {
+    panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nType \\\"UNLEARN\\\" into the field to confirm.",
+        "^Do you want to unlearn (.-) and lose all associated recipes%?%s*|n|nType .-UNLEARN.- into the field to confirm%.$", true),
+    panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nType \\\"UNLEARN\\\" into the field to confirm.",
+        "^Do you want to unlearn (.-) and lose all associated recipes%?%s+Type .-UNLEARN.- into the field to confirm%.$", true),
+    panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nPress the button sequence to confirm.",
+        "^Do you want to unlearn (.-) and lose all associated recipes%?%s*|n|nPress the button sequence to confirm%.$", true),
+    panel_format_rule("Do you want to unlearn %s and lose all associated recipes? |n|nPress the button sequence to confirm.",
+        "^Do you want to unlearn (.-) and lose all associated recipes%?%s+Press the button sequence to confirm%.$", true),
+    panel_format_rule("You have been removed from %s because it was disbanded.",
+        "^You have been removed from (.-) because it was disbanded%.$"),
     -- FontStrings can expose native line breaks or the escaped DB2 form.
     -- The whitespace variants also match resolver.normalize's display text.
     quest_accept_rule("%s is starting %s\\nWould you like to as well?",

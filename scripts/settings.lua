@@ -669,16 +669,28 @@ local function translate_dropdown(frame, dropdown)
         end
         return
     end
-    translate_source_region(dropdown.Text,
-        source_ok and source or nil, "ui.value", frame)
-    hook_native_region(dropdown.Text, "ui.value", frame)
+    local function translate_value(region, native_source)
+        if runtime.is_applying and runtime.is_applying(region) then return end
+        -- Rows are pooled: resolve the current setting on every native write.
+        -- Never replace dropdown.text or optionData; both also feed the menu.
+        local current_setting = safe_method(frame, "GetSetting")
+        local current_variable = safe_method(current_setting, "GetVariable")
+        local values = type(current_variable) == "string" and surface_text.short_values
+            and surface_text.short_values[current_variable]
+        local current_source = safe_source(native_source)
+        translate_source_region(region, current_source, "ui.value", frame,
+            values and current_source and values[current_source])
+    end
+    translate_value(dropdown.Text, source_ok and source or nil)
+    hooks.region(dropdown.Text, "SetText", translate_value)
 end
 
 local function translate_row(frame, supplied_initializer)
     if not frame then return end
     local initializer = frame_initializer(frame, supplied_initializer)
-    translate_source_region(frame.Text,
-        initializer_name(frame, initializer), "ui.label", frame)
+    local label_source = initializer_name(frame, initializer)
+    translate_source_region(frame.Text, label_source, "ui.label", frame,
+        surface_text.short_labels and label_source and surface_text.short_labels[label_source])
     fit_row_label(frame)
     translate_region(frame.Title, "ui.title", frame)
     translate_region(frame.Label, "ui.label", frame)
@@ -854,13 +866,9 @@ local function translate_advanced_quality_section(section)
                 translate_region(control and control.Text, "ui.label", control)
                 local dropdown = control and control.Control and control.Control.Dropdown
                 if dropdown then
-                    set_width(dropdown, SETTINGS_DROPDOWN_WIDTH)
-                    translate_source_region(dropdown.Text, dropdown.text,
-                        "ui.value", control)
+                    translate_dropdown(control, dropdown)
                     hooks.region(dropdown, "UpdateText", function (self)
-                        set_width(self, SETTINGS_DROPDOWN_WIDTH)
-                        translate_source_region(self.Text, self.text,
-                            "ui.value", control)
+                        translate_dropdown(control, self)
                     end)
                 end
             end
