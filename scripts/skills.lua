@@ -231,7 +231,23 @@ local function update_spellbook_item_layout(frame)
         local height = layout.safe_dimension and layout.safe_dimension(frame, "GetHeight")
         if cached and name and sub and level and name == cached.name and sub == cached.sub
             and level == cached.level and height and cached.height == height then return end
-        if runtime.combat_locked() or not runtime.can_write_text(frame) then return end
+        if runtime.combat_locked() then
+            local info = frame.spellBookItemInfo
+            local id = not is_secret(info) and spellbook_item_spell_id(info)
+            local native_name = type(info) == "table" and text_from(info.name)
+            if id and not is_secret(id) and native_name and runtime.defer_layout then
+                runtime.defer_layout(frame, function ()
+                    local current = frame.spellBookItemInfo
+                    if visible(frame) and not is_secret(current)
+                        and spellbook_item_spell_id(current) == id
+                        and type(current) == "table" and text_from(current.name) == native_name then
+                        update_spellbook_item_layout(frame)
+                    end
+                end)
+            end
+            return
+        end
+        if not runtime.can_write_text(frame) then return end
         if pcall(frame.UpdateTextContainer, frame) and name and sub and level then
             book_row_layouts[frame] = {
                 name = layout.text_signature(frame.Name, name),
@@ -275,6 +291,9 @@ end
 
 local function register_spellbook_chrome(frame, depth)
     if not frame or (depth or 1) > 4 then return end
+    if is_secret(frame) then return end
+    local ok, forbidden = pcall(function () return frame.IsForbidden and frame:IsForbidden() end)
+    if not ok or is_secret(forbidden) or forbidden == true then return end
     local previous = book_chrome[frame]
     if previous then
         if not previous.seeded and visible(frame) then
@@ -314,8 +333,12 @@ local function register_spellbook_chrome(frame, depth)
     if type(frame.GetChildren) == "function" then
         local ok, children = pcall(function () return { frame:GetChildren() } end)
         if ok then
-            state.children = children
-            for _, child in ipairs(children) do register_spellbook_chrome(child, (depth or 1) + 1) end
+            for _, child in ipairs(children) do
+                if not is_secret(child) then
+                    state.children[#state.children + 1] = child
+                    register_spellbook_chrome(child, (depth or 1) + 1)
+                end
+            end
         end
     end
 end

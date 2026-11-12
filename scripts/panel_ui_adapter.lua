@@ -97,7 +97,8 @@ adapter.bind = function (id)
         walker.walk({ id = id .. ":labels", surface = id, owner = id,
             reason = "REGISTERED_STATIC_SCAN", max_nodes = 1000 }, root, function (region)
                 local ok, kind = pcall(function () return region:GetObjectType() end)
-                if ok and not runtime.is_secret_value(kind) and kind == "FontString" then
+                if ok and not runtime.is_secret_value(region)
+                    and not runtime.is_secret_value(kind) and kind == "FontString" then
                     labels.regions[#labels.regions + 1] = region
                     api.watch(region, label, label)
                 end

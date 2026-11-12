@@ -47,6 +47,9 @@ local ITEM_LAYOUT_EPSILON = 0.5
 local ITEM_RIGHT_TEXT_PADDING = 2
 local TOOLTIP_SIDES = { "Left", "Right" }
 local TOOLTIP_FRAME_READS = { "GetEffectiveScale" }
+local TEXT_ROW_READS = { { "GetText", 1 }, { "GetFont", 3 }, { "GetWidth", 1 },
+    { "GetEffectiveScale", 1 }, { "GetSpacing", 1, true },
+    { "CanWordWrap", 1, true }, { "CanNonSpaceWrap", 1, true }, { "GetMaxLines", 1, true } }
 local pending_tooltip_layout = setmetatable({}, { __mode = "k" })
 local tooltip_row_anchors = setmetatable({}, { __mode = "k" })
 local tooltip_row_content = setmetatable({}, { __mode = "k" })
@@ -749,9 +752,7 @@ end
 layout.text_signature = function (region, previous)
     if not region or is_secret(region) then return nil end
     local snapshot, cursor, compare = previous or {}, 1, previous ~= nil
-    for _, read in ipairs({ { "GetText", 1 }, { "GetFont", 3 }, { "GetWidth", 1 },
-        { "GetEffectiveScale", 1 }, { "GetSpacing", 1, true },
-        { "CanWordWrap", 1, true }, { "CanNonSpaceWrap", 1, true }, { "GetMaxLines", 1, true } }) do
+    for _, read in ipairs(TEXT_ROW_READS) do
         snapshot, cursor, compare = snapshot_values(snapshot, cursor, region,
             read[1], read[2], read[3] == true, compare)
         if not snapshot then return nil end

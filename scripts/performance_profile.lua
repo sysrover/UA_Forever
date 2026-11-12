@@ -627,6 +627,7 @@ profiler.start = function (seconds, on_saved)
         layoutWrites = {}, layoutWriteCount = 0,
         layoutWriteMeaning = "cached replay setter attempts by property, tooltip and text mode",
         slowIntervalCandidates = 0, slowIntervalsOmitted = 0, slowIntervalsReplaced = 0,
+        slowIntervalCandidateMeaning = "frameMs > 33 or a measured outer call > 5 ms; retention is bounded",
         nestedTimesOverlap = true, selfTimeIsAdditive = true,
         frameAttribution = "callbacks between collector ticks; not an exact frame boundary",
         contextMeaning = "current GameTooltip metadata; not the cause or owner of the interval",
