@@ -2,7 +2,7 @@ local addon_name, addon_table = ...
 local profiler = addon_table.use("performance_profile")
 local CreateFrame = profiler.frame_factory and profiler.frame_factory("main") or _G.CreateFrame
 local profile_callback = profiler.wrap or function (_, callback) return callback end
-local addon_version = "0.26.0"
+local addon_version = "0.26.5"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
