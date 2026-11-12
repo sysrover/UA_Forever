@@ -420,18 +420,21 @@ local function translate_gamepad_prompt(prompt)
 end
 
 local function bind_gamepad_legend(legend)
-    if not legend or type(legend.promptFrames) ~= "table" or prepared_legends[legend]
-        or type(legend.RefreshWithPromptedBindings) ~= "function" then return end
+    if not legend or prepared_legends[legend] then return end
+    local ok, prompts, refresh = pcall(function () return legend.promptFrames, legend.RefreshWithPromptedBindings end)
+    if not ok or runtime.is_secret_value(prompts) or runtime.is_secret_value(refresh)
+        or type(prompts) ~= "table" or type(refresh) ~= "function" then return end
     local function bind_prompts(self)
-        for _, prompt in pairs(self.promptFrames) do
+        local valid, current = pcall(function () return self.promptFrames end)
+        if not valid or runtime.is_secret_value(current) or type(current) ~= "table" then return end
+        for _, prompt in pairs(current) do
             hooks.region(prompt, "SetPromptText", translate_gamepad_prompt)
             translate_gamepad_prompt(prompt)
         end
     end
     -- Bind newly pooled prompts before RefreshWithPromptedBindings writes
     -- their labels and measures the legend, including the new hold icons.
-    hooks.region(legend, "GetOrCreatePromptFrameUsingTemplateAndInputs", bind_prompts)
-    prepared_legends[legend] = true
+    prepared_legends[legend] = hooks.region(legend, "GetOrCreatePromptFrameUsingTemplateAndInputs", bind_prompts) == true
     bind_prompts(legend)
     if not runtime.combat_locked() and runtime.can_write_text(legend)
         and type(legend.ApplyDefaultPromptPositioning) == "function" then

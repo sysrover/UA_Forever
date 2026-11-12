@@ -59,6 +59,7 @@ local arm_minimap_watcher = function () end
 local instruction_layouts = setmetatable({}, { __mode = "k" })
 local owned_ui_state = setmetatable({}, { __mode = "k" })
 local micro_translation_cache = setmetatable({}, { __mode = "k" })
+local owned_ui_show_hooked = false
 if options.on_activity_change then
     options.on_activity_change("owned-ui-tooltip-cache", function ()
         micro_translation_cache = setmetatable({}, { __mode = "k" })
@@ -2318,7 +2319,7 @@ local function prepare_tooltip_frames()
                     finish_instruction_layout(self)
                     layout.fit_item_tooltip_once(self)
                 end)
-                hooks.region(tooltip, "Show", function (self)
+                owned_ui_show_hooked = hooks.region(tooltip, "Show", function (self)
                     finish_instruction_layout(self)
                     if tooltips.complete_owned_ui(self, true) then return end
                     if bag_layout_hooked and self.uaForeverKind == "item" then
@@ -2430,7 +2431,7 @@ local function prepare_tooltip_frames()
                     -- are hooked directly, so OnShow must not rescan the frame.
                     return
                 end
-                if owned_ui_context(self) then return end
+                if owned_ui_show_hooked and owned_ui_context(self) then return end
                 if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
                 if self.uaForeverKind ~= "item"
                     and self.uaForeverKind ~= "talent" then

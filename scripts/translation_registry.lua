@@ -250,8 +250,9 @@ registry.prepare_root_hooks = function ()
         if type(surface.static) ~= "function" then return end
         for _, name in ipairs(surface.roots or {}) do
             local frame = _G[name]
+            local root_name = name
             hooks.region_script(frame, "OnShow", function ()
-                registry.refresh(surface.id, nil, { [name] = true })
+                registry.refresh(surface.id, nil, { [root_name] = true })
             end, nil, surface.id)
         end
     end)
