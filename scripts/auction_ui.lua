@@ -25,15 +25,14 @@ end
 local function translate_auction_label(region)
     translate_auction_region(region, "ui.text")
 end
+local formatted_auction_label = strings.formatted_callback and strings.formatted_callback(
+    translate_auction_label, nil, "ui.text", function () return registry.get("misc") end, "auction") or translate_auction_label
 
 local function watch_auction_region(region, callback)
     if not region then return end
     callback = callback or translate_auction_label
     hooks.region(region, "SetText", callback)
-    local formatted = callback
-    if callback == translate_auction_label and strings.formatted_callback then
-        formatted = strings.formatted_callback(callback, nil, "ui.text", function () return registry.get("misc") end, "auction")
-    end
+    local formatted = callback == translate_auction_label and formatted_auction_label or callback
     hooks.region(region, "SetFormattedText", formatted)
     callback(region)
 end

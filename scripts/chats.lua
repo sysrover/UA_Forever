@@ -138,7 +138,9 @@ local function filter_chat_msg(self, event, chat_text, npc_name, lang_name, ...)
     end
 
     local npc_name_key = npc_name
-    if npc_name == UnitName("player") then
+    local player_ok, player_name = pcall(UnitName, "player")
+    player_name = player_ok and runtime.safe_string_or_nil(player_name) or nil
+    if player_name and npc_name == player_name then
         npc_name_key = "!player"
     end
 

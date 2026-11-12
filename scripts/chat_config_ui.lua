@@ -88,11 +88,13 @@ local function translate_region(region, template, ...)
     end
 end
 
+local function region_text_written(region) return translate_region(region) end
+
 local function prepare_region(region)
     if not region then return end
     local ok, kind = pcall(region.GetObjectType, region)
     if not ok or runtime.is_secret_value(kind) or kind ~= "FontString" then return end
-    hooks.region(region, "SetText", function (self) translate_region(self) end)
+    hooks.region(region, "SetText", region_text_written)
     hooks.region(region, "SetFormattedText", translate_region)
     translate_region(region)
 end

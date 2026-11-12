@@ -60,9 +60,12 @@ local function widen_mail_frame()
     end
 end
 
-local function translate_mail_region(region, template, ...)
+local translate_mail_region
+local function mail_text_written(region) return translate_mail_region(region) end
+
+translate_mail_region = function (region, template, ...)
     if not region or runtime.is_applying(region) then return end
-    hooks.region(region, "SetText", function (self) translate_mail_region(self) end)
+    hooks.region(region, "SetText", mail_text_written)
     hooks.region(region, "SetFormattedText", translate_mail_region)
     if type(region.GetText) ~= "function" then return end
     local ok, source = pcall(region.GetText, region)

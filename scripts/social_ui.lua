@@ -19,15 +19,14 @@ local function translate_social_location(region)
     if not region or runtime.is_applying(region) then return end
     strings.translate_region(region, "zone", "zone.name", registry.get("social"))
 end
+local formatted_social_region = strings.formatted_callback and strings.formatted_callback(
+    translate_social_region, nil, "ui.text", function () return registry.get("social") end) or translate_social_region
 
 local function watch_social_region(region, translate)
     if not region then return end
     translate = translate or translate_social_region
     hooks.region(region, "SetText", translate)
-    local formatted = translate
-    if translate == translate_social_region and strings.formatted_callback then
-        formatted = strings.formatted_callback(translate, nil, "ui.text", function () return registry.get("social") end)
-    end
+    local formatted = translate == translate_social_region and formatted_social_region or translate
     hooks.region(region, "SetFormattedText", formatted)
     translate(region)
 end
