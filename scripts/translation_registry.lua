@@ -374,7 +374,7 @@ registry.register_defaults = function (translate_frame)
         { "items", { "MerchantFrame", "BankFrame", "ContainerFrameCombinedBags", "LootFrame" }, "item" },
         { "social", { "SocialUIFrame", "FriendsFrame", "FriendsTooltip", "FriendsFriendsFrame",
             "AddFriendFrame", "BattleNetInviteFrame", "GuildFrame",
-            "CommunitiesFrame", "GuildInviteFrame" }, "none" },
+            "GuildInviteFrame" }, "none" },
         { "collections", { "WardrobeCollectionFrame",
             "EncounterJournal", "AchievementFrame" }, "none" },
         { "misc", { "MacroFrame", "AddonList", "AuctionHouseFrame", "InspectFrame", "HelpFrame", "DressUpFrame", "ItemTextFrame", "TaxiFrame" }, "none" },

@@ -23374,6 +23374,7 @@ local ui = {
     ["You must have an active subscription to play characters above level 10. \n\nWould you like to reactivate now and continue where you left off?"] = "Для гри персонажами вище 10-го рівня потрібна активна підписка. \n\nБажаєте поновити її зараз і продовжити з того місця, де зупинилися?",
     ["You must have an active subscription to play characters above level 10."] = "Для гри персонажами вище 10-го рівня потрібна активна підписка.",
     ["- Great for in-game friends|n- Calendar and Quick Join support"] = "- Чудово підходить для друзів у грі|n- Підтримка календаря та швидкого приєднання",
+    ["- Great for in-game friends\n- Calendar and Quick Join support"] = "- Чудово підходить для друзів у грі\n- Підтримка календаря та швидкого приєднання",
     ["Create World of Warcraft Community (%s)"] = "Створити спільноту World of Warcraft (%s)",
     ["PLAY TO LEVEL 60"] = "ГРАЙТЕ ДО 60-ГО РІВНЯ",
     ["GET ACCESS TO WORLD OF WARCRAFT, INCLUDING WOW: FOREVER AND CLASSIC"] = "ОТРИМАЙТЕ ДОСТУП ДО WORLD OF WARCRAFT, ЗОКРЕМА WOW: FOREVER ТА CLASSIC",

@@ -1143,6 +1143,10 @@ local profession_load = {
     surfaces = { "professions" },
 }
 local panel_loads = {
+    Blizzard_Communities = {
+        modules = { "social_ui", "guild_ui", "panel_fallback_ui" },
+        surfaces = { "social", "guild-ui" },
+    },
     Blizzard_ProfessionsTemplates = profession_load,
     Blizzard_ProfessionsBook = profession_load,
     Blizzard_Professions = profession_load,

@@ -1041,6 +1041,20 @@ end
 
 addonTable.forever_ui_patterns = {
     panel_format_rule("%s/%s Online", "^([^/]+)/([^/]+) Online$"),
+    panel_format_rule("Create World of Warcraft Community (%s)",
+        "^Create World of Warcraft Community %((.-)%)$", true),
+    {
+        pattern = "^(%d+) |4([A-Za-z]+):([A-Za-z]+);$",
+        replace = function (count, _, unit)
+            return translate_social_time(count .. " " .. unit)
+        end,
+    },
+    {
+        pattern = "^(%d+) ([A-Za-z]+)$",
+        replace = function (count, unit)
+            return translate_social_time(count .. " " .. unit)
+        end,
+    },
     panel_format_rule('Would you like to save the equipment set "%s"?',
         '^Would you like to save the equipment set "(.*)"%?$'),
     panel_format_rule("Assign to %s", "^Assign to (.+)$", true),
