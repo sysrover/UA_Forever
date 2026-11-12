@@ -1005,6 +1005,17 @@ end
 
 -- These 70291 popup templates are formatted before the display is translated.
 -- Match their exact native text, preserving the player-name argument.
+local function quest_accept_rule(template, pattern)
+    return { pattern = pattern, replace = function (player_name, quest_title)
+        -- Only the quest capture belongs to the domain catalog. A player's
+        -- name must never pass through the general UI or glossary lookup.
+        local title = addonTable.use("entries").lookup_name("quest", quest_title)
+            or quest_title
+        local target = addonTable.forever_ui[template]
+        return target and string.format(target:gsub("\\n", "\n"), player_name, title)
+    end }
+end
+
 local function popup_argument_rule(tag, translate_argument)
     local template = _G[tag]
     local target = template and addonTable.forever_ui[template]
@@ -1050,6 +1061,16 @@ local function panel_format_rule(template, pattern, translate_arguments)
 end
 
 addonTable.forever_ui_patterns = {
+    -- FontStrings can expose native line breaks or the escaped DB2 form.
+    -- The whitespace variants also match resolver.normalize's display text.
+    quest_accept_rule("%s is starting %s\\nWould you like to as well?",
+        "^(.+) is starting (.-)%s+Would you like to as well%?$"),
+    quest_accept_rule("%s is starting %s\\nWould you like to as well?",
+        "^(.+) is starting (.-)\\nWould you like to as well%?$"),
+    quest_accept_rule("%s is starting %s\\nYour quest log is full. You can join this\\nquest if you make room in your quest log.",
+        "^(.+) is starting (.-)%s+Your quest log is full%. You can join this%s+quest if you make room in your quest log%.$"),
+    quest_accept_rule("%s is starting %s\\nYour quest log is full. You can join this\\nquest if you make room in your quest log.",
+        "^(.+) is starting (.-)\\nYour quest log is full%. You can join this\\nquest if you make room in your quest log%.$"),
     panel_format_rule("%s/%s Online", "^([^/]+)/([^/]+) Online$"),
     panel_format_rule("Create World of Warcraft Community (%s)",
         "^Create World of Warcraft Community %((.-)%)$", true),

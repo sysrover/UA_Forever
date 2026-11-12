@@ -19,6 +19,7 @@ local dynamic_dialogs = {
     PET_BATTLE_PVP_DUEL_REQUESTED = true, TRADE = true,
     CHAT_CHANNEL_INVITE = true, CONFIRM_SUMMON = true,
     CONFIRM_SUMMON_STARTING_AREA = true, CONFIRM_SUMMON_SCENARIO = true,
+    QUEST_ACCEPT = true, QUEST_ACCEPT_LOG_FULL = true,
 }
 
 local group_invite_dialogs = {
