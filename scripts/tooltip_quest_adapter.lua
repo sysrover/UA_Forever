@@ -424,11 +424,10 @@ adapter.visible_title_matches = function (tooltip, id, cached)
 end
 
 adapter.translate_map_button = function (button)
-    local contract = deps()
     local tooltip = _G.GameTooltip
-    local id = button and contract.safe_number(button.questID)
-    if not tooltip or not id then return end
-    contract.process(tooltip, { id = id, uaForeverMapPin = button }, "quest")
+    local id = button and button.questID
+    if not tooltip or type(id) ~= "number" then return end
+    deps().process(tooltip, { id = id }, "quest")
 end
 
 local function after_blob_tooltip(pin)
