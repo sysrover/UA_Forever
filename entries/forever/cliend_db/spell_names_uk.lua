@@ -1,11 +1,11 @@
 -- Includes explicitly migrated compatibility IDs; see manifest.spellCatalogMigration.
 -- Ukrainian spell names separated from the translation worklist.
 -- Preserve every spellID when editing or merging this file.
--- Client build: 1.60.1.70888; source: SpellName.db2
+-- Client build: 1.60.1.70938; source: SpellName.db2
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.70888",
+    sourceBuild = "1.60.1.70938",
     count = 33126,
     rows = {
         [1249114] = "Спляче серце гори",
@@ -31156,7 +31156,7 @@ local database = {
         [1310041] = "Дослідження",
         [1310046] = "Тіньовий канал",
         [1310076] = "Передчасна загибель",
-        [1310077] = "Велика вогнева міць",
+        [1310077] = "Сила світла",
         [1310087] = "Висмоктування життя",
         [1310090] = "Таборування",
         [1310132] = "Створити пахощі",

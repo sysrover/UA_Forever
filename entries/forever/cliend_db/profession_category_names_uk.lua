@@ -4,7 +4,7 @@
 local _, addon_table = ...
 
 addon_table.client_profession_category_names_uk = {
-    sourceBuild = "1.60.1.70888",
+    sourceBuild = "1.60.1.70938",
     count = 108,
     rows = {
         [2399] = "Ювелірна справа (PROTOTYPE)",
