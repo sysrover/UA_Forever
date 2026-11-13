@@ -1314,6 +1314,16 @@ diagnostics.install = function (tooltips, api)
         elseif ok_data_method and type(get_tooltip_data) == "function" then
             result.tooltipData = { ok = ok_data }
         end
+
+        local types = _G.Enum and _G.Enum.TooltipDataType
+        if types and result.tooltipData
+            and result.tooltipData.type == types.MinimapMouseover then
+            local api = _G.C_TooltipInfo
+            -- Explicit capture only: distinguish unavailable/secret direct
+            -- sources from readable text that the rendered FontString hides.
+            result.minimapSource = diagnostic_tooltip_query(
+                api and api.GetMinimapMouseover)
+        end
     
         if result.item then
             if not result.item.id and result.kind == "item"
