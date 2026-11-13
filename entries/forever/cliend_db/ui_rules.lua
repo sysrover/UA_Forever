@@ -1081,7 +1081,28 @@ local function toast_option_rule(label, description, colored)
     end }
 end
 
+-- Equipment-set counts arrive after native printf/plural expansion. Reuse the
+-- shared renderer's Ukrainian three-form grammar, including 11-14 and 21-24.
+local function equipment_count_rule(template, pattern)
+    return { pattern = pattern, replace = function (count)
+        local target = addonTable.forever_ui[template]
+        if not target then return nil end
+        return addonTable.use("spell_template_renderer").format_arguments(
+            target, tonumber(count))
+    end }
+end
+
 addonTable.forever_ui_patterns = {
+    equipment_count_rule("%d |4Item:Items;", "^(%d+) Items?$"),
+    equipment_count_rule("%d |4Item:Items;", "^(%d+) |4Item:Items;$"),
+    equipment_count_rule("%d |4item:items; equipped", "^(%d+) items? equipped$"),
+    equipment_count_rule("%d |4item:items; equipped", "^(%d+) |4item:items; equipped$"),
+    equipment_count_rule("%d |4item:items; in inventory", "^(%d+) items? in inventory$"),
+    equipment_count_rule("%d |4item:items; in inventory", "^(%d+) |4item:items; in inventory$"),
+    equipment_count_rule("%d |4item:items; missing", "^(%d+) items? missing$"),
+    equipment_count_rule("%d |4item:items; missing", "^(%d+) |4item:items; missing$"),
+    equipment_count_rule("%d |4slot:slots; ignored", "^(%d+) slots? ignored$"),
+    equipment_count_rule("%d |4slot:slots; ignored", "^(%d+) |4slot:slots; ignored$"),
     toast_option_rule("Show Item Toasts",
         "Enabling this option will display toasts when some items are received.", true),
     toast_option_rule("Show Collection Toasts",

@@ -534,6 +534,9 @@ end
 
 local settings_generation_sequence = 0
 local settings_scroll_boxes = setmetatable({}, { __mode = "k" })
+local action_measurements = setmetatable({}, { __mode = "k" })
+local action_fit_depth = setmetatable({}, { __mode = "k" })
+local settings_text_pass
 
 local function settings_surface()
     return registry.get("settings")
@@ -558,6 +561,10 @@ end
 
 local function translate_region(region, slot, instance)
     if not region then return false end
+    if settings_text_pass then
+        if settings_text_pass[region] then return false end
+        settings_text_pass[region] = true
+    end
     local surface = ensure_settings_generation()
     if not surface then return false end
     return strings.translate_region(region, nil, slot or "ui.text", surface,
@@ -607,13 +614,25 @@ local function fit_row_label(frame)
         or not runtime.can_write_text(region) then return end
     -- Only change the display FontString. The native Settings view, extent
     -- calculator and pooled control geometry must remain Blizzard-owned.
-    if type(region.SetMaxLines) == "function" then pcall(region.SetMaxLines, region, 0) end
-    if type(region.SetWordWrap) == "function" then pcall(region.SetWordWrap, region, true) end
+    if type(region.SetMaxLines) == "function" and safe_method(region, "GetMaxLines") ~= 0 then
+        pcall(region.SetMaxLines, region, 0)
+    end
+    if type(region.SetWordWrap) == "function" and safe_method(region, "CanWordWrap") ~= true then
+        pcall(region.SetWordWrap, region, true)
+    end
     if type(region.SetHeight) == "function" then pcall(region.SetHeight, region, 0) end
+end
+
+local function fit_action_region(region)
+    local button = safe_method(region, "GetParent")
+    if button and not action_fit_depth[button] then
+        layout.fit_settings_action_button(button, region)
+    end
 end
 
 local function translate_source_region(region, source, slot, instance, override)
     if not region then return false end
+    if settings_text_pass and settings_text_pass[region] and not override then return false end
     source = safe_source(source)
     if not source then return translate_region(region, slot, instance) end
 
@@ -631,9 +650,17 @@ local function translate_source_region(region, source, slot, instance, override)
             })
     end
     if not translated or translated == source then
+        -- The supplied native source was already looked up. A fallback is
+        -- useful only if the visible region actually contains another value.
+        if safe_source(safe_method(region, "GetText")) == source
+            and not source:find("[\208\209]") then
+            if settings_text_pass then settings_text_pass[region] = true end
+            return false
+        end
         return translate_region(region, slot, instance)
     end
 
+    if settings_text_pass then settings_text_pass[region] = true end
     local surface = ensure_settings_generation()
     return runtime.apply(region, {
         owner = "settings", slot = slot or inferred_slot or "ui.text",
@@ -647,32 +674,97 @@ local function translate_source_region(region, source, slot, instance, override)
         priority = type(runtime.priority_for_source) == "function"
             and runtime.priority_for_source(source_kind)
             or runtime.PRIORITY.STATIC_UI or runtime.PRIORITY.CONTEXT,
+        -- This callback runs after both an initial write and an original/text
+        -- mode change. Registering it as after_apply as well repeats the work.
+        after_visibility = slot == "ui.action" and fit_action_region or nil,
     })
 end
 
 local function set_width(frame, width)
     if frame and type(frame.SetWidth) == "function" then
+        if runtime.combat_locked and runtime.combat_locked() then return end
+        local current = safe_method(frame, "GetWidth")
+        if type(current) == "number" and math.abs(current - width) <= 0.5 then return end
         pcall(frame.SetWidth, frame, width)
     end
 end
 
+local function action_signature(button, region)
+    local font, size, flags = region:GetFont()
+    local text_scale, enabled, visible = 1, nil, nil
+    if type(region.GetTextScale) == "function" then text_scale = region:GetTextScale() end
+    if type(button.IsEnabled) == "function" then enabled = button:IsEnabled() end
+    if type(button.IsVisible) == "function" then visible = button:IsVisible() end
+    return region:GetText(), font, size, flags, region:GetEffectiveScale(),
+        button:GetEffectiveScale(), text_scale, enabled, visible
+end
+
+local function action_secret(value)
+    if type(runtime.is_secret_value) == "function" then return runtime.is_secret_value(value) end
+    if type(_G.issecretvalue) ~= "function" then return false end
+    local ok, secret = pcall(_G.issecretvalue, value)
+    return not ok or secret == true
+end
+
 local function fit_settings_button(button, region)
+    if action_fit_depth[button] then return end
     if runtime.combat_locked() then return end
-    local text_width = layout.safe_dimension(region, "GetUnboundedStringWidth")
-        or layout.safe_dimension(region, "GetStringWidth")
-    -- UIPanelButton's own fitter uses GetTextWidth for the currently active
-    -- normal/disabled font. Keep the full FontString measurement as well.
-    local button_text_width = layout.safe_dimension(button, "GetTextWidth")
-    if button_text_width then text_width = math.max(text_width or 0, button_text_width) end
+    if not region then region = safe_method(button, "GetFontString") end
+    if not region then return end
     local width = layout.safe_dimension(button, "GetWidth")
-    if not text_width or text_width <= 0 or not width then return end
-    -- Settings owns these pooled action buttons. Reset short labels to the
-    -- native minimum, but leave room for the full translated label and edges.
-    local required = math.max(SETTINGS_BUTTON_WIDTH,
-        math.ceil(text_width + SETTINGS_BUTTON_TEXT_PADDING))
-    if math.abs(width - required) > 0.5 and runtime.can_write_text(button) then
-        set_width(button, required)
+    if not width then return end
+    local ok, text, font, size, flags, region_scale, button_scale, text_scale, enabled, visible =
+        pcall(action_signature, button, region)
+    local cacheable = ok and not action_secret(text) and not action_secret(font)
+        and not action_secret(size) and not action_secret(flags)
+        and not action_secret(region_scale) and not action_secret(button_scale)
+        and not action_secret(text_scale) and not action_secret(enabled) and not action_secret(visible)
+        and type(text) == "string" and type(font) == "string"
+        and type(size) == "number" and type(region_scale) == "number"
+        and type(button_scale) == "number" and type(text_scale) == "number"
+        and (flags == nil or type(flags) == "string")
+        and (enabled == nil or type(enabled) == "boolean")
+        and (visible == nil or type(visible) == "boolean")
+        and size > 0 and region_scale > 0 and button_scale > 0 and text_scale > 0
+    local cached = cacheable and action_measurements[region] or nil
+    local required
+    if cached and cached.text == text and cached.font == font and cached.size == size
+        and cached.flags == flags and cached.region_scale == region_scale
+        and cached.button_scale == button_scale and cached.text_scale == text_scale
+        and cached.enabled == enabled and cached.visible == visible then
+        required = cached.width
+    else
+        action_measurements[region] = nil
+        local text_width = layout.safe_dimension(region, "GetUnboundedStringWidth")
+            or layout.safe_dimension(region, "GetStringWidth")
+        local measured_text = text_width and text_width > 0
+        local button_text_width = layout.safe_dimension(button, "GetTextWidth")
+        if button_text_width then text_width = math.max(text_width or 0, button_text_width) end
+        if not text_width or text_width <= 0 then return end
+        required = math.max(SETTINGS_BUTTON_WIDTH,
+            math.ceil(text_width + SETTINGS_BUTTON_TEXT_PADDING))
+        if cacheable and measured_text then
+            action_measurements[region] = { text = text, font = font, size = size,
+                flags = flags, region_scale = region_scale, button_scale = button_scale,
+                text_scale = text_scale, enabled = enabled, visible = visible, width = required }
+        end
     end
+    -- Native width resets replay the measured width without measuring text.
+    -- Write permissions are checked for every actual mutation, never cached.
+    if math.abs(width - required) > 0.5 and runtime.can_write_text(button) then
+        pcall(button.SetWidth, button, required)
+    end
+end
+
+settings_ui.fit_action_button = fit_settings_button
+
+local function translate_action_source(button, region, source, instance)
+    local depth = action_fit_depth[button] or 0
+    action_fit_depth[button] = depth + 1
+    local ok, err = pcall(translate_source_region, region, source, "ui.action", instance)
+    action_fit_depth[button] = depth > 0 and depth or nil
+    if not ok then error(err, 0) end
+    if depth == 0 then fit_settings_button(button, region) end
 end
 
 local function hook_native_region(region, slot, instance)
@@ -767,18 +859,14 @@ local function translate_row(frame, supplied_initializer)
             -- evaluator again from addon code can reach restricted APIs
             -- (for example C_Discord.IsUserOAuthed).
             local source = safe_method(region, "GetText")
-            translate_source_region(region, source, "ui.action", frame)
-            fit_settings_button(button, region)
+            translate_action_source(button, region, source, frame)
             hooks.region(region, "SetText", function (self, native_source)
                 if runtime.is_applying and runtime.is_applying(self) then return end
-                translate_source_region(self, native_source, "ui.action", frame)
-                fit_settings_button(button, self)
+                translate_action_source(button, self, native_source, frame)
             end)
             hooks.region(button, "SetText", function (self, native_source)
                 local font_string = safe_method(self, "GetFontString")
-                translate_source_region(font_string, native_source,
-                    "ui.action", frame)
-                fit_settings_button(self, font_string)
+                translate_action_source(self, font_string, native_source, frame)
             end)
             local function fit_current_button(self)
                 fit_settings_button(self, safe_method(self, "GetFontString"))
@@ -1019,8 +1107,7 @@ local function pin_settings_row(frame, root, depth, seen)
     local kind = safe_method(frame, "GetObjectType")
     if kind == "GameTooltip" or kind == "EditBox" then return end
     for _, region in ipairs(settings_objects(frame, "GetRegions")) do
-        if safe_method(region, "GetObjectType") == "FontString" and not seen[region] then
-            seen[region] = true
+        if safe_method(region, "GetObjectType") == "FontString" then
             -- Binding text belongs to the dedicated unbound-status handler;
             -- a real key combination must never enter the generic UI lookup.
             if frame ~= root.Button1 and frame ~= root.Button2 and frame ~= root.CustomButton then
@@ -1038,7 +1125,15 @@ local function pin_settings_row(frame, root, depth, seen)
     end
 end
 
-local function translate_completed_settings_row(frame, initializer)
+local function with_settings_text_pass(callback, frame, initializer)
+    local previous = settings_text_pass
+    settings_text_pass = previous or {}
+    local ok, err = pcall(callback, frame, initializer)
+    settings_text_pass = previous
+    if not ok then error(err, 0) end
+end
+
+local function complete_settings_row(frame, initializer)
     if not frame then return end
     if frame.BaseQualityControls then
         translate_advanced_quality_section(frame)
@@ -1048,10 +1143,14 @@ local function translate_completed_settings_row(frame, initializer)
     else
         translate_row(frame, initializer)
     end
-    pin_settings_row(frame, frame, 4, {})
+    pin_settings_row(frame, frame, 4, settings_text_pass)
 end
 
-local function translate_completed_category_row(frame, initializer)
+local function translate_completed_settings_row(frame, initializer)
+    with_settings_text_pass(complete_settings_row, frame, initializer)
+end
+
+local function complete_category_row(frame, initializer)
     if not frame then return end
     local data = initializer_data(frame_initializer(frame, initializer))
     if data and data.category then
@@ -1059,7 +1158,11 @@ local function translate_completed_category_row(frame, initializer)
     elseif data and data.label then
         translate_category_header(frame, initializer)
     end
-    pin_settings_row(frame, frame, 2, {})
+    pin_settings_row(frame, frame, 2, settings_text_pass)
+end
+
+local function translate_completed_category_row(frame, initializer)
+    with_settings_text_pass(complete_category_row, frame, initializer)
 end
 
 local function watch_settings_scroll_box(box, callback)
@@ -1222,7 +1325,6 @@ end
 settings_ui.prepare = function ()
     register_addon_settings()
     if tooltips.prepare_settings then tooltips.prepare_settings() end
-    prepare_settings_lists(_G.SettingsPanel)
     local surface = registry.get("settings")
     if surface then
         surface.static = function ()

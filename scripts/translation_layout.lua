@@ -1313,11 +1313,30 @@ local function fit_quest_map_button_group(button)
     return true
 end
 
+-- These two native action templates store buttonText on their row data and
+-- expose the actual button as row.Button. Other Settings controls keep their
+-- native widths, including dropdowns, steppers, tabs and section toggles.
+local function fit_settings_action_button(button, region)
+    local row = parent_of(button)
+    local ok, action = pcall(function ()
+        if not row or row.Button ~= button then return false end
+        local label_type = row.data and type(row.data.buttonText)
+        return label_type == "string" or label_type == "function"
+    end)
+    if not ok or not action or not is_descendant_of(row, _G.SettingsPanel, 11) then return false end
+    local settings = addon_table.use("settings_ui")
+    if type(settings.fit_action_button) ~= "function" then return false end
+    settings.fit_action_button(button, region)
+    return true
+end
+
+layout.fit_settings_action_button = function (button, region)
+    return is_button(button) and fit_settings_action_button(button, region) or false
+end
+
 local function fit_button_to_text(button, region)
     if not is_button(button) or type(button.SetWidth) ~= "function" then return end
-    -- Blizzard's Settings controls have fixed build-defined geometry. Their
-    -- pooled dropdowns, buttons, steppers, and tabs must never inherit a width
-    -- calculated from translated text.
+    if fit_settings_action_button(button, region) then return true end
     if is_descendant_of(button, _G.SettingsPanel, 12) then return end
     -- Page labels sit outside these arrow buttons. Widening the buttons to
     -- fit translated labels stretches the arrow artwork.

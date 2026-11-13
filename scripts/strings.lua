@@ -195,7 +195,12 @@ local function translate_font_string(region, category, slot, surface, phase, ins
     if not template and contains_cyrillic(text) then
         if text_only then return true, true end
         if not options.can_translate("override_system_fonts") then return false, true end
-        return runtime.ensure_font(region), true
+        local font_ready = runtime.ensure_font(region)
+        if font_ready and type(layout.fit_settings_action_button) == "function" then
+            local parent_ok, parent = pcall(function () return region:GetParent() end)
+            if parent_ok then layout.fit_settings_action_button(parent, region) end
+        end
+        return font_ready, true
     end
 
     local explicit_category = category

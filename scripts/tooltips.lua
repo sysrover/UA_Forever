@@ -500,7 +500,7 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
     line_count = line_count or MAX_TOOLTIP_LINES
     local applied = 0
     local micro_cache
-    if tooltip.uaForeverKind == "micro-button" then
+    if tooltip.uaForeverKind == "micro-button" or tooltip == _G.SettingsTooltip then
         micro_cache = micro_translation_cache[tooltip]
         if not micro_cache then micro_cache = {}; micro_translation_cache[tooltip] = micro_cache end
     end
@@ -517,6 +517,11 @@ local function rewrite_generic_lines(tooltip, line_count, first_index,
             if not snapshot then
                 left, left_region = tooltip_line(tooltip, "Left", index)
                 right, right_region = tooltip_line(tooltip, "Right", index)
+            end
+            -- Equipment-set titles are player-authored; only the counter in
+            -- the right column and the following status rows belong to UI.
+            if tooltip.uaForeverKind == "equipment-set" and index == 1 then
+                left, left_region = nil, nil
             end
             local left_stable = runtime.is_stable_claim(left_region, tooltip,
                 tooltip.uaForeverGeneration)
@@ -1736,6 +1741,10 @@ local function translate_generic_tooltip_content(tooltip)
         rewrite_generic_lines(tooltip, nil, 1)
         return
     end
+    if tooltip.uaForeverKind == "equipment-set" then
+        rewrite_generic_lines(tooltip, nil, 1, false, false)
+        return
+    end
     if tooltip.uaForeverQuestPinOwner then
         tooltips.process_quest_pin(tooltip, { id = tooltip.uaForeverID,
             uaForeverMapPin = tooltip.uaForeverQuestPinOwner })
@@ -2486,7 +2495,8 @@ local function prepare_tooltip_frames()
                 if owned_ui_show_hooked and owned_ui_context(self) then return end
                 if not self.uaForeverSessionKey then begin_tooltip(self, "generic") end
                 if self.uaForeverKind ~= "item"
-                    and self.uaForeverKind ~= "talent" then
+                    and self.uaForeverKind ~= "talent"
+                    and self.uaForeverKind ~= "equipment-set" then
                     arm_tooltip_updates(self)
                 end
                 if self == _G.GameTooltip and type(self.GetOwner) == "function" then
@@ -2502,7 +2512,8 @@ local function prepare_tooltip_frames()
                     translate_comparison_fallback_once(self,
                         self.uaForeverGeneration)
                     layout.fit_item_tooltip(self)
-                elseif self.uaForeverKind ~= "talent" then
+                elseif self.uaForeverKind ~= "talent"
+                    and self.uaForeverKind ~= "equipment-set" then
                     schedule_tooltip_finalize(self)
                 end
             end)
@@ -2853,6 +2864,21 @@ tooltips.prepare = function ()
     end
     tooltips.prepared = true
     local types = Enum.TooltipDataType
+    if types.EquipmentSet then
+        add_tooltip_post_call(types.EquipmentSet, function (tooltip, data)
+            if not tooltip_work_enabled("equipment-set") then return end
+            local id = type(data) == "table" and not is_secret(data) and safe_number(data.id)
+            begin_tooltip(tooltip, "equipment-set:" .. tostring(id or "native"), true)
+            tooltip.uaForeverKind = "equipment-set"
+            tooltip.uaForeverID = nil
+            tooltip.uaForeverUpdateBudget = 0
+            if not tooltip.uaForeverShowOriginal then
+                rewrite_generic_lines(tooltip, nil, 1, false, false)
+            end
+            -- ProcessInfo calls Show after this post-call. The shared Show
+            -- hook fits the completed text; no timer or per-line layout pass.
+        end)
+    end
     if types.Currency then
         add_tooltip_post_call(types.Currency, function (tooltip, data)
             if not tooltip_work_enabled("character-currency") then return end
