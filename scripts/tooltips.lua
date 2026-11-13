@@ -1641,25 +1641,15 @@ local function translate_minimap_text(tooltip, native, region, quest_id)
     return applied, quest_id
 end
 
-local function translate_minimap_tooltip(tooltip, native_data)
+local function translate_minimap_tooltip(tooltip)
     if not minimap_tooltip_candidate(tooltip) then return false end
     local ok, count = pcall(tooltip.NumLines, tooltip)
     count = ok and safe_number(count) or 1
     local applied, quest_id = false, nil
-    -- Only the native MinimapMouseover post-call can request a fresh source.
-    -- OnUpdate/finalizers must not poll the API or replay an old marker's name.
-    local source_reader
-    if not is_secret(native_data) and type(native_data) == "table" then
-        source_reader = map_adapter.minimap_source_reader(native_data)
-    end
     for index = 1, math.min(count, MAX_TOOLTIP_LINES) do
         for _, side in ipairs({ "Left", "Right" }) do
             local source, region = tooltip_line(tooltip, side, index)
-            local source_secret = is_secret(source)
             source = safe_string(source)
-            if region and source_secret and source_reader then
-                source = source_reader(index, side)
-            end
             if region and source then
                 local claim = runtime.get(region)
                 local original = claim and claim.owner == "generic"
@@ -3058,9 +3048,9 @@ tooltips.prepare = function ()
     end
     if types.MinimapMouseover then
         add_tooltip_post_call(types.MinimapMouseover,
-            function (tooltip, data)
+            function (tooltip)
                 if tooltip ~= _G.GameTooltip or not tooltip_work_enabled("minimap") then return end
-                translate_minimap_tooltip(tooltip, data)
+                translate_minimap_tooltip(tooltip)
                 quest_adapter.translate_embedded(tooltip)
             end)
     end

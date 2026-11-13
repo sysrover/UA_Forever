@@ -18,48 +18,6 @@ local function deps()
     return assert(dependencies, "tooltip map adapter is not configured")
 end
 
--- A rendered minimap label can be secret even outside combat. Only use
--- independently public text from this native build; never retain a source
--- across mouseovers or try to derive a name from a secret string/position.
-adapter.minimap_source_reader = function (data)
-    local contract = deps()
-    local queried, fresh = false, nil
-    local function read(source, index, side)
-        local ok, text = pcall(function ()
-            if contract.is_secret(source) or type(source) ~= "table" then return end
-            local kind = source.type
-            local types = _G.Enum and _G.Enum.TooltipDataType
-            if contract.is_secret(kind) or not types
-                or kind ~= types.MinimapMouseover then return end
-            local lines = source.lines
-            if contract.is_secret(lines) or type(lines) ~= "table" then return end
-            local line = lines[index]
-            if contract.is_secret(line) or type(line) ~= "table" then return end
-            local line_index = line.lineIndex
-            if contract.is_secret(line_index)
-                or line_index ~= nil and line_index ~= index then return end
-            if side == "Left" then return contract.safe_string(line.leftText) end
-            if side == "Right" then return contract.safe_string(line.rightText) end
-        end)
-        return ok and contract.safe_string(text) or nil
-    end
-    return function (index, side)
-        local text = read(data, index, side)
-        if text then return text end
-        if not queried then
-            queried = true
-            local api = _G.C_TooltipInfo
-            local getter = api and api.GetMinimapMouseover
-            if type(getter) == "function" then
-                local ok, value = pcall(getter)
-                if ok and not contract.is_secret(value)
-                    and type(value) == "table" then fresh = value end
-            end
-        end
-        return read(fresh, index, side)
-    end
-end
-
 local function set_native_zone_line(tooltip, index, native, slot)
     local contract = deps()
     native = contract.safe_string(native)
