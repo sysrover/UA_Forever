@@ -8,7 +8,15 @@ local strings = addon_table.use("strings")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
+local renderer = addon_table.use("spell_template_renderer")
+local item_db = addon_table.use("item_client_db")
+local utils = addon_table.use("utils")
 local hooks = addon_table.use("translation_hooks").bind("popup_ui")
+
+local purchase_dialogs = {
+    CONFIRM_PURCHASE_TOKEN_ITEM = true,
+    CONFIRM_PURCHASE_NONREFUNDABLE_ITEM = true,
+}
 
 local dynamic_dialogs = {
     CONFIRM_SAVE_EQUIPMENT_SET = true,
@@ -150,6 +158,127 @@ local function translate_popup_button(dialog, getter)
     if text_ok then strings.translate_region(region) end
 end
 
+local function translate_purchase_cost(dialog, cost)
+    local read_ok, index = pcall(function ()
+        local data = dialog.data
+        if runtime.is_secret_value(data) then return nil end
+        return type(data) == "table" and data.index or nil
+    end)
+    if not read_ok or runtime.is_secret_value(index) or type(index) ~= "number"
+        or type(_G.GetMerchantItemCostItem) ~= "function" then return cost end
+    -- Build 70938 builds at most three cost slots. Read only their currency
+    -- names; the native quantities, textures, item links and money stay intact.
+    for slot = 1, 3 do
+        local ok, _, _, _, name = pcall(_G.GetMerchantItemCostItem, index, slot)
+        name = ok and runtime.safe_string_or_nil(name) or nil
+        if name and name ~= "" then
+            local translated = resolver.find_ui(name)
+            if translated and translated ~= name then
+                local literal = name:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
+                local original = cost
+                cost = cost:gsub("(%d%s+)" .. literal .. "()", function (quantity, after)
+                    local following = original:sub(after, after)
+                    if following == "" or following == "," then
+                        return quantity .. translated
+                    end
+                    return quantity .. name
+                end)
+            end
+        end
+    end
+    return cost
+end
+
+local function translate_purchase_item(dialog)
+    if not dialog or not purchase_dialogs[dialog.which] then return false end
+    local ok, item_frame = pcall(function () return dialog:GetItemFrame() end)
+    if not ok or not item_frame then return false end
+    local read_ok, region, link, source = pcall(function ()
+        return item_frame.Text, item_frame.link, item_frame.Text:GetText()
+    end)
+    link = read_ok and runtime.safe_string_or_nil(link) or nil
+    source = read_ok and runtime.safe_string_or_nil(source) or nil
+    local item_id = link and utils.item_id_from_link(link)
+    local translated = item_id and item_db.get_name(item_id)
+    if not source or not translated or source == translated then return false end
+    return runtime.apply(region, {
+        owner = "popup", slot = "item.name", category = "item",
+        option = "translate_item", source = source, translated = translated,
+        instance = item_id, priority = runtime.PRIORITY.DOMAIN,
+        defer_if_protected = false,
+        after_apply = function ()
+            if runtime.combat_locked() or not runtime.can_write_text(region) then return end
+            -- The native card gives its wrapped name a fixed 38-unit height.
+            -- Expand only when the full translated name exceeds that space.
+            local measured, height, current = pcall(function ()
+                return region:GetStringHeight(), region:GetHeight()
+            end)
+            if measured and not runtime.is_secret_value(height)
+                and not runtime.is_secret_value(current)
+                and type(height) == "number" and type(current) == "number"
+                and height > current then
+                if pcall(region.SetHeight, region, height) then
+                    item_frame.uaForeverPurchaseHeight = item_frame.uaForeverPurchaseHeight or current
+                    if runtime.can_write_text(item_frame) then pcall(item_frame.Layout, item_frame) end
+                end
+            end
+        end,
+    })
+end
+
+local function translate_purchase_popup(dialog)
+    if not dialog or not purchase_dialogs[dialog.which] then return false end
+    local region = popup_text_region(dialog)
+    local ok, source = pcall(function () return region:GetText() end)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    local template = runtime.safe_string_or_nil(_G[dialog.which])
+    local changed = false
+    if source and template and renderer.matches_format(template, source) then
+        local target = resolver.find_ui(template, region)
+        local translated = target and renderer.render_format(template, target, source,
+            function (value, _, argument)
+                if argument == 1 then return translate_purchase_cost(dialog, value) end
+                return value
+            end)
+        if translated and translated ~= source then
+            changed = runtime.apply(region, {
+                owner = "popup", slot = "purchase.message", option = "translate_string",
+                source = source, translated = translated, priority = runtime.PRIORITY.CONTEXT,
+                defer_if_protected = false,
+            })
+        end
+    end
+    changed = translate_purchase_item(dialog) or changed
+    translate_popup_button(dialog, "GetButton1")
+    translate_popup_button(dialog, "GetButton2")
+    if changed and not runtime.combat_locked() and runtime.can_write_text(dialog) then
+        pcall(dialog.Resize, dialog)
+    end
+    return true
+end
+
+local function after_purchase_item_display(item_frame)
+    -- Restore any expanded card before this pooled frame is used again.
+    local height = item_frame.uaForeverPurchaseHeight
+    if height and not runtime.combat_locked() and runtime.can_write_text(item_frame.Text) then
+        local ok, scaled = pcall(function () return item_frame.Text:GetScaledDesiredHeight() end)
+        if ok and not runtime.is_secret_value(scaled)
+            and type(scaled) == "number" and scaled > 0 then height = scaled end
+        if pcall(item_frame.Text.SetHeight, item_frame.Text, height) then
+            item_frame.uaForeverPurchaseHeight = nil
+        end
+    end
+    local ok, dialog, shown = pcall(function ()
+        local parent = item_frame:GetParent()
+        return parent, parent:IsShown()
+    end)
+    if ok and not runtime.is_secret_value(shown) and shown == true
+        and purchase_dialogs[dialog.which] and translate_purchase_item(dialog)
+        and not runtime.combat_locked() and runtime.can_write_text(dialog) then
+        pcall(dialog.Resize, dialog)
+    end
+end
+
 local function prepare_group_invite_buttons(dialog)
     if not dialog or not group_invite_dialogs[dialog.which] then return end
     for _, getter in ipairs({ "GetButton1", "GetButton2" }) do
@@ -263,6 +392,7 @@ local function refresh_and_scan_popups(which, data)
     if type(find) == "function" and which then
         local ok, dialog = pcall(find, which, data)
         if ok and dialog then
+            translate_purchase_popup(dialog)
             prepare_group_invite_buttons(dialog)
             translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
@@ -273,6 +403,7 @@ local function refresh_and_scan_popups(which, data)
         local dialog = _G["StaticPopup" .. index]
         local shown_ok, shown = dialog and pcall(dialog.IsShown, dialog)
         if shown_ok and shown then
+            translate_purchase_popup(dialog)
             prepare_group_invite_buttons(dialog)
             translate_dynamic_popup(dialog)
             translate_and_capture_frame(dialog)
@@ -297,6 +428,7 @@ local function after_static_popup_show(which, _, _, data)
     -- even when its translated countdown/message equals the previous show.
     dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
+    if translate_purchase_popup(dialog) then return end
     if dynamic_dialogs[which] then
         prepare_group_invite_buttons(dialog)
         translate_dynamic_popup(dialog)
@@ -363,6 +495,11 @@ popup_ui.prepare = function ()
     for index = 1, 4 do
         local dialog = _G["StaticPopup" .. index]
         hooks.region(dialog, "Init", pad_confirmation)
+        local ok, item_frame = pcall(function () return dialog:GetItemFrame() end)
+        if ok then
+            hooks.region(item_frame, "DisplayInfo", after_purchase_item_display)
+            hooks.region(item_frame, "DisplayInfoFromStandardCallback", after_purchase_item_display)
+        end
         hooks.region_script(dialog, "OnShow", function()
             prepare_group_invite_buttons(dialog)
             scheduler.request("home-popup:on-show", nil, refresh_and_scan_popups)
