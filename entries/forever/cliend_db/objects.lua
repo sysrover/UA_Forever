@@ -1602,6 +1602,7 @@ addonTable.object_ids = {
 }
 
 addonTable.object = {
+    ["Black Tome"] = "Чорний фоліант",
     ["Crumpled Paper"] = "Зім'ятий папір",
     ["Leyline Focus"] = "Осередок лей-лінії",
     ["A Conspicuous Gravestone"] = "підозрілий надгробок",

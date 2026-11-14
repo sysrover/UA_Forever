@@ -1845,6 +1845,30 @@ local chat_rows = {
         ["npcs"] = { [1] = "Melnan Darkstone" },
         ["text"] = "Підходьте ближче й послухайте про найдивовижніше видовище в усьому Азероті — ярмарок Темного Місяця! Ура!",
     },
+    ["Melnan Darkstone:tednfehscetotnbesetoeetemttgswylerse"] = {
+        ["english"] = { [1] = "The Darkmoon Faire has come to town!  Be sure to experience the most thrilling show you'll ever see?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "tednfehscetotnbesetoeetemttgswylerse" } },
+        ["npcs"] = { [1] = "Melnan Darkstone" },
+        ["text"] = "Ярмарок Темного Місяця прибув до міста! Не пропусти найзахопливіше видовище у своєму житті?",
+    },
+    ["Yorus Barleybrew:gdlkne"] = {
+        ["english"] = { [1] = "Good luck, <name>!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "gdlkne" } },
+        ["npcs"] = { [1] = "Yorus Barleybrew" },
+        ["text"] = "Щасти, {ім'я:к}!",
+    },
+    ["Yorus Barleybrew:hphphh"] = {
+        ["english"] = { [1] = "Hip hip, hoorah!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "hphphh" } },
+        ["npcs"] = { [1] = "Yorus Barleybrew" },
+        ["text"] = "Гіп-гіп, ура!",
+    },
+    ["Yorus Barleybrew:nerntegttecsfrne"] = {
+        ["english"] = { [1] = "<name> ran the Gauntlet!  Three cheers for <name>!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "nerntegttecsfrne" } },
+        ["npcs"] = { [1] = "Yorus Barleybrew" },
+        ["text"] = "{ім'я:н} {стать:пройшов:пройшла} Випробування! Тричі «слава» {ім'я:д}!",
+    },
     ["Ol' Emma:wstewreagttewreainitwtfrmettltwtkwwtwrlsle"] = {
         ["english"] = { [1] = "Where's the water, Emma? Get the water, Emma? If'n it weren't fer me, that lot wouldn't know what water looks like." },
         ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wstewreagttewreainitwtfrmettltwtkwwtwrlsle" } },
