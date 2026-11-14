@@ -62,9 +62,12 @@ local function popup_text_region(dialog)
     return dialog.text or dialog.Text or name and _G[name .. "Text"]
 end
 
-local function pad_reset_confirmation(dialog)
-    if not dialog or dialog.which ~= "CONFIRM_RESET_INSTANCES"
-        or runtime.combat_locked()
+local function pad_confirmation(dialog)
+    if not dialog then return end
+    local which = dialog.which
+    if which ~= "CONFIRM_RESET_INSTANCES" and which ~= "ABANDON_QUEST"
+        and which ~= "ABANDON_QUEST_WITH_ITEMS" then return end
+    if runtime.combat_locked()
         or type(dialog.GetHeightPadding) ~= "function"
         or type(dialog.SetHeightPadding) ~= "function" then return end
     local ok, padding = pcall(dialog.GetHeightPadding, dialog)
@@ -359,7 +362,7 @@ popup_ui.prepare = function ()
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
     for index = 1, 4 do
         local dialog = _G["StaticPopup" .. index]
-        hooks.region(dialog, "Init", pad_reset_confirmation)
+        hooks.region(dialog, "Init", pad_confirmation)
         hooks.region_script(dialog, "OnShow", function()
             prepare_group_invite_buttons(dialog)
             scheduler.request("home-popup:on-show", nil, refresh_and_scan_popups)

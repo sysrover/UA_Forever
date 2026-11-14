@@ -818,7 +818,17 @@ local function prepare_dialog_hooks()
         if not dialog or not dialog_ok
             or type(dialog.GetTextFontString) ~= "function" then return end
         local region_ok, region = pcall(dialog.GetTextFontString, dialog)
-        if region_ok then quest_name_region(region, id, "quest-static-popup") end
+        if region_ok then
+            local applied = quest_name_region(region, id, "quest-static-popup")
+            -- The native Resize precedes this final translated title, which
+            -- can wrap to more lines than the English confirmation.
+            if applied and which ~= "PREMADE_GROUP_INSECURE_SEARCH"
+                and type(dialog.Resize) == "function"
+                and not runtime.combat_locked()
+                and runtime.can_write_text(dialog) then
+                pcall(dialog.Resize, dialog)
+            end
+        end
     end)
     prepare_dialog_hook("QuestInfo_ShowTitle", translate_dialog_title)
     prepare_dialog_hook("QuestInfo_ShowDescriptionText", function ()
