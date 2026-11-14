@@ -154,8 +154,8 @@ local function english_title(id)
     return raw and safe_string(raw.en) or nil
 end
 
-local function quest_entry(id, field)
-    return type(id) == "number" and entries.get_entry("quest", id, field or 1)
+local function quest_entry(id, field, source)
+    return type(id) == "number" and entries.get_entry("quest", id, field or 1, source)
 end
 
 local function quest_name_region(region, id, owner)
@@ -251,13 +251,14 @@ local function dialog_field(region, id, field, getter, result_index)
     local current = safe_text(region)
     local slot = "quest:" .. id .. (field == 1 and ".name" or ".description:" .. field)
     local claim = runtime.get(region)
-    if claim and claim.owner == "quest-dialog" and claim.slot == slot
-        and current == claim.translated then
+    local own_claim = claim and claim.owner == "quest-dialog" and claim.slot == slot
+    local english = getter and original_value(getter, result_index or 1)
+    if own_claim and current == claim.translated
+        and (field == 1 or english == claim.source) then
         apply_dialog_language(region)
         return
     end
-    local english = getter and original_value(getter, result_index or 1)
-    local entry = quest_entry(id, field)
+    local entry = quest_entry(id, field, english)
     local ukrainian = entry and safe_string(entry[field])
     if not current or not english or not ukrainian then return end
     if field == 1 then
@@ -267,7 +268,8 @@ local function dialog_field(region, id, field, getter, result_index)
     if field == 1 then
         source = replace_once(current, ukrainian, english) or current
         translated = replace_once(source, english, ukrainian)
-    elseif current == english or current == ukrainian then
+    elseif current == english or current == ukrainian
+        or (own_claim and current == claim.translated) then
         source, translated = english, ukrainian
     end
     if not translated then return end

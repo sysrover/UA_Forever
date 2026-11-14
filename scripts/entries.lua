@@ -541,7 +541,42 @@ entries.get_book_title = function (book_name)
     return make_text(utils.cap(translated))
 end
 
-entries.get_entry = function (entry_type, entry_id, field)
+local function make_quest_text(quest, field, source_text)
+    local text = make_text(quest[field])
+    if not text or not text:find("%$%d+oa") then return text end
+
+    -- Objective amounts belong to the current native description, not a
+    -- previously downloaded task list. Never display an unresolved token.
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, source_text)
+        if not ok or secret then return nil end
+    end
+    local template = quest.source and quest.source[field]
+    if type(source_text) ~= "string" or type(template) ~= "string" then return nil end
+    source_text = source_text:gsub("%s+", " ")
+    template = template:gsub("%s+", " ")
+    local parts, tokens, cursor = { "^" }, {}, 1
+    for first, token, last in template:gmatch("()(%$%d+oa)()") do
+        parts[#parts + 1] = template:sub(cursor, first - 1):gsub("(%W)", "%%%1")
+        parts[#parts + 1] = "(%d[%d,]*)"
+        tokens[#tokens + 1] = token
+        cursor = last
+    end
+    if #tokens == 0 then return nil end
+    parts[#parts + 1] = template:sub(cursor):gsub("(%W)", "%%%1")
+    parts[#parts + 1] = "$"
+    local captures = { source_text:match(table.concat(parts)) }
+    if #captures ~= #tokens then return nil end
+    local amounts = {}
+    for index, token in ipairs(tokens) do
+        if amounts[token] and amounts[token] ~= captures[index] then return nil end
+        amounts[token] = captures[index]
+    end
+    text = text:gsub("%$%d+oa", amounts)
+    return not text:find("%$%d+oa") and text or nil
+end
+
+entries.get_entry = function (entry_type, entry_id, field, source_text)
     if not entry_type or not entry_id then
         return
     end
@@ -583,7 +618,7 @@ entries.get_entry = function (entry_type, entry_id, field)
             -- every paragraph of the quest. Keep substitutions live because
             -- player/target codes can change without reloading the catalog.
             if type(field) == "number" then
-                return { [field] = make_text(quest[field]), en = quest.en }
+                return { [field] = make_quest_text(quest, field, source_text), en = quest.en }
             end
             local result = make_text_array(quest)
             result.en = quest.en

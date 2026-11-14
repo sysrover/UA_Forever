@@ -21,10 +21,10 @@ local function enabled(option, section)
     return options.can_translate(option) and options.section_enabled(section)
 end
 
-local function quest_entry(item)
+local function quest_entry(item, field)
     if item.kind ~= "quest" or runtime.is_secret_value(item.questID)
         or type(item.questID) ~= "number" then return end
-    local entry = entries.get_entry("quest", item.questID)
+    local entry = entries.get_entry("quest", item.questID, field, field and item.text)
     if entry and (not readable(entry.en) or utils.same_english_name(entry.en, item.title)) then return entry end
 end
 
@@ -41,7 +41,7 @@ local function title_for(item)
     if translation.get_quest_language() == "en"
         or not enabled("translate_quest", "quest_names")
         or not options.translate_name("quest") then return item.title end
-    local entry = quest_entry(item)
+    local entry = quest_entry(item, 1)
     return entry and readable(entry[1]) and utils.cap(entry[1]) or item.title
 end
 
@@ -59,8 +59,8 @@ end
 local function text_for(item)
     if item.kind == "quest" and enabled("translate_quest", "quest_text")
         and translation.get_quest_language() ~= "en" then
-        local entry = quest_entry(item)
         local field = quest_fields[item.event]
+        local entry = field and quest_entry(item, field)
         if entry and field and readable(entry[field]) then return entry[field] end
     elseif item.kind == "gossip" and enabled("translate_gossip", "gossip")
         and type(item.speakerKey) == "number" and item.speakerKey > 0 then
