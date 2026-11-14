@@ -4,8 +4,9 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70938",
-    count = 25413,
+    count = 25414,
     rows = {
+        [18757] = "Diabolic Mantle",
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
         [36] = "Worn Mace",

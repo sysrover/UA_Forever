@@ -2,6 +2,7 @@
 local _, addonTable = ...
 
 local chat_rows = {
+    ["BroadcastText:309852"] = { ["broadcastTextID"] = 309852, ["english"] = { [1] = "The ingots are for display only!" }, ["npcs"] = {  }, ["priority"] = 2, ["text"] = "Ці зливки лише для показу!" },
     [1000572642] = { ["english"] = { [1] = "Then, all you need to do is have a seat near the fire and soak it all in. After a few minutes of resting, you'll gain various boons that will help you in your travels." }, ["npcs"] = { [1] = "Raan Wildwind" }, ["priority"] = 3, ["text"] = "Тоді тобі лишається сісти біля вогню й насолодитися відпочинком. За кілька хвилин ти отримаєш різні благословення, які допоможуть у мандрах." },
     [1003578350] = { ["english"] = { [1] = "Let the executions begin!" }, ["npcs"] = { [1] = "Sandfury Executioner" }, ["priority"] = 1, ["text"] = "Нехай почнеться страта!" },
     [100592624] = { ["english"] = { [1] = "That is wonderous, Rimblat! Even this foul, sundered earth is not beyond healing." }, ["npcs"] = { [1] = "Rayne" }, ["priority"] = 1, ["text"] = "Це дивовижно, Рімблате! Навіть для такої нечистої й понівеченої землі ще є надія на зцілення." },
