@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70938",
-    count = 25399,
+    count = 25413,
     rows = {
         [25] = "Worn Shortsword",
         [35] = "Bent Staff",
@@ -25405,6 +25405,20 @@ local database = {
         [287044] = "Predator's Shroud",
         [287045] = "Ancient Mattock",
         [287046] = "Pylon Poker",
+        [12590] = "Felstriker",
+        [13505] = "Runeblade of Baron Rivendare",
+        [18676] = "Sash of the Windreaver",
+        [18677] = "Zephyr Cloak",
+        [18754] = "Fel Hardened Bracers",
+        [18755] = "Xorothian Firestick",
+        [22318] = "Malgen's Long Bow",
+        [22322] = "The Jaw Breaker",
+        [22327] = "Amulet of the Redeemed",
+        [22328] = "Legplates of Vigilance",
+        [22334] = "Band of Mending",
+        [217716] = "Vile Concoction",
+        [217727] = "Ward of the Dead",
+        [287043] = "Predaceous Band",
     },
 }
 

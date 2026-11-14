@@ -1599,6 +1599,18 @@ addonTable.object_ids = {
     [180400] = { [1] = "PVP HOLIDAY АЛЬЯНС CTF", ["en"] = "PVP HOLIDAY ALLIANCE CTF" },
     [157968] = { [1] = "Багаття", ["en"] = "Campfire" },
     [179487] = { [1] = "промокла скринька", ["en"] = "Waterlogged Footlocker" },
+    [176231] = { [1] = "скарб Праудмура", ["en"] = "Proudmoore's Treasure" },
+    [410369] = { [1] = "схованка", ["en"] = "Dead Drop" },
+    [414155] = { [1] = "уламок чистого Світла", ["en"] = "Shard of Pure Light" },
+    [581792] = { [1] = "детонатор", ["en"] = "Detonator" },
+    [611086] = { [1] = "скриня Коннері", ["en"] = "Connery's Trunk" },
+    [629065] = { [1] = "Зачарований срібний злиток", ["en"] = "Enchanted Silver Ingot" },
+    [631278] = { [1] = "даларанський небесний катер", ["en"] = "Dalaran Skycutter" },
+    [652657] = { [1] = "стара шлюпка", ["en"] = "Old Dinghy" },
+    [653847] = { [1] = "розхитана дошка підлоги", ["en"] = "Loose Floorboard" },
+    [656283] = { [1] = "каналізаційна решітка", ["en"] = "Sewer Grate" },
+    [665413] = { [1] = "двері до підвалу", ["en"] = "Cellar Door" },
+    [694900] = { [1] = "каналізаційна решітка", ["en"] = "Sewer Grate" },
 }
 
 addonTable.object = {
@@ -4981,6 +4993,17 @@ addonTable.object = {
     ["Light"] = "Світло",
     ["Wig"] = "Перука",
     ["Rock"] = "Камінь",
+    ["Proudmoore's Treasure"] = "скарб Праудмура",
+    ["Dead Drop"] = "схованка",
+    ["Shard of Pure Light"] = "уламок чистого Світла",
+    ["Detonator"] = "детонатор",
+    ["Connery's Trunk"] = "скриня Коннері",
+    ["Enchanted Silver Ingot"] = "Зачарований срібний злиток",
+    ["Dalaran Skycutter"] = "даларанський небесний катер",
+    ["Old Dinghy"] = "стара шлюпка",
+    ["Loose Floorboard"] = "розхитана дошка підлоги",
+    ["Sewer Grate"] = "каналізаційна решітка",
+    ["Cellar Door"] = "двері до підвалу",
 }
 
 addonTable.translate_object_name = function (name)
