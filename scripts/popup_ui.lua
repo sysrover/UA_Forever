@@ -62,6 +62,20 @@ local function popup_text_region(dialog)
     return dialog.text or dialog.Text or name and _G[name .. "Text"]
 end
 
+local function pad_reset_confirmation(dialog)
+    if not dialog or dialog.which ~= "CONFIRM_RESET_INSTANCES"
+        or runtime.combat_locked()
+        or type(dialog.GetHeightPadding) ~= "function"
+        or type(dialog.SetHeightPadding) ~= "function" then return end
+    local ok, padding = pcall(dialog.GetHeightPadding, dialog)
+    if not ok or runtime.is_secret_value(padding)
+        or type(padding) ~= "number" then return end
+    if not runtime.can_write_text(dialog) then return end
+    -- Init resets padding on every reuse; the following native Resize applies
+    -- this extra space without accumulating it or affecting another dialog.
+    pcall(dialog.SetHeightPadding, dialog, padding + 12)
+end
+
 local function resize_popup_for_text(dialog, text)
     if not dialog or type(text) ~= "string" or type(dialog.Resize) ~= "function"
         or dialog.uaForeverLayoutText == text then return end
@@ -345,6 +359,7 @@ popup_ui.prepare = function ()
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
     for index = 1, 4 do
         local dialog = _G["StaticPopup" .. index]
+        hooks.region(dialog, "Init", pad_reset_confirmation)
         hooks.region_script(dialog, "OnShow", function()
             prepare_group_invite_buttons(dialog)
             scheduler.request("home-popup:on-show", nil, refresh_and_scan_popups)

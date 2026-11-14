@@ -1976,6 +1976,9 @@ chat.format = {
     received = function (value) return "Отримано " .. value .. "." end,
     discovered = function (zone) return "Відкрито нову територію: " .. zone end,
     home_bound = function (zone) return zone .. " — тепер ваша домівка." end,
+    instance_reset = function (zone)
+        return "Підземелля «" .. zone .. "» скинуто."
+    end,
     kill_xp_group = function (name, xp, bonus)
         return name .. " гине. Ви отримуєте " .. xp
             .. " досвіду. (Бонус групи: +" .. bonus .. ")"

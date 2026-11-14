@@ -486,6 +486,15 @@ local function translate_direct_chat_text(message)
     if not color then color, plain = message:match("^(|cn[%w_]+:)(.-)|r$") end
     exact = plain and chat_catalog.exact[plain]
     if exact then return color .. exact .. "|r" end
+    local instance = message:match("^(.+) has been reset%.$")
+    if instance then
+        local name = instance
+        if options.can_translate("translate_zone") then
+            name = addon_table.zone and addon_table.zone[instance]
+                or entries.get_glossary_text(instance, instance, "zone")
+        end
+        return chat_format.instance_reset(name)
+    end
     for _, rule in ipairs(chat_catalog.presence_patterns) do
         local identity, suffix = message:match(rule.pattern)
         if identity then
