@@ -85,6 +85,7 @@ local groups = {
     { "runtime", "[RUNTIME]" },
     { "unapplied", "[NOT_APPLIED]" },
     { "lockdowns", "[LOCKDOWNS]" },
+    { "restricted_actions", "[RESTRICTED_ACTIONS]" },
     { "unsafe", "[UNSAFE]" },
     { "hooks", "[HOOKS]" },
     { "catalog_conflicts", "[CATALOG_CONFLICTS]" },
@@ -95,7 +96,8 @@ local groups = {
 
 -- The ordinary autoscan is a translation worklist, not a dump of every
 -- English string the client can expose. Keep untranslated narrative/world
--- content and quest source mismatches. Other technical diagnostics are opt-in.
+-- content and quest source mismatches. Other technical diagnostics are opt-in,
+-- except actual restricted-action errors recorded by the event handler.
 local content_groups = {
     gossips = true,
     npcs = true,
@@ -109,7 +111,9 @@ local content_groups = {
 local diagnostic_groups = {}
 for _, descriptor in ipairs(groups) do
     local group = descriptor[1]
-    if not content_groups[group] then diagnostic_groups[group] = true end
+    if not content_groups[group] and group ~= "restricted_actions" then
+        diagnostic_groups[group] = true
+    end
 end
 
 local technical_scan_fields = {
@@ -1209,6 +1213,8 @@ local function migrate_content_unapplied(group, key, record)
 end
 
 auto_scan.export_text = function ()
+    local restricted_actions = UA_ForeverDB and UA_ForeverDB.scan
+        and UA_ForeverDB.scan.restrictedActions or {}
     local saved_mouse_probe = UA_ForeverDB and UA_ForeverDB.scan
         and UA_ForeverDB.scan.mouseProbe
     local include_diagnostics = diagnostics_enabled()
@@ -1217,7 +1223,7 @@ auto_scan.export_text = function ()
         auto_scan.clear_diagnostics()
         saved_mouse_probe = nil
     end
-    if cleared and (not include_diagnostics
+    if cleared and not next(restricted_actions) and (not include_diagnostics
         or type(saved_mouse_probe) ~= "table") then return "" end
     local parts = {}
     local store = UA_ForeverDB and UA_ForeverDB.scan and UA_ForeverDB.scan.auto or {}
@@ -1258,7 +1264,8 @@ auto_scan.export_text = function ()
         local group, label = descriptor[1], descriptor[2]
         local records = {}
         if include_diagnostics or not diagnostic_groups[group] then
-            records = group == "hooks" and hook_states
+            records = group == "restricted_actions" and restricted_actions
+                or group == "hooks" and hook_states
                 or group == "catalog_conflicts" and catalog_records
                 or group == "invalid_candidates" and invalid_candidate_records
                 or group == "gossips" and gossip_records_for_export(store[group])
@@ -1419,6 +1426,13 @@ auto_scan.export_text = function ()
                         "translation", "visible", "event", "handler", "attempts",
                         "hook", "hookAvailable", "hookObserved", "reason",
                         "reasonDetail", "regionKey", "lookupTier", "catalogSource" }
+                elseif group == "restricted_actions" then
+                    output_fields = { "event", "addon", "functionName", "count",
+                        "firstSeen", "lastSeen", "firstUptime", "lastUptime",
+                        "firstInCombat", "lastInCombat",
+                        "firstGamepadUI", "lastGamepadUI",
+                        "clientVersion", "clientBuild", "addonVersion",
+                        "stack", "lastStack", "lastStackAt", "stackSamples" }
                 elseif group == "lockdowns" then
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "reason", "reasonDetail",

@@ -1090,6 +1090,8 @@ event_frame:RegisterEvent("QUEST_LOG_UPDATE")
 event_frame:RegisterEvent("ITEM_TEXT_BEGIN")
 event_frame:RegisterEvent("ITEM_TEXT_READY")
 event_frame:RegisterEvent("COMBAT_TEXT_UPDATE")
+event_frame:RegisterEvent("ADDON_ACTION_BLOCKED")
+event_frame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
 
 local event_scopes = {
     PLAYER_REGEN_ENABLED = "main", GOSSIP_SHOW = "gossip", TRAINER_SHOW = "trainer",
@@ -1182,7 +1184,9 @@ end
 event_frame:SetScript("OnEvent", function (self, event, ...)
     local scope = event_scopes[event]
     if scope and options.work_enabled and not options.work_enabled(scope) then return end
-    if event == "ADDON_LOADED" then
+    if event == "ADDON_ACTION_BLOCKED" or event == "ADDON_ACTION_FORBIDDEN" then
+        dev_log.record_restricted_action(event, ...)
+    elseif event == "ADDON_LOADED" then
         local loaded_addon = ...
         if type(loaded_addon) == "string" and loaded_addon:find("^FojjiCore") then
             prepare_fojji(true)

@@ -1,9 +1,111 @@
-local _, addon_table = ...
+local addon_name, addon_table = ...
 
 local assets = addon_table.use("assets")
 local dev_log = addon_table.use("dev_log")
 local options = addon_table.use("options")
 local auto_scan = addon_table.use("auto_scan")
+
+local restricted_limit = 32
+local restricted_store
+local restricted_index = {}
+local restricted_samples = setmetatable({}, { __mode = "k" })
+local recording_restricted_action = false
+
+-- Restricted-action events are synchronous. Capture their stack here, before
+-- returning to Blizzard, without querying frames or changing any UI state.
+local function public_diagnostic(value, expected_type)
+    if type(_G.issecretvalue) == "function" then
+        local ok, secret = pcall(_G.issecretvalue, value)
+        if not ok or secret ~= false then return nil end
+    end
+    if type(value) ~= expected_type then return nil end
+    if expected_type == "number" and (value ~= value
+        or value == math.huge or value == -math.huge) then return nil end
+    return value
+end
+
+local function diagnostic_value(callback, expected_type, ...)
+    if type(callback) ~= "function" then return nil end
+    local ok, value = pcall(callback, ...)
+    if ok then return public_diagnostic(value, expected_type) end
+end
+
+local function record_restricted_action(event, name, function_name)
+    event = public_diagnostic(event, "string")
+    name = public_diagnostic(name, "string")
+    if (event ~= "ADDON_ACTION_BLOCKED" and event ~= "ADDON_ACTION_FORBIDDEN")
+        or name ~= addon_name then return false end
+    function_name = public_diagnostic(function_name, "string") or "<unknown>"
+    function_name = function_name:sub(1, 256)
+    if type(UA_ForeverDB) ~= "table" then return false end
+    UA_ForeverDB.scan = UA_ForeverDB.scan or {}
+    local scan = UA_ForeverDB.scan
+    if type(scan.restrictedActions) ~= "table" then scan.restrictedActions = {} end
+    local records = scan.restrictedActions
+    if restricted_store ~= records then
+        restricted_store = records
+        restricted_index = {}
+    end
+    local key = event .. "\031" .. function_name
+    local record = restricted_index[key]
+    local now = diagnostic_value(_G.time, "number")
+    local uptime = diagnostic_value(_G.GetTime, "number")
+    local in_combat = diagnostic_value(_G.InCombatLockdown, "boolean")
+    local input = _G.InputUtil
+    local gamepad = diagnostic_value(input and input.IsGamepadUIEnabled, "boolean")
+    if not record then
+        -- Do not merge earlier sessions: a reload/build change may have a
+        -- different cause even when Blizzard reports the same function.
+        while #records >= restricted_limit do
+            local removed = table.remove(records, 1)
+            for indexed_key, value in pairs(restricted_index) do
+                if value == removed then restricted_index[indexed_key] = nil end
+            end
+        end
+        record = { event = event, addon = name, functionName = function_name,
+            count = 0, firstSeen = now, firstUptime = uptime,
+            firstInCombat = in_combat, firstGamepadUI = gamepad }
+        if type(_G.GetBuildInfo) == "function" then
+            local ok, version, build = pcall(_G.GetBuildInfo)
+            if ok then
+                record.clientVersion = public_diagnostic(version, "string")
+                record.clientBuild = public_diagnostic(build, "string")
+            end
+        end
+        local addons = _G.C_AddOns
+        record.addonVersion = diagnostic_value(addons and addons.GetAddOnMetadata,
+            "string", addon_name, "Version")
+        records[#records + 1] = record
+        restricted_index[key] = record
+    end
+    record.count = record.count + 1
+    record.lastSeen, record.lastUptime = now, uptime
+    record.lastInCombat, record.lastGamepadUI = in_combat, gamepad
+    local sampled = restricted_samples[record]
+    -- A popup loop must not build thousands of identical stack traces. When
+    -- GetTime is unavailable, retain only the first synchronous sample.
+    if not sampled or uptime and (not sampled.uptime
+        or uptime < sampled.uptime or uptime - sampled.uptime >= 1) then
+        local stack = diagnostic_value(_G.debugstack, "string", 2, 24, 0)
+        stack = stack and stack:sub(1, 8192) or "<unavailable>"
+        record.stack = record.stack or stack
+        record.lastStack = stack
+        record.lastStackAt = now
+        record.stackSamples = (record.stackSamples or 0) + 1
+        restricted_samples[record] = { uptime = uptime }
+    end
+    return true
+end
+
+-- Keep this independent of autoscan/translation settings. A blocked action is
+-- an error report, and exporting with diagnostics off must not discard it.
+dev_log.record_restricted_action = function (...)
+    if recording_restricted_action then return false end
+    recording_restricted_action = true
+    local ok, recorded = pcall(record_restricted_action, ...)
+    recording_restricted_action = false
+    return ok and recorded == true
+end
 
 local translation_groups = {
     quests = true,

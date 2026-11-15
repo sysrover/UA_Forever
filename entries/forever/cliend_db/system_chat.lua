@@ -1522,6 +1522,7 @@ local chat = {
     -- Social/system GlobalStrings present in Forever 1.60.1.70170.
     -- Wording comes from the existing UI catalog; these tags select chat templates.
     template_tags = {
+        "DUEL_WINNER_KNOCKOUT",
         "AGE_RESTRICTED_CHAT_MINOR",
         "AGE_RESTRICTED_CHAT_UNVERIFIED",
         "ERR_AGE_RESTRICTED_MAIL_MINOR",
