@@ -2,6 +2,13 @@
 local _, addonTable = ...
 
 local rows = {
+    ["7766:imrywnyuae"] = {
+        ["english"] = { [1] = "I'm ready when you are!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "imrywnyuae" } },
+        ["npcs"] = { [1] = 7766 },
+        ["roles"] = { ["reply"] = true },
+        ["text"] = "Я напоготові! Можемо починати, щойно будеш готовий!",
+    },
     [3902453495] = { ["english"] = { [1] = "Prizes, you say? Count me in!" }, ["npcs"] = { [1] = 14828 }, ["priority"] = 3, ["roles"] = { ["reply"] = true }, ["text"] = "Кажете, призи? Я беру участь!" },
     ["BroadcastText:309852"] = { ["broadcastTextID"] = 309852, ["english"] = { [1] = "The ingots are for display only!" }, ["npcs"] = {  }, ["priority"] = 2, ["roles"] = { ["box"] = true, ["greeting"] = true, ["reply"] = true }, ["text"] = "Ці зливки лише для показу!" },
     ["BroadcastText:321006:Text1_lang"] = { ["broadcastTextID"] = 321006, ["english"] = { [1] = "If you are interested in learning more, feel free to speak to Elaine Compton nearby. She would be happy to answer your questions." }, ["npcs"] = {  }, ["priority"] = 2, ["roles"] = { ["box"] = true, ["greeting"] = true, ["reply"] = true }, ["text"] = "Якщо ви хочете дізнатися більше, зверніться до Елейн Комптон неподалік. Вона залюбки відповість на ваші запитання." },

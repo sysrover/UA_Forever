@@ -2,6 +2,37 @@
 local _, addonTable = ...
 
 local chat_rows = {
+    ["Lord Gregor Lescovar:ahtkyukywlleyutotelywetdtotsslmr"] = {
+        ["english"] = { [1] = "Ah, thank you kindly. I will leave you to the library while I tend to this small matter." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ahtkyukywlleyutotelywetdtotsslmr" } },
+        ["npcs"] = { [1] = "Lord Gregor Lescovar" },
+        ["text"] = "А, щиро дякую. Залишайтеся в бібліотеці, а я тим часом владнаю цю дрібну справу.",
+    },
+    ["Priestess Tyriona:mdyrgthsadheasyrpe"] = {
+        ["english"] = { [1] = "Milord, your guest has arrived. He awaits your presence." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "mdyrgthsadheasyrpe" } },
+        ["npcs"] = { [1] = "Priestess Tyriona" },
+        ["text"] = "Мілорде, ваш гість прибув. Він чекає на вас.",
+    },
+    ["Priestess Tyriona:sluetetewymdtkyu"] = {
+        ["english"] = { [1] = "I shall use the time wisely, milord. Thank you." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "sluetetewymdtkyu" } },
+        ["npcs"] = { [1] = "Priestess Tyriona" },
+        ["text"] = "Я проведу цей час із користю, мілорде. Дякую.",
+    },
+    ["Tyrion:wthebistwlmelrceotassnaspeberyakoyaryeodtrcn"] = {
+        ["english"] = { [1] = "Wait here, Burothi. Spybot will make Lescovar come out as soon as possible. Be ready! Attack only after you've overheard their conversation." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wthebistwlmelrceotassnaspeberyakoyaryeodtrcn" } },
+        ["npcs"] = { [1] = "Tyrion" },
+        ["text"] = "Чекай тут, Burothi. Шпигобот змусить Лесковара вийти якнайшвидше. Будь напоготові! Нападай лише після того, як підслухаєш їхню розмову.",
+    },
+    ["Tyrion:wthenestwlmelrceotassnaspeberyakoyaryeodtrcn"] = {
+        -- Wait here, Darrin. Spybot will make Lescovar come out as soon as possible. Be ready! Attack only after you've overheard their conversation.
+        ["english"] = { [1] = "Wait here, <name>. Spybot will make Lescovar come out as soon as possible. Be ready! Attack only after you've overheard their conversation." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wthenestwlmelrceotassnaspeberyakoyaryeodtrcn" } },
+        ["npcs"] = { [1] = "Tyrion" },
+        ["text"] = "Чекай тут, {ім'я:к}. Шпигобот змусить Лесковара вийти якнайшвидше. Будь напоготові! Нападай лише після того, як підслухаєш їхню розмову.",
+    },
     ["BroadcastText:309852"] = { ["broadcastTextID"] = 309852, ["english"] = { [1] = "The ingots are for display only!" }, ["npcs"] = {  }, ["priority"] = 2, ["text"] = "Ці зливки лише для показу!" },
     [1000572642] = { ["english"] = { [1] = "Then, all you need to do is have a seat near the fire and soak it all in. After a few minutes of resting, you'll gain various boons that will help you in your travels." }, ["npcs"] = { [1] = "Raan Wildwind" }, ["priority"] = 3, ["text"] = "Тоді тобі лишається сісти біля вогню й насолодитися відпочинком. За кілька хвилин ти отримаєш різні благословення, які допоможуть у мандрах." },
     [1003578350] = { ["english"] = { [1] = "Let the executions begin!" }, ["npcs"] = { [1] = "Sandfury Executioner" }, ["priority"] = 1, ["text"] = "Нехай почнеться страта!" },
