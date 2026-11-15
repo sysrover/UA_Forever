@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70938",
-    count = 25414,
+    count = 25427,
     rows = {
         [18757] = "Diabolic Mantle",
         [25] = "Worn Shortsword",
@@ -25420,6 +25420,19 @@ local database = {
         [217716] = "Vile Concoction",
         [217727] = "Ward of the Dead",
         [287043] = "Predaceous Band",
+        [14557] = "The Lion Horn of Stormwind",
+        [18348] = "Quel'Serrar",
+        [18674] = "Hardened Stone Band",
+        [22325] = "Belt of the Trickster",
+        [22329] = "Scepter of Interminable Focus",
+        [22332] = "Blade of Necromancy",
+        [22333] = "Hammer of Divine Might",
+        [22335] = "Lord Valthalak's Staff of Command",
+        [22339] = "Rune Band of Wizardry",
+        [282027] = "Scales of the Devourer",
+        [284163] = "Scarlet Hearthstone",
+        [284164] = "Scarlet Hearthstone",
+        [286590] = "Silithid Queen's Husk",
     },
 }
 
