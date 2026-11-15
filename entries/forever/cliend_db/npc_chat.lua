@@ -2076,6 +2076,22 @@ addonTable.chat = {
         ["cntshsteashelsathsdgfh"] = "Руки капітана Трумана тремтять, коли він дивиться на свою зотлілу плоть.",
         ["nonolnwlbefefmudylse"] = "Ні... ні. Лордерон буде вільний від невмерлих. Ось побачиш.",
     },
+    ["Nurse Lillian"] = {
+        [1] = "медсестра Ліліан",
+        -- Let me help you with those.
+        ["ltmehpyuwhte"] = "Дозволь допомогти тобі з цим.",
+        -- Some of this ointment should help.
+        ["seoftsotsdhp"] = "Трохи цієї мазі має допомогти.",
+        -- Take this, drink it down.
+        ["tetsdkitdn"] = "Ось, візьми й випий.",
+        -- You're going to be just fine.
+        ["yeggtobejtfe"] = "З тобою все буде гаразд.",
+    },
+    ["Professor Thaddeus Paleo"] = {
+        [1] = "професор Таддеус Палео",
+        -- Have you any Darkmoon Faire Cards?  Come speak with me to learn more about them if you dare!
+        ["heyuaydnfecsceskwhmetolnmeattmifyude"] = "Маєш карти ярмарку Темного Місяця? Підійди й поговори зі мною, щоб дізнатися про них більше... якщо наважишся!",
+    },
     ["Rath'mael"] = {
         [1] = "Рат'маель",
         ["enindhwlpt"] = "Навіть у смерті... я не здамся.",
@@ -2085,10 +2101,26 @@ addonTable.chat = {
         [1] = "Шеллен",
         ["beyucnaeorfe"] = "Я вірю, що ви, діти, — наше майбутнє...",
         ["issosdfryuprcn"] = "Так шкода вас, бідолашні діти.",
+        -- Now children stop that!  I mean it!
+        ["nwcnspttmnit"] = "Діти, негайно припиніть! Я серйозно!",
+    },
+    ["Silas Darkmoon"] = {
+        [1] = "Сілас Темномісяць",
+        -- Come one, come all.  Welcome to the Darkmoon Faire!  Don't be shy.  Step right up to Lhara and buy yourself an exotic artifact from far off lands.  If you're one of the lucky few who have found Darkmoon Cards, have a word with Professor Paleo.  Hungry?  Thirsty?  You're in luck!  Refreshments are available right here from Sylannia and Stamp.  I recommend the Darkmoon Special Reserve to wash down some Red Hot Wings.  And if the future is what you seek, then run, don't walk, to speak with Sayge.
+        ["ceoecealwetotednfedtbesysprtuptolaadbyyfanecatfmfroflsifyeoeoftelyfwwohefddncshewdwhprpohytyyeinlkrsaeaerthefmsaadsprdtednslretowhdnserdhtwsadiftefeiswtyusktnrndtwktoskwhse"] = "Підходьте, підходьте всі! Ласкаво просимо на ярмарок Темного Місяця! Не соромтеся! Мерщій до Лгари — придбайте собі екзотичний артефакт із далеких земель! Якщо ви серед тих небагатьох щасливців, які знайшли карти Темного Місяця, поговоріть із професором Палео. Зголодніли? Хочете пити? Вам пощастило! Силанія та Гуп пропонують їжу й напої просто тут! Раджу запити крильця-чилі «Особливим запасом Темного місяця». А якщо прагнете зазирнути в майбутнє — мерщій біжіть до Сайґа!",
+        -- Greetings friends, and welcome to the greatest show on Azeroth!\n\nPlease, step right up and take in all we have to offer.  Ride the rides and see the sights!  Amaze at the wonders that the Darkmoon Faire has uncovered in this vast and mysterious world!  We have spared no expense in bringing you excitement that children of all ages will delight in!
+        ["gsfsadwetotegtswonahpesprtupadteinalwehetoorretersadsetessaeattewstttednfehsudintsvtadmswdwehesdnoeeinbgyuetttcnofalaswldtin"] = "Вітаю, друзі! Ласкаво просимо на найвеличніше видовище Азероту!\n\nПідходьте й насолоджуйтеся всім, що ми приготували! Катайтеся на атракціонах і роздивляйтеся дивовижі! Захоплюйтеся чудесами, які ярмарок Темного Місяця відшукав у цьому безкрайому й загадковому світі! Ми не пошкодували коштів, щоб подарувати вам розваги, від яких будуть у захваті діти будь-якого віку!",
     },
     ["The Baron"] = {
         [1] = "Барон",
         ["femeln"] = "Пробач мені, Лордероне...",
+    },
+    ["Velinde Starsong"] = {
+        [1] = "Велінда Зорепісня",
+        -- I have failed... I have failed in my duty... failed my people... The worgen run rampant, and the Scythe of my goddess is lost.
+        ["hefdhefdinmydyfdmypetewnrnrtadteseofmygsislt"] = "Я зазнала невдачі... Я не виконала свого обов’язку... підвела свій народ... Ворґени безчинствують, а Косу моєї богині втрачено.",
+        -- This evil I have unleashed... In whose hand does the power my goddess granted to me now lie... By whose hand is it directed?
+        ["tselheudinwehddsteprmygsgdtomenwlebywehdisitdd"] = "Це зло, яке я випустила на волю... У чиїх руках тепер сила, яку дарувала мені богиня?.. Хто нею керує?",
     },
     ["A-Me 01"] = { [1] = "Е-Мі 01" },
     ["Acolyte Dellis"] = { [1] = "помічник Делліс" },
