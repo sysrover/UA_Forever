@@ -1622,6 +1622,10 @@ addonTable.forever_ui_patterns = {
         replace = function (seconds) return "До відновлення: " .. seconds .. " с" end,
     },
     {
+        pattern = "^Cooldown remaining: ([%d%.]+) min$",
+        replace = function (minutes) return "До відновлення: " .. minutes .. " хв" end,
+    },
+    {
         -- Blizzard has already formatted Requires %s (%d) before the tooltip
         -- is rendered. Resolve its visible skill/item name separately.
         pattern = "^Requires (.+)$",

@@ -33,6 +33,7 @@ local map_adapter = addon_table.use("tooltip_map_adapter")
 local spell_adapter = addon_table.use("tooltip_spell_adapter")
 local spell_client_db = addon_table.use("spell_client_db")
 local talent_adapter = addon_table.use("tooltip_talent_adapter")
+local profession_recipe_adapter = addon_table.use("profession_recipe_adapter")
 local character_adapter = addon_table.use("tooltip_character_adapter")
 local tooltip_diagnostics = addon_table.use("tooltip_diagnostics")
 local fojji = addon_table.use("fojji")
@@ -1115,6 +1116,14 @@ talent_adapter.configure({
     max_lines = MAX_TOOLTIP_LINES,
 })
 
+if type(profession_recipe_adapter.configure_tooltip) == "function" then
+    profession_recipe_adapter.configure_tooltip({
+        tooltip_line = function (...) return tooltip_line(...) end,
+        begin_tooltip = begin_tooltip,
+        set_translation = set_tooltip_translation,
+    })
+end
+
 map_adapter.configure({
     safe_string = safe_string,
     is_secret = is_secret,
@@ -1730,6 +1739,12 @@ local function translate_generic_tooltip_content(tooltip)
     local calendar = addon_table.use("calendar_ui")
     if calendar.translate_tooltip and calendar.translate_tooltip(tooltip) then return true end
     if tooltip.uaForeverShowOriginal then return end
+    if tooltip.uaForeverKind == "profession-recipe" then
+        if type(profession_recipe_adapter.refresh_tooltip) == "function" then
+            profession_recipe_adapter.refresh_tooltip(tooltip)
+        end
+        return
+    end
     if tooltips.is_micro_button_tooltip
         and tooltips.is_micro_button_tooltip(tooltip) then
         tooltip.uaForeverKind = "micro-button"
@@ -1843,6 +1858,9 @@ local function translate_generic_tooltip_content(tooltip)
 end
 
 local function translate_generic_tooltip(tooltip)
+    if tooltip and tooltip.uaForeverKind == "profession-recipe"
+        and (type(profession_recipe_adapter.owns_tooltip) ~= "function"
+            or not profession_recipe_adapter.owns_tooltip(tooltip)) then return end
     local fitted = translate_generic_tooltip_content(tooltip)
     if fitted or layout.fit_translated_tooltip(tooltip) then finish_instruction_layout(tooltip) end
 end
@@ -3074,6 +3092,9 @@ tooltips.refresh_active = function ()
     local function refresh_tooltip(tooltip)
         if not tooltip or refreshed[tooltip] then return end
         refreshed[tooltip] = true
+        if tooltip.uaForeverKind == "profession-recipe"
+            and (type(profession_recipe_adapter.owns_tooltip) ~= "function"
+                or not profession_recipe_adapter.owns_tooltip(tooltip)) then return end
         if tooltip.uaForeverKind == "item" then
             previous_widths[tooltip] = layout.safe_dimension(tooltip, "GetWidth")
         end
@@ -3134,6 +3155,10 @@ tooltips.refresh_active = function ()
                         tooltip.uaForeverGeneration
                 end
                 comparison.translate_native_tail(tooltip)
+            elseif tooltip.uaForeverKind == "profession-recipe" then
+                if type(profession_recipe_adapter.refresh_tooltip) == "function" then
+                    profession_recipe_adapter.refresh_tooltip(tooltip)
+                end
             elseif tooltip.uaForeverKind == "talent" then
                 talent_adapter.refresh(tooltip)
             elseif tooltip.uaForeverKind == "character-stat" then

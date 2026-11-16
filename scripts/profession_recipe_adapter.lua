@@ -16,6 +16,12 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").skills
 
 local OWNER = "profession-recipes"
+local tooltip_contract
+local recipe_tooltip_contexts = setmetatable({}, { __mode = "k" })
+
+adapter.configure_tooltip = function (value)
+    tooltip_contract = value
+end
 
 local function is_secret(value)
     if type(_G.issecretvalue) ~= "function" then return false end
@@ -101,16 +107,78 @@ local function recipe_info(row)
     return data and (data.recipeInfo or (number(data.recipeID) and data)) or nil
 end
 
+local function recipe_tooltip_context(tooltip)
+    local context = recipe_tooltip_contexts[tooltip]
+    if not context or tooltip ~= _G.GameTooltip
+        or tooltip.uaForeverKind ~= "profession-recipe"
+        or tooltip.uaForeverGeneration ~= context.generation
+        or tooltip.uaForeverSessionKey ~= context.session then return nil end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or is_secret(owner) or owner ~= context.owner
+        or context.row.Label ~= owner then return nil end
+    local shown_ok, shown = pcall(tooltip.IsShown, tooltip)
+    if not shown_ok or is_secret(shown) or shown ~= true then return nil end
+    -- Recipe-list rows are pooled; the same label can acquire another recipe.
+    local info = recipe_info(context.row)
+    if not info or number(info.recipeID) ~= context.id
+        or runtime.safe_string_or_nil(info.name) ~= context.source then return nil end
+    local source, region = tooltip_contract.tooltip_line(tooltip, "Left", 1)
+    source = runtime.safe_string_or_nil(source)
+    if not source then return nil end
+    if region ~= context.region then return nil end
+    local claim = runtime.get(region)
+    if source ~= context.source and not (claim and claim.surface == tooltip
+        and claim.generation == context.generation and claim.source == context.source
+        and source == claim.translated) then return nil end
+    return context
+end
+
+adapter.owns_tooltip = function (tooltip)
+    return tooltip_contract ~= nil and recipe_tooltip_context(tooltip) ~= nil
+end
+
+adapter.refresh_tooltip = function (tooltip)
+    if not tooltip_contract then return false end
+    local context = recipe_tooltip_context(tooltip)
+    if not context then return false end
+    if tooltip.uaForeverShowOriginal then return true end
+    local translated = spell_db.get_name(context.id)
+    if translated then
+        tooltip_contract.set_translation(tooltip, context.region, context.source,
+            utils.cap(translated), "profession.recipe-tooltip.name", "spell",
+            "spell-tooltip", nil, false, false)
+    end
+    return true
+end
+
 local function translate_recipe_tooltip(row)
+    local tooltip = _G.GameTooltip
+    if not tooltip_contract or not tooltip or not row
+        or not options.can_lookup("translate_spell")
+        or type(tooltip.GetOwner) ~= "function" then return end
     local info = recipe_info(row)
     local recipe_id = info and number(info.recipeID)
-    local translated = recipe_id and spell_db.get_name(recipe_id)
-    if not translated or not _G.GameTooltip
-        or type(GameTooltip.GetOwner) ~= "function" then return end
-    local ok, owner = pcall(GameTooltip.GetOwner, GameTooltip)
-    if not ok or owner ~= row.Label then return end
-    apply(_G.GameTooltipTextLeft1, utils.cap(translated),
-        "profession.recipe-tooltip.name", "translate_spell", "spell")
+    local native = info and runtime.safe_string_or_nil(info.name)
+    if not recipe_id or not native then return end
+    local ok, owner = pcall(tooltip.GetOwner, tooltip)
+    if not ok or is_secret(owner) or owner ~= row.Label then return end
+    local source, region = tooltip_contract.tooltip_line(tooltip, "Left", 1)
+    source = runtime.safe_string_or_nil(source)
+    if not region or source ~= native then return end
+    -- Native OnEnter has already called Show. Finish this specific tooltip
+    -- after that boundary, preserving its English source even on first hover
+    -- with Shift held. The shared modifier path owns subsequent mode changes.
+    local session = "profession-recipe:" .. recipe_id
+    tooltip_contract.begin_tooltip(tooltip, session, true)
+    tooltip.uaForeverKind = "profession-recipe"
+    tooltip.uaForeverID = recipe_id
+    tooltip.uaForeverReservedFirst = 2
+    recipe_tooltip_contexts[tooltip] = {
+        row = row, owner = owner, id = recipe_id, source = source, region = region,
+        session = session, generation = tooltip.uaForeverGeneration,
+    }
+    adapter.refresh_tooltip(tooltip)
+    layout.fit_current_tooltip(tooltip)
 end
 
 local function translate_recipe_row(row)
