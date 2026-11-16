@@ -2921,5 +2921,25 @@
     "preservedExistingTranslations": true,
     "testsRun": false,
     "inGameVerified": false
+  },
+  "cacheLogTranslation70938": {
+    "sourceBuild": "1.60.1.70938",
+    "cacheSHA256": "7379c45de184ab2262743f2e242198c7ac74ef1fdbf8c3bced3f792fad64ed47",
+    "cacheBroadcastRecords": 7,
+    "logRecords": 37,
+    "addedGossipTranslations": 5,
+    "addedChatTranslations": 13,
+    "alreadyTranslatedLogRecords": 11,
+    "unreadableLanguageRecords": 8,
+    "repairedGossipRecord": 4189999465,
+    "catalogs": [
+      "entries/forever/cliend_db/gossip.lua",
+      "entries/forever/cliend_db/npc_chat.lua"
+    ],
+    "testsRun": false,
+    "inGameVerified": false,
+    "provenance": "automation/results/cache_results/current/provenance.json",
+    "report": "automation/results/cache_results/current/translation_report.json",
+    "logReport": "automation/results/saved_log_current/summary.json"
   }
 }
