@@ -23450,5 +23450,7 @@ local ui = {
     ["|cFFFFD200Talk|r to Conservator Ilthalaine"] = "|cFFFFD200Поговоріть|r з консерватором Ільталайном",
     ["Revoke"] = "Відкликати",
     ["Do you want to unlearn %s and lose all associated recipes? |n|nType \"UNLEARN\" into the field to confirm."] = "Бажаєте відмовитися від професії «%s» і втратити всі пов’язані з нею рецепти? |n|nВведіть «UNLEARN» у поле для підтвердження.",
+    ["Tarnished Undermine Real"] = "Тьмяний реал Підштольні",
+    ["This currency is slowly being phased out of circulation, but it still enjoys a very favorable exchange rate throughout the Eastern Kingdoms and Kalimdor."] = "Ця валюта поступово виводиться з обігу, але вона все ще користується дуже вигідним обмінним курсом по всіх Східних Королівствах та Калімдорі.",
 }
 addonTable.forever_ui = ui

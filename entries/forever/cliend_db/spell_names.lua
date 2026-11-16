@@ -5,7 +5,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70938",
-    count = 33150,
+    count = 33151,
     rows = {
         [1] = "Word of Recall (OLD)",
         [3] = "Word of Mass Recall (OLD)",
@@ -33157,6 +33157,7 @@ local database = {
         [1330765] = "Poised",
         [1330836] = "Dummy",
         [1330855] = "Gloves of Holy Might",
+        [1331408] = "Update Interactions",
     },
 }
 

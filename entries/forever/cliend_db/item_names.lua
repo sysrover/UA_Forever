@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70938",
-    count = 25427,
+    count = 25431,
     rows = {
         [18757] = "Diabolic Mantle",
         [25] = "Worn Shortsword",
@@ -25433,6 +25433,10 @@ local database = {
         [284163] = "Scarlet Hearthstone",
         [284164] = "Scarlet Hearthstone",
         [286590] = "Silithid Queen's Husk",
+        [22314] = "Huntsman's Harpoon",
+        [22337] = "Shroud of Domination",
+        [22340] = "Pendant of Celerity",
+        [22342] = "Leggings of Torment",
     },
 }
 
