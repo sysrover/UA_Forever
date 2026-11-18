@@ -20,14 +20,14 @@
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12651,
   "resolvedItemSpellEffects": 12643,
-  "itemNamesUk": 25522,
-  "itemNamesUkMissing": 2,
-  "itemNamesNeedTranslation": 2,
+  "itemNamesUk": 25524,
+  "itemNamesUkMissing": 0,
+  "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4963,
   "itemDescriptionsNeedTranslation": 0,
   "spellNamesUkV4": 33136,
   "spellNamesNeedTranslation": 24,
-  "itemNamesUkComplete": false,
+  "itemNamesUkComplete": true,
   "spellDescriptionsUk": 17859,
   "spellDescriptionsNeedTranslation": 45,
   "spellNamesUkV4Complete": false,
@@ -3065,7 +3065,7 @@
       "ManifestInterfaceData": "build/forever-client-inventory/70959/supplement/db2/manifestinterfacedata.json"
     },
     "translatedFields": {
-      "itemNames": 91,
+      "itemNames": 93,
       "itemDescriptions": 2,
       "spellNames": 10,
       "spellDescriptions": 15,
@@ -3073,7 +3073,8 @@
       "ui": 1,
       "broadcastText": 3
     },
-    "pendingItemNameIDs": [
+    "pendingItemNameIDs": [],
+    "userApprovedItemNameIDs": [
       14558,
       22326
     ]
