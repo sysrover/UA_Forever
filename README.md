@@ -1,25 +1,25 @@
 # UA Forever
 
-UA Forever is a Ukrainian localization addon for World of Warcraft: Forever
-Beta, built for its modern Camelot interface. It translates quests, tooltips,
+UA Forever is a Ukrainian localization addon for World of Warcraft: Forever,
+built for its modern Camelot interface. It translates quests, tooltips,
 menus, character and profession panels, chat, NPC names, and other visible text.
 Hold Shift (or Alt/Ctrl, selected in addon settings) to see the original tooltip; quest conversations have an EN/UA
 switch. Target client: World of Warcraft: Forever (Interface `16001`).
-Bundled client data: build `1.60.1.70938`.
+Bundled client data: build `1.60.1.70959`.
 
-UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever Beta, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
-Утримуйте Shift, щоб побачити оригінал підказки; у налаштуваннях аддона можна вибрати Alt або Ctrl. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.70938.
+UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
+Утримуйте Shift, щоб побачити оригінал підказки; у налаштуваннях аддона можна вибрати Alt або Ctrl. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.70959.
 
-## Реліз 1.0.3
+## Реліз 1.0.4
 
-Git-тег: `1.0.3`. Зміни відносно 1.0.2:
+Git-тег: `1.0.4`. Зміни відносно 1.0.3:
 
-- Доповнено переклади діалогів і реплік NPC.
-- Розширено переклад системних повідомлень чату, зокрема сповіщень аукціону, завдань, груп і торгівлі.
-- Покращено переклад назв предметів, заклять, навичок і локацій у повідомленнях чату.
-- Уточнено повідомлення про сп’яніння та протверезіння.
-- Додано переклад заголовків розділів книги заклять.
-- Посилено захист від помилок у підказках і назвах локацій на мінімапі.
+- Додано переклад вікон перукарні та трансмогрифікації.
+- Доповнено й уточнено переклади предметів, заклять, завдань, діалогів і реплік NPC.
+- Розширено переклад назв ігрових об’єктів та текстів інтерфейсу.
+- Покращено переклад системних повідомлень чату, зокрема сповіщень полів бою.
+- Додано відсутні назви локацій.
+- Оновлено клієнтські дані до збірки 1.60.1.70959.
 
 Для встановлення розпакуйте архів так, щоб папка `UA_Forever` опинилася в `Interface/AddOns`, після чого виконайте `/reload` або перезапустіть гру.
 
@@ -34,7 +34,7 @@ ClassicUA: [GitHub](https://github.com/greenya/ClassicUA) ·
 [CurseForge](https://www.curseforge.com/wow/addons/classicua).
 
 Classic translations can be outdated when Forever changes a spell or quest.
-The bundled client catalog declares `1.60.1.70938` in its manifest;
+The bundled client catalog declares `1.60.1.70959` in its manifest;
 `/uaf scan` reports a build mismatch when the running client differs.
 
 ## Commands
