@@ -357,10 +357,32 @@ local function translate_notice_quest_title(title)
     return translated and ((color or "") .. translated .. (color and "|r" or "")) or title
 end
 
-local client_notice_templates
+local function translate_notice_domain(value, domain)
+    if domain == "spell" then
+        if value:find("|H", 1, true) or value:find("[", 1, true) then
+            return translate_spell_links(value)
+        end
+        if options.can_translate("translate_spell") and options.translate_name("spell") then
+            return entries.lookup_name("spell", value) or value
+        end
+    elseif domain == "skill" then
+        return translate_skill_name(value)
+    elseif domain == "zone" then
+        if options.can_translate("translate_zone") then
+            return addon_table.zone and addon_table.zone[value]
+                or entries.get_glossary_text(value, value, "zone")
+        end
+    elseif domain == "ui" then
+        return addon_table.forever_ui_curated and addon_table.forever_ui_curated[value]
+            or addon_table.forever_ui and addon_table.forever_ui[value] or value
+    end
+    return value
+end
+
+local client_notice_templates, client_notice_exact
 local function prepare_client_notice_templates()
-    local result, seen = {}, {}
-    local function add_template(source, target, rank, quest)
+    local result, exact, seen = {}, {}, {}
+    local function add_template(source, target, rank, quest, item, domains)
         if type(target) == "string" and target ~= source and not seen[source]
             and template_markup(source) == template_markup(target) then
             local output, target_kinds = template_parts(target)
@@ -387,9 +409,18 @@ local function prepare_client_notice_templates()
                         end
                     end
                     pattern[#pattern + 1] = "$"
-                    result[#result + 1] = { pattern = table.concat(pattern),
-                        captures = captures, output = output, weight = weight,
-                        rank = rank, quest = quest }
+                    if #captures == 0 and not target:find("|4", 1, true) then
+                        local original, translated = {}, {}
+                        for _, part in ipairs(input) do original[#original + 1] = part.text end
+                        for _, part in ipairs(output) do translated[#translated + 1] = part.text end
+                        exact[table.concat(original)] = table.concat(translated)
+                    elseif weight > 0 then
+                        -- A bare %s is payload, not an identifiable notice.
+                        result[#result + 1] = { pattern = table.concat(pattern),
+                            captures = captures, output = output, weight = weight,
+                            prefix = input[1].text, suffix = input[#input].text,
+                            rank = rank, quest = quest, item = item, domains = domains }
+                    end
                 end
             end
             seen[source] = true
@@ -399,22 +430,30 @@ local function prepare_client_notice_templates()
         add_template(template.source, template.target, nil, template.quest)
     end
     for _, tag in ipairs(chat_catalog.template_tags) do
-        local source = _G[tag]
+        local source = runtime.safe_string_or_nil(_G[tag])
         local target = type(source) == "string" and (chat_catalog.exact[source]
             or chat_catalog.template_text[source]
             or addon_table.forever_ui_curated and addon_table.forever_ui_curated[source]
             or addon_table.forever_ui and addon_table.forever_ui[source])
-        add_template(source, target, chat_catalog.rank_arguments[tag])
+        add_template(source, target, chat_catalog.rank_arguments[tag], chat_catalog.quest_arguments[tag],
+            chat_catalog.item_arguments[tag], chat_catalog.argument_domains[tag])
     end
     table.sort(result, function(a, b) return a.weight > b.weight end)
     client_notice_templates = result
+    client_notice_exact = exact
 end
 
 local function translate_client_notice(message)
     if not client_notice_templates then prepare_client_notice_templates() end
+    local exact = client_notice_exact[message]
+    if exact then return exact end
     for _, template in ipairs(client_notice_templates) do
-        local matched = { message:match(template.pattern) }
-        if #matched > 0 then
+        local matched
+        if (not template.prefix or message:sub(1, #template.prefix) == template.prefix)
+            and (not template.suffix or message:sub(-#template.suffix) == template.suffix) then
+            matched = { message:match(template.pattern) }
+        end
+        if matched and #matched > 0 then
             local arguments, valid = {}, true
             for capture, index in ipairs(template.captures) do
                 if arguments[index] and arguments[index] ~= matched[capture] then valid = false end
@@ -423,6 +462,16 @@ local function translate_client_notice(message)
             if valid then
                 if template.quest then
                     arguments[template.quest] = translate_notice_quest_title(arguments[template.quest])
+                end
+                if template.item then
+                    local item = arguments[template.item]
+                    arguments[template.item] = (item:find("|H", 1, true) or item:find("[", 1, true))
+                        and translate_item_links(item) or translate_item_name(item)
+                end
+                if template.domains then
+                    for index, domain in pairs(template.domains) do
+                        arguments[index] = translate_notice_domain(arguments[index], domain)
+                    end
                 end
                 local output, last_number = {}, nil
                 for _, part in ipairs(template.output) do
@@ -546,13 +595,6 @@ local function translate_direct_chat_text(message)
     if appearance then
         return chat_format.appearance(translate_item_links(appearance))
     end
-    local tipsy_name, tipsy_item = message:match(
-        "^(.+) seems a little tipsy from the (.+)%.$")
-    if tipsy_name then
-        return chat_format.tipsy(tipsy_name, translate_item_links(tipsy_item))
-    end
-    local sobering_name = message:match("^(.+) seems to be sobering up%.$")
-    if sobering_name then return chat_format.sobering(sobering_name) end
     local gained = message:match("^You gained: (.+)$")
     if gained then return chat_format.gained(translate_money_amount(gained)) end
     local currency = message:match("^You receive currency: (.+)$")
@@ -694,11 +736,6 @@ local function translate_system_text(event, message)
         or event == "CHAT_MSG_CURRENCY" or event == "CHAT_MSG_TRADESKILLS" then
         local direct = translate_direct_chat_text(message)
         if direct then return direct end
-    end
-
-    if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_BN_INLINE_TOAST_ALERT" then
-        local notice = translate_client_notice(message)
-        if notice then return notice end
     end
 
     if event == "CHAT_MSG_TRADESKILLS" then
@@ -903,6 +940,12 @@ local function translate_system_text(event, message)
             local name = translate_skill_name(skill)
             return chat_format.skill_gained(name)
         end
+    end
+
+    -- Generic notifications must not consume quest/item/skill text before
+    -- the domain adapters have translated their semantic arguments.
+    if system_chat_events[event] then
+        return translate_client_notice(message)
     end
 end
 

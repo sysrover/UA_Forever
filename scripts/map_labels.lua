@@ -215,10 +215,12 @@ local function safe_string(value)
 end
 
 local function visible_text(region)
-    if not region then return nil end
-    local method_ok, get_text = pcall(function () return region.GetText end)
-    if not method_ok or type(get_text) ~= "function" then return nil end
-    local ok, value = pcall(get_text, region)
+    if runtime.is_secret_value(region) or not region then return nil end
+    local ok, value = pcall(function ()
+        local getter = region.GetText
+        if runtime.is_secret_value(getter) or type(getter) ~= "function" then return nil end
+        return getter(region)
+    end)
     return ok and safe_string(value) or nil
 end
 
@@ -326,10 +328,11 @@ end
 
 local function after_minimap_update()
     local region = _G.MinimapZoneText
+    if runtime.is_secret_value(region) then return end
     if region and runtime.is_applying(region) then return end
     local current = visible_text(region)
     local getter = _G.GetMinimapZoneText
-    if not current or type(getter) ~= "function" then return end
+    if not current or runtime.is_secret_value(getter) or type(getter) ~= "function" then return end
     local ok, native = pcall(getter)
     if not ok or safe_string(native) ~= current then return end
     runtime.invalidate(region)

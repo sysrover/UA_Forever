@@ -41,12 +41,15 @@ end
 adapter.translate_minimap_zone = function ()
     local contract = deps()
     local tooltip = _G.GameTooltip
-    local button = _G.MinimapCluster and _G.MinimapCluster.ZoneTextButton
-    if not tooltip or not button or type(tooltip.GetOwner) ~= "function" then
+    local cluster = _G.MinimapCluster
+    if contract.is_secret(tooltip) or contract.is_secret(cluster) then return end
+    local button_ok, button = pcall(function () return cluster and cluster.ZoneTextButton end)
+    if not button_ok or contract.is_secret(button) or not tooltip or not button
+        or type(tooltip.GetOwner) ~= "function" then
         return
     end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-    if not owner_ok or owner ~= button then return end
+    if not owner_ok or contract.is_secret(owner) or owner ~= button then return end
     local zone_getter, sub_getter = _G.GetZoneText, _G.GetSubZoneText
     if type(zone_getter) ~= "function" or type(sub_getter) ~= "function" then
         return

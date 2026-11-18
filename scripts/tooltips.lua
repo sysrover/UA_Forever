@@ -1134,13 +1134,19 @@ map_adapter.configure({
 })
 
 local function frame_under_minimap(owner)
+    local minimap, cluster = _G.Minimap, _G.MinimapCluster
+    if is_secret(minimap) then minimap = nil end
+    if is_secret(cluster) then cluster = nil end
     for _ = 1, 8 do
+        if is_secret(owner) then return false end
         if not owner then break end
-        if owner == _G.Minimap or owner == _G.MinimapCluster then return true end
+        if owner == minimap or owner == cluster then return true end
         local parent_ok, parent = pcall(function ()
-            return type(owner.GetParent) == "function" and owner:GetParent() or nil
+            local getter = owner.GetParent
+            if is_secret(getter) or type(getter) ~= "function" then return nil end
+            return getter(owner)
         end)
-        if not parent_ok or parent == owner then break end
+        if not parent_ok or is_secret(parent) or parent == owner then break end
         owner = parent
     end
     return false
@@ -1229,7 +1235,7 @@ local function aura_tooltip_context(tooltip)
         end
         if type(owner.GetParent) ~= "function" then break end
         local parent_ok, parent = pcall(owner.GetParent, owner)
-        if not parent_ok or not parent or parent == owner or is_secret(parent) then
+        if not parent_ok or is_secret(parent) or not parent or parent == owner then
             break
         end
         owner = parent
@@ -1339,9 +1345,13 @@ local function reset_tooltip(self)
 end
 
 local function object_is_font_string(region)
-    if not region or type(region.GetObjectType) ~= "function" then return false end
-    local ok, object_type = pcall(region.GetObjectType, region)
-    return ok and object_type == "FontString"
+    if is_secret(region) or not region then return false end
+    local ok, object_type = pcall(function ()
+        local getter = region.GetObjectType
+        if is_secret(getter) or type(getter) ~= "function" then return nil end
+        return getter(region)
+    end)
+    return ok and not is_secret(object_type) and object_type == "FontString"
 end
 
 visible_tooltip_font_strings = function (tooltip)
@@ -1358,7 +1368,7 @@ visible_tooltip_font_strings = function (tooltip)
     local seen = {}
 
     local function visit(frame, depth)
-        if not frame or seen[frame] or depth > 4 then return end
+        if is_secret(frame) or not frame or seen[frame] or depth > 4 then return end
         seen[frame] = true
         runtime.metric("ui_tree_nodes", tooltip, tooltip.uaForeverGeneration)
 
@@ -1368,7 +1378,9 @@ visible_tooltip_font_strings = function (tooltip)
                 for _, region in ipairs(regions) do
                     if object_is_font_string(region) then
                         local shown_ok, shown = pcall(region.IsShown, region)
-                        if shown_ok and shown then result[#result + 1] = region end
+                        if shown_ok and not is_secret(shown) and shown then
+                            result[#result + 1] = region
+                        end
                     end
                 end
             end
@@ -1378,8 +1390,12 @@ visible_tooltip_font_strings = function (tooltip)
             local ok_children, children = pcall(function () return { frame:GetChildren() } end)
             if ok_children then
                 for _, child in ipairs(children) do
-                    local shown_ok, shown = pcall(child.IsShown, child)
-                    if shown_ok and shown then visit(child, depth + 1) end
+                    if not is_secret(child) then
+                        local shown_ok, shown = pcall(function () return child:IsShown() end)
+                        if shown_ok and not is_secret(shown) and shown then
+                            visit(child, depth + 1)
+                        end
+                    end
                 end
             end
         end
@@ -1396,7 +1412,7 @@ tooltip_line_region = function (tooltip, side, index)
     local getter_ok, getter = pcall(function () return tooltip[getter_name] end)
     if getter_ok and type(getter) == "function" then
         local line_ok, candidate = pcall(getter, tooltip, index)
-        if line_ok and candidate and not is_secret(candidate) then
+        if line_ok and not is_secret(candidate) and candidate then
             region = candidate
         end
     end
@@ -1405,6 +1421,7 @@ tooltip_line_region = function (tooltip, side, index)
         name = ok_name and safe_string(name) or nil
         if name then
             region = _G[name .. "Text" .. side .. tostring(index)]
+            if is_secret(region) then region = nil end
             if region then
                 runtime.metric("global_tooltip_line_fallbacks", tooltip,
                     tooltip.uaForeverGeneration)
@@ -1424,7 +1441,7 @@ tooltip_line = function (tooltip, side, index, allow_hidden)
 
     if region and not allow_hidden then
         local method_ok, is_shown = pcall(function () return region.IsShown end)
-        if method_ok and type(is_shown) == "function" then
+        if method_ok and not is_secret(is_shown) and type(is_shown) == "function" then
             local shown_ok, shown = pcall(is_shown, region)
             if not shown_ok or is_secret(shown) or shown ~= true then region = nil end
         end
@@ -1436,13 +1453,18 @@ tooltip_line = function (tooltip, side, index, allow_hidden)
     -- written without reading or comparing secret aura text.
     if not region and side == "Left" then
         region = visible_tooltip_font_strings(tooltip)[index]
+        if is_secret(region) then region = nil end
         if region then
             runtime.metric("tree_tooltip_line_fallbacks", tooltip,
                 tooltip.uaForeverGeneration)
         end
     end
-    if not region or not region.GetText then return nil, region end
-    local ok_text, text = pcall(region.GetText, region)
+    if not region then return nil, region end
+    local ok_text, text = pcall(function ()
+        local getter = region.GetText
+        if is_secret(getter) or type(getter) ~= "function" then return nil end
+        return getter(region)
+    end)
     if not ok_text then return nil, region end
     runtime.metric("regions_read", tooltip, tooltip.uaForeverGeneration)
     return text, region
@@ -1634,6 +1656,8 @@ local function translate_minimap_line(core, quest_id, tooltip, region)
 end
 
 local function translate_minimap_text(tooltip, native, region, quest_id)
+    native = safe_string(native)
+    if not native or is_secret(region) then return false, quest_id end
     if not minimap_tooltip_candidate(tooltip) then return false end
     local lines = {}
     for line in (native .. "\n"):gmatch("(.-)\n") do
@@ -2134,10 +2158,15 @@ tooltips.translate_character_stat = function (frame)
 end
 
 local function is_character_stat_owner(owner)
-    return owner and owner.Label and owner.Value
-        and (type(owner.UpdateTooltip) == "function"
-            or type(owner.onEnterFunc) == "function"
-            or type(owner.tooltip) == "string")
+    if is_secret(owner) or not owner then return false end
+    local ok, result = pcall(function ()
+        local label, value = owner.Label, owner.Value
+        if is_secret(label) or is_secret(value) or not label or not value then return false end
+        local update, enter, text = owner.UpdateTooltip, owner.onEnterFunc, owner.tooltip
+        if is_secret(update) or is_secret(enter) or is_secret(text) then return false end
+        return type(update) == "function" or type(enter) == "function" or type(text) == "string"
+    end)
+    return ok and result == true
 end
 
 
@@ -2633,10 +2662,13 @@ local function after_game_tooltip_update(tooltip)
     end
     if budget <= 0 then return end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
+    -- Tracking blips can return a secret owner. Keep translating public
+    -- rendered text, but never inspect or retain that owner as a frame.
+    if not owner_ok or is_secret(owner) then owner_ok, owner = false, nil end
     local owner_updates = false
     if owner_ok and owner then
         local method_ok, method = pcall(function () return owner.UpdateTooltip end)
-        owner_updates = method_ok and type(method) == "function"
+        owner_updates = method_ok and not is_secret(method) and type(method) == "function"
     end
     local self_ok, self_update = pcall(function () return tooltip.UpdateTooltip end)
     local refresh_ok, should_refresh = pcall(function ()
@@ -2651,7 +2683,7 @@ local function after_game_tooltip_update(tooltip)
     local dynamic = kind == "npc" or kind == "player" or kind == "aura"
         or kind == "character-stat"
         or unit_dynamic or minimap_tooltip_candidate(tooltip) or owner_updates
-        or self_ok and type(self_update) == "function"
+        or self_ok and not is_secret(self_update) and type(self_update) == "function"
         or refresh_ok and not is_secret(should_refresh) and should_refresh == true
     if not dynamic then
         tooltip.uaForeverUpdateBudget = 0
@@ -2694,27 +2726,14 @@ local function after_game_tooltip_update(tooltip)
     if tooltip.uaForeverKind == "object" or minimap_tooltip_owner(tooltip) then
         quest_adapter.translate_embedded(tooltip)
     end
-    if owner_ok and owner and _G.Minimap then
-        local current = owner
-        for _ = 1, 8 do
-            if current == _G.Minimap or current == _G.MinimapCluster then
-                local title = tooltip_line(tooltip, "Left", 1)
-                title = safe_string(title)
-                if title and type(entries.lookup_quest_id_for_task) == "function" then
-                    local id = entries.lookup_quest_id_for_task(title)
-                    local entry = id and entries.get_entry("quest", id)
-                    if entry and utils.same_english_name(entry.en, title) then
-                        safe_process(tooltip, { id = id }, "quest")
-                    end
-                end
-                break
+    if owner_ok and frame_under_minimap(owner) then
+        local title = safe_string(tooltip_line(tooltip, "Left", 1))
+        if title and type(entries.lookup_quest_id_for_task) == "function" then
+            local id = entries.lookup_quest_id_for_task(title)
+            local entry = id and entries.get_entry("quest", id)
+            if entry and utils.same_english_name(entry.en, title) then
+                safe_process(tooltip, { id = id }, "quest")
             end
-            local parent_ok, parent = pcall(function ()
-                return type(current.GetParent) == "function"
-                    and current:GetParent() or nil
-            end)
-            if not parent_ok or not parent or parent == current then break end
-            current = parent
         end
     end
     if owner_ok and is_character_stat_owner(owner) then
@@ -2722,9 +2741,13 @@ local function after_game_tooltip_update(tooltip)
         -- title does not prove that these later rows have been translated.
         tooltips.translate_character_stat(owner)
     end
-    if owner_ok and owner and owner.objectType == "item"
-        and owner.questID then
-        tooltips.refresh_quest_reward(tooltip, owner)
+    if owner_ok and owner then
+        local fields_ok, object_type, quest_id = pcall(function ()
+            return owner.objectType, owner.questID
+        end)
+        if fields_ok and safe_string(object_type) == "item" and safe_number(quest_id) then
+            tooltips.refresh_quest_reward(tooltip, owner)
+        end
     end
 end
 
@@ -2749,14 +2772,18 @@ local function prepare_bag_tooltip_hooks()
         if tooltip.uaForeverKind ~= "item" then
             if type(tooltip.GetOwner) ~= "function" then return end
             local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-            if not owner_ok or not owner then return end
-            local bag_owner = type(owner.GetBagID) == "function"
-            if not bag_owner and type(owner.GetParent) == "function" then
-                local parent_ok, parent = pcall(owner.GetParent, owner)
-                bag_owner = parent_ok and parent
-                    and type(parent.GetBagID) == "function"
-            end
-            if not bag_owner then return end
+            if not owner_ok or is_secret(owner) or not owner then return end
+            local bag_ok, bag_owner = pcall(function ()
+                local getter = owner.GetBagID
+                if not is_secret(getter) and type(getter) == "function" then return true end
+                local parent_getter = owner.GetParent
+                if is_secret(parent_getter) or type(parent_getter) ~= "function" then return false end
+                local parent = parent_getter(owner)
+                if is_secret(parent) or not parent then return false end
+                getter = parent.GetBagID
+                return not is_secret(getter) and type(getter) == "function"
+            end)
+            if not bag_ok or not bag_owner then return end
             if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
         end
         local count_ok, count = pcall(tooltip.NumLines, tooltip)
