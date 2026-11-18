@@ -289,6 +289,23 @@ local function translate_spellbook_item(frame)
     update_spellbook_item_layout(frame)
 end
 
+local function translate_spellbook_header(frame, data)
+    if is_secret(data) or type(data) ~= "table" then return end
+    local template = data.templateKey
+    if is_secret(template) or template ~= "HEADER" or not visible(frame) then return end
+    strings.translate_region(frame and frame.Text, nil, "ui.label", nil, nil, nil, "spell_ui")
+end
+
+local function translate_spellbook_headers(paged)
+    if not paged or not visible(paged) then return end
+    -- The native template table retains Init, bypassing later mixin hooks.
+    -- Visit only this page's headers after native Init, layout and Show finish.
+    local ok, for_each = pcall(function () return paged.ForEachFrame end)
+    if ok and type(for_each) == "function" then
+        pcall(for_each, paged, translate_spellbook_header)
+    end
+end
+
 local function register_spellbook_chrome(frame, depth)
     if not frame or (depth or 1) > 4 then return end
     if is_secret(frame) then return end
@@ -305,9 +322,11 @@ local function register_spellbook_chrome(frame, depth)
         end
         return
     end
-    -- Spell rows have exact database owners. Do not run a generic lookup over
-    -- their names after Init/UpdateVisuals has already translated them.
-    if frame.spellBookItemInfo or frame.Name and type(frame.UpdateTextContainer) == "function" then return end
+    -- Spell rows and pooled headers have their own translation callbacks.
+    -- Generic text hooks would duplicate their work during native rebuilds.
+    if frame.spellBookItemInfo
+        or frame.Name and type(frame.UpdateTextContainer) == "function"
+        or frame.Text and type(frame.GetElementData) == "function" then return end
     local state = { labels = {}, children = {}, seeded = visible(frame) }
     book_chrome[frame] = state
     local function label(region)
@@ -705,7 +724,6 @@ skills.prepare = function ()
     hook_mixin("SkillsEntryMixin", "Initialize", translate_character_element)
     hook_mixin("SkillsSubHeaderMixin", "Initialize", translate_character_element)
     hook_mixin("SkillDetailFrameMixin", "Refresh", translate_character_element)
-    hook_mixin("SpellBookHeaderMixin", "Init", translate_character_element)
     hook_mixin("SpellBookItemMixin", "Init", translate_spellbook_item)
     hook_mixin("SpellBookItemMixin", "UpdateVisuals", translate_spellbook_item)
     hook_mixin("SpellBookFrameMixin", "OnShow", translate_spellbook)
@@ -713,6 +731,8 @@ skills.prepare = function ()
     hook_mixin("SpellBookFrameMixin", "UpdateDisplayedSpells", translate_spellbook)
     hook_mixin("SpellBookFrameMixin", "SetTab", translate_spellbook)
     local spellbook = _G.PlayerSpellsFrame and _G.PlayerSpellsFrame.SpellBookFrame
+    local paged = spellbook and spellbook.PagedSpellsFrame
+    hook_owner(paged, "DisplayViewsForCurrentPage", translate_spellbook_headers)
 
     for _, method in ipairs({ "OnShow", "OnPagedSpellsUpdate", "UpdateDisplayedSpells", "SetTab" }) do
         hook_owner(spellbook, method, translate_spellbook)
@@ -722,6 +742,7 @@ skills.prepare = function ()
     translate_spellbook(spellbook)
     if spellbook and not book_seeded[spellbook] and visible(spellbook)
         and type(spellbook.ForEachDisplayedSpell) == "function" then
+        translate_spellbook_headers(paged)
         pcall(spellbook.ForEachDisplayedSpell, spellbook, translate_spellbook_item)
         book_seeded[spellbook] = true
     end
