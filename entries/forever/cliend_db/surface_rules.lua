@@ -9,6 +9,26 @@ local function channel_name(name)
 end
 
 addonTable.forever_surface_ui = {
+    barber = {
+        tooltip_line = function (source, lookup)
+            local name = source:match("^Source: (.+)$")
+            if name then
+                local template = addonTable.forever_ui["Source: %s"]
+                return template and string.format(template, lookup(name) or name)
+            end
+            local index
+            index, name = source:match("^(%d+): (.+)$")
+            if name then
+                local template = addonTable.forever_ui["%d: %s"]
+                return template and string.format(template, tonumber(index), lookup(name) or name)
+            end
+            name = source:match("^(.+) Form$")
+            if name then
+                local template = addonTable.forever_ui["%s Form"]
+                return template and string.format(template, lookup(name) or name)
+            end
+        end,
+    },
     guild = {
         rank_names = {
             ["Guild Master"] = "Розпорядник гільдії",

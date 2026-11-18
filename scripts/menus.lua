@@ -157,7 +157,7 @@ local function edit_mode_user_layout_names()
     return names
 end
 
-local function menu_policy(menu)
+local function menu_policy(menu, owner)
     local section, names = "game_menu", {}
     local ok, tag = pcall(function () return menu:ToDebugString() end)
     tag = ok and runtime.safe_string_or_nil(tag) or nil
@@ -177,6 +177,12 @@ local function menu_policy(menu)
             end
         end
     end
+    local barber = addon_table.use("barber_ui")
+    if not owner and menu then
+        local owner_ok, value = pcall(function () return menu:GetOwnerRegion() end)
+        if owner_ok and not runtime.is_secret_value(value) then owner = value end
+    end
+    if barber.is_owner and barber.is_owner(owner) then section = "character_ui" end
     return { id = "menus", name_category = "none", section = section,
         names = names, tag = tag or "", defer_if_protected = false }
 end
@@ -299,7 +305,7 @@ local function prepare_menu_description(_, owner, root)
     local util = _G.MenuUtil
     if not root or not util or type(util.TraverseMenu) ~= "function"
         or type(util.GetElementText) ~= "function" then return end
-    local policy = menu_policy(root)
+    local policy = menu_policy(root, owner)
     if not policy then return end
     local parent = owner
     for _ = 1, 12 do

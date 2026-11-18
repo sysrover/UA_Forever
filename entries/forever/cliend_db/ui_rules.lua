@@ -2067,6 +2067,8 @@ end
 do
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    { text = "Back", frame = "TransmogFrame.WardrobeCollection.TabContent.ItemsFrame.ActiveSlotTitle", translation = "Спина" },
+    { text = "Transmogrify", frame = "TransmogFrame", translation = "Трансмогрифікація" },
     { text = "C", frame = "DamageMeter", translation = "П" },
     { text = "O", frame = "DamageMeter", translation = "З" },
     -- Device selectors use this value inside the native 220px dropdown.

@@ -63,6 +63,8 @@
     <Script file="guild_bank_ui.lua"/>
     <Script file="guild_menus_ui.lua"/>
     <Script file="collections_ui.lua"/>
+    <Script file="transmog_ui.lua"/>
+    <Script file="barber_ui.lua"/>
     <Script file="calendar_ui.lua"/>
     <Script file="shop_ui.lua"/>
     <Script file="stable_ui.lua"/>

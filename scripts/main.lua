@@ -76,6 +76,8 @@ end
 local function prepare_menu_panels()
     prepare_fojji()
     addon_table.use("collections_ui").prepare()
+    addon_table.use("transmog_ui").prepare()
+    addon_table.use("barber_ui").prepare()
     addon_table.use("calendar_ui").prepare()
     addon_table.use("shop_ui").prepare()
     addon_table.use("stable_ui").prepare()
@@ -1147,6 +1149,24 @@ local panel_loads = {
         modules = { "collections_ui" },
         surfaces = { "collections-ui" },
         prepare = prepare_wardrobe_hooks,
+    },
+    Blizzard_Transmog = {
+        modules = { "transmog_ui" },
+        surfaces = { "transmog-ui" },
+        menu_roots = { "TransmogFrame" },
+    },
+    Blizzard_CustomizationUI = {
+        modules = { "barber_ui" },
+        surfaces = { "barber-ui" },
+    },
+    Blizzard_CharacterCustomize = {
+        modules = { "barber_ui" },
+        surfaces = { "barber-ui" },
+    },
+    Blizzard_BarberShopUI = {
+        modules = { "barber_ui" },
+        surfaces = { "barber-ui" },
+        menu_roots = { "BarberShopFrame" },
     },
 }
 

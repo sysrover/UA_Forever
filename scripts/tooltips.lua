@@ -1470,6 +1470,14 @@ tooltip_line = function (tooltip, side, index, allow_hidden)
     return text, region
 end
 
+do
+    local barber_ui = addon_table.use("barber_ui")
+    if type(barber_ui.configure) == "function" then
+        barber_ui.configure({ line = tooltip_line,
+            clear_line_cache = function (tooltip) tooltip_font_strings[tooltip] = nil end })
+    end
+end
+
 tooltips.inspect = function (tooltip, limit)
     if not tooltip then return {} end
     local ok_count, count = pcall(tooltip.NumLines, tooltip)
@@ -3119,6 +3127,11 @@ tooltips.refresh_active = function ()
     local function refresh_tooltip(tooltip)
         if not tooltip or refreshed[tooltip] then return end
         refreshed[tooltip] = true
+        local barber = addon_table.use("barber_ui")
+        if tooltip.uaForeverKind == "barber" then
+            if type(barber.refresh_tooltip) == "function" then barber.refresh_tooltip(tooltip) end
+            return
+        end
         if tooltip.uaForeverKind == "profession-recipe"
             and (type(profession_recipe_adapter.owns_tooltip) ~= "function"
                 or not profession_recipe_adapter.owns_tooltip(tooltip)) then return end
