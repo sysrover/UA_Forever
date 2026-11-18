@@ -1247,7 +1247,7 @@ local rows = {
     [1689911597] = { ["english"] = { [1] = "We need a great number of copper bars, $c. The upcoming war at Ahn'Qiraj is going to use up a lot of metal for weapons, armor and whatnot. I'm told that the Horde alone needs to collect $1998w copper bars. As of now we have $2018w." }, ["npcs"] = { [1] = 15459 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Нам потрібна величезна кількість мідних зливків, $c. Майбутня війна за Ан'Кіраж поглине безліч металу на зброю, обладунки й усе інше. Кажуть, самій лише Орді треба зібрати $1998w мідних зливків. Наразі в нас є $2018w." },
     [169101422] = { ["english"] = { [1] = "How dare you commune with a Duke of the Council, worm!" }, ["npcs"] = {  }, ["roles"] = { ["greeting"] = true }, ["text"] = "Як ти смієш звертатися до герцога Ради, хробаче!" },
     [169147572] = { ["english"] = { [1] = "When you give love tokens to townsfolk, you'll receive different gifts in return.  Some of those you'll want to keep and use, but others can be bundled together and given to your favorite hero!  Visit Kwee Q. Peddlefeet to turn them in.$B$BKwee can be found near Bolvar, Magni, or Tyrande." }, ["npcs"] = { [1] = 295, [10] = 5814, [11] = 6272, [12] = 6727, [13] = 6734, [14] = 6735, [15] = 6736, [16] = 6737, [17] = 6738, [18] = 6739, [19] = 6740, [2] = 1247, [20] = 6741, [21] = 6746, [22] = 6747, [23] = 6790, [24] = 6791, [25] = 6807, [26] = 6928, [27] = 6929, [28] = 6930, [29] = 7714, [3] = 1464, [30] = 7731, [31] = 7733, [32] = 7736, [33] = 7737, [34] = 7744, [35] = 8931, [36] = 9356, [37] = 9501, [38] = 11103, [39] = 11106, [4] = 2352, [40] = 11116, [41] = 11118, [42] = 12196, [43] = 14731, [44] = 15174, [45] = 16256, [46] = 16458, [5] = 2388, [6] = 2808, [7] = 3934, [8] = 5111, [9] = 5688 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Коли даруєш мешканцям міста знаки кохання, натомість отримуєш різні подарунки. Деякі варто лишити й використати, а інші можна зібрати в пакунок і віддати улюбленому герою! Віднеси їх Кві К. Педалькіну.$B$BКві можна знайти біля Болвара, Маґні або Тіранди." },
-    [1692283520] = { ["english"] = { [1] = "I am sorry, <class>, but you are not experienced enough yet to enter Darkspear Islands." }, ["npcs"] = { [1] = 263643 }, ["priority"] = 3, ["roles"] = { ["box"] = true, ["greeting"] = true, ["reply"] = true }, ["text"] = "Перепрошую, {клас:к}, але тобі ще бракує досвіду, щоб потрапити на Острови Темносписа.",
+    [1692283520] = { ["english"] = { [1] = "I am sorry, <class>, but you are not experienced enough yet to enter Darkspear Islands." }, ["npcs"] = { [1] = 263643, [2] = 263645 }, ["priority"] = 3, ["roles"] = { ["box"] = true, ["greeting"] = true, ["reply"] = true }, ["text"] = "Перепрошую, {клас:к}, але тобі ще бракує досвіду, щоб потрапити на Острови Темносписа.",
  ["alternatives"] = { [1] = {
     ["english"] = { [1] = "I am sorry, <class>, but you are not experienced enough yet to enter Darkspear Islands." },
     ["text"] = "Перепрошую, <class>, але вам іще бракує досвіду, щоб потрапити на Острови Темносписа.",
@@ -1265,7 +1265,7 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["reply"] = true },
 },
-    }, ["english"] = { [1] = "I wish to unlearn my class or legacy talents." }, ["npcs"] = { [1] = 5144, [2] = 5479, [3] = 5480 }, ["priority"] = 3, ["roles"] = { ["reply"] = true }, ["text"] = "Я хочу забути таланти свого класу або спадкові таланти." },
+    }, ["english"] = { [1] = "I wish to unlearn my class or legacy talents." }, ["npcs"] = { [1] = 5144, [2] = 5479, [3] = 5480, [4] = 3352 }, ["priority"] = 3, ["roles"] = { ["reply"] = true }, ["text"] = "Я хочу забути таланти свого класу або спадкові таланти." },
     [1693924246] = { ["english"] = { [1] = "A Thunderbrew ale and a bit of Gremlock's cooking makes for a nice meal indeed.  Ye really should hit him up for some training if ye want to be a cook." }, ["npcs"] = { [1] = 727, [2] = 12996, [3] = 13076 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Ель Громовара та трохи куховарства Ґремлока — чудова трапеза. Якщо хочеш стати кухарем, неодмінно попроси його тебе навчити." },
     [1694285182] = { ["english"] = { [1] = "My teachings would be too advanced for you at this stage. If you wish to learn more of potions, speak with Tel'Athir here instead." }, ["npcs"] = { [1] = 5499 }, ["roles"] = { ["greeting"] = true }, ["text"] = "На цьому етапі мої уроки були б для тебе надто складними. Якщо хочеш дізнатися більше про зілля, поговори тут із Тел’Атіром." },
     [1694594678] = { ["english"] = { [1] = "Michelle Belle's bedside manner is remarkable!  While she might not be able to teach you that, she surely could teach you some proper First Aid.  She currently resides in the Lion's Pride Inn." }, ["npcs"] = { [1] = 1423 }, ["roles"] = { ["greeting"] = true }, ["text"] = "Мішель Белль чудово вміє поводитися з пацієнтами!  Цього вона, може, й не навчить, зате Першої допомоги — залюбки.  Зараз вона мешкає в таверні «Гордість Лева»." },
@@ -7373,6 +7373,41 @@ local rows = {
     ["priority"] = 3,
     ["roles"] = { ["greeting"] = true },
 },
+    ["3399:training"] = {
+        ["english"] = { "I require training, Zamja." },
+        ["npcs"] = { 3399 },
+        ["priority"] = 3,
+        ["roles"] = { ["reply"] = true },
+        ["text"] = "Мені потрібне навчання, Замджо.",
+    },
+    ["11046:greeting"] = {
+        ["english"] = { "Why should I pace myself if this is working?" },
+        ["npcs"] = { 11046 },
+        ["priority"] = 3,
+        ["roles"] = { ["greeting"] = true },
+        ["text"] = "Навіщо мені стримувати себе, якщо це працює?",
+    },
+    ["3362:riding-training"] = {
+        ["english"] = { "Lok'tar, $c. I would be happy to offer you the chance to bond with a wolf, but first you should train with Kildar over there.\n\nThese creatures are fiercely intelligent and will not accept just anyone. Learning to ride one is the first step, but once you have your training you will not find a more loyal companion." },
+        ["npcs"] = { 3362 },
+        ["priority"] = 3,
+        ["roles"] = { ["greeting"] = true },
+        ["text"] = "Лок'тар, {клас:к}. Я охоче дав би тобі нагоду зблизитися з вовком, але спершу тобі слід пройти навчання в Кілдара, що стоїть он там.\n\nЦі створіння надзвичайно розумні й приймуть далеко не кожного. Навчитися їздити на вовкові — перший крок. А коли завершиш навчання, відданішого супутника тобі не знайти.",
+    },
+    ["mount:intelligent-sky-blue-eyes"] = {
+        ["english"] = { "<It studies you closely with its intelligent sky-blue eyes.>" },
+        ["npcs"] = { 5195, 267299 },
+        ["priority"] = 3,
+        ["roles"] = { ["greeting"] = true },
+        ["text"] = "<Він пильно дивиться на тебе своїми розумними небесно-блакитними очима.>",
+    },
+    ["3352:training"] = {
+        ["english"] = { "I have come for training." },
+        ["npcs"] = { 3352 },
+        ["priority"] = 3,
+        ["roles"] = { ["reply"] = true },
+        ["text"] = "Мені потрібне навчання.",
+    },
 }
 addonTable.gossip_hashed = { ["version"] = 1 }
 addonTable.gossip_hashed.rows = rows

@@ -42,6 +42,9 @@ local known_chat_msg_events = {
 
 local system_chat_events = {
     CHAT_MSG_SYSTEM = true,
+    CHAT_MSG_BG_SYSTEM_NEUTRAL = true,
+    CHAT_MSG_BG_SYSTEM_ALLIANCE = true,
+    CHAT_MSG_BG_SYSTEM_HORDE = true,
     CHAT_MSG_TEXT_EMOTE = true,
     CHAT_MSG_BN_INLINE_TOAST_ALERT = true,
     CHAT_MSG_LOOT = true,
@@ -503,10 +506,30 @@ local function translate_client_notice(message)
     end
 end
 
+local function read_chat_color(kind, system_fallback)
+    -- Chat metadata can become inaccessible in combat. Do not compare or
+    -- retain restricted colors, even when the incoming text is public.
+    local ok, r, g, b = pcall(function ()
+        local info = ChatTypeInfo and ChatTypeInfo[kind]
+        if runtime.is_secret_value(info) then return end
+        if info == nil and system_fallback then info = ChatTypeInfo and ChatTypeInfo.SYSTEM end
+        if runtime.is_secret_value(info) or type(info) ~= "table" then return end
+        local red, green, blue = info.r, info.g, info.b
+        if has_secret_values(red, green, blue) or type(red) ~= "number"
+            or type(green) ~= "number" or type(blue) ~= "number" then return end
+        return red, green, blue
+    end)
+    if ok then return r, g, b end
+end
+
+local function matches_chat_color(kind, r, g, b)
+    local red, green, blue = read_chat_color(kind)
+    return red ~= nil and r == red and g == green and b == blue
+end
+
 local function is_notice_color(r, g, b)
     for _, kind in ipairs(chat_catalog.notice_types) do
-        local info = ChatTypeInfo and ChatTypeInfo[kind]
-        if info and info.r == r and info.g == g and info.b == b then return true end
+        if matches_chat_color(kind, r, g, b) then return true end
     end
     return false
 end
@@ -727,7 +750,17 @@ local function translate_text_emote(message)
 end
 
 local function translate_system_text(event, message)
-    if type(message) ~= "string" then return nil end
+    if has_secret_values(event, message) or type(message) ~= "string" then return nil end
+    if event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" or event == "CHAT_MSG_BG_SYSTEM_ALLIANCE"
+        or event == "CHAT_MSG_BG_SYSTEM_HORDE" then
+        event = "CHAT_MSG_SYSTEM"
+    end
+    local color, plain = message:match("^(|c%x%x%x%x%x%x%x%x)(.-)|r$")
+    if not color then color, plain = message:match("^(|cn[%w_]+:)(.-)|r$") end
+    if color then
+        local translated = translate_system_text(event, plain)
+        return translated and color .. translated .. "|r" or nil
+    end
     if event == "CHAT_MSG_TEXT_EMOTE" then return translate_text_emote(message) end
 
     if event == "CHAT_MSG_SYSTEM" or event == "CHAT_MSG_BN_INLINE_TOAST_ALERT"
@@ -953,9 +986,12 @@ local function record_direct_system_chat(message, r, g, b, translated)
     if type(message) ~= "string" or not ChatTypeInfo then return end
     if message:match("^%[[^%]]+%] says: ")
         or message:match("|Hplayer:.-|h.-|h[|r%s]*:") then return end
-    for _, kind in ipairs({ "SYSTEM", "LOOT", "MONEY", "CURRENCY", "SKILL", "TRADESKILLS" }) do
-        local info = ChatTypeInfo[kind]
-        if info and r == info.r and g == info.g and b == info.b then
+    if is_notice_color(r, g, b) then
+        auto_scan.record_system_chat("ChatFrame.AddMessage", message, translated)
+        return
+    end
+    for _, kind in ipairs({ "LOOT", "MONEY", "CURRENCY", "SKILL", "TRADESKILLS" }) do
+        if matches_chat_color(kind, r, g, b) then
             auto_scan.record_system_chat("ChatFrame.AddMessage", message, translated)
             return
         end
@@ -963,20 +999,28 @@ local function record_direct_system_chat(message, r, g, b, translated)
 end
 
 local function translated_channel_label(label)
+    if runtime.is_secret_value(label) or type(label) ~= "string" then return nil end
     local number, channel, zone = label:match("^(%d+%. )([^%-]+) %- (.+)$")
     if number and channel and zone then
         local channel_name = chat_catalog.channel_names[channel]
         if channel_name and (channel == "Trade" or channel == "Trade (Services)") then
+            local source, levels = zone:match("^(.-)(%s+%d+[%d%+%-]*)$")
+            source = source or zone
             local language = addon_table.forever_ui_curated
-                and addon_table.forever_ui_curated[zone]
-                or addon_table.forever_ui and addon_table.forever_ui[zone]
-                or entries.get_language_text(zone)
-            return chat_format.channel(number, channel_name, language)
+                and addon_table.forever_ui_curated[source]
+                or addon_table.forever_ui and addon_table.forever_ui[source]
+                or entries.get_language_text(source) or source
+            return chat_format.channel(number, channel_name, language .. (levels or ""))
         end
-        local zone_name = addon_table.zone and addon_table.zone[zone] or zone
-        if channel_name then
-            return chat_format.channel(number, channel_name, zone_name)
+        local zone_name = options.can_translate("translate_zone")
+            and addon_table.zone and addon_table.zone[zone] or zone
+        if channel_name or zone_name ~= zone then
+            return chat_format.channel(number, channel_name or channel, zone_name)
         end
+    end
+    number, channel = label:match("^(%d+%. )(.+)$")
+    if number and chat_catalog.channel_names[channel] then
+        return number .. chat_catalog.channel_names[channel]
     end
     return addon_table.forever_ui_curated
         and addon_table.forever_ui_curated[label]
@@ -985,7 +1029,7 @@ end
 
 local function translate_chat_channel_header(message)
     if not section_enabled("chat_ui") then return nil end
-    if type(message) ~= "string" then return nil end
+    if runtime.is_secret_value(message) or type(message) ~= "string" then return nil end
     local changed = false
     local result = message:gsub("(|Hchannel:[^|]+|h)%[([^%]]+)%](|h)",
         function(prefix, label, suffix)
@@ -1004,11 +1048,18 @@ local function translate_rendered_chat(message, r, g, b)
     if type(message) ~= "string" then return nil end
     -- Player speech has a rendered speaker header. Even if its color matches
     -- SYSTEM, only domain-link labels may be changed inside that message.
-    local plain = message:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local plain = message:gsub("|c%x%x%x%x%x%x%x%x", "")
+        :gsub("|cn[%w_]+:", ""):gsub("|r", "")
     local player_speech = plain:match("|Hplayer:.-|h.-|h%s*:")
         or plain:match("^%[[^%]]+%] says: ")
-    local translated = section_enabled("system_chat") and not player_speech and (translate_direct_chat_text(message)
-        or is_notice_color(r, g, b) and translate_client_notice(message)) or nil
+    local translated
+    if section_enabled("system_chat") and not player_speech then
+        if is_notice_color(r, g, b) then
+            translated = translate_system_text("CHAT_MSG_SYSTEM", message)
+        else
+            translated = translate_direct_chat_text(message)
+        end
+    end
     local result = translated or message
     result = translate_chat_channel_header(result) or result
     result = translate_domain_links(result)
@@ -1016,6 +1067,7 @@ local function translate_rendered_chat(message, r, g, b)
 end
 
 auto_scan.system_chat_translated = function(event, message)
+    if has_secret_values(event, message) or type(message) ~= "string" then return false end
     if event == "ChatFrame.AddMessage" and message:match("|Hplayer:.-|h.-|h[|r%s]*:") then
         return true -- Player speech is outside the system-notice worklist.
     end
@@ -1023,17 +1075,16 @@ auto_scan.system_chat_translated = function(event, message)
         local translated = translated_channel_label(message)
         return type(translated) == "string" and translated ~= message
     end
-    local translated = event == "ChatFrame.AddMessage"
-        and (translate_direct_chat_text(message) or translate_client_notice(message))
-        or translate_system_text(event, message)
+    if event == "ChatFrame.AddMessage" then event = "CHAT_MSG_SYSTEM" end
+    local translated = translate_system_text(event, message)
     return type(translated) == "string" and translated ~= message
 end
 
 -- Some client notices are written straight to a ChatFrame without a CHAT_MSG_*
 -- event. Change only those exact notices in the frame history after insertion.
 local function after_chat_add_message(self, message, r, g, b, ...)
+    if has_secret_values(self, message, r, g, b, ...) or type(message) ~= "string" then return end
     if self == _G.COMBATLOG or self == _G.ChatFrame2 then return end
-    if has_secret_values(message, r, g, b, ...) or type(message) ~= "string" then return end
     if not options.can_lookup("translate_chat")
         or not options.can_translate("translate_chat") then return end
     local from_event = direct_event_messages[self] == message
@@ -1072,7 +1123,7 @@ end
 
 local function filter_system_msg(self, event, message, ...)
     if options.work_enabled and not options.work_enabled("system-chat") then return nil end
-    if has_secret_values(message, ...) or type(message) ~= "string" then return nil end
+    if has_secret_values(self, event, message, ...) or type(message) ~= "string" then return nil end
     if not system_chat_events[event] or not options.can_lookup("translate_chat") then
         return nil, message, ...
     end
@@ -1088,12 +1139,14 @@ local function filter_system_msg(self, event, message, ...)
     end
     if options.account.chat_style == "addition" then
         direct_event_messages[self] = message
-        local info = ChatTypeInfo[event:sub(10)] or ChatTypeInfo.SYSTEM
+        local color_kind = event:sub(10)
+        if read_chat_color(color_kind, true) == nil then return nil, message, ... end
         chat_addition_sequence = chat_addition_sequence + 1
         scheduler.request("chat-addition:" .. chat_addition_sequence, nil, function()
             if not section_enabled("system_chat") or not options.can_translate("translate_chat") then return end
-            self:AddMessage(assets.icon_ua_inline .. " " .. translated,
-                info and info.r, info and info.g, info and info.b)
+            local r, g, b = read_chat_color(color_kind, true)
+            if r == nil then return end
+            self:AddMessage(assets.icon_ua_inline .. " " .. translated, r, g, b)
         end)
         return nil, message, ...
     end
