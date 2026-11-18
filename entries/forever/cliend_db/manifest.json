@@ -25,8 +25,8 @@
   "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4963,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 33136,
-  "spellNamesNeedTranslation": 24,
+  "spellNamesUkV4": 33152,
+  "spellNamesNeedTranslation": 8,
   "itemNamesUkComplete": true,
   "spellDescriptionsUk": 17859,
   "spellDescriptionsNeedTranslation": 45,
@@ -3078,5 +3078,27 @@
       14558,
       22326
     ]
+  },
+  "friendCache70959": {
+    "sourceBuild": "1.60.1.70959",
+    "cacheSHA256": "04d73b35fd043b155abf122d565b04695b37eff6febfcebe9ccf3d55cbb87868",
+    "sourceDirectory": "C:\\Users\\sysro\\Downloads\\cache\\2\\1",
+    "extractionArchive": "automation/results/cache_results/current/horde_cache.zip",
+    "importLedger": "automation/results/cache_results/current/horde_cache_import.json",
+    "counts": {
+      "npc": 44,
+      "object_id": 753,
+      "object_text": 43,
+      "quest_source": 1,
+      "broadcast": 24,
+      "zone": 34,
+      "spell_name": 16,
+      "ui": 98,
+      "new_npc_names": 35,
+      "npc_english_metadata": 9
+    },
+    "preservedExistingTranslations": true,
+    "testsRun": false,
+    "inGameVerified": false
   }
 }
