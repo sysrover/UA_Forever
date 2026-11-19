@@ -4360,6 +4360,9 @@ addonTable.object_ids = {
     [665242] = { [1] = "Гілочка з ягодами", ["en"] = "Berry Sprig" },
     [665270] = { [1] = "Кущ із фіолетовими ягодами", ["en"] = "Purple Berry Bush" },
     [702300] = { [1] = "Подушка", ["en"] = "Pillow" },
+    [665365] = { [1] = "Багряний прапор", ["en"] = "Scarlet Banner" },
+    [176498] = { [1] = "Портал до Дарнаса", ["en"] = "Portal to Darnassus" },
+    [642745] = { [1] = "Поштова скринька", ["en"] = "Mailbox" },
 }
 
 addonTable.object = {
@@ -7946,6 +7949,7 @@ addonTable.object = {
     ["Berry Sprig"] = "Гілочка з ягодами",
     ["Purple Berry Bush"] = "Кущ із фіолетовими ягодами",
     ["Pillow"] = "Подушка",
+    ["Scarlet Banner"] = "Багряний прапор",
 }
 
 addonTable.translate_object_name = function (name)
