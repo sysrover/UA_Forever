@@ -201,12 +201,6 @@ local function prepare_map_detail_layers(world_map)
     end
 end
 
-map_labels.refresh = function ()
-    restore_map_textures()
-    prepare_ironforge_map_pins(_G.WorldMapFrame)
-    prepare_map_detail_layers(_G.WorldMapFrame)
-end
-
 local function safe_string(value)
     if type(_G.issecretvalue) == "function" then
         local ok, secret = pcall(_G.issecretvalue, value)
@@ -334,7 +328,7 @@ local function native_zone_text(getter_name)
     return ok and safe_string(value) or nil
 end
 
-local function apply_native_zone_region(region, native, owner)
+local function apply_native_zone_region(region, native, owner, surface)
     if not native or visible_text(region) ~= native then return end
     runtime.invalidate(region)
     if not options.can_lookup("translate_zone") then return end
@@ -347,8 +341,13 @@ local function apply_native_zone_region(region, native, owner)
         })
     end
     auto_scan.record_zone_name(native, visible_text(region), {
-        owner = owner, slot = "zone.name", surface = owner,
+        owner = owner, slot = "zone.name", surface = surface or owner,
     })
+end
+
+local function refresh_minimap_zone_label()
+    apply_native_zone_region(_G.MinimapZoneText,
+        native_zone_text("GetMinimapZoneText"), "zone-minimap", "Minimap")
 end
 
 local function after_zone_announcement_write(region, native, owner)
@@ -369,7 +368,7 @@ local function after_zone_announcement_write(region, native, owner)
     })
 end
 
-local function translated_zone_status(source)
+map_labels.translate_zone_status = function (source)
     local faction = source:match("^%((.-) Territory%)$")
         or source:match("^(.-) Territory$")
     if faction then
@@ -386,7 +385,7 @@ local function apply_zone_status_region(region, source)
     if not source or visible_text(region) ~= source then return end
     runtime.invalidate(region)
     if not options.can_lookup("translate_zone") then return end
-    local translated = translated_zone_status(source)
+    local translated = map_labels.translate_zone_status(source)
     if translated then
         runtime.apply(region, {
             owner = "zone-announce-status", slot = "zone.status",
@@ -1050,10 +1049,15 @@ local function after_worldmap_menu(owner)
     end)
 end
 
-map_labels.refresh_active = function ()
+map_labels.refresh = function ()
     restore_map_textures()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
     prepare_map_detail_layers(_G.WorldMapFrame)
+    refresh_minimap_zone_label()
+end
+
+map_labels.refresh_active = function ()
+    map_labels.refresh()
     after_zone_text_event()
     hook_worldmap_coords_panel()
 end
@@ -1077,6 +1081,8 @@ map_labels.prepare = function ()
     prepare_ironforge_map_pins(world_map)
     prepare_map_detail_layers(world_map)
     hook_worldmap_coords_panel()
+    hooks.global("Minimap_Update", refresh_minimap_zone_label)
+    refresh_minimap_zone_label()
     hooks.region(_G.ZoneTextString, "SetText", function (region, native)
         after_zone_announcement_write(region, native, "zone-announce")
     end)

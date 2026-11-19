@@ -2,8 +2,11 @@ local _, addon_table = ...
 
 local entries = addon_table.use("entries")
 local item_client_db = addon_table.use("item_client_db")
+local layout = addon_table.use("translation_layout")
+local map_labels = addon_table.use("map_labels")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
+local strings = addon_table.use("strings")
 local translation = addon_table.use("translation")
 local utils = addon_table.use("utils")
 local adapter = addon_table.use("tooltip_map_adapter")
@@ -51,6 +54,118 @@ adapter.is_minimap_frame = function (frame)
         frame = parent
     end
     return false
+end
+
+local function minimap_buttons()
+    local cluster = _G.MinimapCluster
+    if runtime.is_secret_value(cluster) or not cluster then return end
+    local ok, zone, tracking = pcall(function ()
+        local tracking_frame = cluster.Tracking
+        return cluster.ZoneTextButton, not runtime.is_secret_value(tracking_frame)
+            and tracking_frame and tracking_frame.Button or nil
+    end)
+    if not ok then return end
+    if runtime.is_secret_value(zone) then zone = nil end
+    if runtime.is_secret_value(tracking) then tracking = nil end
+    return zone, tracking
+end
+
+local function is_visible_owner(tooltip, button)
+    if runtime.is_secret_value(tooltip) or not tooltip or not button then return false end
+    local ok, owner, shown = pcall(function () return tooltip:GetOwner(), tooltip:IsShown() end)
+    return ok and not runtime.is_secret_value(owner) and not runtime.is_secret_value(shown)
+        and owner == button and shown == true
+end
+
+adapter.current_minimap_button = function (tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip then return end
+    local zone, tracking = minimap_buttons()
+    local button = tracking
+    if tooltip.uaForeverSessionKey == "minimap-zone-button" then
+        button = zone
+    elseif tooltip.uaForeverSessionKey ~= "minimap-tracking-button" then
+        return
+    end
+    if is_visible_owner(tooltip, button) then return button end
+end
+
+local function get_native_zone(getter)
+    if type(getter) ~= "function" then return nil end
+    local ok, value = pcall(getter)
+    return ok and deps().safe_string(value) or nil
+end
+
+local function translate_world_map_shortcut(source, region)
+    local title = deps().safe_string(_G.WORLDMAP_BUTTON)
+    if not title or source:sub(1, #title) ~= title then return nil end
+    local translated = strings.find_ui_translation(title, region)
+    if translated then return translated .. source:sub(#title + 1) end
+end
+
+adapter.translate_minimap_button_lines = function (tooltip, button)
+    if tooltip.uaForeverShowOriginal then return end
+    local contract = deps()
+    local is_zone = tooltip.uaForeverSessionKey == "minimap-zone-button"
+    local ok, count = pcall(function () return tooltip:NumLines() end)
+    if not ok or contract.is_secret(count) or type(count) ~= "number" then return end
+    local zone, subzone, shortcut
+    if is_zone then
+        zone = get_native_zone(_G.GetZoneText)
+        subzone = get_native_zone(_G.GetSubZoneText)
+        local shortcut_ok, value = pcall(function () return button.tooltipText end)
+        shortcut = shortcut_ok and contract.safe_string(value) or nil
+    end
+    local bilingual = options.is_bilingual_tooltip()
+    for index = 1, math.min(count, is_zone and 4 or 2) do
+        local source, region = contract.tooltip_line(tooltip, "Left", index)
+        source = contract.safe_string(source)
+        if source and region and not runtime.is_stable_claim(region, tooltip, tooltip.uaForeverGeneration) then
+            local translated, owner
+            if not is_zone then
+                translated = strings.find_ui_translation(source, region)
+            elseif source == shortcut then
+                translated = translate_world_map_shortcut(source, region)
+            else
+                owner = "zone-tooltip"
+                if source == zone or source == subzone then
+                    translated = entries.get_glossary_text(source, source, "zone")
+                elseif index == 2 or index == 3 then
+                    translated = map_labels.translate_zone_status(source)
+                end
+            end
+            if translated then
+                contract.set_translation(tooltip, region, source, translated,
+                    (owner and "zone.minimap:" or "minimap.button:") .. index,
+                    nil, owner or "generic", nil, bilingual, false)
+            end
+        end
+    end
+end
+
+local function finish_minimap_button(button, key)
+    local tooltip = _G.GameTooltip
+    if not is_visible_owner(tooltip, button) or not options.can_translate() then return end
+    deps().begin_tooltip(tooltip, key, true)
+    tooltip.uaForeverKind = "minimap-button"
+    adapter.translate_minimap_button_lines(tooltip, button)
+    layout.fit_current_tooltip(tooltip)
+end
+
+local function finish_minimap_zone_button(button)
+    finish_minimap_button(button, "minimap-zone-button")
+end
+
+adapter.prepare_minimap_buttons = function (hooks)
+    local zone, tracking = minimap_buttons()
+    -- The zone button shows intermediate rows before appending the map shortcut.
+    hooks.region_script(zone, "OnEnter", finish_minimap_zone_button, "minimap-zone-button")
+    hooks.region_script(tracking, "OnEnter", function (button)
+        finish_minimap_button(button, "minimap-tracking-button")
+    end, "minimap-tracking-button")
+    hooks.global("Minimap_Update", function ()
+        local zone_button = minimap_buttons()
+        finish_minimap_zone_button(zone_button)
+    end)
 end
 
 adapter.translate_taxi_node = function (button)

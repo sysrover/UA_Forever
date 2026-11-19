@@ -1,5 +1,6 @@
 local _, addon_table = ...
 local layout = addon_table.use("translation_layout")
+local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
 local strings = addon_table.use("strings")
 local profiler = addon_table.use("performance_profile")
@@ -1114,7 +1115,10 @@ layout.fit_current_tooltip = function (tooltip)
     local kind = tooltip.uaForeverKind
     if tooltip.uaForeverAuraTooltip == true and kind ~= "aura" then return false end
     if kind == "item" then return layout.fit_item_tooltip(tooltip) end
-    if not tooltip.uaForeverShowOriginal and not has_current_translation(tooltip) then return false end
+    local minimap_bilingual_lines = kind == "minimap-button" and options.is_bilingual_tooltip()
+        and tooltip.uaForeverBilingualLines and next(tooltip.uaForeverBilingualLines)
+    if not tooltip.uaForeverShowOriginal and not minimap_bilingual_lines
+        and not has_current_translation(tooltip) then return false end
     local policy = tooltip.uaForeverTooltipLayoutPolicy
     if policy and policy.generation == tooltip.uaForeverGeneration
         and policy.instance == tooltip.uaForeverSessionKey and policy.kind == kind then

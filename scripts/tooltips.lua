@@ -1306,6 +1306,7 @@ end
 
 local function prepare_map_surface_hooks()
     quest_adapter.prepare()
+    map_adapter.prepare_minimap_buttons(hooks)
     hooks.region(_G.FlightMap_ZoneSummaryDataProvider, "CheckMouse",
         map_adapter.translate_flight_map)
     hooks.global("TaxiNodeOnButtonEnter", map_adapter.translate_taxi_node)
@@ -2926,7 +2927,14 @@ tooltips.refresh_active = function ()
     local show = original_modifier_held() or not options.can_translate()
     local refreshed, previous_widths = {}, {}
     local function refresh_tooltip(tooltip)
-        if not tooltip or refreshed[tooltip] or is_minimap_tooltip(tooltip) then return end
+        if not tooltip or refreshed[tooltip] then return end
+        local minimap_button
+        if tooltip.uaForeverKind == "minimap-button" then
+            minimap_button = map_adapter.current_minimap_button(tooltip)
+            if not minimap_button then return end
+        elseif is_minimap_tooltip(tooltip) then
+            return
+        end
         refreshed[tooltip] = true
         local barber = addon_table.use("barber_ui")
         if tooltip.uaForeverKind == "barber" then
@@ -3002,6 +3010,8 @@ tooltips.refresh_active = function ()
                 end
             elseif tooltip.uaForeverKind == "talent" then
                 talent_adapter.refresh(tooltip)
+            elseif minimap_button then
+                map_adapter.translate_minimap_button_lines(tooltip, minimap_button)
             elseif tooltip.uaForeverKind == "character-stat" then
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
                 if owner_ok and owner then tooltips.translate_character_stat(owner) end
