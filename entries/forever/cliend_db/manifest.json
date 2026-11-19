@@ -7,32 +7,32 @@
   "itemSourceBuild": "1.60.1.70959",
   "skillLineSourceBuild": "1.60.1.70959",
   "traitSourceBuild": "1.60.1.70959",
-  "spellIDs": 33418,
-  "names": 33162,
-  "descriptions": 17904,
-  "auraDescriptions": 7929,
+  "spellIDs": 33428,
+  "names": 33170,
+  "descriptions": 17907,
+  "auraDescriptions": 7932,
   "skillLines": 154,
   "spellsWithSkillLines": 7381,
-  "itemIDs": 27215,
-  "itemNames": 25524,
+  "itemIDs": 27216,
+  "itemNames": 25526,
   "itemDescriptions": 4963,
   "itemsWithSpellEffects": 9020,
   "missingItemEffectLinks": 8,
   "itemEffectLinks": 12651,
   "resolvedItemSpellEffects": 12643,
-  "itemNamesUk": 25524,
+  "itemNamesUk": 25526,
   "itemNamesUkMissing": 0,
   "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4963,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 33154,
+  "spellNamesUkV4": 33162,
   "spellNamesNeedTranslation": 8,
   "itemNamesUkComplete": true,
-  "spellDescriptionsUk": 17860,
-  "spellDescriptionsNeedTranslation": 45,
+  "spellDescriptionsUk": 17869,
+  "spellDescriptionsNeedTranslation": 39,
   "spellNamesUkV4Complete": false,
-  "auraDescriptionsUk": 7885,
-  "auraDescriptionsNeedTranslation": 44,
+  "auraDescriptionsUk": 7894,
+  "auraDescriptionsNeedTranslation": 38,
   "auraDescriptionsUkComplete": false,
   "previousTranslationImport": {
     "sourceBuild": "1.60.1.70124",
@@ -3120,6 +3120,36 @@
     },
     "preservedExistingTranslations": true,
     "importValidationApproved": true,
+    "inGameVerified": false
+  },
+  "cache45TranslationImport": {
+    "sourceBuild": "1.60.1.70959",
+    "caches": [
+      {
+        "source": "C:\\Users\\sysro\\Downloads\\cache\\4\\ADB\\enUS\\DBCache.bin",
+        "sha256": "d7c86c0d939afdf54f753a76505e1fd305e3a4b3eec16c0d8ec10f3b4979e2dd"
+      },
+      {
+        "source": "C:\\Users\\sysro\\Downloads\\cache\\5\\ADB\\enUS\\DBCache.bin",
+        "sha256": "20307e57cdc2f9c1378ab3c7c7f821522d7e77723cf76ef9a5b454a0aafe5863"
+      }
+    ],
+    "extractionArchive": "automation/results/cache_results/current/cache_4_5_extraction.zip",
+    "counts": {
+      "itemNames": 2,
+      "spellNames": 9,
+      "spellDescriptions": 14,
+      "auraDescriptions": 11,
+      "npcNames": 15,
+      "npcRecords": 19,
+      "objectIDs": 84,
+      "objectNames": 15,
+      "broadcastText": 4,
+      "achievementCriteria": 3,
+      "mailTemplates": 2,
+      "bookPagesAlreadyTranslated": 53,
+      "castCaptions": 1
+    },
     "inGameVerified": false
   }
 }

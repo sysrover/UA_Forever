@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 25524,
+    count = 25526,
     rows = {
         [18757] = "Diabolic Mantle",
         [25] = "Worn Shortsword",
@@ -25530,6 +25530,8 @@ local database = {
         [286644] = "Shattered Atal'ai Spear",
         [286645] = "Reforged Atal'ai Spear",
         [291005] = "Camper's Lure",
+        [11603] = "Vilerend Slicer",
+        [291874] = "Ruined Herb Seeds",
     },
 }
 

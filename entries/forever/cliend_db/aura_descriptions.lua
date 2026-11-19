@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 7929,
+    count = 7932,
     rows = {
         [10] = "$1279976s1 Frost damage every $t3 $lsecond:seconds;.",
         [17] = "Absorbs $w1 damage.",
@@ -7080,8 +7080,8 @@ local database = {
         [1288524] = "$s2 Physical damage every $t2 sec until the victim is above 90% health remaining.",
         [1288548] = "Surrounded by magical thorns reducing damage taken by 99% and reflecting $S1 of all incoming damage.",
         [1288558] = "Inflicts $1290040s1 Shadow damage after $d and reduces damage dealt by $1290040s2%.",
-        [1288559] = "$s1 Nature damage every $t1 sec. If not dispelled, the target is rooted in place for $1290041d.",
-        [1288560] = "Movement slowed by $s1%. Your Mana, Rage, and Energy generation is reduced.",
+        [1288559] = "$s1 Nature damage inflicted every $t1 sec.",
+        [1288560] = "Movement speed, Attack speed, and Casting speed reduced by $s1%.",
         [1288561] = "Armor reduced by $s1.\r\nCannot use stealth or invisibility.",
         [1288908] = "Armor reduced by $s1%.",
         [1288961] = "Unleashing a barrage of bolts inflicting $1289053s1 Physical damage to players in a cone every sec.",
@@ -7935,6 +7935,9 @@ local database = {
         [1331324] = "Fire damage dealt is increased by $s1.",
         [1331671] = "Resting.",
         [1330887] = "Surrounded by magical thorns, dealing $S1 Nature damage when attacked in melee.",
+        [1331079] = "$s1 Arcane damage inflicted every $t1 sec.",
+        [1331089] = "Attack speed increased by $s1%. Damage increased by $s3%.",
+        [1331092] = "Melee attack power reduced by $s1.",
     },
 }
 

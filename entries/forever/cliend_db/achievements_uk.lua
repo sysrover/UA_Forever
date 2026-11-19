@@ -26,6 +26,9 @@ local database = {
         ["Elder Minderel"] = "Старійшина Міндерел",
         ["Council of Thorns"] = "Рада Шипів",
         ["Nythus the Dreambound"] = "Нітус Скутий Сном",
+        ["Bloodkelp Elixir of Dodging"] = "Кров'яничний еліксир ухилення",
+        ["Flask of Chromatic Resistance"] = "Настій хроматичного опору",
+        ["Major Dreamless Sleep Potion"] = "Потужне зілля сну без сновидінь",
     },
     rows = {
         [49] = { title = "Перемоги в Альтерацькій долині", description = "Перемоги в Альтерацькій долині", reward = "" },

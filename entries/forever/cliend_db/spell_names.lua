@@ -5,7 +5,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 33162,
+    count = 33170,
     rows = {
         [1] = "Word of Recall (OLD)",
         [3] = "Word of Mass Recall (OLD)",
@@ -29391,7 +29391,7 @@ local database = {
         [1289448] = "Frostbolt Volley",
         [1289449] = "Glaive",
         [1289450] = "Renew",
-        [1289451] = "Lightning Bolt",
+        [1289451] = "Wrath",
         [1289452] = "Faerie Fire",
         [1289453] = "Shadowmeld",
         [1289484] = "Set 1% HP",
@@ -33169,6 +33169,14 @@ local database = {
         [1332188] = "Disable ALL Mounts",
         [1330970] = "Fixate",
         [1330887] = "Thorns Aura",
+        [1331002] = "Eternal Night",
+        [1331006] = "Umbral Pull",
+        [1331071] = "Wrath",
+        [1331079] = "Moonfire",
+        [1331088] = "Swipe",
+        [1331089] = "Berserk",
+        [1331092] = "Demoralizing Roar",
+        [1331288] = "Hate to Zero",
     },
 }
 
