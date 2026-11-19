@@ -67,6 +67,12 @@ addonTable.forever_surface_ui = {
         item_deliveries = {
             ["Datto Glowspindle"] = { ["Expert Cookbook"] = 16072 },
         },
+        letter_bodies = {
+            ["It took much time to translate the high chief's text. I was dismayed by what I found. High Chief Winterfall was in an extreme state of paranoia in his last days and was addicted to a substance he called \"firewater.\" He believed that all creatures were his enemies. Well, I will let you read it for yourself -- I have included a translation of his words with this letter. If you are ever in need, please visit me again."] =
+                "На переклад записів верховного вождя пішло чимало часу. Мене неабияк стривожив їхній зміст. В останні дні верховний вождь Зимокрай страждав від тяжкої параної й був залежний від речовини, яку називав «огневицею». Він вважав ворогами всіх живих істот. Утім, прочитай і зроби власні висновки. Переклад його слів додаю до листа. Якщо знадобиться допомога, заходь іще.",
+            ["We've supplied you with a whole new set of high-level gear, but attached you'll find all the old items and equipment you once carried.\r\n\r\n - The WoW Dev Team"] =
+                "Ми підготували для тебе повний комплект спорядження високого рівня. У вкладенні знайдеш усі свої попередні речі та спорядження.\r\n\r\n — Команда розробників WoW",
+        },
     },
     forever_vo = {
         queue_label = function (title, name, color)

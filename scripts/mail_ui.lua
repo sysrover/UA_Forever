@@ -5,13 +5,50 @@ local strings = addon_table.use("strings")
 local registry = addon_table.use("translation_registry")
 local resolver = addon_table.use("translation_resolver")
 local runtime = addon_table.use("translation_runtime")
+local fonts = addon_table.use("fonts")
 local tooltips = addon_table.use("tooltips")
 local item_db = addon_table.use("item_client_db")
 local utils = addon_table.use("utils")
 local delivery_headers = addon_table.forever_surface_ui.mail.item_deliveries
+local letter_bodies = addon_table.forever_surface_ui.mail.letter_bodies
 local hooks = addon_table.use("translation_hooks").bind("mail_ui")
 
 local original_mail_widths = setmetatable({}, { __mode = "k" })
+local letter_body_display
+
+local function letter_body_matches(_, expected)
+    return letter_body_display == expected
+end
+
+local function translate_letter_body(region, source)
+    local previous = runtime.get(region)
+    if previous and previous.owner == "mail-letter" and source == previous.translated then
+        source = previous.source
+    end
+    local translated = source and letter_bodies[source]
+    if not translated then return end
+    runtime.apply(region, {
+        owner = "mail-letter", slot = "mail.body", section = "mail",
+        source = source, translated = translated,
+        option = "translate_string", priority = runtime.PRIORITY.DOMAIN,
+        surface = registry.get("mail"), visible_matches = letter_body_matches,
+        reapply_cached = true, defer_if_protected = false,
+    })
+end
+
+local function observe_letter_body(region, source)
+    source = runtime.safe_string_or_nil(source)
+    if runtime.is_applying(region) then
+        letter_body_display = source
+        return
+    end
+    local previous = runtime.get(region)
+    if previous and previous.owner == "mail-letter" and source ~= previous.source then
+        runtime.invalidate(region)
+    end
+    letter_body_display = source and letter_bodies[source] and source or nil
+    if letter_body_display then translate_letter_body(region, letter_body_display) end
+end
 
 local function widen_mail_region(region, extra_width)
     if not region or type(region.GetWidth) ~= "function"
@@ -187,6 +224,13 @@ local function update_inbox_row(index)
 end
 
 local function update_open_mail_controls()
+    local frame, body = _G.OpenMailFrame, _G.OpenMailBodyText
+    if letter_bodies and body and letter_body_display and frame then
+        local ok, visible = pcall(frame.IsVisible, frame)
+        if ok and not runtime.is_secret_value(visible) and visible == true then
+            translate_letter_body(body, letter_body_display)
+        end
+    end
     for _, name in ipairs(open_mail_labels) do
         translate_mail_region(_G[name])
     end
@@ -342,6 +386,11 @@ end
 
 mail_ui.prepare = function ()
     declare_mail_hooks()
+    local body = _G.OpenMailBodyText
+    if letter_bodies and body then
+        fonts.register_html(body, { P = _G.MailTextFontNormal })
+        hooks.region(body, "SetText", observe_letter_body, nil, true)
+    end
     hooks.region(_G.OpenMailFrame, "Update", update_open_mail_controls)
     hooks.region_script(_G.OpenMailFrame, "OnShow", update_open_mail_controls,
         "open-mail-controls")

@@ -14857,6 +14857,7 @@ local ui = {
     ["Ruins of Korune"] = "Руїни Коруне",
     ["Ruins of Ogudei"] = "Руїни Огудея",
     ["Rules"] = "Правила",
+    ["Rummaging..."] = "Обшук...",
     ["Run Speed: %d%%"] = "Швидкість бігу: %d%%",
     ["Run away!"] = "Тікай!",
     ["Run for the hills!"] = "Тікайте в гори!",
