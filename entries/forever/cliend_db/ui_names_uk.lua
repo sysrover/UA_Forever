@@ -23551,5 +23551,17 @@ local ui = {
     ["Play in the WoW: Forever Beta"] = "Грайте в бета-версію WoW: Forever",
     ["Brazilian Portuguese"] = "Португальська (Бразилія)",
     ["European Portuguese"] = "Португальська (Португалія)",
+    ["For thousands of years,"] = "Протягом тисячоліть",
+    ["a band of high elven exiles has remained safe"] = "група вигнанців із числа високих ельфів перебувала в безпеці",
+    ["and hidden upon their flying sanctuary of Zephras Isle."] = "та укритті у своєму літаючому притулку — на острові Зефрас.",
+    ["These \"Skyborne,\" as they call themselves,"] = "Ці «Небесні», як вони себе називають,",
+    ["shared a bond with air elementals"] = "були пов’язані узами з повітряними елементалями,",
+    ["who kept their island aloft in the realm of Skywall."] = "які утримували їхній острів у повітрі в царстві Небесної стіни.",
+    ["But in recent years,"] = "Однак останніми роками",
+    ["the elementals vanished without a trace--"] = "елементалі зникли безслідно —",
+    ["disrupting the delicate magic that kept them safe in their haven amongst the clouds."] = "порушивши тендітну магію, яка забезпечувала їм безпеку в притулку серед хмар.",
+    ["Now, a new generation of Skyborne elves face a time of unprecedented change,"] = "Тепер нове покоління небесних ельфів стикається з періодом безпрецедентних змін",
+    ["and must seek new allies and sources of magic--"] = "і мусить шукати нових союзників та джерел магії —",
+    ["to protect their hidden home and secure their future..."] = "щоб захистити свою приховану батьківщину та забезпечити своє майбутнє...",
 }
 addonTable.forever_ui = ui

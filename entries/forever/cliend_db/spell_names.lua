@@ -5,7 +5,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 33160,
+    count = 33162,
     rows = {
         [1] = "Word of Recall (OLD)",
         [3] = "Word of Mass Recall (OLD)",
@@ -33167,6 +33167,8 @@ local database = {
         [1331725] = "Camper's Lure",
         [1331727] = "Fishing Skill +60",
         [1332188] = "Disable ALL Mounts",
+        [1330970] = "Fixate",
+        [1330887] = "Thorns Aura",
     },
 }
 

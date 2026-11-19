@@ -8,9 +8,9 @@
   "skillLineSourceBuild": "1.60.1.70959",
   "traitSourceBuild": "1.60.1.70959",
   "spellIDs": 33418,
-  "names": 33160,
-  "descriptions": 17903,
-  "auraDescriptions": 7928,
+  "names": 33162,
+  "descriptions": 17904,
+  "auraDescriptions": 7929,
   "skillLines": 154,
   "spellsWithSkillLines": 7381,
   "itemIDs": 27215,
@@ -25,13 +25,13 @@
   "itemNamesNeedTranslation": 0,
   "itemDescriptionsUk": 4963,
   "itemDescriptionsNeedTranslation": 0,
-  "spellNamesUkV4": 33152,
+  "spellNamesUkV4": 33154,
   "spellNamesNeedTranslation": 8,
   "itemNamesUkComplete": true,
-  "spellDescriptionsUk": 17859,
+  "spellDescriptionsUk": 17860,
   "spellDescriptionsNeedTranslation": 45,
   "spellNamesUkV4Complete": false,
-  "auraDescriptionsUk": 7884,
+  "auraDescriptionsUk": 7885,
   "auraDescriptionsNeedTranslation": 44,
   "auraDescriptionsUkComplete": false,
   "previousTranslationImport": {
@@ -3099,6 +3099,27 @@
     },
     "preservedExistingTranslations": true,
     "testsRun": false,
+    "inGameVerified": false
+  },
+  "cache3TranslationImport": {
+    "sourceBuild": "1.60.1.70959",
+    "cacheSHA256": "08fd3fc82219360399cabdd57a1ee637630da145aa5159ddef4e961f5730e38c",
+    "sourceDirectory": "C:\\Users\\sysro\\Downloads\\cache\\3",
+    "provenance": "automation/results/cache_results/current/provenance.json",
+    "translationLedger": "automation/results/cache_results/current/import/translation_ledger.json",
+    "counts": {
+      "npcNames": 9,
+      "npcSubtitles": 4,
+      "objectNames": 4,
+      "spellNames": 2,
+      "spellDescriptions": 1,
+      "auraDescriptions": 1,
+      "achievementCriteria": 13,
+      "introSubtitles": 12,
+      "englishSpellSourceUpdates": 1
+    },
+    "preservedExistingTranslations": true,
+    "importValidationApproved": true,
     "inGameVerified": false
   }
 }

@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 17903,
+    count = 17904,
     rows = {
         [5] = "Instantly Kills the target.  I hope you feel good about yourself now.....",
         [10] = "Ice shards pelt the target area doing ${$1279976m1*$d*$<frostdamage>} Frost damage over $d.",
@@ -17555,7 +17555,7 @@ local database = {
         [1320580] = "Call upon the winds of Tanaris to slow nearby enemies by $1320579s1. While in a desert, the winds intensify, increasing the slow to $1320580s1.",
         [1320643] = "Water breathing lasts $s1% longer than normal.",
         [1320658] = "Open a silithid hive, unleashing the swarm.",
-        [1320726] = "Increases Feral Combat +$s1.",
+        [1320726] = "Increased Feral Combat +$s1.",
         [1320758] = "Right Click to summon and dismiss Spawn of Grubthor.",
         [1320808] = "Wounds the target for $s1 damage.",
         [1320824] = "Wounds the target, causing them to bleed for $o1 damage over $d.",
@@ -17909,6 +17909,7 @@ local database = {
         [1331671] = "Resting.",
         [1331725] = "When applied to your fishing pole, increases Fishing by $ec1 for 5 minutes.",
         [1331727] = "Increased Fishing +$s1.",
+        [1330887] = "Magical thorns deal $S1 Nature damage to anyone who attacks in melee.",
     },
 }
 

@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.70959",
-    count = 7928,
+    count = 7929,
     rows = {
         [10] = "$1279976s1 Frost damage every $t3 $lsecond:seconds;.",
         [17] = "Absorbs $w1 damage.",
@@ -7934,6 +7934,7 @@ local database = {
         [1330916] = "Attack power lowered by $s1.",
         [1331324] = "Fire damage dealt is increased by $s1.",
         [1331671] = "Resting.",
+        [1330887] = "Surrounded by magical thorns, dealing $S1 Nature damage when attacked in melee.",
     },
 }
 
