@@ -10,9 +10,27 @@ local restricted_store
 local restricted_index = {}
 local restricted_samples = setmetatable({}, { __mode = "k" })
 local recording_restricted_action = false
+local restricted_markers = { ["map-canvas"] = {}, ["unit-menu"] = {} }
+local restricted_fields = {
+    ["map-canvas"] = {
+        { "WorldMapFrame", "AcquirePin" },
+        { "WorldMapFrame", "RefreshAllDataProviders" },
+        { "MapCanvasMixin", "AcquirePin" },
+        { "MapCanvasMixin", "RefreshAllDataProviders" },
+        { "MapCanvasPinMixin", "CheckMouseButtonPassthrough" },
+    },
+    ["unit-menu"] = {
+        { false, "CheckInteractDistance" },
+        { false, "UnitPopup_OpenMenu" },
+        { "MenuUtil", "CreateContextMenu" },
+        { "Menu", "PopulateDescription" },
+        { "MenuManagerProxy", "OpenContextMenu" },
+        { "UnitPopupSharedUtil", "IsEnabled" },
+    },
+}
 
 -- Restricted-action events are synchronous. Capture their stack here, before
--- returning to Blizzard, without querying frames or changing any UI state.
+-- returning to Blizzard, without running protected UI methods.
 local function public_diagnostic(value, expected_type)
     if type(_G.issecretvalue) == "function" then
         local ok, secret = pcall(_G.issecretvalue, value)
@@ -28,6 +46,63 @@ local function diagnostic_value(callback, expected_type, ...)
     if type(callback) ~= "function" then return nil end
     local ok, value = pcall(callback, ...)
     if ok then return public_diagnostic(value, expected_type) end
+end
+
+dev_log.mark_restricted_path = function (path, label)
+    local markers = restricted_markers[path]
+    if not markers or type(label) ~= "string" then return end
+    local uptime = diagnostic_value(_G.GetTime, "number")
+    if not uptime then return end
+    local last = markers[#markers]
+    if last and last.label == label and uptime - last.uptime < 0.25 then return end
+    if #markers == 8 then table.remove(markers, 1) end
+    markers[#markers + 1] = { uptime = uptime, label = label }
+end
+
+local function restricted_path(function_name, stack)
+    if function_name:match("SetPassThroughButtons%(%s*%)$")
+        and stack:lower():find("blizzard_mapcanvas", 1, true) then
+        return "map-canvas"
+    end
+    if function_name:match("CheckInteractDistance%(%s*%)$")
+        and stack:lower():find("blizzard_unitpopupshared", 1, true) then
+        return "unit-menu"
+    end
+end
+
+local function marker_snapshot(path)
+    local entries = {}
+    for _, marker in ipairs(restricted_markers[path]) do
+        entries[#entries + 1] = string.format("%.3f %s", marker.uptime, marker.label)
+    end
+    return #entries > 0 and table.concat(entries, "\n") or "<none yet>"
+end
+
+local function taint_snapshot(path)
+    if type(_G.issecurevariable) ~= "function" then return "issecurevariable unavailable" end
+    local entries = {}
+    for _, field in ipairs(restricted_fields[path]) do
+        local global, key = field[1], field[2]
+        local object = global == false and _G or _G[global]
+        if global == "MenuManagerProxy" then
+            local ok, manager = pcall(function () return _G.Menu.GetManager() end)
+            object = ok and manager or nil
+        end
+        local state = "unavailable"
+        if (public_diagnostic(object, "table") or public_diagnostic(object, "userdata"))
+            and diagnostic_value(function () return object[key] end, "function") then
+            local ok, secure, source = pcall(_G.issecurevariable, object, key)
+            secure = ok and public_diagnostic(secure, "boolean")
+            if ok and secure == true then
+                state = "secure"
+            elseif ok and secure == false then
+                source = public_diagnostic(source, "string")
+                state = source and "tainted (" .. source:sub(1, 80) .. ")" or "tainted"
+            end
+        end
+        entries[#entries + 1] = (global and global .. "." or "") .. key .. "=" .. state
+    end
+    return table.concat(entries, "\n")
 end
 
 local function record_restricted_action(event, name, function_name)
@@ -88,9 +163,19 @@ local function record_restricted_action(event, name, function_name)
         or uptime < sampled.uptime or uptime - sampled.uptime >= 1) then
         local stack = diagnostic_value(_G.debugstack, "string", 2, 24, 0)
         stack = stack and stack:sub(1, 8192) or "<unavailable>"
+        local path = restricted_path(function_name, stack)
+        if path then
+            local markers, taint = marker_snapshot(path), taint_snapshot(path)
+            if not sampled then
+                record.firstPath, record.firstMarkers, record.firstTaint = path, markers, taint
+            end
+            record.lastPath, record.lastMarkers, record.lastTaint = path, markers, taint
+        else
+            record.lastPath, record.lastMarkers, record.lastTaint = nil, nil, nil
+        end
         record.stack = record.stack or stack
         record.lastStack = stack
-        record.lastStackAt = now
+        record.lastStackAt, record.lastStackUptime = now, uptime
         record.stackSamples = (record.stackSamples or 0) + 1
         restricted_samples[record] = { uptime = uptime }
     end

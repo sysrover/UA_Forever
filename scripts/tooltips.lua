@@ -56,7 +56,6 @@ local active_tooltips = tooltip_session.active
 local tooltip_events = setmetatable({}, { __mode = "k" })
 local native_tooltip_data = setmetatable({}, { __mode = "k" })
 local DEFAULT_UPDATE_BUDGET = 12
-local arm_minimap_watcher = function () end
 local instruction_layouts = setmetatable({}, { __mode = "k" })
 local owned_ui_state = setmetatable({}, { __mode = "k" })
 local micro_translation_cache = setmetatable({}, { __mode = "k" })
@@ -937,7 +936,7 @@ end
 local function tooltip_work_enabled(kind)
     local scopes = { item="item-tooltips", spell="spell-tooltips", aura="target-auras",
         npc="npc-tooltips", quest="quest-tooltips", object="object-tooltips",
-        minimap="map-tooltips", settings="settings", ["character-currency"]="character" }
+        settings="settings", ["character-currency"]="character" }
     return not options.work_enabled or options.work_enabled(scopes[kind] or "tooltips")
 end
 
@@ -1133,33 +1132,25 @@ map_adapter.configure({
     set_translation = set_tooltip_translation,
 })
 
-local function frame_under_minimap(owner)
-    local minimap, cluster = _G.Minimap, _G.MinimapCluster
-    if is_secret(minimap) then minimap = nil end
-    if is_secret(cluster) then cluster = nil end
-    for _ = 1, 8 do
-        if is_secret(owner) then return false end
-        if not owner then break end
-        if owner == minimap or owner == cluster then return true end
-        local parent_ok, parent = pcall(function ()
-            local getter = owner.GetParent
-            if is_secret(getter) or type(getter) ~= "function" then return nil end
-            return getter(owner)
+local function is_minimap_tooltip(tooltip)
+    if not tooltip or tooltip ~= _G.GameTooltip then return false end
+    -- Tracking markers use UIParent as owner. Read the already rendered
+    -- tooltip data rather than querying the minimap or inferring from text.
+    local types = _G.Enum and _G.Enum.TooltipDataType
+    if types and types.MinimapMouseover then
+        local ok, kind = pcall(function ()
+            local data = tooltip:GetPrimaryTooltipData()
+            if not is_secret(data) and type(data) == "table" then return data.type end
         end)
-        if not parent_ok or is_secret(parent) or parent == owner then break end
-        owner = parent
+        if ok and safe_number(kind) == types.MinimapMouseover then return true end
     end
-    return false
-end
-
-local function minimap_tooltip_owner(tooltip)
-    if tooltip ~= _G.GameTooltip then return false end
-    if type(tooltip.GetOwner) == "function" then
-        local ok, owner = pcall(tooltip.GetOwner, tooltip)
-        if ok and not is_secret(owner) and frame_under_minimap(owner) then
-            return true
-        end
+    local owner_ok, owner = pcall(function () return tooltip:GetOwner() end)
+    if owner_ok and not is_secret(owner) and owner
+        and owner ~= _G.UIParent and owner ~= _G.WorldFrame then
+        if owner == _G.GameTimeFrame then return false end
+        return map_adapter.is_minimap_frame(owner)
     end
+    -- Fixed controls such as the zoom buttons also anchor to UIParent.
     local focus
     if type(_G.GetMouseFocus) == "function" then
         local ok, value = pcall(_G.GetMouseFocus)
@@ -1172,7 +1163,7 @@ local function minimap_tooltip_owner(tooltip)
             focus = values[1]
         end
     end
-    return frame_under_minimap(focus)
+    return map_adapter.is_minimap_frame(focus)
 end
 
 local function tooltip_title_parts(source)
@@ -1254,8 +1245,7 @@ local function capture_world_tooltip(tooltip, line_count)
     if tooltip ~= _G.GameTooltip or not options.account
         or not options.account.auto_scan_content then return end
     if tooltip.uaForeverKind ~= "object" then
-        if line_count ~= 1 or minimap_tooltip_owner(tooltip)
-            or not world_cursor_owner(tooltip) then return end
+        if line_count ~= 1 or not world_cursor_owner(tooltip) then return end
     end
     local visible, region = tooltip_line(tooltip, "Left", 1)
     local claim = region and runtime.get(region)
@@ -1276,9 +1266,7 @@ end
 
 translate_object_tooltip_title = function (tooltip)
     if not tooltip or tooltip.uaForeverShowOriginal then return false end
-    if tooltip.uaForeverKind ~= "object" and not minimap_tooltip_owner(tooltip) then
-        return false
-    end
+    if tooltip.uaForeverKind ~= "object" then return false end
     local source, region = tooltip_line(tooltip, "Left", 1)
     source = safe_string(source)
     if not region or not source then return false end
@@ -1320,7 +1308,6 @@ local function prepare_map_surface_hooks()
     quest_adapter.prepare()
     hooks.region(_G.FlightMap_ZoneSummaryDataProvider, "CheckMouse",
         map_adapter.translate_flight_map)
-    hooks.global("Minimap_SetTooltip", map_adapter.translate_minimap_zone)
     hooks.global("TaxiNodeOnButtonEnter", map_adapter.translate_taxi_node)
     hooks.region(_G.ContainerFramePortraitButtonMixin, "OnEnter",
         map_adapter.translate_bag_portrait)
@@ -1582,139 +1569,12 @@ local function refresh_loot_item_tooltip(tooltip, slot)
     end)
 end
 
-local function minimap_line_parts(line)
-    local prefix, suffix = "", ""
-    while true do
-        local tag = line:match("^(|T.-|t)")
-            or line:match("^(|c%x%x%x%x%x%x%x%x)")
-            or line:match("^(|r)")
-        if not tag then break end
-        prefix, line = prefix .. tag, line:sub(#tag + 1)
-    end
-    while true do
-        local tag = line:match("(|r)$")
-            or line:match("(|c%x%x%x%x%x%x%x%x)$")
-        if not tag then break end
-        suffix, line = tag .. suffix, line:sub(1, #line - #tag)
-    end
-    local leading, core, trailing = line:match("^(%s*)(.-)(%s*)$")
-    return prefix .. leading, core, trailing .. suffix
-end
-
-local function minimap_tooltip_candidate(tooltip)
-    if tooltip ~= _G.GameTooltip then return false end
-    if minimap_tooltip_owner(tooltip) then return true end
-    local first = tooltip_line(tooltip, "Left", 1)
-    first = safe_string(first)
-    if not first then return false end
-    -- Tracking markers can leave GameTooltip owned by UIParent while the
-    -- cursor focus changes. Their composite text still identifies the shape.
-    if first:find("\n", 1, true) then return true end
-    local _, title = tooltip_title_parts(first)
-    return addon_table.translate_object_name
-        and addon_table.translate_object_name(title) ~= nil or false
-end
-
-local function translate_minimap_line(core, quest_id, tooltip, region)
-    if core == "" then return nil, quest_id end
-    local found_quest = entries.lookup_id and entries.lookup_id("quest", core)
-    if found_quest then
-        local quest = entries.get_entry("quest", found_quest)
-        local title = quest and options.can_translate("translate_quest")
-            and make_text(quest[1], tooltip)
-        return title, found_quest
-    end
-    local dash, objective = core:match("^(%-%s*)(%d+%s*/%s*%d+%s+.+)$")
-    if quest_id and dash and options.can_translate("translate_quest") then
-        local ok, translated = pcall(entries.translate_quest_objective_task,
-            objective, quest_id)
-        if ok and type(translated) == "string" and translated ~= objective then
-            return dash .. translated, quest_id
-        end
-    end
-    local object = addon_table.translate_object_name
-        and addon_table.translate_object_name(core)
-    if object then
-        return options.can_translate("translate_other_tooltips")
-            and utils.cap(object) or nil, quest_id
-    end
-    local zone = addon_table.zone and addon_table.zone[core]
-    if zone then
-        return options.can_translate("translate_zone")
-            and utils.cap(zone) or nil, quest_id
-    end
-    if type(entries.lookup_name) == "function" then
-        for _, category in ipairs({ "item", "spell" }) do
-            local name = entries.lookup_name(category, core)
-            if name then
-                return options.can_translate("translate_" .. category)
-                    and utils.cap(name) or nil, quest_id
-            end
-        end
-    end
-    if options.can_translate("translate_other_tooltips") then
-        local ui = strings.find_ui_translation(core, region)
-        if type(ui) == "string" and ui ~= core then return ui, quest_id end
-        local glossary = entries.get_glossary_text(core, core)
-        if type(glossary) == "string" and glossary ~= core then
-            return glossary, quest_id
-        end
-    end
-    return nil, quest_id
-end
-
-local function translate_minimap_text(tooltip, native, region, quest_id)
-    native = safe_string(native)
-    if not native or is_secret(region) then return false, quest_id end
-    if not minimap_tooltip_candidate(tooltip) then return false end
-    local lines = {}
-    for line in (native .. "\n"):gmatch("(.-)\n") do
-        local prefix, core, suffix = minimap_line_parts(line)
-        local translated
-        translated, quest_id = translate_minimap_line(core, quest_id, tooltip, region)
-        lines[#lines + 1] = prefix .. (translated or core) .. suffix
-    end
-    local result = table.concat(lines, "\n")
-    if result == native then return false, quest_id end
-    if not tooltip.uaForeverSessionKey then begin_tooltip(tooltip, "generic") end
-    local applied = set_tooltip_translation(tooltip, region, native, result,
-        "minimap.text", nil, "generic", "generated")
-    return applied, quest_id
-end
-
-local function translate_minimap_tooltip(tooltip)
-    if not minimap_tooltip_candidate(tooltip) then return false end
-    local ok, count = pcall(tooltip.NumLines, tooltip)
-    count = ok and safe_number(count) or 1
-    local applied, quest_id = false, nil
-    for index = 1, math.min(count, MAX_TOOLTIP_LINES) do
-        for _, side in ipairs({ "Left", "Right" }) do
-            local source, region = tooltip_line(tooltip, side, index)
-            source = safe_string(source)
-            if region and source then
-                local claim = runtime.get(region)
-                local original = claim and claim.owner == "generic"
-                    and claim.slot == "minimap.text" and source == claim.translated
-                    and claim.source or source
-                local changed
-                changed, quest_id = translate_minimap_text(tooltip, original,
-                    region, quest_id)
-                applied = changed or applied
-            end
-        end
-    end
-    return applied
-end
-
 local function translate_cursor_tooltip_title(tooltip, native)
     native = safe_string(native)
     if tooltip ~= _G.GameTooltip or not native or tooltip.uaForeverKind
         and tooltip.uaForeverKind ~= "object" then return false end
     local source, region = tooltip_line(tooltip, "Left", 1)
     if source ~= native or not region then return false end
-    if minimap_tooltip_candidate(tooltip) then
-        return translate_minimap_text(tooltip, native, region)
-    end
     local line_count_ok, line_count = pcall(tooltip.NumLines, tooltip)
     if not line_count_ok or safe_number(line_count) ~= 1 then return false end
     if native:find("\n", 1, true) then return false end
@@ -1797,8 +1657,6 @@ local function translate_generic_tooltip_content(tooltip)
             uaForeverMapPin = tooltip.uaForeverQuestPinOwner })
         return
     end
-    translate_minimap_tooltip(tooltip)
-
     if is_shopping_tooltip(tooltip) then
         translate_shopping_tooltip(tooltip)
         return
@@ -1882,7 +1740,7 @@ local function translate_generic_tooltip_content(tooltip)
 
     translate_cursor_tooltip_title(tooltip, left_title)
     translate_object_tooltip_title(tooltip)
-    if tooltip.uaForeverKind == "object" or minimap_tooltip_owner(tooltip) then
+    if tooltip.uaForeverKind == "object" then
         quest_adapter.translate_embedded(tooltip)
     end
     rewrite_generic_lines(tooltip, line_count, tooltip.uaForeverReservedFirst)
@@ -1890,6 +1748,7 @@ local function translate_generic_tooltip_content(tooltip)
 end
 
 local function translate_generic_tooltip(tooltip)
+    if is_minimap_tooltip(tooltip) then return end
     if tooltip and tooltip.uaForeverKind == "profession-recipe"
         and (type(profession_recipe_adapter.owns_tooltip) ~= "function"
             or not profession_recipe_adapter.owns_tooltip(tooltip)) then return end
@@ -2043,10 +1902,10 @@ local function capture_generic_tooltip_ui(tooltip)
     if kind == "item" or kind == "spell" or kind == "aura"
         or kind == "trainer" or kind == "npc" or kind == "quest"
         or kind == "object" or kind == "player" then return end
+    if is_minimap_tooltip(tooltip) then return end
     local count_ok, count = pcall(tooltip.NumLines, tooltip)
     count = count_ok and safe_number(count) or nil
-    if tooltip == _G.GameTooltip and count == 1
-        and (world_cursor_owner(tooltip) or minimap_tooltip_owner(tooltip)) then return end
+    if tooltip == _G.GameTooltip and count == 1 and world_cursor_owner(tooltip) then return end
     if type(strings.capture_frame) == "function" then
         strings.capture_frame(tooltip, true)
     end
@@ -2317,8 +2176,6 @@ tooltip_diagnostics.install(tooltips, {
     public_frame_name = public_frame_name,
     visible_tooltip_font_strings = visible_tooltip_font_strings,
     MAX_TOOLTIP_LINES = MAX_TOOLTIP_LINES,
-    minimap_tooltip_owner = minimap_tooltip_owner,
-    translate_minimap_tooltip = translate_minimap_tooltip,
 })
 
 local function complete_settings_tooltip(tooltip)
@@ -2436,6 +2293,7 @@ local function prepare_tooltip_frames()
                     layout.fit_item_tooltip_once(self)
                 end)
                 owned_ui_show_hooked = hooks.region(tooltip, "Show", function (self)
+                    if self.uaForeverKind ~= "item" and is_minimap_tooltip(self) then return end
                     finish_instruction_layout(self)
                     if tooltips.complete_owned_ui(self, true) then return end
                     if bag_layout_hooked and self.uaForeverKind == "item" then
@@ -2518,6 +2376,8 @@ local function prepare_tooltip_frames()
                 hooks.region(tooltip, "SetText", function (self, native)
                     local state = owned_ui_state[self]
                     if state then state.complete = false end
+                    if self.uaForeverKind and self.uaForeverKind ~= "object" then return end
+                    if is_minimap_tooltip(self) then return end
                     translate_cursor_tooltip_title(self, native)
                     translate_object_tooltip_title(self)
                 end)
@@ -2530,6 +2390,7 @@ local function prepare_tooltip_frames()
                 end)
             end
             hooks.region_script(tooltip, "OnShow", function (self)
+                if self.uaForeverKind ~= "item" and is_minimap_tooltip(self) then return end
                 note_tooltip_event(self, "onShow")
                 if aura_tooltip_context(self) == "player" then
                     after_aura_tooltip_rendered(self)
@@ -2603,12 +2464,6 @@ local function prepare_tooltip_frames()
                     end
                     note_tooltip_event(self, "onTooltipCleared")
                     reset_tooltip(self)
-                    if self == _G.GameTooltip then
-                        arm_minimap_watcher()
-                        if minimap_tooltip_candidate(self) then
-                            arm_tooltip_updates(self, 3)
-                        end
-                    end
                 end)
             hooks.region_script(tooltip, "OnHide", reset_tooltip)
             -- Camelot target-frame aura buttons use ShowAuraTooltip and hide
@@ -2645,7 +2500,8 @@ local function after_game_tooltip_update(tooltip)
     local budget = tooltip.uaForeverUpdateBudget or 0
     if budget <= 0 and (kind ~= "npc" or tooltip.uaForeverShowOriginal) then return end
     if not tooltip_work_enabled(kind) then return end
-    if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function" then return end
+    if tooltip ~= _G.GameTooltip or type(tooltip.GetOwner) ~= "function"
+        or is_minimap_tooltip(tooltip) then return end
     if is_shopping_tooltip(tooltip) then
         -- Build 70058 reruns TooltipDataProcessor post-calls after item
         -- rebuilds. Comparison-only rows are handled by their native writers,
@@ -2670,8 +2526,6 @@ local function after_game_tooltip_update(tooltip)
     end
     if budget <= 0 then return end
     local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-    -- Tracking blips can return a secret owner. Keep translating public
-    -- rendered text, but never inspect or retain that owner as a frame.
     if not owner_ok or is_secret(owner) then owner_ok, owner = false, nil end
     local owner_updates = false
     if owner_ok and owner then
@@ -2690,7 +2544,7 @@ local function after_game_tooltip_update(tooltip)
     local kind = tooltip.uaForeverKind
     local dynamic = kind == "npc" or kind == "player" or kind == "aura"
         or kind == "character-stat"
-        or unit_dynamic or minimap_tooltip_candidate(tooltip) or owner_updates
+        or unit_dynamic or owner_updates
         or self_ok and not is_secret(self_update) and type(self_update) == "function"
         or refresh_ok and not is_secret(should_refresh) and should_refresh == true
     if not dynamic then
@@ -2722,27 +2576,14 @@ local function after_game_tooltip_update(tooltip)
             end
         end
     end
-    -- Minimap tracking blips can rewrite the visible title without calling
-    -- SetText or starting a new tooltip session. Check that rendered line too.
     local current_title = tooltip_line(tooltip, "Left", 1)
     current_title = safe_string(current_title)
     if current_title then
         translate_cursor_tooltip_title(tooltip, current_title)
         translate_object_tooltip_title(tooltip)
     end
-    translate_minimap_tooltip(tooltip)
-    if tooltip.uaForeverKind == "object" or minimap_tooltip_owner(tooltip) then
+    if tooltip.uaForeverKind == "object" then
         quest_adapter.translate_embedded(tooltip)
-    end
-    if owner_ok and frame_under_minimap(owner) then
-        local title = safe_string(tooltip_line(tooltip, "Left", 1))
-        if title and type(entries.lookup_quest_id_for_task) == "function" then
-            local id = entries.lookup_quest_id_for_task(title)
-            local entry = id and entries.get_entry("quest", id)
-            if entry and utils.same_english_name(entry.en, title) then
-                safe_process(tooltip, { id = id }, "quest")
-            end
-        end
     end
     if owner_ok and is_character_stat_owner(owner) then
         -- Camelot appends weapon-skill rows after its first Show. A translated
@@ -2860,12 +2701,10 @@ tooltips.prepare = function ()
         local tooltip = _G.GameTooltip
         if not tooltip then return end
         local ok, shown = pcall(tooltip.IsShown, tooltip)
-        if ok and shown then
-            if minimap_tooltip_candidate(tooltip) then
-                arm_tooltip_updates(tooltip, 3)
-                translate_minimap_tooltip(tooltip)
-            elseif tooltip.uaForeverKind == "object"
+        if ok and not is_secret(shown) and shown then
+            if tooltip.uaForeverKind == "object"
                 or world_cursor_owner(tooltip) then
+                if is_minimap_tooltip(tooltip) then return end
                 arm_tooltip_updates(tooltip, 3)
                 schedule_tooltip_finalize(tooltip)
             elseif tooltip.uaForeverKind == "npc"
@@ -2879,36 +2718,6 @@ tooltips.prepare = function ()
             end
         end
     end)
-    -- Minimap blips can be rebuilt after OnTooltipCleared. Arm a short watcher
-    -- only around that lifecycle edge; it removes its OnUpdate after 3 passes.
-    if not tooltips.minimapWatcher and type(_G.CreateFrame) == "function" then
-        local watcher = CreateFrame("Frame")
-        local function update_minimap(self)
-            self = self or watcher
-            if not tooltip_work_enabled("minimap") then self:SetScript("OnUpdate", nil); return end
-            local tooltip = _G.GameTooltip
-            if tooltip and minimap_tooltip_candidate(tooltip) then
-                local ok, shown = pcall(tooltip.IsShown, tooltip)
-                if ok and shown then translate_minimap_tooltip(tooltip) end
-            end
-            self.uaForeverPasses = (self.uaForeverPasses or 1) - 1
-            if self.uaForeverPasses <= 0 then
-                self:SetScript("OnUpdate", nil)
-            end
-        end
-        tooltips.minimapWatcherCallback = update_minimap
-        tooltips.minimapWatcher = watcher
-        if options.on_activity_change then
-            options.on_activity_change("minimap-watcher", function ()
-                if not tooltip_work_enabled("minimap") then watcher:SetScript("OnUpdate", nil) end
-            end)
-        end
-        arm_minimap_watcher = function ()
-            if not tooltip_work_enabled("minimap") then return end
-            watcher.uaForeverPasses = 3
-            watcher:SetScript("OnUpdate", update_minimap)
-        end
-    end
     if tooltips.prepared then return end
 
     if not TooltipDataProcessor or not Enum or not Enum.TooltipDataType then
@@ -3099,14 +2908,6 @@ tooltips.prepare = function ()
             schedule_tooltip_finalize(tooltip)
         end)
     end
-    if types.MinimapMouseover then
-        add_tooltip_post_call(types.MinimapMouseover,
-            function (tooltip)
-                if tooltip ~= _G.GameTooltip or not tooltip_work_enabled("minimap") then return end
-                translate_minimap_tooltip(tooltip)
-                quest_adapter.translate_embedded(tooltip)
-            end)
-    end
 
     local modifier_frame = CreateFrame("Frame")
     local function update_activity()
@@ -3125,7 +2926,7 @@ tooltips.refresh_active = function ()
     local show = original_modifier_held() or not options.can_translate()
     local refreshed, previous_widths = {}, {}
     local function refresh_tooltip(tooltip)
-        if not tooltip or refreshed[tooltip] then return end
+        if not tooltip or refreshed[tooltip] or is_minimap_tooltip(tooltip) then return end
         refreshed[tooltip] = true
         local barber = addon_table.use("barber_ui")
         if tooltip.uaForeverKind == "barber" then

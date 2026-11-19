@@ -296,8 +296,6 @@ diagnostics.install = function (tooltips, api)
     local public_frame_name = api.public_frame_name
     local visible_tooltip_font_strings = api.visible_tooltip_font_strings
     local MAX_TOOLTIP_LINES = api.MAX_TOOLTIP_LINES
-    local minimap_tooltip_owner = api.minimap_tooltip_owner
-    local translate_minimap_tooltip = api.translate_minimap_tooltip
 
     tooltips.aura_probe_candidate = function (tooltip)
         if not tooltip or type(tooltip.IsShown) ~= "function" then return false end
@@ -638,105 +636,11 @@ diagnostics.install = function (tooltips, api)
         return { state = "public", value = diagnostic_scalar(value) }, value
     end
 
-    -- Explicit captures only. Enumerate actual fields rather than assuming a
-    -- tooltip schema; retain neither secret values nor native object references.
-    local function diagnostic_all_fields(value)
-        local limits = { depth = 6, fieldsPerTable = 96, nodes = 512,
-            stringLength = 2048, stringCharacters = 16384 }
-        local seen, next_id = {}, 0
-        local remaining_nodes, remaining_characters = limits.nodes,
-            limits.stringCharacters
-
-        local function trim_string(read)
-            if read.state ~= "public" or type(read.value) ~= "string" then return end
-            local length = #read.value
-            local keep = math.min(length, limits.stringLength, remaining_characters)
-            if keep < length then
-                read.value = read.value:sub(1, keep)
-                read.truncated, read.originalLength = true, length
-            end
-            remaining_characters = remaining_characters - keep
-        end
-
-        local copy
-        copy = function (current, depth)
-            if remaining_nodes <= 0 then
-                return { state = "not_captured", reason = "node_limit" }
-            end
-            remaining_nodes = remaining_nodes - 1
-            local read, public = diagnostic_api_call(function () return current end)
-            if read.state ~= "public" then return read end
-            read.kind = type(public)
-            trim_string(read)
-            if read.kind ~= "table" then
-                -- Functions, userdata and threads have a type marker only.
-                if read.kind == "number"
-                    and (public ~= public or public == math.huge or public == -math.huge) then
-                    read.value, read.nonFinite = nil, true
-                end
-                return read
-            end
-            if seen[public] then
-                read.reference = seen[public]
-                return read
-            end
-            next_id = next_id + 1
-            read.tableID, seen[public] = next_id, next_id
-            read.fields = {}
-            if depth >= limits.depth then
-                read.complete, read.stopReason = false, "depth_limit"
-                return read
-            end
-
-            local cursor
-            for _ = 1, limits.fieldsPerTable do
-                -- next avoids executing a table's __pairs or __index handlers.
-                local ok, key, child = pcall(next, public, cursor)
-                if not ok then
-                    read.complete, read.stopReason = false, "iteration_error"
-                    read.error = safe_string(key)
-                    return read
-                end
-                local key_read, public_key = diagnostic_api_call(function () return key end)
-                if key_read.state == "nil" then
-                    read.complete = true
-                    return read
-                end
-                if key_read.state ~= "public" then
-                    read.fields[#read.fields + 1] = { key = key_read }
-                    read.complete, read.stopReason = false, "unreadable_key"
-                    return read
-                end
-                key_read.kind = type(public_key)
-                trim_string(key_read)
-                read.fields[#read.fields + 1] = {
-                    key = key_read, value = copy(child, depth + 1),
-                }
-                cursor = public_key
-                if remaining_nodes <= 0 then
-                    read.complete, read.stopReason = false, "node_limit"
-                    return read
-                end
-            end
-            local ok, key = pcall(next, public, cursor)
-            local key_read = ok and diagnostic_api_call(function () return key end)
-            read.complete = ok and key_read.state == "nil" or false
-            read.stopReason = not read.complete
-                and (ok and "field_limit" or "iteration_error") or nil
-            return read
-        end
-
-        local result = copy(value, 0)
-        result.limits = limits
-        return result
-    end
-
     -- Query native tooltip data without creating, showing or changing a tooltip.
     -- Record each field's accessibility before considering its value.
-    local function diagnostic_tooltip_query(callback, argument, all_fields)
+    local function diagnostic_tooltip_query(callback, argument)
         local result, data = diagnostic_api_call(callback, argument)
         if result.state ~= "public" or type(data) ~= "table" then return result end
-        if all_fields then result.allFields = diagnostic_all_fields(data) end
         result.fields = {}
         for _, key in ipairs({ "type", "id", "guid", "hyperlink" }) do
             result.fields[key] = diagnostic_api_call(function () return data[key] end)
@@ -1409,17 +1313,6 @@ diagnostics.install = function (tooltips, api)
             result.tooltipData = { ok = ok_data }
         end
 
-        local types = _G.Enum and _G.Enum.TooltipDataType
-        if types and result.tooltipData
-            and result.tooltipData.type == types.MinimapMouseover then
-            local api = _G.C_TooltipInfo
-            result.tooltipData.allFields = diagnostic_all_fields(data)
-            -- Explicit capture only: distinguish unavailable/secret direct
-            -- sources from readable text that the rendered FontString hides.
-            result.minimapSource = diagnostic_tooltip_query(
-                api and api.GetMinimapMouseover, nil, true)
-        end
-    
         if result.item then
             if not result.item.id and result.kind == "item"
                 and result.tooltipData then
@@ -1594,22 +1487,6 @@ diagnostics.install = function (tooltips, api)
             }
             for event, event_count in pairs(tooltip_events[root] or {}) do
                 report.tooltip[event] = event_count
-            end
-            if root == _G.GameTooltip then
-                report.tooltip.minimapHandler = "linewise-v1"
-                local before = tooltip_line(root, "Left", 1)
-                before = safe_string(before)
-                if before and minimap_tooltip_owner(root) then
-                    local ok, applied = pcall(translate_minimap_tooltip, root)
-                    local after, region = tooltip_line(root, "Left", 1)
-                    local claim = region and runtime.get(region)
-                    report.tooltip.probe = {
-                        ok = ok, applied = ok and applied == true,
-                        before = before,
-                        after = safe_string(after),
-                        claim = claim and claim.slot or nil,
-                    }
-                end
             end
             local owner = public_object_value(root, "GetOwner")
             if owner then report.owner = object_label(owner) end

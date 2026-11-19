@@ -3,6 +3,7 @@ local profiler = addon_table.use("performance_profile")
 local profile_callback = profiler.wrap or function (_, callback) return callback end
 
 local entries = addon_table.use("entries")
+local dev_log = addon_table.use("dev_log")
 local layout = addon_table.use("translation_layout")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
@@ -469,16 +470,16 @@ adapter.prepare = function ()
     local contract = deps()
     local map = _G.WorldMapFrame
     if map then
-        -- XML mixins are copied onto frames: hook existing and future pins,
-        -- not only the prototype. Hook registration is deduplicated.
-        hooks.region(map, "AcquirePin", function (self, template)
-            if not runtime.is_secret_value(template) and template == "QuestBlobPinTemplate" then
-                hook_blob_pins(self)
-            end
-        end)
+        -- The blob provider acquires its permanent pin when it is added.
+        -- Bind after map creation/show, outside AcquirePin's secure setup.
         hooks.once("quest-blob-existing:" .. tostring(map), function ()
+            dev_log.mark_restricted_path("map-canvas", "blob-binding-prepare")
             return hook_blob_pins(map)
         end)
+        hooks.region_script(map, "OnShow", function (self)
+            dev_log.mark_restricted_path("map-canvas", "world-map-native-show-finished")
+            hook_blob_pins(self)
+        end, "quest-blob")
     end
     hooks.once("event:MapCanvas.QuestPin.OnEnter", function ()
         local registry = _G.EventRegistry

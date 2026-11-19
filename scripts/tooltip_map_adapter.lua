@@ -38,34 +38,19 @@ local function set_native_zone_line(tooltip, index, native, slot)
     end
 end
 
-adapter.translate_minimap_zone = function ()
-    local contract = deps()
-    local tooltip = _G.GameTooltip
-    local cluster = _G.MinimapCluster
-    if contract.is_secret(tooltip) or contract.is_secret(cluster) then return end
-    local button_ok, button = pcall(function () return cluster and cluster.ZoneTextButton end)
-    if not button_ok or contract.is_secret(button) or not tooltip or not button
-        or type(tooltip.GetOwner) ~= "function" then
-        return
+adapter.is_minimap_frame = function (frame)
+    local minimap, cluster = _G.Minimap, _G.MinimapCluster
+    if runtime.is_secret_value(minimap) then minimap = nil end
+    if runtime.is_secret_value(cluster) then cluster = nil end
+    for _ = 1, 8 do
+        if runtime.is_secret_value(frame) or not frame
+            or frame == _G.UIParent or frame == _G.WorldFrame then return false end
+        if frame == minimap or frame == cluster then return true end
+        local ok, parent = pcall(function () return frame:GetParent() end)
+        if not ok or runtime.is_secret_value(parent) or parent == frame then return false end
+        frame = parent
     end
-    local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-    if not owner_ok or contract.is_secret(owner) or owner ~= button then return end
-    local zone_getter, sub_getter = _G.GetZoneText, _G.GetSubZoneText
-    if type(zone_getter) ~= "function" or type(sub_getter) ~= "function" then
-        return
-    end
-    local zone_ok, zone = pcall(zone_getter)
-    local sub_ok, subzone = pcall(sub_getter)
-    if not zone_ok or not sub_ok or contract.is_secret(zone)
-        or contract.is_secret(subzone) then return end
-    if not tooltip.uaForeverSessionKey then
-        contract.begin_tooltip(tooltip, "generic")
-    end
-    tooltip.uaForeverReservedFirst = 3
-    set_native_zone_line(tooltip, 1, zone, "zone.name")
-    if subzone ~= zone then
-        set_native_zone_line(tooltip, 2, subzone, "subzone.name")
-    end
+    return false
 end
 
 adapter.translate_taxi_node = function (button)

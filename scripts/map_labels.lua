@@ -2,6 +2,7 @@ local _, addon_table = ...
 
 local entries = addon_table.use("entries")
 local auto_scan = addon_table.use("auto_scan")
+local dev_log = addon_table.use("dev_log")
 local map_labels = addon_table.use("map_labels")
 local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").map_labels
@@ -324,30 +325,6 @@ end
 
 local function hook_label(label)
     hooks.region(label, "EvaluateLabels", after_evaluate)
-end
-
-local function after_minimap_update()
-    local region = _G.MinimapZoneText
-    if runtime.is_secret_value(region) then return end
-    if region and runtime.is_applying(region) then return end
-    local current = visible_text(region)
-    local getter = _G.GetMinimapZoneText
-    if not current or runtime.is_secret_value(getter) or type(getter) ~= "function" then return end
-    local ok, native = pcall(getter)
-    if not ok or safe_string(native) ~= current then return end
-    runtime.invalidate(region)
-    if not options.can_lookup("translate_zone") then return end
-    local translated = translated_zone_name(current)
-    if translated then
-        runtime.apply(region, {
-            owner = "zone-minimap", slot = "zone.name",
-            source = current, translated = translated,
-            option = "translate_zone", priority = runtime.PRIORITY.CONTEXT,
-        })
-    end
-    auto_scan.record_zone_name(current, visible_text(region), {
-        owner = "zone-minimap", slot = "zone.name", surface = "Minimap",
-    })
 end
 
 local function native_zone_text(getter_name)
@@ -753,11 +730,15 @@ local function after_worldmap_nav_refresh(self)
     if not self or not options.can_lookup("translate_zone") then return end
     if type(_G.InCombatLockdown) == "function" then
         local ok, combat = pcall(_G.InCombatLockdown)
-        if not ok or combat then return end
+        if not ok or runtime.is_secret_value(combat) or combat then
+            dev_log.mark_restricted_path("map-canvas", "nav-labels-skipped")
+            return
+        end
     end
     local map_api = _G.C_Map
     local get_info = map_api and map_api.GetMapInfo
     if type(get_info) ~= "function" then return end
+    dev_log.mark_restricted_path("map-canvas", "nav-labels-begin")
     for _, button in ipairs(self.navList or {}) do
         local id = button and button.data and button.data.id
         local region = button and button.text
@@ -776,6 +757,7 @@ local function after_worldmap_nav_refresh(self)
             end
         end
     end
+    dev_log.mark_restricted_path("map-canvas", "nav-labels-end")
 end
 
 local function coordinate_label(container)
@@ -1072,7 +1054,6 @@ map_labels.refresh_active = function ()
     restore_map_textures()
     prepare_ironforge_map_pins(_G.WorldMapFrame)
     prepare_map_detail_layers(_G.WorldMapFrame)
-    after_minimap_update()
     after_zone_text_event()
     hook_worldmap_coords_panel()
 end
@@ -1096,9 +1077,6 @@ map_labels.prepare = function ()
     prepare_ironforge_map_pins(world_map)
     prepare_map_detail_layers(world_map)
     hook_worldmap_coords_panel()
-    hooks.global("Minimap_Update", after_minimap_update)
-    hooks.region(_G.MinimapZoneText, "SetText", after_minimap_update)
-    after_minimap_update()
     hooks.region(_G.ZoneTextString, "SetText", function (region, native)
         after_zone_announcement_write(region, native, "zone-announce")
     end)
@@ -1137,6 +1115,8 @@ map_labels.prepare = function ()
         after_zone_label_evaluation)
     hooks.region(_G.AdventureMap_ZoneSummaryProviderMixin, "RefreshAllData",
         after_adventure_zone_refresh)
+    -- Blizzard uses this tag for shared navigation-bar dropdowns.
+    -- The callback accepts only world-map navigation buttons.
     local menu_api = _G.Menu
     if menu_api and type(menu_api.ModifyMenu) == "function" then
         hooks.once("MENU_MINIMAP_BATTLEFIELD", function ()

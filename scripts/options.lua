@@ -101,7 +101,6 @@ local scope_sections = {
     ["npc-tooltips"] = { "npc_tooltips", "quest_names", "quest_text" },
     ["object-tooltips"] = { "objects", "zone_names", "quest_names", "quest_text" },
     ["map-labels"] = { "zone_names", "map_ui", "map_images", "gossip", "quest_text", "popups" },
-    ["map-tooltips"] = { "zone_names", "map_ui", "quest_names", "quest_text" },
     ["cast-bar"] = { "cast_bars" }, ["target-auras"] = { "auras" },
     ["target-frame"] = { "npc_target" },
     ["combat-text"] = { "combat_text" }, ["loss-of-control"] = { "loss_of_control" },

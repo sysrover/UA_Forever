@@ -1432,7 +1432,9 @@ auto_scan.export_text = function ()
                         "firstInCombat", "lastInCombat",
                         "firstGamepadUI", "lastGamepadUI",
                         "clientVersion", "clientBuild", "addonVersion",
-                        "stack", "lastStack", "lastStackAt", "stackSamples" }
+                        "firstPath", "firstMarkers", "firstTaint",
+                        "lastPath", "lastMarkers", "lastTaint",
+                        "stack", "lastStack", "lastStackAt", "lastStackUptime", "stackSamples" }
                 elseif group == "lockdowns" then
                     output_fields = { "owner", "slot", "surface", "text",
                         "translation", "visible", "reason", "reasonDetail",

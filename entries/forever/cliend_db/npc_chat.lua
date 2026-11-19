@@ -2,6 +2,63 @@
 local _, addonTable = ...
 
 local chat_rows = {
+    ["General Marcus Jonathan:rdwrisnttobehdheslpsthud"] = {
+        ["english"] = { [1] = "Reginald Windsor is not to be harmed! He shall pass through untouched!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "rdwrisnttobehdheslpsthud" } },
+        ["npcs"] = { [1] = "General Marcus Jonathan" },
+        ["text"] = "Не чіпати Реджинальда Віндзора! Дайте йому пройти неушкодженим!",
+    },
+    ["Justine Demalier:ttoemnkwhmdebeadtyreishsne"] = {
+        ["english"] = { [1] = "That one, Malagan. I know him. Dependable, brave, and trustworthy. <name> is his name." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ttoemnkwhmdebeadtyreishsne" } },
+        ["npcs"] = { [1] = "Justine Demalier" },
+        ["text"] = "Он той, Малаґане. Я його знаю. Надійний, хоробрий, йому можна довіряти. Звуть його {ім'я:н}.",
+    },
+    ["Justine Demalier:ttoemnkwhrdebeadtyvaishrne"] = {
+        ["english"] = { [1] = "That one, Malagan. I know her. Dependable, brave, and trustworthy. <name> is her name." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ttoemnkwhrdebeadtyvaishrne" } },
+        ["npcs"] = { [1] = "Justine Demalier" },
+        ["text"] = "Он та, Малаґане. Я її знаю. Надійна, хоробра, їй можна довіряти. Звуть її {ім'я:н}.",
+    },
+    ["Lady Katrana Prestor:sehmsetewscladhsas"] = {
+        ["english"] = { [1] = "Seize him! Seize the worthless criminal and his allies!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "sehmsetewscladhsas" } },
+        ["npcs"] = { [1] = "Lady Katrana Prestor" },
+        ["text"] = "Схопіть його! Схопіть цього ницого злочинця та його спільників!",
+    },
+    ["Major Mattingly:bkintegyofyrkgadcyhsbgfhtoalwotntesgcyofsd"] = {
+        ["english"] = { [1] = "Bask in the glory of your King, and carry his blessing forth to all who threaten the shining city of Stormwind!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "bkintegyofyrkgadcyhsbgfhtoalwotntesgcyofsd" } },
+        ["npcs"] = { [1] = "Major Mattingly" },
+        ["text"] = "Грійтеся в променях слави свого короля й несіть його благословення всім, хто загрожує осяйному Штормовію!",
+    },
+    ["Major Mattingly:hrmecsofsdrrtsdyfrgthsofteaehesnrdbdclwfofbsdkhe"] = {
+        ["english"] = { [1] = "Hear me, citizens of Stormwind! Remember this day, for great heroes of the Alliance have slain Rend Blackhand, cruel warchief of Blackrock's Dark Horde!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "hrmecsofsdrrtsdyfrgthsofteaehesnrdbdclwfofbsdkhe" } },
+        ["npcs"] = { [1] = "Major Mattingly" },
+        ["text"] = "Слухайте мене, жителі Штормовію! Запам’ятайте цей день: великі герої Альянсу знищили Ренда Чорнорука, жорстокого воєвождя Темної Орди Чорноскельної гори!",
+    },
+    ["Melris Malagan:reehoycnreceeehdbrfnhsrdttalaebdhsteaemtwhhmatsdkpyujtbnrdmegtmeon"] = {
+        ["english"] = { [1] = "<name>, eh? Oy! Citizen <name>, come 'ere. Highlord Bolvar Fordragon has requested that all able bodied heroes o' the Alliance meet with him at Stormwind Keep. You just been recruited, mate! Get a move on!" },
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "reehoycnreceeehdbrfnhsrdttalaebdhsteaemtwhhmatsdkpyujtbnrdmegtmeon" },
+            [2] = { ["kind"] = "code", ["value"] = "vaehoycnvaceeehdbrfnhsrdttalaebdhsteaemtwhhmatsdkpyujtbnrdmegtmeon" },
+        },
+        ["npcs"] = { [1] = "Melris Malagan" },
+        ["text"] = "{ім'я:н}, еге ж? Гей, {ім'я:к}, ходи-но сюди! Верховний лорд Болвар Фордраґон просить усіх героїв Альянсу, хто здатен стати до бою, з’явитися до нього у фортеці Штормовію. Тебе щойно завербували! Ворушись!",
+    },
+    ["Morris Lawry:hpprbeot"] = {
+        ["english"] = { [1] = "Help a poor bloke out?" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "hpprbeot" } },
+        ["npcs"] = { [1] = "Morris Lawry" },
+        ["text"] = "Допоможете бідоласі?",
+    },
+    ["Slim's Friend:watsiswymetnwtbdfryeonyronsm"] = {
+        ["english"] = { [1] = "Whoa! This is way more than what I bargained for, you're on your own, Slim!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "watsiswymetnwtbdfryeonyronsm" } },
+        ["npcs"] = { [1] = "Slim's Friend" },
+        ["text"] = "Ого! Це вже виходить за межі нашої домовленості. Далі сам, Худий!",
+    },
     ["Lord Gregor Lescovar:ahtkyukywlleyutotelywetdtotsslmr"] = {
         ["english"] = { [1] = "Ah, thank you kindly. I will leave you to the library while I tend to this small matter." },
         ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ahtkyukywlleyutotelywetdtotsslmr" } },
