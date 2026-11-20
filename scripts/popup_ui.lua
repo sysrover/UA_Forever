@@ -48,14 +48,6 @@ local function capture_auto_frame(frame)
     end
 end
 
-local function translate_and_capture_frame(frame)
-    if not frame then return end
-    if type(strings.translate_frame) == "function" then
-        strings.translate_frame(frame, nil, menu_walks.popup)
-    end
-    capture_auto_frame(frame)
-end
-
 local function popup_text_region(dialog)
     if not dialog then return nil end
     if type(dialog.GetTextFontString) == "function" then
@@ -72,6 +64,7 @@ end
 
 local function pad_confirmation(dialog)
     if not dialog then return end
+    dialog.uaForeverButtonPadding = nil
     local which = dialog.which
     if which ~= "CONFIRM_RESET_INSTANCES" and which ~= "ABANDON_QUEST"
         and which ~= "ABANDON_QUEST_WITH_ITEMS" then return end
@@ -87,11 +80,59 @@ local function pad_confirmation(dialog)
     pcall(dialog.SetHeightPadding, dialog, padding + 12)
 end
 
-local function resize_popup_for_text(dialog, text)
+local function fit_popup_button_padding(dialog, region)
+    local buttons, spacer = dialog.ButtonContainer, dialog.TopSpacer
+    if not buttons or not spacer or not region then return false end
+    local shown = buttons:IsShown()
+    local fixed_height = dialog:GetFixedHeight()
+    local lines = region:GetNumLines()
+    local top_inset = spacer:GetHeight()
+    local padding = dialog:GetHeightPadding()
+    if runtime.is_secret_value(shown) or runtime.is_secret_value(fixed_height)
+        or runtime.is_secret_value(lines) or runtime.is_secret_value(top_inset)
+        or runtime.is_secret_value(padding) or type(lines) ~= "number"
+        or type(top_inset) ~= "number" or type(padding) ~= "number" then return false end
+
+    local previous = dialog.uaForeverButtonPadding or 0
+    local base = padding - previous
+    local extra = 0
+    if shown and not fixed_height and lines > 0 then
+        -- The native padding already accounts for the top spacer, which the
+        -- layout excludes from its bounds. Reserve a separate bottom inset.
+        local bottom_inset = 8 + 4 * math.min(lines - 1, 2)
+        extra = math.max(0, top_inset + bottom_inset - base)
+    end
+    if extra == previous then return false end
+    dialog:SetHeightPadding(base + extra)
+    dialog.uaForeverButtonPadding = extra
+    return true
+end
+
+local function resize_popup_for_text(dialog, text, region)
     if not dialog or type(text) ~= "string" or type(dialog.Resize) ~= "function"
-        or dialog.uaForeverLayoutText == text then return end
-    dialog.uaForeverLayoutText = text
-    pcall(dialog.Resize, dialog)
+        or runtime.combat_locked() or not runtime.can_write_text(dialog) then return end
+    local ok, padding_changed = pcall(fit_popup_button_padding, dialog,
+        region or popup_text_region(dialog))
+    if not (ok and padding_changed) and dialog.uaForeverLayoutText == text then return end
+    dialog.uaForeverLayoutText = nil
+    if pcall(dialog.Resize, dialog) then dialog.uaForeverLayoutText = text end
+end
+
+local function translate_and_capture_frame(dialog)
+    if not dialog then return end
+    if type(strings.translate_frame) == "function" then
+        strings.translate_frame(dialog, nil, menu_walks.popup)
+    end
+    local region = popup_text_region(dialog)
+    local claim = region and runtime.get(region)
+    if claim then
+        local ok, text = pcall(region.GetText, region)
+        text = ok and runtime.safe_string_or_nil(text) or nil
+        if text and text == claim.translated and text ~= claim.source then
+            resize_popup_for_text(dialog, text, region)
+        end
+    end
+    capture_auto_frame(dialog)
 end
 
 local function translate_dynamic_popup(dialog)

@@ -130,14 +130,33 @@ local function translate_auction_duration_dropdown(dropdown)
     end
 end
 
-local function prepare_auction_duration_dropdowns(auction_house)
-    for _, key in ipairs({ "ItemSellFrame", "CommoditiesSellFrame" }) do
-        local sell_frame = auction_house and auction_house[key]
+local function watch_auction_sell_label(owner, region)
+    if not region then return end
+    local function translate_if_visible()
+        local ok, visible = pcall(owner.IsVisible, owner)
+        if ok and not runtime.is_secret_value(visible) and visible == true then
+            translate_auction_label(region)
+        end
+    end
+    hooks.region_script(owner, "OnShow", translate_if_visible, "auction-sell-label")
+    watch_auction_region(region, translate_if_visible)
+end
+
+local function prepare_auction_sell_labels(auction_house)
+    if not auction_house then return end
+    for _, kind in ipairs({ "Item", "Commodities" }) do
+        local sell_frame = auction_house[kind .. "SellFrame"]
+        local quantity = sell_frame and sell_frame.QuantityInput
+        watch_auction_sell_label(quantity, quantity and quantity.Label)
         local dropdown = sell_frame and sell_frame.Duration
             and sell_frame.Duration.Dropdown
         hooks.region(dropdown, "UpdateText",
             translate_auction_duration_dropdown)
         translate_auction_duration_dropdown(dropdown)
+
+        local list = auction_house[kind .. "SellList"]
+        local refresh = list and list.RefreshFrame
+        watch_auction_sell_label(refresh, refresh and refresh.TotalQuantity)
     end
 end
 
@@ -293,7 +312,7 @@ auction_ui.prepare = function ()
         translate_auction_filter_dropdown)
     hooks.region(auction_filter, "SetText", translate_auction_filter_dropdown)
     translate_auction_filter_dropdown(auction_filter)
-    prepare_auction_duration_dropdowns(auction_house)
+    prepare_auction_sell_labels(auction_house)
     local commodities_buy_frame = auction_house and auction_house.CommoditiesBuyFrame
     hooks.region_script(commodities_buy_frame, "OnShow",
         prepare_auction_commodities_buy_frame, "auction-commodities-buy")
