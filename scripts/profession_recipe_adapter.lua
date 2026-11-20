@@ -18,6 +18,9 @@ local surface_text = assert(addon_table.forever_surface_ui,
 local OWNER = "profession-recipes"
 local tooltip_contract
 local recipe_tooltip_contexts = setmetatable({}, { __mode = "k" })
+local seeded_pages = setmetatable({}, { __mode = "k" })
+local hooked_enchant_slots = setmetatable({}, { __mode = "k" })
+local output_form_widths = setmetatable({}, { __mode = "k" })
 
 adapter.configure_tooltip = function (value)
     tooltip_contract = value
@@ -32,6 +35,12 @@ end
 local function number(value)
     return type(value) == "number" and not is_secret(value) and value > 0
         and value or nil
+end
+
+local function visible(frame)
+    if not frame then return false end
+    local ok, value = pcall(function () return frame:IsVisible() end)
+    return ok and not is_secret(value) and value == true
 end
 
 local function text_from(region)
@@ -189,11 +198,12 @@ local function translate_recipe_row(row)
     local metadata = profession_db.get_recipe(recipe_id, nil, category_id)
     local translated = spell_db.get_name(recipe_id)
     if translated then
-        apply(row.Label or row.Name, utils.cap(translated),
+        if apply(row.Label or row.Name, utils.cap(translated),
             metadata and "profession.recipe:" .. metadata.categoryID .. ".name"
                 or "profession.recipe.name",
-            "translate_spell", "spell")
-        layout.fit_profession_recipe_label(row)
+            "translate_spell", "spell") then
+            layout.fit_profession_recipe_label(row)
+        end
     elseif type(auto_scan.record_id) == "function" then
         auto_scan.record_id("spells", recipe_id, info.name, false)
     end
@@ -310,33 +320,34 @@ local function translated_output_name(form)
         "translate_spell", "spell"
 end
 
+local function fit_form_output(form, region, text, option, category)
+    local fitted, overflow = layout.fit_profession_output_text(region, form)
+    output_form_widths[form] = fitted and layout.safe_dimension(form, "GetWidth") or nil
+    if not fitted or not overflow or text_from(region) ~= text
+        or text:find("\n", 1, true) then return end
+
+    -- The line break belongs only to the bounded output header.
+    local multiline, count = text:gsub(" (–) ", " %1\n", 1)
+    if count == 0 then
+        multiline, count = text:gsub(" (—) ", " %1\n", 1)
+    end
+    if count == 0 then
+        multiline, count = text:gsub(" (%-) ", " %1\n", 1)
+    end
+    if count > 0 and apply(region, multiline, "profession.output.name", option, category) then
+        layout.fit_profession_output_text(region, form)
+    end
+end
+
 local function translate_output_region(form, region, exact_name)
-    if not region then return end
-    local translated, item_id, english, option, category =
-        translated_output_name(form)
-    if not translated then return end
     local source = text_from(region)
+    if not source or source == "" then return end
+    local translated, _, english, option, category = translated_output_name(form)
+    if not translated then return end
     local replacement = replace_id_name(source, english, translated)
     if not replacement and exact_name then replacement = translated end
-    if replacement then
-        apply(region, replacement, "profession.output.name",
-            option, category)
-        local fitted, overflow = layout.fit_profession_output_text(region, form)
-        if fitted and overflow and text_from(region) == replacement then
-            -- Keep the catalog name intact; the line break belongs only to
-            -- this bounded output header, not tooltips or recipe-list rows.
-            local multiline, count = replacement:gsub(" (–) ", " %1\n", 1)
-            if count == 0 then
-                multiline, count = replacement:gsub(" (—) ", " %1\n", 1)
-            end
-            if count == 0 then
-                multiline, count = replacement:gsub(" (%-) ", " %1\n", 1)
-            end
-            if count > 0 then
-                apply(region, multiline, "profession.output.name", option, category)
-                layout.fit_profession_output_text(region, form)
-            end
-        end
+    if replacement and apply(region, replacement, "profession.output.name", option, category) then
+        fit_form_output(form, region, replacement, option, category)
     end
 end
 
@@ -356,8 +367,7 @@ local function translate_description(form)
             and translated_output_name(form) or nil
         if output then translated = surface_text.crafted_recipe(output) end
     end
-    if translated then
-        apply(region, translated, "profession.recipe.description", "translate_spell")
+    if translated and apply(region, translated, "profession.recipe.description", "translate_spell") then
         if type(region.SetWidth) == "function" and type(form.GetDescriptionWidth) == "function" then
             local ok, width = pcall(form.GetDescriptionWidth, form)
             if ok and type(width) == "number" then pcall(region.SetWidth, region, width) end
@@ -415,7 +425,13 @@ local function translate_enchant_slot(slot)
     local region = slot and slot.Name
     local source = text_from(region)
     if not source then return end
-    local translated = strings.find_ui_translation(source, region)
+    local claim = runtime.get(region)
+    local translated
+    if claim and claim.owner == OWNER and claim.slot == "profession.enchant-slot" then
+        if source == claim.translated then return end
+        if source == claim.source then translated = claim.translated end
+    end
+    translated = translated or strings.find_ui_translation(source, region)
     if translated then
         apply(region, translated, "profession.enchant-slot")
     elseif source:find("[A-Za-z]") and type(auto_scan.record_ui) == "function" then
@@ -523,31 +539,64 @@ local function translate_requirements(form)
         requirement_updates[form] = state
         form.UpdateRequiredTools = state.wrapper
     end
-    update_translated_requirements(form)
+    if type(callback) == "function" then update_translated_requirements(form) end
 end
 
-local function translate_form(form)
-    if not form_recipe_info(form) then return end
-    translate_output_region(form, form.OutputText, true)
-    translate_output_region(form, form.RecraftingOutputText, false)
-    translate_description(form)
-    translate_requirements(form)
-    if type(form.GetSlots) == "function" then
-        local ok, slots = pcall(form.GetSlots, form)
-        if ok and type(slots) == "table" then
-            for _, slot in ipairs(slots) do translate_reagent(slot) end
-        end
+local function form_output_region(form)
+    local info = form_recipe_info(form)
+    if not info then return end
+    local recipe_is_recraft, form_is_recraft = info.isRecraft, form.isRecraft
+    if is_secret(recipe_is_recraft) or is_secret(form_is_recraft) then return end
+    if recipe_is_recraft or form_is_recraft then
+        return form.RecraftingOutputText, false
     end
+    return form.OutputText, true
 end
 
 local function translate_form_output(form)
-    translate_output_region(form, form and form.OutputText, true)
-    translate_output_region(form, form and form.RecraftingOutputText, false)
+    local region, exact_name = form_output_region(form)
+    translate_output_region(form, region, exact_name)
 end
 
-local function translate_visible_rows()
-    local page = _G.ProfessionsFrame and _G.ProfessionsFrame.CraftingPage
-    local scroll_box = page and page.RecipeList and page.RecipeList.ScrollBox
+local function fit_resized_form_output(page)
+    local form = page.SchematicForm
+    local width = layout.safe_dimension(form, "GetWidth")
+    if not width or output_form_widths[form] == width then return end
+    local region = form_output_region(form)
+    local claim = region and runtime.get(region)
+    if claim and claim.owner == OWNER and claim.slot == "profession.output.name"
+        and text_from(region) == claim.translated then
+        fit_form_output(form, region, claim.translated, claim.option, claim.category)
+    end
+end
+
+local function hook_mixin_instance(mixin, instance, method, callback)
+    local inherited = hooks.region(mixin, method, callback)
+    -- XML can copy the method before or after the mixin has been hooked.
+    if instance and (not inherited or instance[method] ~= mixin[method]) then
+        return hooks.region(instance, method, callback), true
+    end
+    return inherited, false
+end
+
+local function hook_enchant_slot(form)
+    local slot = form and form.enchantSlot
+    if slot and hooked_enchant_slots[slot] then return end
+    local installed, hooked_instance = hook_mixin_instance(_G.ProfessionsEnchantSlotMixin, slot,
+        "SetNameText", translate_enchant_slot)
+    if installed and slot then
+        hooked_enchant_slots[slot] = true
+        if hooked_instance then translate_enchant_slot(slot) end
+    end
+end
+
+local function after_form_init(form)
+    if form.enchantSlot then hook_enchant_slot(form) end
+    translate_requirements(form)
+end
+
+local function refresh_crafting_page(page)
+    local scroll_box = page.RecipeList and page.RecipeList.ScrollBox
     if scroll_box and type(scroll_box.ForEachFrame) == "function" then
         pcall(scroll_box.ForEachFrame, scroll_box, function (row)
             if type(row.GetTitleRegion) == "function" then
@@ -557,25 +606,52 @@ local function translate_visible_rows()
             end
         end)
     end
-    translate_form(page and page.SchematicForm)
+    translate_search_preview(page)
+    local form = page.SchematicForm
+    if not form_recipe_info(form) then return end
+    translate_form_output(form)
+    translate_description(form)
+    translate_requirements(form)
+    translate_enchant_slot(form.enchantSlot)
+    if type(form.GetSlots) == "function" then
+        local ok, slots = pcall(form.GetSlots, form)
+        if ok and type(slots) == "table" then
+            for _, slot in ipairs(slots) do translate_reagent(slot) end
+        end
+    end
+end
+
+-- Cover frames that already had data before the native writer hooks were installed.
+local function seed_crafting_page(page)
+    if not page or seeded_pages[page] or not visible(page)
+        or (options.work_enabled and not options.work_enabled(OWNER)) then return end
+    seeded_pages[page] = true
+    refresh_crafting_page(page)
 end
 
 local function hook_instances()
     local frame = _G.ProfessionsFrame
     local page = frame and frame.CraftingPage
     local form = page and page.SchematicForm
-    hooks.region(form, "Init", translate_form)
-    hooks.region(form, "Refresh", translate_form)
-    hooks.region(form, "UpdateOutputItem", translate_form_output)
-    hooks.region(form, "UpdateRecipeDescription", translate_description)
-    hooks.region(form, "Update", translate_requirements)
-    hooks.region(page, "Refresh", translate_search_preview)
-    hooks.region(page, "UpdateSearchPreview", translate_search_preview)
-    hooks.region(form and form.enchantSlot, "SetNameText",
-        translate_enchant_slot)
-    hooks.region(form and form.enchantSlot, "Update", translate_enchant_slot)
-    hooks.region_script(frame, "OnShow", translate_visible_rows, "refresh")
-    hooks.region_script(page, "OnShow", translate_visible_rows, "refresh")
+    local form_mixin = _G.ProfessionsRecipeSchematicFormMixin
+    hook_mixin_instance(form_mixin, form, "Init", after_form_init)
+    hook_mixin_instance(form_mixin, form, "UpdateOutputItem", translate_form_output)
+    hook_mixin_instance(form_mixin, form, "UpdateRecipeDescription", translate_description)
+    hook_mixin_instance(_G.ProfessionsCraftingPageMixin, page, "UpdateSearchPreview",
+        translate_search_preview)
+    -- Refresh assigns the form width after Init, which may load a cached recipe
+    -- synchronously. Refit only when the native geometry changes.
+    hooks.region(page, "Refresh", fit_resized_form_output)
+    hook_enchant_slot(form)
+    if not page or seeded_pages[page] then return end
+    local scroll_box = page.RecipeList and page.RecipeList.ScrollBox
+    local frame_count = layout.safe_dimension(scroll_box, "GetFrameCount")
+    if frame_count == 0 and not form_recipe_info(form) then
+        seeded_pages[page] = true
+    else
+        hooks.region_script(page, "OnShow", seed_crafting_page, "seed")
+        seed_crafting_page(page)
+    end
 end
 
 adapter.prepare = function ()
@@ -585,24 +661,12 @@ adapter.prepare = function ()
     hooks.mixin("ProfessionsRecipeListRecipeMixin", "Init", translate_recipe_row)
     hooks.mixin("ProfessionsRecipeListRecipeMixin", "OnEnter", translate_recipe_tooltip)
     hooks.mixin("ProfessionsReagentSlotMixin", "Update", translate_reagent)
-    hooks.mixin("ProfessionsEnchantSlotMixin", "SetNameText",
-        translate_enchant_slot)
-    hooks.mixin("ProfessionsEnchantSlotMixin", "Update", translate_enchant_slot)
     hooks.mixin("CraftingSearchLGMixin", "Init", translate_search_result)
-    hooks.mixin("ProfessionsCraftingPageMixin", "Refresh",
-        translate_search_preview)
-    hooks.mixin("ProfessionsCraftingPageMixin", "UpdateSearchPreview",
-        translate_search_preview)
-    hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Init", translate_form)
-    hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Refresh", translate_form)
-    hooks.mixin("ProfessionsRecipeSchematicFormMixin", "UpdateOutputItem",
-        translate_form_output)
-    hooks.mixin("ProfessionsRecipeSchematicFormMixin", "UpdateRecipeDescription",
-        translate_description)
-    hooks.mixin("ProfessionsRecipeSchematicFormMixin", "Update",
-        translate_requirements)
     hook_instances()
-    translate_visible_rows()
 end
 
-adapter.refresh = translate_visible_rows
+adapter.refresh = function ()
+    local frame = _G.ProfessionsFrame
+    local page = frame and frame.CraftingPage
+    if visible(page) then refresh_crafting_page(page) end
+end
