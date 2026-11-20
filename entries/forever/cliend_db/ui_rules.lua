@@ -2101,6 +2101,7 @@ addonTable.forever_ui_context = {
     { text = "Boss Emote", frame = "ChatConfig", translation = "Повідомлення боса" },
     { text = "Boss Whisper", frame = "ChatConfig", translation = "Шепіт боса" },
     { text = "Send Mail", frame = "MailFrameTab2.Text", translation = "Надіслати листа" },
+    { text = "Return", frame = "OpenMailDeleteButton", translation = "Повернути" },
     { text = "Custom", frame = "LFGListingFrameCategoryView", translation = "Користувацькі групи" },
     { text = "Back", frame = "Quest", translation = "Назад" },
     { text = "Play", frame = "QuestMapFrame", translation = "Програти" },

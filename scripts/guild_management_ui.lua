@@ -5,6 +5,7 @@ local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
 local text = addon_table.use("guild_ui_text")
 local fonts = addon_table.use("fonts")
+local layout = addon_table.use("translation_layout")
 local guild = addon_table.use("guild_ui")
 local options = addon_table.use("options")
 ui.verified_build = "1.60.1.70888"
@@ -87,12 +88,67 @@ local function permissions(region)
     if translated and translated ~= source then ui.apply(region, translated, "guild.permissions") end
 end
 
+local native_rank_height, native_officer_height
+
+local function set_dimension(region, getter, setter, value)
+    local current = layout.safe_dimension(region, getter)
+    if not current then return false end
+    if layout.dimensions_match(current, value) then return true end
+    if not runtime.can_write_text(region) then return false end
+    return pcall(function () region[setter](region, value) end)
+end
+
+local function wrap_rank_text(region, width)
+    if not region or width <= 0 or not runtime.can_write_text(region) then return false end
+    local ok, wraps = pcall(function () return region:CanWordWrap() end)
+    if not ok or runtime.is_secret_value(wraps) then return false end
+    if not wraps and not pcall(region.SetWordWrap, region, true) then return false end
+    return set_dimension(region, "GetWidth", "SetWidth", width)
+end
+
+local function fit_rank_permissions(frame)
+    if not ui.visible(frame) then return end
+    local root = frame:GetParent()
+    local officer_bg = _G.GuildControlUIRankSettingsFrameOfficerBg
+    local officer_width = layout.safe_dimension(officer_bg, "GetWidth")
+    native_rank_height = native_rank_height or layout.safe_dimension(root, "GetHeight")
+    native_officer_height = native_officer_height or layout.safe_dimension(officer_bg, "GetHeight")
+
+    if officer_width and native_rank_height and native_officer_height
+        and wrap_rank_text(frame.OfficerPermissions, officer_width - 22 - 8) then
+        local height = layout.safe_dimension(frame.OfficerPermissions, "GetStringHeight")
+        if height then
+            -- The roster and bank sections are already anchored below the officer background.
+            local officer_height = math.max(native_officer_height, math.ceil(height + 20 + 8))
+            if set_dimension(officer_bg, "GetHeight", "SetHeight", officer_height) then
+                set_dimension(root, "GetHeight", "SetHeight", native_rank_height + officer_height - native_officer_height)
+            end
+        end
+    end
+
+    local bank_label = _G.GuildControlUIRankSettingsFrameCheckbox19Text
+    if ui.visible(bank_label) then
+        local bank_width = layout.safe_dimension(_G.GuildControlUIRankSettingsFrameBankBg, "GetWidth")
+        -- Bank inset, first checkbox, column gap, second checkbox and its label gap.
+        local label_offset = 7 + 20 + 128 + 20 + 1
+        if bank_width then wrap_rank_text(bank_label, bank_width - label_offset - 8) end
+    end
+end
+
+local function restore_rank_height(frame)
+    if native_rank_height then set_dimension(frame:GetParent(), "GetHeight", "SetHeight", native_rank_height) end
+end
+
 local function control_frame(frame)
     if not frame then return end
     -- Register context-sensitive writers before generic static labels.
     ui.watch(frame.dropdown and frame.dropdown.Text, guild.rank_label)
     ui.watch(frame.OfficerPermissions, permissions)
     panel(frame)
+    if frame.OfficerPermissions then
+        ui.hooks.region_script(frame, "OnHide", restore_rank_height)
+        fit_rank_permissions(frame)
+    end
 end
 
 local function control()

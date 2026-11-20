@@ -19,6 +19,24 @@ local function translate_social_location(region)
     if not region or runtime.is_applying(region) then return end
     strings.translate_region(region, "zone", "zone.name", registry.get("social"))
 end
+
+local function translate_friend_location(region)
+    if not region or runtime.is_applying(region) then return end
+    local ok, source = pcall(function () return region:GetText() end)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    if not source then return end
+    local color, presence, reset = source:match("^(|[cC]%x%x%x%x%x%x%x%x)(.-)(|[rR])$")
+    local translated = addon_table.forever_surface_ui.social.friend_presence[presence or source]
+    if not translated then return translate_social_location(region) end
+
+    runtime.apply(region, {
+        owner = "ui", slot = "ui.text", source = source,
+        translated = (color or "") .. translated .. (reset or ""),
+        surface = registry.get("social"), option = "translate_string",
+        priority = runtime.PRIORITY.CONTEXT,
+    })
+end
+
 local formatted_social_region = strings.formatted_callback and strings.formatted_callback(
     translate_social_region, nil, "ui.text", function () return registry.get("social") end) or translate_social_region
 
@@ -44,7 +62,7 @@ local function translate_social_card(row)
         "RequestTimestamp", "FriendType", "ButtonText" }) do
         watch_social_region(row[key])
     end
-    watch_social_region(row.Location, translate_social_location)
+    watch_social_region(row.Location, translate_friend_location)
 end
 
 local function translate_friend_row(button)
@@ -58,7 +76,7 @@ local function translate_friend_row(button)
             translate_social_region(button.name)
         end
     end
-    translate_social_location(button.info)
+    translate_friend_location(button.info)
 end
 
 local function translate_recent_ally(row)

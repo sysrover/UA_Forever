@@ -8,6 +8,17 @@ local function channel_name(name)
     return addonTable.forever_chat_system.channel_names[name] or aliases[name]
 end
 
+local friend_menu_ui_keys = {
+    ["Target"] = "Select Target",
+    ["Add Tags"] = "Add Tags",
+    ["View Friends"] = "View Friends",
+}
+
+local friend_menu_overrides = {
+    ["Set Note"] = "Додати примітку",
+    ["Interact"] = "Взаємодія",
+}
+
 addonTable.forever_surface_ui = {
     barber = {
         tooltip_line = function (source, lookup)
@@ -36,6 +47,15 @@ addonTable.forever_surface_ui = {
             ["Veteran"] = "Ветеран",
             ["Member"] = "Учасник",
             ["Initiate"] = "Новачок",
+        },
+    },
+    social = {
+        friend_menu = function (source)
+            local key = friend_menu_ui_keys[source]
+            return friend_menu_overrides[source] or key and addonTable.forever_ui[key]
+        end,
+        friend_presence = {
+            ["In App"] = "У застосунку",
         },
     },
     channel_panel = {

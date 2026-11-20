@@ -16,6 +16,7 @@ local profiler = addon_table.use("performance_profile")
 local prepared_menus = setmetatable({}, { __mode = "k" })
 local prepared_descriptions = setmetatable({}, { __mode = "k" })
 local unit_popup_descriptions = setmetatable({}, { __mode = "k" })
+local bnet_friend_labels = setmetatable({}, { __mode = "k" })
 local early_labels = setmetatable({}, { __mode = "k" })
 local prepared_legends = setmetatable({}, { __mode = "k" })
 local micro_button_names = {
@@ -247,6 +248,44 @@ local function fit_menu_label(region)
     end
 end
 
+local function prepare_bnet_friend_label(description, util)
+    if bnet_friend_labels[description] then return end
+    local ok, source = pcall(util.GetElementText, description)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    local translated = source and addon_table.forever_surface_ui.social.friend_menu(source)
+    if not translated then return end
+
+    local function initialize(frame, _, menu)
+        if runtime.is_secret_value(frame) or runtime.is_secret_value(menu) or not frame or not menu
+            or options.can_lookup_section and not options.can_lookup_section("social_ui") then return end
+        local ok, region = pcall(function () return frame.fontString end)
+        if not ok or runtime.is_secret_value(region) or not region then return end
+
+        -- Native enable checks still run after this initializer. Apply the
+        -- display text once those checks and the current layout have finished.
+        scheduler.request({ id = "bnet-friend-label:" .. tostring(region), work_scope = "menus_ui",
+            callback = function ()
+                local readable, visible = pcall(function ()
+                    if menu:IsVisible() and frame:IsVisible() and frame:GetElementDescription() == description
+                        and frame.fontString == region then return region:GetText() end
+                end)
+                if readable and runtime.safe_string_or_nil(visible) == source then
+                    runtime.apply(region, {
+                        owner = "ui", slot = "ui.text", source = source,
+                        translated = translated, priority = runtime.PRIORITY.CONTEXT,
+                        section = "social_ui", option = "translate_string",
+                        defer_if_protected = false, after_apply = fit_menu_label,
+                    })
+                end
+            end,
+        })
+    end
+    if profiler.wrap then initialize = profiler.wrap("menus.bnet-friend-label", initialize) end
+    if pcall(description.AddInitializer, description, initialize) then
+        bnet_friend_labels[description] = true
+    end
+end
+
 local function translate_menu_label(region)
     local state = early_labels[region]
     if not state or runtime.is_applying(region) then return end
@@ -338,8 +377,11 @@ local function prepare_menu_description(_, owner, root)
         -- Remember the descriptions for the display pass after the menu opens.
         dev_log.mark_restricted_path("unit-menu", "description-ready "
             .. (policy.tag:match("^MENU_UNIT_[A-Z0-9_]+$") or "MENU_UNIT"))
+        local bnet_friend = policy.tag == "MENU_UNIT_BN_FRIEND"
+            or policy.tag == "MENU_UNIT_BN_FRIEND_OFFLINE"
         util.TraverseMenu(root, function (description)
             unit_popup_descriptions[description] = policy
+            if bnet_friend then prepare_bnet_friend_label(description, util) end
         end)
         return
     end
@@ -420,7 +462,8 @@ local function is_unit_popup_label(region, policy)
     local frame = region:GetParent()
     if not frame or runtime.is_secret_value(frame) or frame.fontString ~= region then return false end
     local description = frame:GetElementDescription()
-    if runtime.is_secret_value(description) or unit_popup_descriptions[description] ~= policy then
+    if runtime.is_secret_value(description) or unit_popup_descriptions[description] ~= policy
+        or bnet_friend_labels[description] then
         return false
     end
     local source = runtime.safe_string_or_nil(_G.MenuUtil.GetElementText(description))

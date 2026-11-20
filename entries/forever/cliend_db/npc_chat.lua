@@ -2,6 +2,96 @@
 local _, addonTable = ...
 
 local chat_rows = {
+    ["Captive Fire Elemental:fefebn"] = {
+        ["english"] = { [1] = "Fire. FIRE! BUUURN!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "fefebn" } },
+        ["npcs"] = { [1] = "Captive Fire Elemental" },
+        ["text"] = "Вогонь. ВОГОНЬ! ГОРИ-И-И!",
+    },
+    ["Captive Fire Elemental:fmys"] = {
+        ["english"] = { [1] = "Freedom! Yes." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "fmys" } },
+        ["npcs"] = { [1] = "Captive Fire Elemental" },
+        ["text"] = "Свобода! Так!",
+    },
+    ["Dark Iron Saboteur:ssesgwrdashelshsdeadbstocemy"] = {
+        ["english"] = { [1] = "%s's eyes glow red as he lights his dynamite and begins to cackle madly!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ssesgwrdashelshsdeadbstocemy" } },
+        ["npcs"] = { [1] = "Dark Iron Saboteur" },
+        ["text"] = "%s запалює динаміт і заходиться шаленим реготом. Очі палають червоним!",
+    },
+    ["Dragonmaw Reclaimer:gmblwlbeosoeme"] = {
+        ["english"] = { [1] = "Grim Batol will be ours once more!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "gmblwlbeosoeme" } },
+        ["npcs"] = { [1] = "Dragonmaw Reclaimer" },
+        ["text"] = "Ґрім-Батол знову буде наш!",
+    },
+    ["Dragonmaw Reclaimer:wlchyrsl"] = {
+        ["english"] = { [1] = "I will crush your skull!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "wlchyrsl" } },
+        ["npcs"] = { [1] = "Dragonmaw Reclaimer" },
+        ["text"] = "Я розтрощу тобі череп!",
+    },
+    ["Dragonmaw Soulbinder:tenhwldetswd"] = {
+        ["english"] = { [1] = "The Nelghor-shomash will dominate this world!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "tenhwldetswd" } },
+        ["npcs"] = { [1] = "Dragonmaw Soulbinder" },
+        ["text"] = "Цей світ підкориться Нелґор-шомаш!",
+    },
+    ["First Mate Snellig:lgdfsntobeddleme"] = {
+        ["english"] = { [1] = "A living dwarf... soon to be a dead like me." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "lgdfsntobeddleme" } },
+        ["npcs"] = { [1] = "First Mate Snellig" },
+        ["text"] = "Живий дворф… Скоро й ти будеш мерцем, як я.",
+    },
+    ["Goaz Warder:seddudkeadee"] = {
+        ["english"] = { [1] = "Stone detected. Unauthorized knowledge accessed. Eliminate." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "seddudkeadee" } },
+        ["npcs"] = { [1] = "Goaz Warder" },
+        ["text"] = "Виявлено камінь. Несанкціонований доступ до знань. Ліквідувати.",
+    },
+    ["Hargin Mundar:idgootadcrotseoftegsbttslghssnbrdsadamadidjtwdupdd"] = {
+        ["english"] = { [1] = "I'd go out and clear out some of those gnolls, but this leg has seen better days and I am afraid I'd just wind up dead." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "idgootadcrotseoftegsbttslghssnbrdsadamadidjtwdupdd" } },
+        ["npcs"] = { [1] = "Hargin Mundar" },
+        ["text"] = "Я б і сам пішов прорідити тих гнолів, та нога вже не та. Боюся, що з такою ногою тільки загину.",
+    },
+    ["Janey Anship:oyifwedtfwteprinps"] = {
+        ["english"] = { [1] = "Only if we didn't follow the proper initialization procedures." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "oyifwedtfwteprinps" } },
+        ["npcs"] = { [1] = "Janey Anship" },
+        ["text"] = "Тільки якщо ми не дотрималися належного порядку запуску.",
+    },
+    ["Modr:sgfrcn"] = {
+        ["english"] = { [1] = "Scanning for corruption." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "sgfrcn" } },
+        ["npcs"] = { [1] = "Modr" },
+        ["text"] = "Сканування на наявність скверни.",
+    },
+    ["Ol' Emma:asifdthebrtstodoinmyodaetncybsofwr"] = {
+        ["english"] = { [1] = "As if I don't have better things to do in my old age than carry buckets of water." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "asifdthebrtstodoinmyodaetncybsofwr" } },
+        ["npcs"] = { [1] = "Ol' Emma" },
+        ["text"] = "Наче в мене на старості літ немає ліпшого діла, ніж тягати відра з водою.",
+    },
+    ["Pilot Bellowfiz:ahltmeseyspynghdtsnwidwr"] = {
+        ["english"] = { [1] = "Ah, let me see. Yes probably nearing a hundred times now I'd wager!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "ahltmeseyspynghdtsnwidwr" } },
+        ["npcs"] = { [1] = "Pilot Bellowfiz" },
+        ["text"] = "Ану, дай подумати. Та вже, мабуть, під сотню разів, ручаюся!",
+    },
+    ["Roman:dttktsayfhintecs"] = {
+        ["english"] = { [1] = "I don't think there's any fish in these canals." },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "dttktsayfhintecs" } },
+        ["npcs"] = { [1] = "Roman" },
+        ["text"] = "Не думаю, що в цих каналах водиться риба.",
+    },
+    ["Stormwind Crier:hrmebgnsfmbdorbs"] = {
+        ["english"] = { [1] = "Hear me! I bring news from beyond our borders!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "hrmebgnsfmbdorbs" } },
+        ["npcs"] = { [1] = "Stormwind Crier" },
+        ["text"] = "Слухайте! Несу вісті з-за наших кордонів!",
+    },
     ["General Marcus Jonathan:rdwrisnttobehdheslpsthud"] = {
         ["english"] = { [1] = "Reginald Windsor is not to be harmed! He shall pass through untouched!" },
         ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "rdwrisnttobehdheslpsthud" } },
