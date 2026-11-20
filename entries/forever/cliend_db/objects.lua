@@ -4447,6 +4447,7 @@ addonTable.object_ids = {
     [710491] = { [1] = "Камінь", ["en"] = "Rock" },
     [710492] = { [1] = "Камінь", ["en"] = "Rock" },
     [710493] = { [1] = "Камінь", ["en"] = "Rock" },
+    [423431] = { [1] = "Вівтар духа вітру", ["en"] = "Altar of the Wind Spirit" },
 }
 
 addonTable.object = {
@@ -8049,6 +8050,7 @@ addonTable.object = {
     ["Dalaran Tome"] = "Даларанський фоліант",
     ["Arcane Lightning"] = "Блискавка таємної магії",
     ["Fragmented Sentry"] = "Розколотий вартовий",
+    ["Altar of the Wind Spirit"] = "Вівтар духа вітру",
 }
 
 addonTable.translate_object_name = function (name)
