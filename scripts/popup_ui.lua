@@ -5,6 +5,8 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").menus
 local auto_scan = addon_table.use("auto_scan")
 local strings = addon_table.use("strings")
+local fonts = addon_table.use("fonts")
+local options = addon_table.use("options")
 local scheduler = addon_table.use("translation_scheduler")
 local runtime = addon_table.use("translation_runtime")
 local resolver = addon_table.use("translation_resolver")
@@ -192,11 +194,14 @@ local function popup_button(dialog, getter)
     return button
 end
 
-local function translate_popup_button(dialog, getter)
-    local button = popup_button(dialog, getter)
+local function translate_button_label(button, section)
     if not button or type(button.GetFontString) ~= "function" then return end
     local text_ok, region = pcall(button.GetFontString, button)
-    if text_ok then strings.translate_region(region) end
+    if text_ok then strings.translate_region(region, nil, nil, nil, nil, nil, section) end
+end
+
+local function translate_popup_button(dialog, getter)
+    translate_button_label(popup_button(dialog, getter))
 end
 
 local function translate_purchase_cost(dialog, cost)
@@ -530,9 +535,98 @@ local function translate_cinematic_close_dialog(dialog)
     end
 end
 
+local function translate_special_popup_label(region)
+    return strings.translate_region(region, nil, nil, nil, nil, nil, "popups")
+end
+
+local function after_special_popup_show(dialog)
+    if not dialog or runtime.is_secret_value(dialog) then return end
+    if dialog == _G.BankCleanUpConfirmationPopup then
+        -- OnShow has already selected the confirmation for the current bank tab.
+        local changed = translate_special_popup_label(dialog.Text)
+        local checkbox = dialog.HidePopupCheckbox
+        translate_special_popup_label(checkbox and checkbox.Label)
+        translate_button_label(dialog.AcceptButton, "popups")
+        translate_button_label(dialog.CancelButton, "popups")
+        if changed and not runtime.combat_locked() and runtime.can_write_text(dialog) then
+            pcall(dialog.Layout, dialog)
+        end
+    elseif dialog == _G.PVPReadyPopup then
+        local status = _G.ReadyStatus
+        local ok, parent = pcall(function () return status and status:GetParent() end)
+        if ok and not runtime.is_secret_value(parent) and parent == dialog then
+            translate_special_popup_label(status.ReadyCheck)
+        end
+    end
+end
+
+local translate_war_game_title = strings.formatted_callback(
+    translate_special_popup_label, nil, "war-game.title", nil, "popups")
+
+local function after_war_game_setup(_, challenger, battleground)
+    local dialog = _G.PVPFramePopup
+    if not dialog then return end
+    translate_war_game_title(dialog.title, _G.WARGAME_CHALLENGED, challenger, battleground)
+    translate_button_label(_G.PVPFramePopupAcceptButton, "popups")
+    translate_button_label(_G.PVPFramePopupDeclineButton, "popups")
+end
+
+local function translate_war_game_timer(region, source)
+    if runtime.is_applying(region) then return end
+    source = runtime.safe_string_or_nil(source)
+    if not source then
+        runtime.invalidate(region)
+        return
+    end
+    local claim = runtime.get(region)
+    local translated = claim and claim.slot == "war-game.timer"
+        and claim.source == source and claim.translated
+        or source:gsub("%a+", addon_table.forever_surface_ui.map_labels.battlefield_time_units)
+    if translated ~= source then
+        runtime.apply(region, { owner = "popup", slot = "war-game.timer", source = source,
+            translated = translated, option = "translate_string", section = "popups",
+            priority = runtime.PRIORITY.CONTEXT, reapply_cached = true })
+    end
+end
+
+local token_balance_display = setmetatable({}, { __mode = "k" })
+local function translate_token_balance(html, source)
+    source = runtime.safe_string_or_nil(source)
+    token_balance_display[html] = source
+    if runtime.is_applying(html) then return end
+    local claim = runtime.get(html)
+    if claim and source ~= claim.source then runtime.invalidate(html) end
+    if not source or not options.section_enabled("popups") then return end
+    local template = runtime.safe_string_or_nil(_G.TOKEN_REDEEM_BALANCE_FORMAT)
+    local prefix = runtime.safe_string_or_nil(_G.HTML_START_CENTERED)
+    local suffix = runtime.safe_string_or_nil(_G.HTML_END)
+    if not template or not prefix or not suffix then return end
+    local ukrainian = resolver.find_ui(template)
+    local translated = ukrainian and renderer.render_format(prefix .. template .. suffix,
+        prefix .. ukrainian .. suffix, source)
+    if not translated or translated == source then return end
+    -- The redemption panel renders its balance through SimpleHTML.
+    runtime.apply(html, { owner = "popup", slot = "token-redemption.balance", source = source,
+        translated = translated, option = "translate_string", section = "popups",
+        priority = runtime.PRIORITY.CONTEXT, defer_if_protected = false,
+        visible_matches = function (_, expected)
+            return token_balance_display[html] == expected
+        end })
+end
+
 popup_ui.prepare = function ()
     hooks.global("StaticPopup_Show", after_static_popup_show)
     hooks.global("StaticPopup_OnUpdate", after_static_popup_update)
+    hooks.global("StaticPopupSpecial_Show", after_special_popup_show)
+    hooks.global("PVPFramePopup_SetupPopUp", after_war_game_setup)
+    local war_game = _G.PVPFramePopup
+    hooks.region(war_game and war_game.timer, "SetText", translate_war_game_timer)
+    local redemption = _G.WowTokenRedemptionFrame
+    local balance = redemption and redemption.RightDisplay and redemption.RightDisplay.Format
+    if balance then
+        fonts.register_html(balance, { P = _G.GameFontNormal })
+        hooks.region(balance, "SetText", translate_token_balance, nil, true)
+    end
     for index = 1, 4 do
         local dialog = _G["StaticPopup" .. index]
         hooks.region(dialog, "Init", pad_confirmation)

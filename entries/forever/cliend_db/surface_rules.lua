@@ -127,6 +127,10 @@ addonTable.forever_surface_ui = {
         end,
     },
     character = {
+        pet_experience = function (source)
+            local current, maximum = source:match("^XP ([%d,]+)/([%d,]+)$")
+            if current then return "Досвід: " .. current .. "/" .. maximum end
+        end,
         pet_level = function (source, lookup)
             local level, description = source:match("^Level (%d+) (.+)$")
             if not level then return nil end

@@ -378,6 +378,30 @@ local function translate_character_stat_region(region)
     strings.translate_region(region, nil, "ui.text", registry.get("character"))
 end
 
+local function translate_pet_experience(bar, source)
+    local region = bar.Text
+    source = runtime.safe_string_or_nil(source)
+    if not region or not source or not options.section_enabled("character_ui") then return end
+    local claim = runtime.get(region)
+    local translated = claim and claim.slot == "character.pet_experience"
+        and claim.source == source and claim.translated
+        or addon_table.forever_surface_ui.character.pet_experience(source)
+    if translated then
+        runtime.apply(region, { owner = "character", slot = "character.pet_experience",
+            source = source, translated = translated, section = "character_ui",
+            option = "translate_string", priority = runtime.PRIORITY.CONTEXT,
+            reapply_cached = true })
+    end
+end
+
+local translate_currency_balance_label = strings.formatted_callback(
+    translate_character_stat_region, nil, "character.currency_balance", nil, "character_ui")
+
+local function translate_currency_balance(preview, name)
+    if runtime.is_secret_value(name) or (name ~= nil and type(name) ~= "string") then return end
+    translate_currency_balance_label(preview.Label, _G.CURRENCY_TRANSFER_NEW_BALANCE_PREVIEW, name or "")
+end
+
 local function translate_character_stat_row(row)
     if not row then return end
     for _, key in ipairs({ "Title", "Label", "Value" }) do
@@ -436,6 +460,14 @@ local function prepare_character_panels()
     prepare_character_scroll_box(_G.ReputationFrame, false, translate_reputation_row)
     for _, name in ipairs({ "TokenFrame", "StatisticsFrame" }) do
         prepare_character_scroll_box(_G[name], false)
+    end
+    -- Camelot rewrites this label each visible frame. Reuse its current claim
+    -- when the source stays the same, without walking the character pane.
+    hooks.region(_G.PetPaperDollFrameExpBar, "SetText", translate_pet_experience, "character")
+    local transfer = _G.CurrencyTransferMenu and _G.CurrencyTransferMenu.Content
+    if transfer then
+        hooks.region(transfer.SourceBalancePreview, "SetCharacterName", translate_currency_balance, "character")
+        hooks.region(transfer.PlayerBalancePreview, "SetCharacterName", translate_currency_balance, "character")
     end
     local character = _G.CharacterFrame
     -- Right-hand details use their own row pools and can update independently
