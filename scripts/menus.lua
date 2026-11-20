@@ -498,6 +498,22 @@ local function translate_open_menu(_, menu)
         callback = translate })
 end
 
+local function clear_closed_menu(_, menu)
+    if not menu or runtime.is_secret_value(menu) then return end
+    -- Blizzard returns this proxy to the pool after closing the current menu.
+    prepared_menus[menu] = nil
+    scheduler.cancel("open-menu:" .. tostring(menu))
+end
+
+local function register_menu_event(event, handler)
+    hooks.once("event:" .. event, function ()
+        local events = _G.EventRegistry
+        if not events or type(events.RegisterCallback) ~= "function" then return false end
+        local callback = profiler.wrap and profiler.wrap("event:" .. event, handler) or handler
+        return pcall(events.RegisterCallback, events, event, callback, menus_ui)
+    end)
+end
+
 local function translate_legacy_dropdown(_, level)
     if options.can_lookup_section and not options.can_lookup_section("game_menu") then return end
     level = tonumber(level) or tonumber(_G.UIDROPDOWNMENU_MENU_LEVEL) or 1
@@ -595,13 +611,8 @@ menus_ui.prepare = function (roots)
 
     -- Observe the completed menu through its event, including untagged
     -- context menus and submenus, without wrapping the native open methods.
-    hooks.once("event:MenuProxy.OnShow", function ()
-        local events = _G.EventRegistry
-        if not events or type(events.RegisterCallback) ~= "function" then return false end
-        local callback = translate_open_menu
-        if profiler.wrap then callback = profiler.wrap("event:MenuProxy.OnShow", callback) end
-        return pcall(events.RegisterCallback, events, "MenuProxy.OnShow", callback, menus_ui)
-    end)
+    register_menu_event("MenuProxy.OnShow", translate_open_menu)
+    register_menu_event("MenuProxy.OnClose", clear_closed_menu)
     hooks.region(_G.Menu, "PopulateDescription", prepare_menu_description)
 
     hooks.global("UIDropDownMenu_AddButton", translate_legacy_dropdown)

@@ -8,6 +8,7 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").map_labels
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
+local layout = addon_table.use("translation_layout")
 local scheduler = addon_table.use("translation_scheduler")
 local strings = addon_table.use("strings")
 local translation = addon_table.use("translation")
@@ -601,6 +602,94 @@ local function after_queue_zone(entry)
     after_real_zone_writer(entry and entry.Title, "zone-queue")
 end
 
+local battlefield_timers = setmetatable({}, { __mode = "k" })
+
+local function clear_battlefield_timers()
+    battlefield_timers = setmetatable({}, { __mode = "k" })
+end
+
+local function fit_battlefield_time(region)
+    if runtime.combat_locked() then return end
+    local entry = region:GetParent()
+    local frame = _G.QueueStatusFrame
+    if not entry or not frame or entry:GetParent() ~= frame then return end
+    local text_width = layout.safe_dimension(region, "GetUnboundedStringWidth")
+        or layout.safe_dimension(region, "GetStringWidth")
+    local entry_width = layout.safe_dimension(entry, "GetWidth")
+    local frame_width = layout.safe_dimension(frame, "GetWidth")
+    if not text_width or not entry_width or not frame_width then return end
+    local required = math.ceil(text_width + 20)
+    if required > entry_width and runtime.can_write_text(entry) and runtime.can_write_text(frame) then
+        entry:SetWidth(required)
+        if required > frame_width then frame:SetWidth(required) end
+    end
+end
+
+local function translate_battlefield_time(region, template)
+    if not options.section_enabled("map_ui") then return end
+    local ok, shown = pcall(function () return region:IsShown() end)
+    if not ok or runtime.is_secret_value(shown) or shown ~= true then return end
+    template = safe_string(template)
+    local source = visible_text(region)
+    if not template or not source then return end
+
+    local claim = runtime.get(region)
+    if claim and claim.owner == "battlefield-queue" and claim.source == source
+        and not runtime.combat_locked() then
+        runtime.apply(region, claim)
+        return
+    end
+    local prefix = template:match("^(.-)%%s$")
+    if not prefix or source:sub(1, #prefix):lower() ~= prefix:lower() then return end
+    local duration = source:sub(#prefix + 1)
+    if duration == safe_string(_G.LESS_THAN_ONE_MINUTE) then
+        duration = strings.find_ui_translation(duration, region) or duration
+    else
+        duration = duration:gsub("|4(%a+):%a+;", "%1")
+        duration = duration:gsub("%a+", surface_text.battlefield_time_units)
+    end
+    local translated_template = strings.find_ui_translation(template, region)
+    if not translated_template then return end
+    runtime.apply(region, {
+        owner = "battlefield-queue", slot = "ui.queue_time", section = "map_ui",
+        source = source, translated = translated_template:format(duration),
+        priority = runtime.PRIORITY.CONTEXT, after_apply = fit_battlefield_time,
+        defer_if_protected = false,
+    })
+end
+
+local function after_battlefield_timer(region, template)
+    if runtime.is_secret_value(region) or not battlefield_timers[region]
+        or safe_string(template) ~= safe_string(_G.TIME_IN_QUEUE) then return end
+    translate_battlefield_time(region, template)
+end
+
+local function after_battlefield_queue(entry)
+    if runtime.is_secret_value(entry) or not entry then return end
+    local title = entry.Title
+    local source = visible_text(title)
+    if source and options.section_enabled("zone_names") then
+        local translated = translated_zone_name(source)
+        if translated then
+            runtime.apply(title, {
+                owner = "battlefield-queue", slot = "zone.name", source = source,
+                translated = translated, option = "translate_zone",
+                priority = runtime.PRIORITY.CONTEXT, defer_if_protected = false,
+            })
+        end
+    end
+    translate_battlefield_time(entry.AverageWait, _G.LFG_STATISTIC_AVERAGE_WAIT)
+    local timer = entry.TimeInQueue
+    translate_battlefield_time(timer, _G.TIME_IN_QUEUE)
+    if runtime.is_secret_value(timer) or not timer then return end
+    local pool = _G.QueueStatusFrame and _G.QueueStatusFrame.statusEntriesPool
+    -- The native queue panel reuses these FontStrings for other queue types.
+    if hooks.region(pool, "ReleaseAll", clear_battlefield_timers, nil, true) then
+        battlefield_timers[timer] = true
+        hooks.region(timer, "SetFormattedText", after_battlefield_timer)
+    end
+end
+
 local function active_menu()
     local menu_api = _G.Menu
     if not menu_api or type(menu_api.GetManager) ~= "function" then return nil end
@@ -1113,6 +1202,7 @@ map_labels.prepare = function ()
         hooks.region(widget, method, after_widget_zone)
     end
     hooks.global("QueueStatusEntry_SetUpActiveWorldPVP", after_queue_zone)
+    hooks.global("QueueStatusEntry_SetUpBattlefield", after_battlefield_queue)
     hooks.region(_G.QueueStatusButtonMixin, "ShowContextMenu", after_queue_menu)
     hooks.region(_G.AreaLabelDataProviderMixin, "OnAdded", function (self)
         hook_label(self and self.Label)

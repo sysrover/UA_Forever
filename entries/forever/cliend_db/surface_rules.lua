@@ -364,6 +364,7 @@ addonTable.forever_surface_ui = {
         end,
     },
     map_labels = {
+        battlefield_time_units = { Day = "дн", Days = "дн", Hr = "год", Min = "хв", Sec = "с" },
         discovered = function (zone)
             return "Відкрито нову територію: " .. zone
         end,
