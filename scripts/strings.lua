@@ -461,6 +461,7 @@ local function scan_frame(frame, seen, stats, allow_protected, surface, walk_met
     -- Never start that Blizzard layout chain from addon code while aura data
     -- is secret; PLAYER_REGEN_ENABLED refreshes open surfaces afterwards.
     if frame == _G.ObjectiveTrackerFrame and runtime.combat_locked() then return end
+    local skip_font_for_skipped_regions = walk_metadata and walk_metadata.skip_font_for_skipped_regions
     walker.walk(walk_metadata, frame, function (region)
         local skip = type(surface) == "table" and surface.skip_region
             or type(walk_metadata) == "table" and walk_metadata.skip_region
@@ -468,13 +469,16 @@ local function scan_frame(frame, seen, stats, allow_protected, surface, walk_met
         if type(skip) == "function" then
             skip_ok, skipped = pcall(skip, region)
         end
+        local can_translate_region = skip_ok and not skipped
         local translated, font_handled
-        if skip_ok and not skipped then
+        if can_translate_region then
             translated, font_handled = translate_font_string(region, nil, nil, surface, nil, nil,
                 walk_metadata and walk_metadata.section)
             if translated then stats.translated = stats.translated + 1 end
         end
-        if not font_handled then apply_ukrainian_font(region) end
+        if not font_handled and (can_translate_region or not skip_font_for_skipped_regions) then
+            apply_ukrainian_font(region)
+        end
     end, not allow_protected and is_protected_frame or nil, stats, seen)
 end
 

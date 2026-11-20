@@ -466,6 +466,8 @@ local function translate_open_menu(_, menu)
                     owner = menu_walks.modern.owner,
                     reason = menu_walks.modern.reason,
                     section = section,
+                    skip_font_for_skipped_regions = unit_policy
+                        and (unit_policy.tag == "MENU_UNIT_SELF" or unit_policy.tag == "MENU_UNIT_PET"),
                     skip_region = function (region)
                         if unit_policy and not is_unit_popup_label(region, unit_policy) then return true end
                         local state = early_labels[region]

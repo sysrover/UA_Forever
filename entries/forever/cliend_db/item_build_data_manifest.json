@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.70959",
+  "sourceBuild": "1.60.1.71037",
   "itemMetadata": 4169,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -17,11 +17,11 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "inventory": "build/forever-client-inventory/70959",
-  "itemMetadataInventory": "build/forever-client-inventory/70959/db2/itemsparse.json",
-  "cacheSHA256": "85bf6334f98cd06cb78b590033d78d31721987cc0c524aab985a1d7ada2e7ad1",
-  "cacheProvenance": "build/forever-client-inventory/70959/cache-snapshot/provenance.json",
-  "cacheScope": "Exact-build 70959 CASC with the stable matching cache; approved historical compatibility rows retained.",
+  "inventory": "build/forever-client-inventory/71037",
+  "itemMetadataInventory": "build/forever-client-inventory/71037/db2/itemsparse.json",
+  "cacheSHA256": "b0580eddfe46f4bb5b0a481ffeb1758d71da41b02e39d723f17dabb931c40fec",
+  "cacheProvenance": "build/forever-client-inventory/71037/cache-snapshot/provenance.json",
+  "cacheScope": "Exact-build 71037 CASC with the stable matching cache; approved historical compatibility rows retained.",
   "retainedHotfixProvenance": {
     "sourceBuild": "1.60.1.70755",
     "itemMetadata": 4039,

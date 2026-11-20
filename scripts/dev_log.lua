@@ -21,6 +21,8 @@ local restricted_fields = {
     },
     ["unit-menu"] = {
         { false, "CheckInteractDistance" },
+        { false, "SetRaidTarget" },
+        { false, "SetRaidTargetIcon" },
         { false, "UnitPopup_OpenMenu" },
         { "MenuUtil", "CreateContextMenu" },
         { "Menu", "PopulateDescription" },
@@ -64,7 +66,8 @@ local function restricted_path(function_name, stack)
         and stack:lower():find("blizzard_mapcanvas", 1, true) then
         return "map-canvas"
     end
-    if function_name:match("CheckInteractDistance%(%s*%)$")
+    if (function_name:match("CheckInteractDistance%(%s*%)$")
+        or function_name:match("^SetRaidTarget%(%s*%)$"))
         and stack:lower():find("blizzard_unitpopupshared", 1, true) then
         return "unit-menu"
     end
