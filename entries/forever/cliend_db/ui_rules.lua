@@ -1903,6 +1903,12 @@ addonTable.forever_ui_patterns = {
         replace = function (level) return "Рів. " .. level end,
     },
     {
+        pattern = "^Mythic Level (%d+) Chest$",
+        replace = function (level)
+            return addonTable.forever_ui["Mythic Level %d Chest"]:format(tonumber(level))
+        end,
+    },
+    {
         pattern = "^%((Rank %d+)%)$",
         replace = function (rank)
             return "(" .. rank:gsub("Rank", "Ранг") .. ")"

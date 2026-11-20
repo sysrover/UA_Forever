@@ -1580,6 +1580,9 @@ local function translate_cursor_tooltip_title(tooltip, native)
     if not line_count_ok or safe_number(line_count) ~= 1 then return false end
     if native:find("\n", 1, true) then return false end
     local prefix, title = tooltip_title_parts(native)
+    -- UI labels with these names must reach their own surface translator.
+    if (title == "Chest" or title == "Back") and tooltip.uaForeverKind ~= "object"
+        and not world_cursor_owner(tooltip) then return false end
 
     local translated, slot, category, owner
     if addon_table.zone and addon_table.zone[title] then
@@ -2208,6 +2211,45 @@ tooltips.prepare_settings = function ()
         "settings-session", "settings")
 end
 
+local function prepare_equipment_slot_title(tooltip, region, source, session_key)
+    source = safe_string(source)
+    if not source or not region then return false end
+    local translated
+    if source == "Back" or source == "Chest" then
+        translated = tooltip_catalog.comparison_item_labels[source]
+    else
+        translated = strings.find_ui_translation(source, region)
+    end
+    if not translated or translated == source then return false end
+    if session_key then
+        begin_tooltip(tooltip, session_key)
+        tooltip.uaForeverKind = "equipment-slot"
+        if tooltip.uaForeverShowOriginal then return true end
+    end
+    return set_tooltip_translation(tooltip, region, source, translated,
+        "equipment.slot", nil, "equipment-slot", nil, false, session_key ~= nil)
+end
+
+local function prepare_wardrobe_slot_title(tooltip, native)
+    native = safe_string(native)
+    if native ~= "Back" and native ~= "Chest" then return false end
+    local wardrobe = _G.WardrobeCollectionFrame
+    local items = wardrobe and wardrobe.ItemsCollectionFrame
+    local slots = items and items.SlotsFrame
+    if not slots then return false end
+    local ok, owner, parent, slot = pcall(function ()
+        local owner = tooltip:GetOwner()
+        if not owner or is_secret(owner) then return end
+        return owner, owner:GetParent(), owner.slot
+    end)
+    if not ok or is_secret(parent) or parent ~= slots or is_secret(slot)
+        or slot ~= native:upper() .. "SLOT" then return false end
+    local source, region = tooltip_line(tooltip, "Left", 1)
+    if source ~= native then return false end
+    return prepare_equipment_slot_title(tooltip, region, native,
+        "empty-equip:" .. tostring(owner))
+end
+
 local function prepare_tooltip_frames()
     tooltips.prepare_settings()
     hooks.global("GameTooltip_AddInstructionLine", translate_instruction_line)
@@ -2255,19 +2297,15 @@ local function prepare_tooltip_frames()
                     return
                 end
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
-                if not owner_ok or owner ~= frame then return end
+                if not owner_ok or is_secret(owner) or owner ~= frame then return end
                 local text_ok, native = pcall(item_util.GetEmptyEquipSlotTooltip,
                     equip_slot)
                 native = text_ok and safe_string(native) or nil
                 if not native then return end
                 local source, region = tooltip_line(tooltip, "Left", 1)
                 if source ~= native or not region then return end
-                local translated = strings.find_ui_translation(native, region)
-                if not translated or translated == native then return end
-                begin_tooltip(tooltip, "empty-equip:" .. tostring(frame))
-                local applied = set_tooltip_translation(tooltip, region, native, translated,
-                    "equipment.slot", nil, "equipment-slot", nil, false, true)
-                if applied then tooltip.uaForeverKind = "equipment-slot" end
+                prepare_equipment_slot_title(tooltip, region, native,
+                    "empty-equip:" .. tostring(frame))
             end)
     end
     local tooltip_frames, seen_tooltips = {}, {}
@@ -2378,6 +2416,7 @@ local function prepare_tooltip_frames()
                     local state = owned_ui_state[self]
                     if state then state.complete = false end
                     if self.uaForeverKind and self.uaForeverKind ~= "object" then return end
+                    if prepare_wardrobe_slot_title(self, native) then return end
                     if is_minimap_tooltip(self) then return end
                     translate_cursor_tooltip_title(self, native)
                     translate_object_tooltip_title(self)
@@ -2928,6 +2967,14 @@ tooltips.refresh_active = function ()
     local refreshed, previous_widths = {}, {}
     local function refresh_tooltip(tooltip)
         if not tooltip or refreshed[tooltip] then return end
+        if tooltip.uaForeverKind == "equipment-slot" then
+            local ok, owner, shown = pcall(function ()
+                return tooltip:GetOwner(), tooltip:IsShown()
+            end)
+            if not ok or is_secret(owner) or not owner or is_secret(shown)
+                or shown ~= true
+                or tooltip.uaForeverSessionKey ~= "empty-equip:" .. tostring(owner) then return end
+        end
         local minimap_button
         if tooltip.uaForeverKind == "minimap-button" then
             minimap_button = map_adapter.current_minimap_button(tooltip)
@@ -3015,6 +3062,11 @@ tooltips.refresh_active = function ()
             elseif tooltip.uaForeverKind == "character-stat" then
                 local owner_ok, owner = pcall(tooltip.GetOwner, tooltip)
                 if owner_ok and owner then tooltips.translate_character_stat(owner) end
+            elseif tooltip.uaForeverKind == "equipment-slot" then
+                local source, region = tooltip_line(tooltip, "Left", 1)
+                if region and not runtime.get(region) then
+                    prepare_equipment_slot_title(tooltip, region, source)
+                end
             elseif native and native.generation == tooltip.uaForeverGeneration
                 and native.kind == tooltip.uaForeverKind
                 and native.id == tooltip.uaForeverID then

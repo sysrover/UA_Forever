@@ -4,6 +4,8 @@ local entries = addon_table.use("entries")
 local auto_scan = addon_table.use("auto_scan")
 local options = addon_table.use("options")
 local runtime = addon_table.use("translation_runtime")
+local resolver = addon_table.use("translation_resolver")
+local renderer = addon_table.use("spell_template_renderer")
 local gossip_ui = addon_table.use("gossip_ui")
 local scheduler = addon_table.use("translation_scheduler")
 local utils = addon_table.use("utils")
@@ -110,12 +112,25 @@ local function quest_title(button, info)
     local entry = entries.get_entry("quest", quest_id)
     local translated = entry and safe_string(entry[1])
     if not translated then translated = entries.get_glossary_text(title) end
-    translated = safe_string(translated)
-    if not translated or translated == title then return end
-    translated = replace_title(source, title, translated)
-    if not translated then return end
+    translated = safe_string(translated) or title
+
+    local localized
+    local is_trivial = info.isTrivial
+    if not runtime.is_secret_value(is_trivial) and is_trivial == true then
+        local template = safe_string(_G.TRIVIAL_QUEST_DISPLAY)
+        if template and renderer.format_arguments(template, title) == source then
+            local target = safe_string(resolver.find_ui(template, region))
+            if target and target ~= template then
+                localized = renderer.format_arguments(target, translated)
+            end
+        end
+    end
+    if not localized and translated ~= title then
+        localized = replace_title(source, title, translated)
+    end
+    if not localized or localized == source then return end
     local applied = apply(region, "quest:" .. tostring(quest_id) .. ".name",
-        source, translated, "quest",
+        source, localized, "quest",
         { "translate_quest", "translate_gossip" })
     if options.translate_name("quest") and type(button.Resize) == "function" then
         pcall(button.Resize, button)

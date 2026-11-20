@@ -39,6 +39,18 @@ local function native_text(region)
     return text
 end
 
+local function refresh_heirloom_headers(journal)
+    if not visible(journal) then return end
+    for _, header in ipairs(journal.heirloomHeaderFrames or {}) do
+        if visible(header) then
+            local source = native_text(header.text)
+            if source == "Back" or source == "Chest" then
+                ui.apply(header.text, addon_table.forever_tooltip_ui.comparison_item_labels[source])
+            end
+        end
+    end
+end
+
 local function pet_name(region, name, creature_id)
     name = runtime.safe_string_or_nil(name)
     if not region or not name or native_text(region) ~= name then return end
@@ -235,6 +247,7 @@ local function refresh()
             elseif frame == _G.ToyBox then
                 refresh_toy_rows()
             elseif frame == _G.HeirloomsJournal then
+                refresh_heirloom_headers(frame)
                 for _, row in ipairs(frame.heirloomEntryFrames or {}) do item_row(row) end
                 each_row(frame.ScrollBox, item_row)
             else
@@ -268,6 +281,7 @@ collections.prepare = function ()
         if journal and type(journal.GetTitleText) == "function" then ui.label(journal:GetTitleText()) end
     end)
     ui.hooks.region(_G.HeirloomsJournal, "UpdateButton", function (_, row) item_row(row) end)
+    ui.hooks.region(_G.HeirloomsJournal, "LayoutCurrentPage", refresh_heirloom_headers)
     ui.hooks.global("PetJournal_InitPetButton", pet_row)
     ui.hooks.global("PetJournal_UpdatePetCard", pet_card)
     ui.hooks.global("MountJournal_InitMountButton", mount_row)
