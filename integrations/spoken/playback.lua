@@ -91,7 +91,7 @@ spoken.prepare_playback = function ()
                 end
             end
         elseif (clip.event == sound_event.Gossip or clip.event == sound_event.QuestGreeting)
-            and guid:IsCreature(kind) and options.section_enabled("gossip")
+            and (guid:IsCreature(kind) or kind == guid.GameObject) and options.section_enabled("gossip")
             and public_id(id) and readable(clip.text) then
             words = entries.find_gossip_translation(id, clip.text, false)
         end
