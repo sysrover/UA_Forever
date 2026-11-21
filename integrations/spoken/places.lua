@@ -1,4 +1,4 @@
-local _, addon_table = ...
+local addon_name, addon_table = ...
 
 local spoken = addon_table.use("spoken")
 local options = addon_table.use("options")
@@ -8,6 +8,7 @@ local hooks = addon_table.use("translation_hooks").bind("spoken-places")
 local profile = addon_table.use("performance_profile").wrap or function (_, callback) return callback end
 local locale = addon_table.spoken_locale_uk.Places
 local stories = addon_table.spoken_places_uk
+local local_audio_pack = { addon = addon_name, language = "ukUA" }
 local letters = {}
 local alphabet = addon_table.zone_grammar and addon_table.zone_grammar.alphabet
 if alphabet then
@@ -142,6 +143,23 @@ spoken.prepare_places = function ()
         if type(original) ~= "function" then return false end
         places.CreateLorePage = profile("spoken-places.create", function (self, ...)
             return wrap_page(original(self, ...), self)
+        end)
+        return true
+    end)
+    hooks.once("story-audio-lookup", function ()
+        local original = places.GetAudioClip
+        if type(original) ~= "function" then return false end
+        places.GetAudioClip = profile("spoken-places.audio-lookup", function (self, map_id, area_key, ...)
+            if not runtime.is_secret_value(map_id) and type(map_id) == "number"
+                and not runtime.is_secret_value(area_key) and not area_key then
+                local story = stories[map_id]
+                local audio = story and story.audio
+                if audio and enabled() then
+                    local path = "Interface\\AddOns\\" .. addon_name .. "\\integrations\\spoken\\Sound\\" .. audio.file .. ".mp3"
+                    return path, audio.length, local_audio_pack, audio.file, nil, story.text
+                end
+            end
+            return original(self, map_id, area_key, ...)
         end)
         return true
     end)

@@ -154,7 +154,7 @@ adapter.translate_crafting_requirements = function (source, spell_id)
 end
 
 local function translate_right_service(contract, tooltip, line_data,
-    line_index, slot_prefix)
+    line_index, slot_prefix, adjust_layout)
     local source = contract.safe_string(line_data.rightText)
     if not source then return false end
     local region = contract.line_region(tooltip, "Right", line_index)
@@ -163,7 +163,8 @@ local function translate_right_service(contract, tooltip, line_data,
     if not translated then return false end
     return contract.set_translation(
         tooltip, region, source, translated,
-        slot_prefix .. line_index, nil, "spell-tooltip", source_kind
+        slot_prefix .. line_index, nil, "spell-tooltip", source_kind,
+        nil, adjust_layout
     )
 end
 
@@ -184,9 +185,67 @@ local function owner_spellbook_item_info(tooltip)
     end
 end
 
+adapter.get_macro_spell_data = function (tooltip, data)
+    local contract = deps()
+    if contract.is_secret(data) or type(data) ~= "table" then return end
+    local native_id, native_lines = data.spellID, data.lines
+    if contract.is_secret(native_id) or contract.is_secret(native_lines)
+        or type(native_lines) ~= "table" then return end
+
+    local ok, action = pcall(function ()
+        local info = tooltip:GetProcessingTooltipInfo()
+        if contract.is_secret(info) or type(info) ~= "table"
+            or contract.safe_string(info.getterName) ~= "GetAction" then return end
+        local current_data, args = info.tooltipData, info.getterArgs
+        if contract.is_secret(current_data) or current_data ~= data
+            or contract.is_secret(args) or type(args) ~= "table" then return end
+        return contract.safe_number(args[1])
+    end)
+    if not ok or not action or action <= 0 then return end
+
+    local id = contract.safe_number(native_id)
+    if not id or id <= 0 then
+        -- Macro TooltipData.id can refer to the macro. The action bar uses
+        -- the action ID as a spell ID only for the spell subtype.
+        local action_ok, selected_id = pcall(function ()
+            local kind, value, subtype = GetActionInfo(action)
+            if contract.safe_string(kind) ~= "macro"
+                or contract.safe_string(subtype) ~= "spell" then return end
+            return contract.safe_number(value)
+        end)
+        id = action_ok and selected_id or nil
+    end
+    if not id or id <= 0 then return end
+
+    local lines, title = {}, nil
+    for _, row in ipairs(native_lines) do
+        if not contract.is_secret(row) and type(row) == "table" then
+            local index = contract.safe_number(row.lineIndex)
+            local kind = contract.safe_number(row.type)
+            if index and kind then
+                local left = contract.safe_string(row.leftText)
+                local right = contract.safe_string(row.rightText)
+                lines[#lines + 1] = {
+                    type = kind, lineIndex = index, leftText = left, rightText = right,
+                }
+                if index == 1 and (kind == SPELL_NAME or kind == UNTYPED_LINE) then
+                    title = contract.normalized_text(left)
+                end
+            end
+        end
+    end
+    if not title or contract.normalized_text(client_db.get_english_name(id)) ~= title then return end
+
+    -- Keep only public fields for a Shift refresh of these same native rows.
+    return { spellID = id, lines = lines, uaForeverMacroSpell = true }
+end
+
 adapter.resolve_structured_spell_id = function (tooltip, data)
     local contract = deps()
     if type(data) ~= "table" then return nil, false end
+    if data.uaForeverMacroSpell == true then
+        return contract.safe_number(data.spellID), false
+    end
 
     local info = owner_spellbook_item_info(tooltip)
     if info then
@@ -222,6 +281,10 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     local spell_id = confirmed_id or adapter.resolve_structured_spell_id(tooltip, data)
     if not spell_id or type(data.lines) ~= "table" then return false end
 
+    local macro_spell = data.uaForeverMacroSpell == true
+    local adjust_layout
+    -- Fit the macro once from the shared Show hook after all text writes.
+    if macro_spell then adjust_layout = false end
     local capture = options.capture_enabled and options.capture_enabled()
     local names_enabled = not options.section_enabled or options.section_enabled("spell_names")
     local details_enabled = not options.section_enabled or options.section_enabled("spell_details")
@@ -245,17 +308,19 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                 max_line_index = math.max(max_line_index, line_index)
                 if details_enabled then
                     applied = translate_right_service(contract, tooltip, line_data,
-                        line_index, "spell.service-right:") or applied
+                        line_index, "spell.service-right:", adjust_layout) or applied
                 end
                 local region = contract.line_region(tooltip, "Left", line_index)
-                if line_type == SPELL_NAME then
+                if line_type == SPELL_NAME or (macro_spell
+                    and line_type == UNTYPED_LINE and line_index == 1) then
                     native_name = source or native_name
                     if region and source and translated_name
                         and options.can_translate("translate_spell") then
                         local category = "spell"
                         applied = contract.set_translation(
                             tooltip, region, source, translated_name,
-                            category .. ".name", category, "spell-tooltip"
+                            category .. ".name", category, "spell-tooltip",
+                            nil, nil, adjust_layout
                         ) or applied
                     end
                 elseif line_type == SPELL_DESCRIPTION then
@@ -274,7 +339,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                             applied = contract.set_translation(
                                 tooltip, region, source, translated,
                                 "spell.description:" .. line_index, nil,
-                                "spell-tooltip"
+                                "spell-tooltip", nil, nil, adjust_layout
                             ) or applied
                         end
                     end
@@ -330,18 +395,32 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
                             applied = contract.set_translation(
                                 tooltip, region, source, translated,
                                 "spell.passive:" .. line_index, nil,
-                                "spell-tooltip", source_kind
+                                "spell-tooltip", source_kind, nil, adjust_layout
                             ) or applied
                         end
                     end
                 else
-                    local translated = details_enabled and source and line_type == UNTYPED_LINE
-                        and (adapter.translate_crafting_requirements(source, spell_id)
-                            or migrated_line(spell_id, source, "spell", tooltip))
+                    local translated, slot
+                    if details_enabled and source and line_type == UNTYPED_LINE then
+                        if macro_spell and region and english_raw and ukrainian_raw
+                            and not line_data.rightText and not tooltip.uaForeverShowOriginal
+                            and options.can_translate("translate_spell") then
+                            local visible = contract.tooltip_line(tooltip, "Left", line_index, true)
+                            local native = contract.safe_string(visible) or source
+                            translated = renderer.render(
+                                spell_id, "spell", english_raw, ukrainian_raw, native)
+                            if translated then
+                                source, slot = native, "spell.description:"
+                            end
+                        end
+                        translated = translated or adapter.translate_crafting_requirements(source, spell_id)
+                            or migrated_line(spell_id, source, "spell", tooltip)
+                    end
                     if translated and region and options.can_translate("translate_spell") then
                         applied = contract.set_translation(
                             tooltip, region, source, translated,
-                            "spell.requirements:" .. line_index, nil, "spell-tooltip"
+                            (slot or "spell.requirements:") .. line_index, nil,
+                            "spell-tooltip", nil, nil, adjust_layout
                         ) or applied
                     else
                         service_indexes[line_index] = true
@@ -358,7 +437,7 @@ adapter.add_structured_spell = function (tooltip, data, confirmed_id)
     end
     if details_enabled and options.can_translate("translate_spell") and max_line_index > 0 then
         applied = contract.rewrite_generic(
-            tooltip, max_line_index, 1, nil, nil, nil, service_indexes
+            tooltip, max_line_index, 1, nil, adjust_layout, nil, service_indexes
         ) > 0 or applied
     end
     if crafted_item and type(layout.fit_crafted_item_tooltip) == "function" then

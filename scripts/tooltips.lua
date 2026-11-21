@@ -2885,6 +2885,13 @@ tooltips.prepare = function ()
             end
         end)
     end
+    if types.Macro then
+        add_tooltip_post_call(types.Macro, function (tooltip, data)
+            if not tooltip_work_enabled("spell") then return end
+            local spell_data = spell_adapter.get_macro_spell_data(tooltip, data)
+            if spell_data then safe_process(tooltip, spell_data, "spell", true) end
+        end)
+    end
     if types.PetAction then
         add_tooltip_post_call(types.PetAction,
             function (tooltip, data)

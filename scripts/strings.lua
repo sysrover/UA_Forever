@@ -624,6 +624,23 @@ local function prepare_social_toast()
     end)
 end
 
+local function translate_shard_transfer_toast(region)
+    if runtime.is_applying(region) then return end
+    local ok, source = pcall(function () return region:GetText() end)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    if not source then return end
+    local claim = runtime.get(region)
+    local translated = claim and claim.slot == "shard-transfer.toast"
+        and claim.source == source and claim.translated or resolver.find_ui(source, region)
+    if not translated or translated == source then return end
+    runtime.apply(region, {
+        owner = "social-toast", slot = "shard-transfer.toast", source = source,
+        translated = translated, option = "translate_string", section = "social_ui",
+        priority = runtime.PRIORITY.CONTEXT, reapply_cached = true,
+        defer_if_protected = false,
+    })
+end
+
 strings.prepare = function ()
     -- ClassicUA can replace selected _G strings early on Era clients, but
     -- Camelot reuses localized labels as semantic keys in several protected
@@ -646,6 +663,10 @@ strings.prepare = function ()
     auto_scan.surface_hook("combat-text", frame_hook, frame_available, false)
     -- Hook the live frame: XML copies BNToastMixin methods onto BNToastFrame.
     prepare_social_toast()
+    local shard_transfer = _G.ShardTransferImminentFrame
+    -- The native timer reads the font string's height immediately after writing it.
+    social_toast_hooks.region(shard_transfer and shard_transfer.Text,
+        "SetFormattedText", translate_shard_transfer_toast)
 end
 
 local function visible_safe_roots()
