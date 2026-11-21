@@ -2073,6 +2073,8 @@ end
 do
 -- Same English label can mean different things in different parts of the UI.
 addonTable.forever_ui_context = {
+    { text = "Show Grid", frame = "EditModeManagerFrame.ShowGridCheckButton.Label", translation = "Сітка" },
+    { text = "Snap to Elements", frame = "EditModeManagerFrame.EnableSnapCheckButton.Label", translation = "Прив’язка до елементів" },
     { text = "Back", frame = "TransmogFrame.WardrobeCollection.TabContent.ItemsFrame.ActiveSlotTitle", translation = "Спина" },
     { text = "Transmogrify", frame = "TransmogFrame", translation = "Трансмогрифікація" },
     { text = "C", frame = "DamageMeter", translation = "П" },
@@ -2272,6 +2274,13 @@ end
 local weapon_chance_same_level = "Chance to |cFFFFFFFFHit|r, and to avoid being |cFFFFFFFFDodged|r or |cFFFFFFFFParried|r: %s\\n\\nChance to |cFFFFFFFFCritically Hit|r: %s"
 local weapon_chance_boss = weapon_chance_same_level .. "\\n\\n|cFFFFFFFFGlancing Blows|r occur %s of the time and deal %s less damage"
 local patterns = {
+    {
+        pattern = "^Status Bar (%d+)$",
+        replace = function (index)
+            local target = addonTable.forever_ui["Status Bar %d"]
+            return target and (target:gsub("%%d", index))
+        end,
+    },
     weapon_chance_rule(weapon_chance_same_level, false),
     weapon_chance_rule(weapon_chance_same_level, true),
     weapon_chance_rule(weapon_chance_same_level, false, true),

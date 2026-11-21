@@ -371,6 +371,7 @@ tooltip.pvp_rank_names = {
 }
 
 tooltip.item_set_names = {
+    ["Partners in Crime"] = "Спільники",
     ["Krol'dok Battlegear"] = "Бойове спорядження Крол’дока",
     ["Lieutenant Commander's Battlegear"] = "Бойове спорядження лейтенант-командира",
     ["Rotmender's Raiment"] = "Шати гнилоцілителя",
