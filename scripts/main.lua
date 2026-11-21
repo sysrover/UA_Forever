@@ -74,6 +74,8 @@ local function prepare_spoken()
     spoken.prepare_interface()
     spoken.prepare_playback()
     spoken.prepare_places()
+    spoken.prepare_readables()
+    spoken.prepare_compendium()
 end
 
 local function prepare_fojji(rescan)

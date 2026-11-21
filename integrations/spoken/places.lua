@@ -28,6 +28,8 @@ local function translated_name(source)
     return (text:gsub("^([%z\1-\127\194-\244][\128-\191]*)", letters, 1))
 end
 
+spoken.place_name = translated_name
+
 local function story_text(map_id, area_key)
     if runtime.is_secret_value(map_id) or type(map_id) ~= "number"
         or runtime.is_secret_value(area_key) then return nil end
