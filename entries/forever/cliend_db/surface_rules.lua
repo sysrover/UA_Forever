@@ -19,6 +19,13 @@ local friend_menu_overrides = {
     ["Interact"] = "Взаємодія",
 }
 
+local function ranked_trainer_requirement(value, translate_name)
+    local name, rank = value:match("^(.+) %(Rank (%d+)%)$")
+    if name then
+        return translate_name(name) .. " (Ранг " .. rank .. ")"
+    end
+end
+
 addonTable.forever_surface_ui = {
     barber = {
         tooltip_line = function (source, lookup)
@@ -245,6 +252,7 @@ addonTable.forever_surface_ui = {
         },
         required_prefix = "Потрібно:",
         requirements = function (value) return "Потрібно: " .. value end,
+        ranked_trainer_requirement = ranked_trainer_requirement,
         trainer_requirements = function (source, translate_name)
             local body = source:match("^Requires: (.+)$")
             if not body then return nil end
@@ -257,12 +265,11 @@ addonTable.forever_surface_ui = {
                 if value:match("^Level ") then
                     value = value:gsub("^Level ", "Рівень ")
                 else
-                    local name, rank = value:match("^(.-) %(Rank (%d+)%)$")
-                    if name then
-                        value = translate_name(name) .. " (Ранг " .. rank .. ")"
+                    local ranked = ranked_trainer_requirement(value, translate_name)
+                    if ranked then
+                        value = ranked
                     else
-                        local suffix
-                        name, suffix = value:match("^(.-)( %(%d+%))$")
+                        local name, suffix = value:match("^(.-)( %(%d+%))$")
                         if not name then
                             name, suffix = value:match(
                                 "^(.-)( %(|c%x%x%x%x%x%x%x%x%d+|r%))$")

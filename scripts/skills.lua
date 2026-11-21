@@ -499,8 +499,10 @@ local function trainer_api_requirements(region, context)
         if not ability then return nil end
         if ability[1] then
             if type(ability[1]) ~= "string" then return nil end
+            local name = surface_text.ranked_trainer_requirement(ability[1], trainer_requirement_name)
+                or trainer_requirement_name(ability[1])
             if not append(ability[2] and "TRAINER_REQ_ABILITY" or "TRAINER_REQ_ABILITY_RED",
-                { ability[1] }, { trainer_requirement_name(ability[1]) }) then return nil end
+                { ability[1] }, { name }) then return nil end
         end
         -- Match 70888 exactly: its ability loop retains the existing separator.
     end
