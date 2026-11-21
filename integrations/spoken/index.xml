@@ -2,4 +2,6 @@
     <Script file="locale_uk.lua"/>
     <Script file="interface.lua"/>
     <Script file="playback.lua"/>
+    <Script file="places_uk.lua"/>
+    <Script file="places.lua"/>
 </Ui>

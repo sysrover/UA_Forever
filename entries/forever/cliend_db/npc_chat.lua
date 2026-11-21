@@ -56,11 +56,26 @@ local chat_rows = {
         ["npcs"] = { [1] = "Hargin Mundar" },
         ["text"] = "Я б і сам пішов прорідити тих гнолів, та нога вже не та. Боюся, що з такою ногою тільки загину.",
     },
+    ["Hargin Mundar:syssottetesassmtbershc"] = {
+        ["english"] = { [1] = "Stormy seas out there.  The sea spirits must be restless....hic!" },
+        ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "syssottetesassmtbershc" } },
+        ["npcs"] = { [1] = "Hargin Mundar" },
+        ["text"] = "На морі штормить. Мабуть, морські духи розхвилювалися… гик!",
+    },
     ["Janey Anship:oyifwedtfwteprinps"] = {
         ["english"] = { [1] = "Only if we didn't follow the proper initialization procedures." },
         ["identities"] = { [1] = { ["kind"] = "code", ["value"] = "oyifwedtfwteprinps" } },
         ["npcs"] = { [1] = "Janey Anship" },
         ["text"] = "Тільки якщо ми не дотрималися належного порядку запуску.",
+    },
+    ["Klannoc Macleod:hlnenwcnofteay"] = {
+        ["english"] = { [1] = "Hail <name>!  New Champion of The Affray!" },
+        ["identities"] = {
+            [1] = { ["kind"] = "code", ["value"] = "hlnenwcnofteay" },
+            [2] = { ["kind"] = "code", ["value"] = "hljanwcnofteay" },
+        },
+        ["npcs"] = { [1] = "Klannoc Macleod" },
+        ["text"] = "Слава тобі, {ім'я:к}! Тепер титул чемпіона Побоїща твій!",
     },
     ["Modr:sgfrcn"] = {
         ["english"] = { [1] = "Scanning for corruption." },

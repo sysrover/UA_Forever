@@ -73,6 +73,7 @@ local spoken = addon_table.use("spoken")
 local function prepare_spoken()
     spoken.prepare_interface()
     spoken.prepare_playback()
+    spoken.prepare_places()
 end
 
 local function prepare_fojji(rescan)
