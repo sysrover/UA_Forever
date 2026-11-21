@@ -509,10 +509,12 @@ local function register_addon_settings()
     runtime.set_fallback_text(form_button, addon_locale.submit_form)
     form_button:SetScript("OnClick", show_form_link)
 
+    local fojji = addon_table.use("fojji")
+    local fojji_controls = type(fojji.add_settings) == "function"
+        and fojji.add_settings(page, custom)
     local spoken = addon_table.use("spoken")
     local spoken_text = addon_table.spoken_locale_uk
     local spoken_check = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    spoken_check:SetPoint("TOPLEFT", form_button, "BOTTOMLEFT", 0, -14)
     spoken_check.text:SetFontObject("GameFontHighlight")
     runtime.set_fallback_text(spoken_check.text, spoken_text.checkbox)
     runtime.ensure_font(spoken_check.text)
@@ -526,25 +528,23 @@ local function register_addon_settings()
         GameTooltip:Show()
     end)
     spoken_check:SetScript("OnLeave", GameTooltip_Hide)
-    local function refresh_spoken_control()
-        spoken_check:SetShown(spoken.available())
+
+    local function refresh_integration_controls()
+        local fojji_available = fojji_controls and type(fojji.available) == "function"
+            and fojji.available()
+        local anchor = fojji_available and fojji_controls or custom
+        local spoken_available = spoken.available()
+
+        spoken_check:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -12)
+        spoken_check:SetShown(spoken_available)
         spoken_check:SetChecked(options.account.translate_spoken ~= false)
+        custom_controls:SetPoint("TOPLEFT",
+            spoken_available and spoken_check or anchor, "BOTTOMLEFT", 0, -12)
     end
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
-    page:HookScript("OnShow", refresh_spoken_control)
-    refresh_spoken_control()
-    local fojji = addon_table.use("fojji")
-    local fojji_controls = type(fojji.add_settings) == "function"
-        and fojji.add_settings(page, custom)
-    local function place_custom_controls()
-        local available = fojji_controls and type(fojji.available) == "function"
-            and fojji.available()
-        custom_controls:SetPoint("TOPLEFT",
-            available and fojji_controls or custom, "BOTTOMLEFT", 0, -12)
-    end
-    page:HookScript("OnShow", place_custom_controls)
-    place_custom_controls()
+    page:HookScript("OnShow", refresh_integration_controls)
+    refresh_integration_controls()
 
     local ok, category = pcall(Settings.RegisterCanvasLayoutCategory, page, "UA Forever")
     if not ok or not category then return end
