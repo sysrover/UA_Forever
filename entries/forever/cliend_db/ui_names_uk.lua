@@ -13419,6 +13419,7 @@ local ui = {
     ["Profession no longer listed"] = "Професія більше не вказана",
     ["Profession: %s"] = "Професія: %s",
     ["Professions"] = "Професії",
+    ["Professions & Tradeskills"] = "Професії та ремесла",
     ["Professions at maximum skill"] = "Професії на максимальному рівні",
     ["Professions learned"] = "Вивчено професій",
     ["Proficiencies:"] = "Навички:",
