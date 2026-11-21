@@ -5,5 +5,7 @@
     <Script file="places_uk.lua"/>
     <Script file="places.lua"/>
     <Script file="readables.lua"/>
+    <Script file="bosses_uk.lua"/>
+    <Script file="bosses.lua"/>
     <Script file="compendium.lua"/>
 </Ui>

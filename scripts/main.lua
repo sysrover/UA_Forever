@@ -75,6 +75,7 @@ local function prepare_spoken()
     spoken.prepare_playback()
     spoken.prepare_places()
     spoken.prepare_readables()
+    spoken.prepare_bosses()
     spoken.prepare_compendium()
 end
 

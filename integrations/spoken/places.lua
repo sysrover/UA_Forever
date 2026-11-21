@@ -23,7 +23,13 @@ end
 
 local function translated_name(source)
     if runtime.is_secret_value(source) or type(source) ~= "string" then return nil end
-    local text = addon_table.zone and addon_table.zone[source]
+    local zones = addon_table.zone
+    if not zones then return nil end
+    local text = zones[source]
+    if not text then
+        local without_article = source:match("^The (.+)$")
+        text = zones[without_article or ("The " .. source)]
+    end
     if type(text) ~= "string" or text == "" or text == source then return nil end
     return (text:gsub("^([%z\1-\127\194-\244][\128-\191]*)", letters, 1))
 end
@@ -87,24 +93,32 @@ local function wrap_page(page, places)
         end,
     }
     page.Show = profile("spoken-places.page", function (self, entry)
-        local title, subtitle
+        local title, subtitle, text
         use_uk_body = false
-        if enabled() and type(entry) == "table" and not entry.panelTitle then
-            title = translated_name(entry.title)
-            subtitle = translated_subtitle(entry.subtitle)
-            local target = entry.audio or entry.report
-            local translated = target and story_text(target[1], target[2])
-            use_uk_body = (translated ~= nil and entry.text == translated)
-                or entry.text == locale.NOT_DISCOVERED
+        if enabled() and type(entry) == "table" then
+            if entry.reportAction and entry.panelTitle == locale.BOSS_LORE_TITLE then
+                local target = entry.target or {}
+                title = spoken.boss_title(target[1], target[2], entry.title)
+                subtitle = translated_name(entry.subtitle)
+                text = spoken.boss_text(target[1], target[2])
+                use_uk_body = text ~= nil or entry.text == addon_table.spoken_locale_uk.Bosses.BOSS_NOT_FOUND
+            elseif not entry.panelTitle then
+                title = translated_name(entry.title)
+                subtitle = translated_subtitle(entry.subtitle)
+                local target = entry.audio or entry.report
+                text = target and story_text(target[1], target[2])
+                use_uk_body = text ~= nil or entry.text == locale.NOT_DISCOVERED
+            end
         end
         title_font(title ~= nil)
         subtitle_font(subtitle ~= nil)
-        if not title and not subtitle then return original(self, entry) end
+        if not title and not subtitle and not text then return original(self, entry) end
         -- The caller retains its native keys, contribution name and page actions.
         local display = {}
         for key, value in pairs(entry) do display[key] = value end
         display.title = title or display.title
         display.subtitle = subtitle or display.subtitle
+        display.text = text or display.text
         return original(self, display)
     end)
     return page

@@ -12,6 +12,7 @@ local hooks = addon_table.use("translation_hooks").bind("spoken-compendium")
 local profile = addon_table.use("performance_profile").wrap or function (_, callback) return callback end
 local locale = addon_table.spoken_locale_uk.Quests
 local readables_locale = addon_table.spoken_locale_uk.Readables
+local bosses_locale = addon_table.spoken_locale_uk.Bosses
 local selected_rows = setmetatable({}, { __mode = "k" })
 local wrapped_tabs = setmetatable({}, { __mode = "k" })
 local wrapped_pages = setmetatable({}, { __mode = "k" })
@@ -80,6 +81,7 @@ end
 local function list_label(row, key)
     if key == "places" then return spoken.place_name(row.label) end
     if key == "readables" and row.kind == "readable" then return spoken.readable_title(row.label) end
+    if key == "bosses" and row.kind == "boss" then return spoken.boss_title(row.map, row.key, row.label) end
     if key == "quests" and row.kind == "quest" then
         local entry = quest_enabled("quest_names") and quest_entry(row.quest, row.label)
         return entry and entry[1] or nil
@@ -207,9 +209,25 @@ local function translate_readable_page(entry)
     return display
 end
 
+local function translate_boss_page(entry)
+    local display = copy(entry)
+    local target = entry.target or {}
+    display.title = spoken.boss_title(target[1], target[2], entry.title) or place_or_ui(entry.title) or entry.title
+    display.subtitle = zone_line(entry.subtitle, bosses_locale.BOSS_IN_FMT)
+    if readable(display.subtitle) then
+        local first, second = display.subtitle:match("^(.-) · (.+)$")
+        local name = second and spoken.place_name(second)
+        if name then display.subtitle = first .. " · " .. name end
+    end
+    local text = spoken.boss_text(target[1], target[2])
+    if text then display.text, display.unwritten = text, nil end
+    return display
+end
+
 local page_translators = {
     quests = translate_quest_page,
     readables = translate_readable_page,
+    bosses = translate_boss_page,
 }
 
 local function prepare_page(panel, key)
@@ -217,9 +235,10 @@ local function prepare_page(panel, key)
     if not page or wrapped_pages[page] or type(page.Show) ~= "function" or not page.body then return end
     local original = page.Show
     local owner = page.body.owner
+    local ukrainian_body = false
     page.body.owner = {
         FontFor = function (_, font_object)
-            if enabled() then
+            if ukrainian_body then
                 return _G.QuestTitleFont and font_object == _G.QuestTitleFont
                     and assets.font_morpheus or assets.font_frizqt
             end
@@ -227,10 +246,14 @@ local function prepare_page(panel, key)
         end,
     }
     page.Show = profile("spoken-compendium." .. key .. "-page", function (self, entry)
+        ukrainian_body = false
         if not enabled() then return original(self, entry) end
+        local display = page_translators[key](entry, selected_rows[panel], panel)
+        ukrainian_body = key == "quests" or display.text ~= entry.text
+            or readable(display.text) and display.text:find("[\208\209]") ~= nil
         set_face(self.title, assets.font_morpheus)
         set_face(self.sub and self.sub.text, assets.font_frizqt)
-        return original(self, page_translators[key](entry, selected_rows[panel], panel))
+        return original(self, display)
     end)
     wrapped_pages[page] = true
 end
@@ -246,7 +269,7 @@ local function prepare_tab(tab, key)
     wrapped_tabs[tab] = true
 end
 
-local list_keys = { "quests", "places", "readables" }
+local list_keys = { "quests", "places", "readables", "bosses" }
 
 spoken.prepare_compendium = function ()
     local compendium = _G.SpokenCompendium
