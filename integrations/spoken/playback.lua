@@ -79,8 +79,8 @@ spoken.prepare_playback = function ()
             end
             name = npc and npc[1]
         end
-        if readable(title) then display.label = utils.cap(title) end
-        if readable(name) then display.header = utils.cap(name) end
+        if readable(title) then display.label = title end
+        if readable(name) then display.header = name end
         if readable(words) then
             -- Audio resolution has already completed. Spoken estimates caption timing
             -- from the translated words when the recording's word offsets are absent.

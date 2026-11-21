@@ -20,6 +20,8 @@ local addon_names = {
     Spoken_Bosses = true,
 }
 
+local source_keys = { "quests", "gossip", "chatter", "places", "readables", "bosses" }
+
 spoken.handles_addon = function (name)
     return type(name) == "string" and addon_names[name] == true
 end
@@ -191,12 +193,24 @@ local function apply_quests()
     overlay(quests.L, locale.Quests)
     if not first then return end
     if quests.Options then update_ace_options(quests.Options.table) end
-    local player = quests.Player
-    if player then
-        for _, field in ipairs({ "source", "gossipSource", "chatterSource" }) do
-            local source = player[field]
-            if source then source.title = lookup(source.title) or source.title end
+end
+
+local function prepare_registered_labels(env)
+    local api = _G.Spoken
+    local minimap_entries = env.Minimap and env.Minimap.entries or {}
+    local compendium = _G.SpokenCompendium
+    -- These registrations copy display strings when a module loads.
+    for _, key in ipairs(source_keys) do
+        local source = api and type(api.GetSource) == "function" and api:GetSource(key)
+        if source then
+            source.title = lookup(source.title) or source.title
+            source.about = lookup(source.about) or source.about
         end
+        for _, entry in ipairs(minimap_entries[key] or {}) do
+            entry.text = lookup(entry.text) or entry.text
+        end
+        local tab = compendium and type(compendium.Tab) == "function" and compendium:Tab(key)
+        if tab then tab.label = lookup(tab.label) or tab.label end
     end
 end
 
@@ -217,6 +231,7 @@ spoken.prepare_interface = function ()
     if places and places.Strings and places.Strings.enUS then overlay(places.L, locale.Places) end
     if bosses then overlay(bosses.L, locale.Bosses) end
     if readables then overlay(readables.L, locale.Readables) end
+    prepare_registered_labels(env)
     if env.Actions then
         for _, action in ipairs(env.Actions.optional or {}) do
             action.label = lookup(action.label) or action.label

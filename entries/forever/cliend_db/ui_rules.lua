@@ -983,6 +983,23 @@ local function popup_duration(count, unit)
     return translate_social_time(count .. " " .. unit)
 end
 
+local shard_transfer_time_units = {
+    Minute = { "хвилину", "хвилини", "хвилин" },
+    Second = { "секунду", "секунди", "секунд" },
+}
+
+local function shard_transfer_countdown(count, unit)
+    unit = unit:match("^|4(%a+):%a+;$") or unit:gsub("s$", "")
+    local forms = shard_transfer_time_units[unit]
+    if not forms then return nil end
+    local number = tonumber(count)
+    local last, last_two = number % 10, number % 100
+    local form = last_two >= 11 and last_two <= 14 and 3
+        or last == 1 and 1 or last >= 2 and last <= 4 and 2 or 3
+    local template = addonTable.forever_ui["The world around you will refresh in %s %s. Make sure you are out of combat and in a safe area, or select refresh now."]
+    return template and string.format(template, count, forms[form])
+end
+
 local function mail_item_name(source)
     local item_db = addonTable.use("item_client_db")
     local translated = item_db.get_name_by_english(source)
@@ -1093,6 +1110,10 @@ local function equipment_count_rule(template, pattern)
 end
 
 addonTable.forever_ui_patterns = {
+    {
+        pattern = "^The world around you will refresh in (%d+) (%S+)%. Make sure you are out of combat and in a safe area, or select refresh now%.$",
+        replace = shard_transfer_countdown,
+    },
     equipment_count_rule("%d |4Item:Items;", "^(%d+) Items?$"),
     equipment_count_rule("%d |4Item:Items;", "^(%d+) |4Item:Items;$"),
     equipment_count_rule("%d |4item:items; equipped", "^(%d+) items? equipped$"),

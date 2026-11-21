@@ -157,6 +157,25 @@ local function translate_dynamic_popup(dialog)
     end
 end
 
+local function translate_shard_transfer_countdown(dialog, region)
+    if dialog.which ~= "SHARD_TRANSFER_IMMINENT_EVENT"
+        or runtime.is_applying(region) then return end
+    local ok, source = pcall(region.GetText, region)
+    source = ok and runtime.safe_string_or_nil(source) or nil
+    if not source then return end
+    local claim = runtime.get(region)
+    local translated = claim and claim.slot == "shard-transfer.countdown"
+        and claim.source == source and claim.translated or resolver.find_ui(source, region)
+    if not translated or translated == source then return end
+    -- The native update resizes the dialog immediately after writing this line.
+    runtime.apply(region, {
+        owner = "popup", slot = "shard-transfer.countdown", source = source,
+        translated = translated, option = "translate_string", section = "popups",
+        priority = runtime.PRIORITY.CONTEXT, reapply_cached = true,
+        defer_if_protected = false,
+    })
+end
+
 local function translate_exit_countdown(dialog)
     local region = popup_text_region(dialog)
     if not region or type(region.GetText) ~= "function" then return end
@@ -630,6 +649,9 @@ popup_ui.prepare = function ()
     for index = 1, 4 do
         local dialog = _G["StaticPopup" .. index]
         hooks.region(dialog, "Init", pad_confirmation)
+        hooks.region(popup_text_region(dialog), "SetText", function (region)
+            translate_shard_transfer_countdown(dialog, region)
+        end)
         local ok, item_frame = pcall(function () return dialog:GetItemFrame() end)
         if ok then
             hooks.region(item_frame, "DisplayInfo", after_purchase_item_display)
