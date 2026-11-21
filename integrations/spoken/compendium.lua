@@ -19,6 +19,14 @@ local wrapped_pages = setmetatable({}, { __mode = "k" })
 
 local part_fields = { accept = 2, complete = 5 }
 local part_labels = { accept = locale.QUEST_PART_ACCEPT, complete = locale.QUEST_PART_COMPLETE }
+local quest_groups = {
+    ["Ahn'Qiraj War"] = "Війна в Ан'Кіражі",
+    Invasion = "Вторгнення",
+    Legendary = "Легендарні",
+    ["Lunar Festival"] = "Місячний фестиваль",
+    Midsummer = "Сонцеворот",
+    Special = "Особливі",
+}
 
 local function readable(text)
     return not runtime.is_secret_value(text) and type(text) == "string" and text ~= ""
@@ -71,22 +79,33 @@ local function zone_line(source, format, more_format)
     return prefix .. table.concat(result, ", ") .. (tail_at and body:sub(tail_at) or "")
 end
 
-local function chain_name(source)
+local chain_names = {
+    [8286] = "Скіпетр Мінливих Пісків",
+    [8575] = "Скіпетр Мінливих Пісків",
+}
+
+local function chain_name(source, first)
     if not readable(source) then return nil end
     local label, suffix = source:match("^(.-)( %(%d+%))$")
-    local translated = entries.lookup_name("quest", label or source)
+    local data = _G.SpokenQuestsCompendium
+    local start = data and data.quests and data.quests[first]
+    local name_id = start and start.name
+    local quest = quest_entry(type(name_id) == "number" and name_id or first, label or source)
+    local translated = chain_names[first] or (quest and quest[1]) or entries.lookup_name("quest", label or source)
     return translated and (translated .. (suffix or "")) or nil
 end
 
 local function list_label(row, key)
     if key == "places" then return spoken.place_name(row.label) end
-    if key == "readables" and row.kind == "readable" then return spoken.readable_title(row.label) end
+    if key == "readables" and row.kind == "readable" then return spoken.readable_title(row.label, row.book) end
     if key == "bosses" and row.kind == "boss" then return spoken.boss_title(row.map, row.key, row.label) end
     if key == "quests" and row.kind == "quest" then
         local entry = quest_enabled("quest_names") and quest_entry(row.quest, row.label)
         return entry and entry[1] or nil
     elseif key == "quests" and row.kind == "chain" then
-        return quest_enabled("quest_names") and chain_name(row.label)
+        return quest_enabled("quest_names") and chain_name(row.label, row.first)
+    elseif key == "quests" and row.kind == "sort" and readable(row.label) then
+        return quest_groups[row.label] or place_or_ui(row.label)
     end
     return place_or_ui(row.label)
 end
@@ -143,8 +162,7 @@ end
 local function part_text(id, moment, source)
     local field = part_fields[moment]
     if not id or not field or not quest_enabled("quest_text") then return nil end
-    local entry = entries.get_entry("quest", id, field, source)
-    return entry and readable(entry[field]) and entry[field] or nil
+    return spoken.quest_text(id, field, source)
 end
 
 local function translate_part(part, id, moment)
@@ -153,7 +171,12 @@ local function translate_part(part, id, moment)
     if part.caption then
         display.caption = part_labels[moment] or part.caption
         if readable(part.heading) and options.section_enabled("npc_target") then
-            display.heading = entries.lookup_name("npc", part.heading) or part.heading
+            local speaker = part.face and part.face.speaker
+            local creature = speaker and speaker.creatureID
+            local npc = not runtime.is_secret_value(creature) and type(creature) == "number"
+                and entries.get_entry("npc", creature)
+            display.heading = (npc and readable(npc[1]) and npc[1])
+                or entries.lookup_name("npc", part.heading) or part.heading
         end
     else
         display.heading = part_labels[moment] or part.heading
@@ -175,14 +198,15 @@ local function translate_quest_page(entry, row, panel)
     if quest and quest_enabled("quest_names") and readable(quest[1]) then
         display.title = quest[1]
     elseif not id then
-        display.title = (row and row.kind == "chain" and chain_name(entry.title))
+        display.title = (row and row.kind == "chain" and chain_name(entry.title, row.first))
+            or (row and row.kind == "sort" and readable(entry.title) and quest_groups[entry.title])
             or place_or_ui(entry.title) or entry.title
     end
     if quest and entry.parts then
         display.parts = {}
         for index, part in ipairs(entry.parts) do
-            local _, moment = part_context(part)
-            display.parts[index] = translate_part(part, id, moment)
+            local part_id, moment = part_context(part)
+            display.parts[index] = translate_part(part, part_id or id, moment)
         end
     elseif quest and entry.unwritten and not entry.text then
         local description = part_text(id, "accept")
@@ -200,9 +224,10 @@ local function translate_quest_page(entry, row, panel)
     return display
 end
 
-local function translate_readable_page(entry)
+local function translate_readable_page(entry, row)
     local display = copy(entry)
-    display.title = spoken.readable_title(entry.title) or place_or_ui(entry.title) or entry.title
+    local book_id = entry.target or (row and row.book)
+    display.title = spoken.readable_title(entry.title, book_id) or place_or_ui(entry.title) or entry.title
     display.subtitle = zone_line(entry.subtitle, readables_locale.READABLES_IN_FMT, readables_locale.READABLES_MORE_FMT)
     local text = entry.target and spoken.readable_text(entry.target)
     if text then display.text, display.unwritten = text, nil end

@@ -7,6 +7,7 @@ local runtime = addon_table.use("translation_runtime")
 local assets = addon_table.use("assets")
 local hooks = addon_table.use("translation_hooks").bind("spoken-bosses")
 local profile = addon_table.use("performance_profile").wrap or function (_, callback) return callback end
+local names = addon_table.spoken_boss_names_uk
 local stories = addon_table.spoken_bosses_uk
 
 local function enabled()
@@ -19,9 +20,13 @@ end
 
 spoken.boss_title = function (map_id, key, source)
     if not enabled() or not options.section_enabled("npc_target") or not readable(source) then return nil end
+    if runtime.is_secret_value(map_id) or runtime.is_secret_value(key) then return nil end
+    local translated = names[map_id]
+    if translated and translated[key] then return translated[key] end
+
     local creatures = _G.SpokenBossCreatures
-    local dungeon = creatures and not runtime.is_secret_value(map_id) and creatures[map_id]
-    local boss = dungeon and not runtime.is_secret_value(key) and dungeon[key]
+    local dungeon = creatures and creatures[map_id]
+    local boss = dungeon and dungeon[key]
     local entry = boss and boss.creature and entries.get_entry("npc", boss.creature)
     return entry and readable(entry[1]) and entry[1] or entries.lookup_name("npc", source)
 end

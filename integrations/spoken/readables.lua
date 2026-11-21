@@ -8,6 +8,7 @@ local runtime = addon_table.use("translation_runtime")
 local assets = addon_table.use("assets")
 local hooks = addon_table.use("translation_hooks").bind("spoken-readables")
 local profile = addon_table.use("performance_profile").wrap or function (_, callback) return callback end
+local translations = addon_table.spoken_readables_uk
 local indexed_data
 local catalog_ids
 
@@ -40,24 +41,35 @@ local function owner_ids(data)
     return ids
 end
 
-local function translated_page(data, book_id, number)
-    if type(number) ~= "number" or number < 1 then return nil end
-    local book = data.books and data.books[book_id]
+local function translated_page(readables, data, page_id)
+    local page = data.pages and data.pages[page_id]
+    if not page or type(page.number) ~= "number" or page.number < 1 then return nil end
+    local book = data.books and data.books[page.book]
     if not book or not book.pages then return nil end
-    local id = owner_ids(data)[book_id]
+    local id = owner_ids(data)[page.book]
     if id == nil and type(items.get_id_by_english_name) == "function" then
         id = items.get_id_by_english_name(book.title)
     end
     local catalog = addon_table.book or {}
     local pages = (id and catalog[id]) or catalog[book.title]
+    local entry = translations[page.book]
+    if entry and entry.en ~= book.title then entry = nil end
     -- The Spoken corpus can include pages absent from this client's edition.
     -- Do not apply a later page's translation to a preceding missing page.
-    if not pages or #pages ~= #book.pages then return nil end
-    local text = entries.get_book_page(id or nil, book.title, number)
-    return readable(text) and text or nil
+    local catalog_page = entry and entry.catalog_pages and entry.catalog_pages[page_id]
+    if not catalog_page and pages and #pages == #book.pages then catalog_page = page.number end
+    if catalog_page then
+        local text = entries.get_book_page(id or nil, book.title, catalog_page)
+        if readable(text) then return text end
+    end
+    local text = entry and entry.pages and entry.pages[page_id]
+    if readable(text) then
+        if text:find("$", 1, true) then return readables:FillPlayerTokens(text) end
+        return text
+    end
 end
 
-spoken.readable_title = function (source)
+spoken.readable_title = function (source, book_id)
     if not enabled() or not readable(source) then return nil end
     local title, suffix = source:match("^(.-)( %(%d+%))$")
     title = title or source
@@ -65,6 +77,10 @@ spoken.readable_title = function (source)
         and addon_table.translate_object_name(title)
     if not readable(translated) and type(items.get_name_by_english) == "function" then
         translated = items.get_name_by_english(title)
+    end
+    if not readable(translated) or translated == title then
+        local entry = translations[book_id]
+        if entry and entry.en == title then translated = entry.title end
     end
     return readable(translated) and translated .. (suffix or "") or nil
 end
@@ -79,7 +95,7 @@ spoken.readable_text = function (book_id)
     local changed = false
     for _, page_id in ipairs(book.pages) do
         local page = data.pages and data.pages[page_id]
-        local words = page and translated_page(data, book_id, page.number)
+        local words = translated_page(readables, data, page_id)
         if words then
             changed = true
         else
@@ -105,8 +121,8 @@ spoken.prepare_readables = function ()
             local page = data and data.pages and data.pages[page_id]
             local display = clip.present
             local title_field = self:OneLine() and "label" or "header"
-            local title = spoken.readable_title(display[title_field])
-            local text = page and translated_page(data, page.book, page.number)
+            local title = spoken.readable_title(display[title_field], page and page.book)
+            local text = page and translated_page(self, data, page_id)
             if title then display[title_field] = title end
             if text then
                 display.transcript = text

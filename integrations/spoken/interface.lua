@@ -6,10 +6,12 @@ local runtime = addon_table.use("translation_runtime")
 local layout = addon_table.use("translation_layout")
 local session = addon_table.use("tooltip_session")
 local hooks = addon_table.use("translation_hooks").bind("spoken-interface")
+local profile = addon_table.use("performance_profile").wrap or function (_, callback) return callback end
 local locale = addon_table.spoken_locale_uk
 local localized_tables = setmetatable({}, { __mode = "k" })
 local localized_pages = setmetatable({}, { __mode = "k" })
-local display_strings = {}
+local default_label = "Типові"
+local display_strings = { Defaults = default_label }
 local interface_enabled
 
 local addon_names = {
@@ -174,6 +176,32 @@ local function prepare_existing_page(page)
     localized_pages[page] = true
 end
 
+local function prepare_defaults(menu)
+    local native_layout = _G.SpokenLayout
+    if native_layout then
+        hooks.once("settings-defaults", function ()
+            local original = native_layout.Defaults
+            if type(original) ~= "function" then return false end
+            native_layout.Defaults = profile("spoken-interface.defaults", function (self, action, label, tooltip, ...)
+                local button = original(self, action, label or default_label, tooltip, ...)
+                if not label and button and type(button.GetFontString) == "function" then
+                    runtime.ensure_font(button:GetFontString())
+                end
+                return button
+            end)
+            return true
+        end)
+    end
+    if not menu or type(menu.Pages) ~= "function" then return end
+    for _, page in ipairs(menu:Pages()) do
+        local button = page.layout and page.layout.defaults
+        local label = button and type(button.GetFontString) == "function" and button:GetFontString()
+        if label and update_region(label) then
+            hooks.region_script(button, "OnEnter", setting_tooltip)
+        end
+    end
+end
+
 local function update_ace_options(node)
     if type(node) ~= "table" then return end
     node.name = lookup(node.name) or node.name
@@ -224,6 +252,7 @@ spoken.prepare_interface = function ()
     local first = env.L and not localized_tables[env.L]
     overlay(env.L, locale.Spoken)
     local menu = env.Options
+    prepare_defaults(menu)
     if first and menu and type(menu.NameBindings) == "function" then menu:NameBindings() end
 
     apply_quests()
