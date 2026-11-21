@@ -6,6 +6,7 @@ local utils = addon_table.use("utils")
 local default_account = {
     enabled = true,
     translate_fojji = true,
+    translate_spoken = true,
     dev_mode = false,
     dev_mode_notify_activity = false,
     auto_scan_content = false,

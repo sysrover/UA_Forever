@@ -509,8 +509,31 @@ local function register_addon_settings()
     runtime.set_fallback_text(form_button, addon_locale.submit_form)
     form_button:SetScript("OnClick", show_form_link)
 
+    local spoken = addon_table.use("spoken")
+    local spoken_text = addon_table.spoken_locale_uk
+    local spoken_check = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    spoken_check:SetPoint("TOPLEFT", form_button, "BOTTOMLEFT", 0, -14)
+    spoken_check.text:SetFontObject("GameFontHighlight")
+    runtime.set_fallback_text(spoken_check.text, spoken_text.checkbox)
+    runtime.ensure_font(spoken_check.text)
+    spoken_check:SetScript("OnClick", function (self)
+        options.account.translate_spoken = self:GetChecked() == true
+    end)
+    spoken_check:SetScript("OnEnter", function (self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(spoken_text.checkbox_tip, 1, 1, 1, 1, true)
+        runtime.ensure_font(_G.GameTooltipTextLeft1)
+        GameTooltip:Show()
+    end)
+    spoken_check:SetScript("OnLeave", GameTooltip_Hide)
+    local function refresh_spoken_control()
+        spoken_check:SetShown(spoken.available())
+        spoken_check:SetChecked(options.account.translate_spoken ~= false)
+    end
     page.OnRefresh = refresh_tooltip_mode_controls
     page:SetScript("OnShow", refresh_tooltip_mode_controls)
+    page:HookScript("OnShow", refresh_spoken_control)
+    refresh_spoken_control()
     local fojji = addon_table.use("fojji")
     local fojji_controls = type(fojji.add_settings) == "function"
         and fojji.add_settings(page, custom)

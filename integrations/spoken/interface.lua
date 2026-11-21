@@ -27,8 +27,9 @@ end
 spoken.available = function ()
     if type(_G.Spoken) == "table" then return true end
     local addons = _G.C_AddOns
-    return addons and type(addons.DoesAddOnExist) == "function"
-        and addons.DoesAddOnExist("Spoken") or false
+    if not addons then return false end
+    if type(addons.DoesAddOnExist) == "function" then return addons.DoesAddOnExist("Spoken") end
+    return type(addons.GetAddOnInfo) == "function" and addons.GetAddOnInfo("Spoken") == "Spoken"
 end
 
 local function readable(value)
@@ -60,15 +61,18 @@ end
 local function update_region(region)
     local source = visible_text(region)
     local translated = lookup(source)
-    if not translated then return end
+    if not translated then return false end
     runtime.ensure_font(region)
-    runtime.set_fallback_text(region, translated)
+    return runtime.set_fallback_text(region, translated)
 end
 
 local function setting_tooltip(owner)
-    if not options.can_translate("translate_spoken") or runtime.combat_locked() then return end
+    if not options.can_translate("translate_spoken") or not options.section_enabled("game_settings")
+        or runtime.combat_locked() then return end
     local tooltip = _G.GameTooltip
-    if not tooltip or tooltip:GetOwner() ~= owner or not tooltip:IsShown() then return end
+    if not tooltip or not tooltip:IsShown() then return end
+    local actual_owner = tooltip:GetOwner()
+    if runtime.is_secret_value(actual_owner) or actual_owner ~= owner then return end
     local original = options.original_tooltip_held()
     if original ~= false then return end
     local count = tooltip:NumLines()
@@ -102,31 +106,66 @@ end
 local function visit_region(region)
     if region and type(region.GetText) == "function"
         and type(region.GetObjectType) == "function" and region:GetObjectType() == "FontString" then
-        update_region(region)
+        return update_region(region)
     end
 end
 
 local function visit_settings_frame(frame)
-    for _, region in ipairs({ frame:GetRegions() }) do visit_region(region) end
-    for _, child in ipairs({ frame:GetChildren() }) do visit_settings_frame(child) end
+    local changed = false
+    for _, region in ipairs({ frame:GetRegions() }) do changed = visit_region(region) or changed end
+    for _, child in ipairs({ frame:GetChildren() }) do changed = visit_settings_frame(child) or changed end
+    return changed
+end
+
+local function localize_greeting_choices(control)
+    local dropdown = control.Dropdown or control
+    if type(dropdown.SetupMenu) ~= "function" or type(control.layoutValues) ~= "table"
+        or type(control.layoutChoose) ~= "function" or type(control.layoutRead) ~= "function" then return end
+    -- GossipSettingsPanel captured these labels before UA Forever loaded.
+    local labels = {
+        Always = locale.Quests.OPT_GREETING_LABEL_ALWAYS,
+        OncePerQuestNPC = locale.Quests.OPT_GREETING_LABEL_ONCE_QUEST,
+        OncePerNPC = locale.Quests.OPT_GREETING_LABEL_ONCE_NPC,
+        Never = locale.Quests.OPT_GREETING_LABEL_NEVER,
+    }
+    dropdown:SetupMenu(function (_, root)
+        for _, value in ipairs(control.layoutValues) do
+            root:CreateRadio(labels[value] or value, function ()
+                return control.layoutRead() == value
+            end, function ()
+                control.layoutChoose(value)
+            end, value)
+        end
+    end)
 end
 
 local function prepare_existing_page(page)
     if not page.frame or localized_pages[page] then return end
-    page.name = lookup(page.name) or page.name
+    local name = lookup(page.name)
+    if name then
+        page.name = name
+        if page.category and type(page.category.SetName) == "function" then
+            page.category:SetName(name)
+        end
+    end
     local page_layout = page.layout
     if page_layout then
-        for _, entry in ipairs(page_layout.entries) do
+        for _, entry in ipairs(page_layout.entries or {}) do
             entry.label = lookup(entry.label) or entry.label
             entry.tooltip = lookup(entry.tooltip) or entry.tooltip
             entry.section = lookup(entry.section) or entry.section
+            if page.order == 2 and entry.label == locale.Quests.OPT_PANEL_GREETINGS then
+                localize_greeting_choices(entry.frame)
+            end
+            for _, condition in ipairs(entry.frame.layoutConditions or {}) do
+                condition.reason = lookup(condition.reason) or condition.reason
+            end
             hooks.region_script(entry.frame, "OnEnter", setting_tooltip)
             hooks.region_script(entry.frame.layoutHit, "OnEnter", setting_tooltip)
         end
     end
     local function refresh(frame)
-        visit_settings_frame(frame)
-        if page_layout then page_layout:Reflow() end
+        if visit_settings_frame(frame) and page_layout then page_layout:Reflow() end
     end
     hooks.region_script(page.frame, "OnShow", refresh)
     if page.frame:IsVisible() then refresh(page.frame) end
@@ -150,7 +189,15 @@ local function apply_quests()
     if not quests or quests.AddonFolder ~= "Spoken_Quests" or type(quests.L) ~= "table" then return end
     local first = not localized_tables[quests.L]
     overlay(quests.L, locale.Quests)
-    if first and quests.Options then update_ace_options(quests.Options.table) end
+    if not first then return end
+    if quests.Options then update_ace_options(quests.Options.table) end
+    local player = quests.Player
+    if player then
+        for _, field in ipairs({ "source", "gossipSource", "chatterSource" }) do
+            local source = player[field]
+            if source then source.title = lookup(source.title) or source.title end
+        end
+    end
 end
 
 spoken.prepare_interface = function ()
@@ -170,6 +217,11 @@ spoken.prepare_interface = function ()
     if places and places.Strings and places.Strings.enUS then overlay(places.L, locale.Places) end
     if bosses then overlay(bosses.L, locale.Bosses) end
     if readables then overlay(readables.L, locale.Readables) end
+    if env.Actions then
+        for _, action in ipairs(env.Actions.optional or {}) do
+            action.label = lookup(action.label) or action.label
+        end
+    end
 
     -- Quests builds three pages in OnInitialize, before UA Forever may be
     -- loaded. The other pages read the locale in their normal builders.

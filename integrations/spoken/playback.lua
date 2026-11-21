@@ -17,20 +17,17 @@ local function public_id(value)
     return not runtime.is_secret_value(value) and type(value) == "number" and value > 0
 end
 
-local function checked_entry(category, id, title, field, source)
-    if not public_id(id) then return nil end
-    local entry = entries.get_entry(category, id, field, source)
-    if not entry or not readable(entry[field or 1]) then return nil end
+local function matched_name_entry(category, id, title)
+    if not public_id(id) or runtime.is_secret_value(title) then return nil end
+    local entry = entries.get_entry(category, id, 1)
+    if not entry then return nil end
     if readable(entry.en) and readable(title)
         and not utils.same_english_name(entry.en, title)
-        and not utils.same_english_name(entry[field == nil and 1 or field], title) then return nil end
-    return entry[field or 1]
+        and not (readable(entry[1]) and utils.same_english_name(entry[1], title)) then return nil end
+    return entry
 end
 
 local function quest_text(clip, field)
-    -- Read and validate the quest title independently of the localized body.
-    local title = checked_entry("quest", clip.questID, clip.title, 1)
-    if not title then return nil end
     local source = readable(clip.text) and clip.text or (readable(clip.packText) and clip.packText or nil)
     local entry = entries.get_entry("quest", clip.questID, field, source)
     return entry and readable(entry[field]) and entry[field] or nil
@@ -40,7 +37,10 @@ spoken.prepare_playback = function ()
     local quests = _G.VoiceOver
     if not quests or quests.AddonFolder ~= "Spoken_Quests" then return end
     local sound_event = quests.Enums and quests.Enums.SoundEvent
-    if not sound_event or not quests.Utils or type(quests.Utils.ReadIDFromGUID) ~= "function" then return end
+    local guid = quests.Enums and quests.Enums.GUID
+    if not sound_event or not sound_event.QuestAccept or not sound_event.QuestProgress
+        or not sound_event.QuestComplete or not guid or type(guid.IsCreature) ~= "function" or not quests.Utils
+        or type(quests.Utils.ReadIDFromGUID) ~= "function" then return end
     local fields = {
         [sound_event.QuestAccept] = 2,
         [sound_event.QuestProgress] = 4,
@@ -57,32 +57,36 @@ spoken.prepare_playback = function ()
         local id, kind
         if readable(clip.unitGUID) then id, kind = quests.Utils:ReadIDFromGUID(clip.unitGUID) end
         if field and translation.get_quest_language() ~= "en" then
-            if options.section_enabled("quest_text") then words = quest_text(clip, field) end
-            if options.name_enabled and options.name_enabled("quest") or
-                not options.name_enabled and options.translate_name("quest") then
-                title = checked_entry("quest", clip.questID, clip.title, 1)
+            local quest = matched_name_entry("quest", clip.questID, clip.title)
+            if quest then
+                if options.section_enabled("quest_text") then words = quest_text(clip, field) end
+                if options.section_enabled("quest_names") and options.translate_name("quest") then
+                    title = quest[1]
+                end
             end
         elseif (clip.event == sound_event.Gossip or clip.event == sound_event.QuestGreeting)
-            and options.section_enabled("gossip") and public_id(id) and readable(clip.text) then
+            and guid:IsCreature(kind) and options.section_enabled("gossip")
+            and public_id(id) and readable(clip.text) then
             words = entries.find_gossip_translation(id, clip.text, false)
         end
 
-        local guid = quests.Enums.GUID
-        if guid and readable(clip.name) then
+        if readable(clip.name) then
+            local npc
             if (kind == guid.Creature or kind == guid.Vehicle) and options.section_enabled("npc_target") then
-                name = checked_entry("npc", id, clip.name)
+                npc = matched_name_entry("npc", id, clip.name)
             elseif kind == guid.GameObject and options.section_enabled("objects") then
-                name = checked_entry("object", id, clip.name)
+                npc = matched_name_entry("object", id, clip.name)
             end
+            name = npc and npc[1]
         end
-        if title then display.label = utils.cap(title) end
-        if name then display.header = utils.cap(name) end
+        if readable(title) then display.label = utils.cap(title) end
+        if readable(name) then display.header = utils.cap(name) end
         if readable(words) then
             -- Audio resolution has already completed. Spoken estimates caption timing
             -- from the translated words when the recording's word offsets are absent.
             display.transcript = words
             display.timings = nil
         end
-        if title or name or readable(words) then display.font = assets.font_frizqt end
+        if readable(title) or readable(name) or readable(words) then display.font = assets.font_frizqt end
     end)
 end

@@ -68,6 +68,12 @@ local scheduler = addon_table.use("translation_scheduler")
 local hooks = addon_table.use("translation_hooks").bind("main")
 local utils = addon_table.use("utils")
 local fojji = addon_table.use("fojji")
+local spoken = addon_table.use("spoken")
+
+local function prepare_spoken()
+    spoken.prepare_interface()
+    spoken.prepare_playback()
+end
 
 local function prepare_fojji(rescan)
     if type(fojji.prepare) == "function" then fojji.prepare(rescan) end
@@ -1243,6 +1249,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         if type(loaded_addon) == "string" and loaded_addon:find("^FojjiCore") then
             prepare_fojji(true)
         end
+        if spoken.handles_addon(loaded_addon) then prepare_spoken() end
         if loaded_addon == "Blizzard_PTRFeedback" and self.uaForeverLoginReady then
             tooltip_feedback_adapter.prepare()
         end
@@ -1290,6 +1297,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
         utils.prepare()
         options.prepare()
+        prepare_spoken()
         prepare_fojji()
         dev_log.prepare()
         fonts.prepare()
@@ -1311,6 +1319,8 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
 
         prepare_fojji(true)
         translation.prepare()
+        spoken.entries_ready = true
+        prepare_spoken()
         resolver.prepare()
         registry.register_defaults(strings.translate_frame)
         registry.prepare_root_hooks()
