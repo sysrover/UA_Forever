@@ -14,6 +14,8 @@ local locale = addon_table.spoken_locale_uk.Quests
 local readables_locale = addon_table.spoken_locale_uk.Readables
 local bosses_locale = addon_table.spoken_locale_uk.Bosses
 local selected_rows = setmetatable({}, { __mode = "k" })
+local wrapped_lists = setmetatable({}, { __mode = "k" })
+local places_lists = setmetatable({}, { __mode = "kv" })
 local wrapped_tabs = setmetatable({}, { __mode = "k" })
 local wrapped_pages = setmetatable({}, { __mode = "k" })
 
@@ -32,8 +34,9 @@ local function readable(text)
     return not runtime.is_secret_value(text) and type(text) == "string" and text ~= ""
 end
 
-local function enabled()
-    return spoken.entries_ready and options.can_translate("translate_spoken")
+local function enabled(key)
+    return (key == "places" or spoken.entries_ready)
+        and options.can_translate("translate_spoken")
 end
 
 local function quest_enabled(section)
@@ -117,13 +120,14 @@ local function set_face(region, file)
 end
 
 local function prepare_list(list, panel, key)
-    local definition = list and list.opts
+    if not list or wrapped_lists[list] then return end
+    local definition = list.opts
     if not definition or type(definition.build) ~= "function" then return end
     local build = definition.build
     definition.build = profile("spoken-compendium.rows", function (...)
         local rows = build(...)
         selected_rows[panel] = nil
-        if not enabled() then return rows end
+        if not enabled(key) then return rows end
         for _, row in ipairs(rows) do
             if key == "quests" and definition.isSelected and definition.isSelected(row) then
                 selected_rows[panel] = row
@@ -134,7 +138,7 @@ local function prepare_list(list, panel, key)
         return rows
     end)
     hooks.region(list, "Render", function (self)
-        if not enabled() then return end
+        if not enabled(key) then return end
         for index = 1, #(self.items or {}) do
             local row = self.rows[index]
             if row then
@@ -142,7 +146,41 @@ local function prepare_list(list, panel, key)
                 set_face(row.count, assets.font_frizqt)
             end
         end
+    end, nil, key == "places")
+    wrapped_lists[list] = true
+    if key == "places" then places_lists[panel] = list end
+end
+
+local function prepare_existing_places_list(panel)
+    if not panel or places_lists[panel] or not panel.inset then return end
+    -- Spoken keeps the list local, but each acquired button retains its list.
+    local ok, list = pcall(function ()
+        for _, child in ipairs({ panel.inset:GetChildren() }) do
+            if type(child.GetScrollChild) == "function" then
+                local content = child:GetScrollChild()
+                local row = content and content:GetChildren()
+                local owner = row and row.list
+                if owner and owner.panel == panel and owner.inset == panel.inset
+                    and owner.scroll == child then return owner end
+            end
+        end
     end)
+    if not ok or not list then return end
+    prepare_list(list, panel, "places")
+
+    local visible_ok, visible = pcall(function () return panel:IsVisible() end)
+    if not visible_ok or runtime.is_secret_value(visible) or visible ~= true
+        or not enabled("places") then return end
+    -- The panel was drawn before we could wrap its builder. Update that draw
+    -- in place so selection and scroll do not need another native rebuild.
+    for index, item in ipairs(list.items or {}) do
+        local row = list.rows[index]
+        local label = spoken.place_name(item.label)
+        if row and row.row == item and readable(label)
+            and runtime.set_fallback_text(row.label, label) then
+            set_face(row.label, assets.font_frizqt)
+        end
+    end
 end
 
 local function part_context(part)
@@ -299,6 +337,14 @@ local list_keys = { "quests", "places", "readables", "bosses" }
 spoken.prepare_compendium = function ()
     local compendium = _G.SpokenCompendium
     if not compendium or type(compendium.Tab) ~= "function" then return end
+    -- Places passes its finished list to PageHolder before the first render.
+    -- Bind to that list even if another integration supplied the constructor.
+    hooks.region(compendium, "PageHolder", function (panel, list)
+        local tab = compendium:Tab("places")
+        if tab and panel == tab.panel then prepare_list(list, panel, "places") end
+    end, nil, true)
+    local places_tab = compendium:Tab("places")
+    if places_tab then prepare_existing_places_list(places_tab.panel) end
     hooks.once("lists", function ()
         local native = compendium.NewList
         if type(native) ~= "function" then return false end
