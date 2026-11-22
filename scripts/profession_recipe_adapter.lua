@@ -16,6 +16,7 @@ local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").skills
 
 local OWNER = "profession-recipes"
+local FAVORITES_CATEGORY_ID = -1
 local tooltip_contract
 local recipe_tooltip_contexts = setmetatable({}, { __mode = "k" })
 local seeded_pages = setmetatable({}, { __mode = "k" })
@@ -98,14 +99,22 @@ end
 local function translate_category(row)
     local data = element_data(row)
     local info = data and (data.categoryInfo or data.categoryData or data)
-    local category_id = info and number(info.categoryID)
-    if not category_id then return end
+    local category_id = info and info.categoryID
+    if type(category_id) ~= "number" or is_secret(category_id)
+        or not (category_id > 0 or category_id == FAVORITES_CATEGORY_ID) then return end
     local title
     if type(row.GetTitleRegion) == "function" then
         local ok, value = pcall(row.GetTitleRegion, row)
         if ok then title = value end
     end
-    local translated = category_translation(category_id, title)
+    local translated
+    if category_id == FAVORITES_CATEGORY_ID then
+        -- Blizzard creates this category in Lua, outside TradeSkillCategory.
+        local source = runtime.safe_string_or_nil(info.name)
+        translated = source and strings.find_ui_translation(source, title)
+    else
+        translated = category_translation(category_id, title)
+    end
     if translated then
         apply(title, translated, "profession.category:" .. category_id)
     end

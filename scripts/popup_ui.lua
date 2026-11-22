@@ -3,6 +3,7 @@ local _, addon_table = ...
 local popup_ui = addon_table.use("popup_ui")
 local surface_text = assert(addon_table.forever_surface_ui,
     "UA Forever surface UI catalog is not loaded").menus
+local tooltip_text = addon_table.forever_tooltip_ui
 local auto_scan = addon_table.use("auto_scan")
 local strings = addon_table.use("strings")
 local fonts = addon_table.use("fonts")
@@ -18,6 +19,12 @@ local hooks = addon_table.use("translation_hooks").bind("popup_ui")
 local purchase_dialogs = {
     CONFIRM_PURCHASE_TOKEN_ITEM = true,
     CONFIRM_PURCHASE_NONREFUNDABLE_ITEM = true,
+}
+
+local enchant_replacement_dialogs = {
+    REPLACE_ENCHANT = true,
+    TRADE_REPLACE_ENCHANT = true,
+    REPLACE_TRADESKILL_ENCHANT = true,
 }
 
 local dynamic_dialogs = {
@@ -137,16 +144,43 @@ local function translate_and_capture_frame(dialog)
     capture_auto_frame(dialog)
 end
 
+local function format_enchant_replacement(region)
+    local ok, existing, replacement = pcall(function ()
+        return region.text_arg1, region.text_arg2
+    end)
+    if not ok then return end
+    existing = runtime.safe_string_or_nil(existing)
+    replacement = runtime.safe_string_or_nil(replacement)
+    local template = runtime.safe_string_or_nil(_G.REPLACE_ENCHANT)
+    if not existing or not replacement or not template then return end
+
+    local ukrainian = resolver.find_ui(template, region)
+    if not ukrainian and not template:find('\\"', 1, true) then
+        -- The decoded GlobalStrings entry stores the quotes with backslashes.
+        ukrainian = resolver.find_ui((template:gsub('"', '\\"')), region)
+    end
+    if not ukrainian then return end
+    local translate_effect = tooltip_text.translate_item_modification
+    return renderer.format_arguments(ukrainian,
+        translate_effect(existing) or existing, translate_effect(replacement) or replacement)
+end
+
 local function translate_dynamic_popup(dialog)
-    if not dialog or not dynamic_dialogs[dialog.which] then return end
+    if not dialog then return end
+    local enchant_replacement = enchant_replacement_dialogs[dialog.which]
+    if not enchant_replacement and not dynamic_dialogs[dialog.which] then return end
     local region = popup_text_region(dialog)
     if not region or type(region.GetText) ~= "function" then return end
     local ok, source = pcall(region.GetText, region)
     source = ok and runtime.safe_string_or_nil(source) or nil
     if not source then return end
-    -- A player's name or a destination may already be Ukrainian while the
-    -- surrounding client template is still English. Resolve the whole message.
-    local translated = resolver.find_ui(source, region)
+    local translated
+    if enchant_replacement then
+        translated = format_enchant_replacement(region)
+    else
+        -- A player or destination name may already be Ukrainian within the native message.
+        translated = resolver.find_ui(source, region)
+    end
     if not translated or translated == source then return end
     if runtime.apply(region, {
         owner = "popup", slot = "dynamic.message", source = source,
@@ -494,7 +528,7 @@ local function after_static_popup_show(which, _, _, data)
     dialog.uaForeverLayoutText = nil
     local region = popup_text_region(dialog)
     if translate_purchase_popup(dialog) then return end
-    if dynamic_dialogs[which] then
+    if dynamic_dialogs[which] or enchant_replacement_dialogs[which] then
         prepare_group_invite_buttons(dialog)
         translate_dynamic_popup(dialog)
         translate_popup_button(dialog, "GetButton1")
