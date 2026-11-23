@@ -4448,6 +4448,20 @@ addonTable.object_ids = {
     [710492] = { [1] = "Камінь", ["en"] = "Rock" },
     [710493] = { [1] = "Камінь", ["en"] = "Rock" },
     [423431] = { [1] = "Вівтар духа вітру", ["en"] = "Altar of the Wind Spirit" },
+    [422502] = { [1] = "Вогонь у горні", ["en"] = "Bellows Fire" },
+    [423703] = { [1] = "Зламаний бойовий молот", ["en"] = "Broken Warhammer" },
+    [566037] = { [1] = "Обвуглені рештки", ["en"] = "Charred Remains" },
+    [566038] = { [1] = "Залізна клітка", ["en"] = "Iron Cage" },
+    [581734] = { [1] = "Кістка з долини", ["en"] = "Valley Bone" },
+    [581737] = { [1] = "Кістка з долини", ["en"] = "Valley Bone" },
+    [581738] = { [1] = "Кістки з долини", ["en"] = "Valley Bones" },
+    [581739] = { [1] = "Кістки з долини", ["en"] = "Valley Bones" },
+    [584112] = { [1] = "Скелети Орґрула", ["en"] = "Orgrul's Skeletons" },
+    [612082] = { [1] = "Верстак мисливця", ["en"] = "Trapper's Workbench" },
+    [656101] = { [1] = "Королівська егіда Перенольдів", ["en"] = "Royal Aegis of Perenolde" },
+    [670347] = { [1] = "Сортове вино Фоллруків", ["en"] = "Fallrook Varietal" },
+    [670348] = { [1] = "Хміль для домашнього пива", ["en"] = "Homebrew Hops" },
+    [670473] = { [1] = "Флакон", ["en"] = "Vial" },
 }
 
 addonTable.object = {
@@ -8051,6 +8065,18 @@ addonTable.object = {
     ["Arcane Lightning"] = "Блискавка таємної магії",
     ["Fragmented Sentry"] = "Розколотий вартовий",
     ["Altar of the Wind Spirit"] = "Вівтар духа вітру",
+    ["Bellows Fire"] = "Вогонь у горні",
+    ["Broken Warhammer"] = "Зламаний бойовий молот",
+    ["Charred Remains"] = "Обвуглені рештки",
+    ["Iron Cage"] = "Залізна клітка",
+    ["Valley Bone"] = "Кістка з долини",
+    ["Valley Bones"] = "Кістки з долини",
+    ["Orgrul's Skeletons"] = "Скелети Орґрула",
+    ["Trapper's Workbench"] = "Верстак мисливця",
+    ["Royal Aegis of Perenolde"] = "Королівська егіда Перенольдів",
+    ["Fallrook Varietal"] = "Сортове вино Фоллруків",
+    ["Homebrew Hops"] = "Хміль для домашнього пива",
+    ["Vial"] = "Флакон",
 }
 
 addonTable.translate_object_name = function (name)

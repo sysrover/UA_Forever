@@ -4,7 +4,7 @@ local _, addon_table = ...
 
 local database = {
     sourceBuild = "1.60.1.71037",
-    count = 25527,
+    count = 25530,
     rows = {
         [18757] = "Diabolic Mantle",
         [25] = "Worn Shortsword",
@@ -25533,6 +25533,9 @@ local database = {
         [291005] = "Camper's Lure",
         [11603] = "Vilerend Slicer",
         [291874] = "Ruined Herb Seeds",
+        [11422] = "Goblin Engineer's Renewal Gift",
+        [11423] = "Gnome Engineer's Renewal Gift",
+        [219326] = "Seed of Renewal",
     },
 }
 
