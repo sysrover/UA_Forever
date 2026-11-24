@@ -16,7 +16,6 @@ local profiler = addon_table.use("performance_profile")
 local prepared_menus = setmetatable({}, { __mode = "k" })
 local prepared_descriptions = setmetatable({}, { __mode = "k" })
 local unit_popup_descriptions = setmetatable({}, { __mode = "k" })
-local player_menu_labels = setmetatable({}, { __mode = "k" })
 local bnet_friend_labels = setmetatable({}, { __mode = "k" })
 local early_labels = setmetatable({}, { __mode = "k" })
 local prepared_legends = setmetatable({}, { __mode = "k" })
@@ -287,63 +286,6 @@ local function prepare_bnet_friend_label(description, util)
     end
 end
 
-local function queue_player_menu_label(menu, frame, description, region, source, policy)
-    local batch = player_menu_labels[menu]
-    if not batch then
-        batch = { rows = {} }
-        player_menu_labels[menu] = batch
-
-        local function translate()
-            if player_menu_labels[menu] ~= batch then return end
-            local rows = batch.rows
-            batch.rows = {}
-            local ok, visible = pcall(function () return menu:IsVisible() end)
-            if not ok or runtime.is_secret_value(visible) or visible ~= true then return end
-            dev_log.mark_restricted_path("unit-menu", "labels-begin")
-            for row_frame, row in pairs(rows) do
-                local readable, current = pcall(function ()
-                    local current_description = row_frame:GetElementDescription()
-                    local label = row_frame.fontString
-                    if not runtime.is_secret_value(current_description) and current_description == row.description
-                        and not runtime.is_secret_value(label) and label == row.region then
-                        return label:GetText()
-                    end
-                end)
-                current = readable and runtime.safe_string_or_nil(current) or nil
-                if current == row.source
-                    and strings.translate_region(row.region, nil, nil, policy, nil, nil, policy.section) then
-                    fit_menu_label(row.region)
-                end
-            end
-            dev_log.mark_restricted_path("unit-menu", "labels-end")
-        end
-        batch.task = { id = "open-menu:" .. tostring(menu), work_scope = "menus_ui",
-            callback = translate }
-    end
-    batch.rows[frame] = { description = description, region = region, source = source }
-
-    -- Native responses can reinitialize open rows without OnShow. The scheduler
-    -- batches them by menu and runs after the native enable checks and layout.
-    scheduler.request(batch.task)
-end
-
-local function prepare_player_menu_label(description, util, policy)
-    local ok, source = pcall(util.GetElementText, description)
-    source = ok and runtime.safe_string_or_nil(source) or nil
-    -- The main title gets its name in a native initializer and has no source label.
-    if not source or policy.names[source:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")] then return end
-
-    local function initialize(frame, _, menu)
-        if runtime.is_secret_value(frame) or runtime.is_secret_value(menu) or not frame or not menu
-            or options.can_lookup_section and not options.can_lookup_section(policy.section) then return end
-        local readable, region = pcall(function () return frame.fontString end)
-        if not readable or runtime.is_secret_value(region) or not region then return end
-        queue_player_menu_label(menu, frame, description, region, source, policy)
-    end
-    if profiler.wrap then initialize = profiler.wrap("menus.player-menu-label", initialize) end
-    pcall(description.AddInitializer, description, initialize)
-end
-
 local function translate_menu_label(region)
     local state = early_labels[region]
     if not state or runtime.is_applying(region) then return end
@@ -431,17 +373,15 @@ local function prepare_menu_description(_, owner, root)
         end
     end
     if policy.tag:match("^MENU_UNIT_") then
-        -- Unit popups run native enable checks from their final initializers.
-        -- Remember the descriptions for the display pass after the menu opens.
+        -- SELF and PET include protected raid-marker actions. Keep their native
+        -- descriptions intact and translate visible labels after the menu opens.
         dev_log.mark_restricted_path("unit-menu", "description-ready "
             .. (policy.tag:match("^MENU_UNIT_[A-Z0-9_]+$") or "MENU_UNIT"))
         local bnet_friend = policy.tag == "MENU_UNIT_BN_FRIEND"
             or policy.tag == "MENU_UNIT_BN_FRIEND_OFFLINE"
         util.TraverseMenu(root, function (description)
             unit_popup_descriptions[description] = policy
-            if policy.tag == "MENU_UNIT_SELF" then
-                prepare_player_menu_label(description, util, policy)
-            elseif bnet_friend then
+            if bnet_friend then
                 prepare_bnet_friend_label(description, util)
             end
         end)
@@ -540,7 +480,6 @@ end
 local function translate_open_menu(_, menu)
     if not menu or runtime.is_secret_value(menu)
         or options.work_enabled and not options.work_enabled("menus_ui") then return end
-    if player_menu_labels[menu] then return end
     local prepared = prepared_menus[menu]
     if prepared and not prepared.fallback then return end
     local function translate()
@@ -610,7 +549,6 @@ local function clear_closed_menu(_, menu)
     if not menu or runtime.is_secret_value(menu) then return end
     -- Blizzard returns this proxy to the pool after closing the current menu.
     prepared_menus[menu] = nil
-    player_menu_labels[menu] = nil
     scheduler.cancel("open-menu:" .. tostring(menu))
 end
 
