@@ -1547,7 +1547,7 @@ local database = {
             { effectID = 97379, spellID = 1248382, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [3663] = {
-            { effectID = 97630, spellID = 1248377, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 97630, spellID = 1248381, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [3664] = {
             { effectID = 97631, spellID = 1248387, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = 0, categoryCooldownMS = -1, spellCategoryID = 11, specializationID = 0, playerConditionID = 0 },
@@ -2960,13 +2960,13 @@ local database = {
             { effectID = 97949, spellID = 1237152, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = 0, categoryCooldownMS = 0, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [5525] = {
-            { effectID = 97850, spellID = 433, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 97850, spellID = 1248377, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [5526] = {
-            { effectID = 97827, spellID = 434, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 97827, spellID = 1248381, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [5527] = {
-            { effectID = 97789, spellID = 5006, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 97789, spellID = 1248386, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [5528] = {
             { effectID = 97790, spellID = 402265, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
@@ -10183,7 +10183,7 @@ local database = {
             { effectID = 222991, spellID = 19801, triggerType = 6, slotIndex = 1, charges = 0, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [16766] = {
-            { effectID = 100343, spellID = 1129, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 100343, spellID = 1248394, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [16767] = {
             { effectID = 100790, spellID = 402265, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
@@ -23461,7 +23461,7 @@ local database = {
             { effectID = 214127, spellID = 1248381, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [250081] = {
-            { effectID = 214128, spellID = 1131, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
+            { effectID = 214128, spellID = 1248398, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },
         },
         [250173] = {
             { effectID = 214193, spellID = 402265, triggerType = 0, slotIndex = 0, charges = -1, cooldownMS = -1, categoryCooldownMS = -1, spellCategoryID = 0, specializationID = 0, playerConditionID = 0 },

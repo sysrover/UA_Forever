@@ -1741,6 +1741,34 @@
     "extraction": "build/forever-client-inventory/71037/cache-7-8-extract.zip",
     "addedIDs": [11422, 11423, 219326]
   },
+  "itemNameHotfix71037": {
+    "sourceBuild": "1.60.1.71037",
+    "cacheSHA256": "9263863d43ddd7cfa77ef77092d669afe2d65c25e0940e47ec803ce29ef5e008",
+    "changedIDs": [272432]
+  },
+  "cache9TranslationImport": {
+    "sourceBuild": "1.60.1.71037",
+    "sourceDirectory": "C:\\Users\\sysro\\Downloads\\cache\\9",
+    "cacheSHA256": "28ac0868d947774ab24494c9fd9d14f99d54a039cf6603eefc1151658c70470c",
+    "baselineInventory": "build/forever-client-inventory/71037",
+    "wdbSHA256": {
+      "creaturecache.wdb": "791e26631841cab69adb61841a86e31f8b69e44ec83dfaad7d3bd2825caf5e55",
+      "gameobjectcache.wdb": "b55017fc15321ec0707f8b04e3d4e9d06da533ea18b5bb67e71e15b3ec98bee4",
+      "pagetextcache.wdb": "d6e1bdeb83bb74070685abfae4f8d52bf6d6dc1c1f69c63c3a23506df122b489",
+      "questcache.wdb": "a61f8f4fdfaa2ff51748d6f15bdacc81fd5ecb6eee412f0df9d7145af45523c7"
+    },
+    "npcNamesAdded": 69,
+    "npcEnglishSourcesAdded": 13,
+    "objectIDsAdded": 35,
+    "objectNamesAdded": 1,
+    "broadcastTextIDsAdded": [6485, 7944, 255583, 304461, 304463, 308441, 309710, 309778, 311238, 316087, 316088, 316089, 317040, 317044, 317046, 317049, 317344, 317889, 325671, 325672, 325674, 325786, 325823, 327781, 327785],
+    "bookPagesAdded": 15,
+    "itemEffectIDsUpdated": [97630, 97789, 97827, 97850, 100343, 214128],
+    "professionAbilityIDsUpdated": [3962, 3963, 3964, 4204, 11740, 54506],
+    "professionAbilityIDsAdded": [60362],
+    "npcIDsAwaitingContext": [271642, 271645],
+    "inGameVerified": false
+  },
   "metadataFinalization70291": {
     "sourceBuild": "1.60.1.70291",
     "previousBuild": "1.60.1.70245",
