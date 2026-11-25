@@ -1,10 +1,10 @@
 -- Ukrainian aura descriptions with incomplete English rows separated.
 -- Preserve every spellID and WoW $ token when editing this file.
--- Client build: 1.60.1.71037; source: Spell.db2:AuraDescription_lang
+-- Client build: 1.60.1.71091; source: Spell.db2:AuraDescription_lang
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.71037",
+    sourceBuild = "1.60.1.71091",
     count = 7894,
     rows = {
         [1299332] = "Кровотеча завдає $s1 шкоди кожні $t1 с.",

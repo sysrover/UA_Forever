@@ -1,10 +1,10 @@
 -- Consolidated Ukrainian item names for the exact client build.
 -- Sources: validated ClassicUA names plus completed UA_Forever worklists.
--- Client build: 1.60.1.71037; English source changes reviewed against build 1.60.1.70938; historical IDs retained.
+-- Client build: 1.60.1.71091; English source changes reviewed against build 1.60.1.71037; historical IDs retained.
 local _, addon_table = ...
 
 local database = {
-    sourceBuild = "1.60.1.71037",
+    sourceBuild = "1.60.1.71091",
     count = 25530,
     rows = {
         [18757] = "Диявольська мантія",
@@ -8922,7 +8922,7 @@ local database = {
         [12636] = "Шолом великого вождя",
         [12638] = "Годинник Андорала",
         [12639] = "Рукавиці твердині",
-        [12640] = "Ліонгеарт шолом",
+        [12640] = "Шолом Левового Серця",
         [12641] = "Невразлива кольчуга",
         [12642] = "Очищена сфера пекельника",
         [12643] = "Щільне грузило",
@@ -8970,7 +8970,7 @@ local database = {
         [12714] = "Креслення: Рунічний латний шолом",
         [12715] = "Креслення: Імперські латні поножі",
         [12716] = "Викрійка: Гелм Ґреат Чіеф",
-        [12717] = "Креслення: Шолом левиного серця",
+        [12717] = "Креслення: Шолом Левового Серця",
         [12718] = "Креслення: Рунічна кіраса",
         [12719] = "Креслення: Рунічні латні поножі",
         [12720] = "Креслення: Рукавиці твердині",

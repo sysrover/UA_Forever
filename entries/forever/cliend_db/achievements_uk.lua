@@ -2,7 +2,7 @@ local _, addon_table = ...
 
 -- Approved Ukrainian achievement translations, keyed by client IDs.
 local database = {
-    sourceBuild = "1.60.1.71037",
+    sourceBuild = "1.60.1.71091",
     count = 441,
     criteria = {
         ["Played in the World of Warcraft: Forever Beta"] = "Участь у бета-тестуванні WoW: Forever",
@@ -29,6 +29,7 @@ local database = {
         ["Bloodkelp Elixir of Dodging"] = "Кров'яничний еліксир ухилення",
         ["Flask of Chromatic Resistance"] = "Настій хроматичного опору",
         ["Major Dreamless Sleep Potion"] = "Потужне зілля сну без сновидінь",
+        ["Saving the Best for Last"] = "Найкраще — наостанок",
     },
     rows = {
         [49] = { title = "Перемоги в Альтерацькій долині", description = "Перемоги в Альтерацькій долині", reward = "" },

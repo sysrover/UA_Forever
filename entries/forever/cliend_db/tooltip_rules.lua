@@ -173,6 +173,7 @@ local tooltip = {
         ["Seal of Battle"] = "Печатка битви",
         ["Talisman of Battle"] = "Талісман битви",
         ["Arena Master"] = "Майстер арени",
+        ["Gift of the Wild Gods"] = "Дар диких богів",
     },
     translated_cast_markers = {
         ["Миттєво"] = true,

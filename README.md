@@ -5,10 +5,10 @@ built for its modern Camelot interface. It translates quests, tooltips,
 menus, character and profession panels, chat, NPC names, and other visible text.
 Hold Shift (or Alt/Ctrl, selected in addon settings) to see the original tooltip; quest conversations have an EN/UA
 switch. Target client: World of Warcraft: Forever (Interface `16001`).
-Bundled client data: build `1.60.1.71037`.
+Bundled client data: build `1.60.1.71091`.
 
 UA Forever — доповнення з українською локалізацією для World of Warcraft: Forever, створене для сучасного інтерфейсу Camelot. Воно перекладає завдання, підказки, меню, панелі персонажа й професій, чат, імена NPC та інший видимий текст.
-Утримуйте Shift, щоб побачити оригінал підказки; у налаштуваннях аддона можна вибрати Alt або Ctrl. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.71037.
+Утримуйте Shift, щоб побачити оригінал підказки; у налаштуваннях аддона можна вибрати Alt або Ctrl. У діалогах завдань можна перемикатися між англійською та українською мовами. Цільовий клієнт: World of Warcraft: Forever (інтерфейс 16001). Клієнтські дані в аддоні: збірка 1.60.1.71091.
 
 ## Реліз 1.1.2
 
@@ -33,7 +33,7 @@ ClassicUA: [GitHub](https://github.com/greenya/ClassicUA) ·
 [CurseForge](https://www.curseforge.com/wow/addons/classicua).
 
 Classic translations can be outdated when Forever changes a spell or quest.
-The bundled client catalog declares `1.60.1.71037` in its manifest;
+The bundled client catalog declares `1.60.1.71091` in its manifest;
 `/uaf scan` reports a build mismatch when the running client differs.
 
 ## Commands

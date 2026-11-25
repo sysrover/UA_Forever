@@ -1,5 +1,5 @@
 {
-  "sourceBuild": "1.60.1.71037",
+  "sourceBuild": "1.60.1.71091",
   "itemMetadata": 4169,
   "itemClasses": 17,
   "itemSubclasses": 100,
@@ -8,7 +8,7 @@
   "itemEnchantments": 2219,
   "gemProperties": 0,
   "itemNameDescriptions": 92,
-  "itemLimitCategories": 51,
+  "itemLimitCategories": 52,
   "itemBonuses": 1126,
   "itemBonusLists": 367,
   "itemBonusTrees": 115,
@@ -17,11 +17,11 @@
     "ItemRandomProperties",
     "ItemRandomSuffix"
   ],
-  "inventory": "build/forever-client-inventory/71037",
-  "itemMetadataInventory": "build/forever-client-inventory/71037/db2/itemsparse.json",
-  "cacheSHA256": "b0580eddfe46f4bb5b0a481ffeb1758d71da41b02e39d723f17dabb931c40fec",
-  "cacheProvenance": "build/forever-client-inventory/71037/cache-snapshot/provenance.json",
-  "cacheScope": "Exact-build 71037 CASC with the stable matching cache; approved historical compatibility rows retained.",
+  "inventory": "build/forever-client-inventory/71091",
+  "itemMetadataInventory": "build/forever-client-inventory/71091/db2/itemsparse.json",
+  "cacheSHA256": "eabed51ada3b8b2f891eeb6d65d8a4274db6edb7f018bcbaac69f2f4f32a8f7b",
+  "cacheProvenance": "build/forever-client-inventory/71091/cache-snapshot/provenance.json",
+  "cacheScope": "Exact-build 71091 CASC with matching enUS hotfix snapshot; approved historical compatibility rows retained.",
   "retainedHotfixProvenance": {
     "sourceBuild": "1.60.1.70755",
     "itemMetadata": 4039,
