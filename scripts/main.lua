@@ -2,7 +2,7 @@ local addon_name, addon_table = ...
 local profiler = addon_table.use("performance_profile")
 local CreateFrame = profiler.frame_factory and profiler.frame_factory("main") or _G.CreateFrame
 local profile_callback = profiler.wrap or function (_, callback) return callback end
-local addon_version = "1.1.2"
+local addon_version = "1.1.3"
 local addon_locale = assert(addon_table.addon_locale_uk,
     "UA Forever addon locale is not loaded")
 local message_text = assert(addon_locale.main, "UA Forever main messages are not loaded")
@@ -1342,6 +1342,7 @@ event_frame:SetScript("OnEvent", function (self, event, ...)
         items.prepare()
         profession_frame_adapter.prepare()
         profession_recipe_adapter.prepare()
+        addon_table.use("profession_tracker").prepare()
         talent_frame_adapter.prepare()
         quest_switcher.prepare()
         quest_ui.prepare()

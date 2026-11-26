@@ -177,6 +177,10 @@ book_ui.snapshot = function ()
         current_book_id, current_book_name, page)
     local translated_title = entries.get_book_title
         and entries.get_book_title(current_book_name) or nil
+    if not translated_title and current_book_name and type(identity) == "number"
+        and item_client_db.ready and item_client_db.get_english_name(identity) == current_book_name then
+        translated_title = item_client_db.get_name(identity)
+    end
     local region = _G.ItemTextPageText
     local visible
     if page_overlay then

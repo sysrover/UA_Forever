@@ -118,6 +118,7 @@ local scope_sections = {
     ["player-choice"] = { "quest_ui" },
     ["profession-frame"] = { "profession_ui", "skill_names" },
     ["profession-recipes"] = { "recipes", "item_names", "skill_names", "profession_ui" },
+    ["profession-tracker"] = { "recipes", "item_names" },
     ["talent-frame"] = { "spell_ui", "talents" },
     ["legacy-ui"] = { "achievements", "talents", "item_names", "spell_names" },
     ["cooldown-viewer"] = { "game_settings", "spell_names", "generic_tooltips" },

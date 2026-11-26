@@ -38,6 +38,7 @@
     <Script file="talent_frame_adapter.lua"/>
     <Script file="profession_frame_adapter.lua"/>
     <Script file="profession_recipe_adapter.lua"/>
+    <Script file="profession_tracker.lua"/>
     <Script file="tooltip_diagnostics.lua"/>
     <Script file="strings.lua"/>
     <Script file="cast_bar_adapter.lua"/>
