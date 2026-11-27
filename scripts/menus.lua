@@ -16,7 +16,17 @@ local profiler = addon_table.use("performance_profile")
 local prepared_menus = setmetatable({}, { __mode = "k" })
 local prepared_descriptions = setmetatable({}, { __mode = "k" })
 local unit_popup_descriptions = setmetatable({}, { __mode = "k" })
-local bnet_friend_labels = setmetatable({}, { __mode = "k" })
+local deferred_unit_labels = setmetatable({}, { __mode = "k" })
+local unit_popup_labels_by_tag = {
+    MENU_UNIT_PLAYER = {
+        ["Whisper"] = true, ["Inspect"] = true, ["View Talents"] = true,
+        ["Trade"] = true, ["Follow"] = true, ["Duel"] = true, ["Other Options"] = true,
+    },
+    MENU_UNIT_COMMUNITIES_GUILD_MEMBER = {
+        ["Invite"] = true, ["Whisper"] = true, ["Ignore"] = true,
+        ["Other Options"] = true, ["Report Player"] = true, ["Copy Character Name"] = true,
+    },
+}
 local early_labels = setmetatable({}, { __mode = "k" })
 local prepared_legends = setmetatable({}, { __mode = "k" })
 local micro_button_names = {
@@ -248,12 +258,18 @@ local function fit_menu_label(region)
     end
 end
 
-local function prepare_bnet_friend_label(description, util)
-    if bnet_friend_labels[description] then return end
+local function prepare_deferred_unit_label(description, util, labels)
+    if deferred_unit_labels[description] then return end
     local ok, source = pcall(util.GetElementText, description)
     source = ok and runtime.safe_string_or_nil(source) or nil
-    local translated = source and addon_table.forever_surface_ui.social.friend_menu(source)
-    if not translated then return end
+    if not source then return end
+    local translated
+    if labels then
+        if labels[source] then translated = strings.find_ui_translation(source) end
+    else
+        translated = addon_table.forever_surface_ui.social.friend_menu(source)
+    end
+    if not translated or translated == source then return end
 
     local function initialize(frame, _, menu)
         if runtime.is_secret_value(frame) or runtime.is_secret_value(menu) or not frame or not menu
@@ -263,11 +279,16 @@ local function prepare_bnet_friend_label(description, util)
 
         -- Native enable checks still run after this initializer. Apply the
         -- display text once those checks and the current layout have finished.
-        scheduler.request({ id = "bnet-friend-label:" .. tostring(region), work_scope = "menus_ui",
+        scheduler.request({ id = "unit-popup-label:" .. tostring(region), work_scope = "menus_ui",
             callback = function ()
                 local readable, visible = pcall(function ()
-                    if menu:IsVisible() and frame:IsVisible() and frame:GetElementDescription() == description
-                        and frame.fontString == region then return region:GetText() end
+                    local menu_shown, frame_shown = menu:IsVisible(), frame:IsVisible()
+                    if runtime.is_secret_value(menu_shown) or runtime.is_secret_value(frame_shown)
+                        or not menu_shown or not frame_shown then return end
+                    local current_description, current_label = frame:GetElementDescription(), frame.fontString
+                    if runtime.is_secret_value(current_description) or runtime.is_secret_value(current_label)
+                        or current_description ~= description or current_label ~= region then return end
+                    return region:GetText()
                 end)
                 if readable and runtime.safe_string_or_nil(visible) == source then
                     runtime.apply(region, {
@@ -280,22 +301,37 @@ local function prepare_bnet_friend_label(description, util)
             end,
         })
     end
-    if profiler.wrap then initialize = profiler.wrap("menus.bnet-friend-label", initialize) end
+    if profiler.wrap then initialize = profiler.wrap("menus.unit-popup-label", initialize) end
     if pcall(description.AddInitializer, description, initialize) then
-        bnet_friend_labels[description] = true
+        deferred_unit_labels[description] = true
     end
 end
+
+local function reset_menu_label(frame)
+    local ok, region = pcall(function () return frame.fontString or frame.Text end)
+    if not ok or runtime.is_secret_value(region) or not region then return end
+    early_labels[region] = nil
+    runtime.invalidate(region)
+end
+if profiler.wrap then reset_menu_label = profiler.wrap("menus.label.reset", reset_menu_label) end
 
 local function translate_menu_label(region)
     local state = early_labels[region]
     if not state or runtime.is_applying(region) then return end
-    local frame, expected = state.references.frame, state.references.description
+    local references = state.references
+    local frame, expected = references.frame, references.description
     if not frame or not expected then return end
-    if type(frame.GetElementDescription) == "function" then
-        local ok, description = pcall(frame.GetElementDescription, frame)
-        if not ok or runtime.is_secret_value(description) or description ~= expected then return end
-    end
     local policy = state.definition.policy
+    local ok_binding, current, description, parent, shown, configuration = pcall(function ()
+        return frame.fontString or policy.settings_menu and frame.Text,
+            frame:GetElementDescription(), region:GetParent(), region:IsShown(), getmetatable(region)
+    end)
+    -- ReinitializeAll releases the attachments without calling the row resetter.
+    -- The compositor installs a new metatable each time it attaches a label.
+    if not ok_binding or runtime.is_secret_value(current) or runtime.is_secret_value(description)
+        or runtime.is_secret_value(parent) or runtime.is_secret_value(shown)
+        or current ~= region or description ~= expected or parent ~= frame or not shown
+        or configuration ~= references.configuration then return end
     if state.policy ~= policy then
         runtime.invalidate(region)
         state.policy = policy
@@ -303,6 +339,7 @@ local function translate_menu_label(region)
     if options.can_lookup_section and not options.can_lookup_section(policy.section) then return end
     local ok, source = pcall(region.GetText, region)
     source = ok and runtime.safe_string_or_nil(source) or nil
+    if not source then return end
     local claim = runtime.get(region)
     if claim and source == claim.translated then
         fit_menu_label(region)
@@ -379,10 +416,11 @@ local function prepare_menu_description(_, owner, root)
             .. (policy.tag:match("^MENU_UNIT_[A-Z0-9_]+$") or "MENU_UNIT"))
         local bnet_friend = policy.tag == "MENU_UNIT_BN_FRIEND"
             or policy.tag == "MENU_UNIT_BN_FRIEND_OFFLINE"
+        local labels = unit_popup_labels_by_tag[policy.tag]
         util.TraverseMenu(root, function (description)
             unit_popup_descriptions[description] = policy
-            if bnet_friend then
-                prepare_bnet_friend_label(description, util)
+            if bnet_friend or labels then
+                prepare_deferred_unit_label(description, util, labels)
             end
         end)
         return
@@ -423,19 +461,23 @@ local function prepare_menu_description(_, owner, root)
                     return
                 end
                 local previous = early_labels[region]
-                if not previous or previous.references.description ~= description or previous.policy ~= state.policy then
+                local configuration = getmetatable(region)
+                if not previous or previous.references.description ~= description
+                    or previous.references.configuration ~= configuration
+                    or previous.policy ~= state.policy then
                     runtime.invalidate(region)
                 end
                 early_labels[region] = { policy = state.policy,
                     definition = state,
                     references = setmetatable({ frame = frame, description = description,
-                        menu = menu }, { __mode = "v" }) }
+                        menu = menu, configuration = configuration }, { __mode = "v" }) }
                 hooks.region(region, "SetText", translate_menu_label)
                 hooks.region(region, "SetTextToFit", translate_menu_label)
                 translate_menu_label(region)
             end
             if profiler.wrap then initialize = profiler.wrap("menus.label.initialize", initialize) end
             if not pcall(description.AddInitializer, description, initialize) then return end
+            pcall(description.AddResetter, description, reset_menu_label)
             prepared_descriptions[description] = state
         end
         state.policy = policy
@@ -465,7 +507,7 @@ local function is_unit_popup_label(region, policy)
     if not frame or runtime.is_secret_value(frame) or frame.fontString ~= region then return false end
     local description = frame:GetElementDescription()
     if runtime.is_secret_value(description) or unit_popup_descriptions[description] ~= policy
-        or bnet_friend_labels[description] then
+        or deferred_unit_labels[description] then
         return false
     end
     local source = runtime.safe_string_or_nil(_G.MenuUtil.GetElementText(description))
@@ -519,6 +561,10 @@ local function translate_open_menu(_, menu)
                         if state and state.references.menu == menu then return true end
                         if not region or type(region.GetText) ~= "function" then
                             return false
+                        end
+                        if policy.settings_menu then
+                            local shown = region:IsShown()
+                            if runtime.is_secret_value(shown) or not shown then return true end
                         end
                         local ok, value = pcall(region.GetText, region)
                         value = ok and runtime.safe_string_or_nil(value) or nil
